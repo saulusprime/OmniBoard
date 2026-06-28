@@ -232,6 +232,25 @@ provider remoto si attiva consapevolmente dopo averlo verificato con «Verifica 
 **Possibile evoluzione:** spostare la mossa IA fuori dal ciclo di richiesta (task/async) e/o un
 *circuit breaker* che disattiva temporaneamente un provider che fallisce ripetutamente.
 
+### ADR-017 — IA scacchi: motore dedicato + modello dell'avversario — 2026-06-28
+**Contesto:** richiesta di potenziare al massimo l'IA degli scacchi: analizzare la scacchiera
+mossa dopo mossa, confrontarsi con gli schemi principali, e studiare lo storico dell'avversario
+per individuarne schemi e debolezze.
+**Decisione:**
+- **Motore dedicato** (`engine/games/chess_engine.py`) invece dell'LLM remoto (più debole a
+  scacchi): negamax alpha-beta con iterative deepening (budget di tempo), transposition table,
+  quiescence search, ordinamento mosse (TT/MVV-LVA/killer/history), valutazione ricca
+  (materiale + PST per fase + struttura pedonale + sicurezza re + coppia alfieri + torri su
+  colonna aperta). Ordine in `choose_move`: libro → motore → provider → locale.
+- **Modello avversario** (`backend/app/chess_profile.py`): dallo storico delle partite concluse
+  ricava aperture/rendimento, fragilità tattica (sconfitte rapide), tendenza alla patta, finali;
+  ne deriva **debolezze** e **stile** (`aggression`, `contempt`) passato al motore quando l'IA
+  affronta quell'umano. Profilo esposto via `GET /users/{id}/chess-profile` e in UI.
+**Conseguenze:** IA scacchi forte e adattiva; budget tempo configurabile (`ai.engine_ms`, tetto
+`AI_ENGINE_MS_MAX`); jitter alla radice per varietà tra partite senza perdita di forza.
+**Alternativa scartata:** affidare la forza scacchistica all'LLM remoto (debole, lento, costoso).
+**Possibile evoluzione:** scelta dell'apertura-bersaglio e stima delle blunder via rianalisi.
+
 ## Traguardi
 
 - **2026-06-28** — Definita l'architettura, scelti licenza e modello del motore; creata la
@@ -260,6 +279,9 @@ provider remoto si attiva consapevolmente dopo averlo verificato con «Verifica 
 - **2026-06-28** — `.env` legge anche dal backend + preregistrazione Qwen; poi **fix freeze**:
   niente auto-attivazione di provider non verificati e **connect timeout** breve sulle chiamate
   IA remote (un endpoint irraggiungibile non blocca più il backend). 68 test verdi.
+- **2026-06-28** — **IA scacchi potenziata**: motore alpha-beta dedicato (iterative deepening,
+  quiescence, transposition table, valutazione ricca) + **modello dell'avversario** dallo storico
+  (schemi, debolezze → stile aggression/contempt). 79 test verdi.
 
 ## Questioni aperte
 

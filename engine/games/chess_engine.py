@@ -130,6 +130,7 @@ class _Ctx:
     contempt: int = 0
     aggression: float = 1.0
     jitter: int = 0
+    root_side: int = 0
 
     def tick(self):
         self.nodes += 1
@@ -332,11 +333,16 @@ def _quiesce(ctx, state, alpha, beta, ply):
 
 
 # ----- Ricerca negamax con alpha-beta + TT -----
+def _draw_score(ctx, state):
+    """Valore della patta dal lato al tratto: l'IA (lato della radice) la evita se contempt>0."""
+    return -ctx.contempt if state.current == ctx.root_side else ctx.contempt
+
+
 def _negamax(ctx, state, depth, alpha, beta, ply):
     ctx.tick()
     game = ctx.game
     if state.halfmove >= 100 or game._insufficient(state.board):
-        return ctx.contempt if state.current == WHITE else -ctx.contempt
+        return _draw_score(ctx, state)
 
     key = (state.board, state.current, state.castling, state.ep)
     entry = ctx.tt.get(key)
@@ -361,7 +367,7 @@ def _negamax(ctx, state, depth, alpha, beta, ply):
     if not moves:
         if game._in_check(state, state.current):
             return -(MATE - ply)  # scacco matto
-        return 0  # stallo
+        return _draw_score(ctx, state)  # stallo
 
     alpha_orig = alpha
     best = -_INF
@@ -426,6 +432,7 @@ def best_move(game, state, history=None, time_limit=2.0, max_depth=64, style=Non
         return legal[0]
 
     ctx = _Ctx(game=game, deadline=time.monotonic() + time_limit, jitter=max(0, int(jitter)))
+    ctx.root_side = state.current
     if style:
         ctx.contempt = int(style.get("contempt", 0))
         ctx.aggression = float(style.get("aggression", 1.0))

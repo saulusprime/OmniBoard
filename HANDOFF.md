@@ -5,6 +5,38 @@
 
 ---
 
+## 2026-06-28 — IA scacchi: modello dell'avversario (schemi e debolezze dallo storico)
+
+**Obiettivo:** far sì che l'IA analizzi lo **storico delle partite dell'avversario** per
+identificarne schemi e debolezze e adattare il proprio gioco. (Secondo filone richiesto.)
+
+**Realizzato:**
+- **Profilazione** `backend/app/chess_profile.py`: `build_profile(db, user_id)` legge le partite
+  di scacchi **concluse** del giocatore e calcola: bilancio per colore, **aperture giocate** con
+  rendimento (via `openings.detect_opening`), durata media, **sconfitte rapide** (fragilità
+  tattica), **tasso di patte**, durata media delle sconfitte (debolezza nei finali). Da qui deriva
+  un elenco di **debolezze** leggibili e i parametri di **stile** per il motore:
+  `aggression` (sale se l'avversario crolla presto → attaccare di più) e `contempt` (sale se patta
+  spesso → evitare le semplificazioni).
+- **Motore**: `contempt` reso semanticamente corretto (la patta è valutata rispetto al **lato
+  dell'IA alla radice**, non al Bianco), applicato a patte per 50 mosse/materiale e **stallo**.
+  `aggression` pesa la sicurezza del re. (contempt 0 / aggression 1 = comportamento invariato.)
+- **Integrazione** (`sessions._opponent_style`): quando l'IA gioca a scacchi contro un **umano**,
+  costruisce il profilo dell'avversario e passa lo `style` a `choose_move` (e quindi al motore).
+- **API/Frontend**: `GET /users/{id}/chess-profile`; la scheda giocatore mostra un pannello
+  «Profilo scacchistico (usato dall'IA)» con debolezze, aperture e stile adattato.
+- **Test** `backend/tests/test_chess_profile.py`: utente inesistente → None; profilo vuoto neutro;
+  rilevamento debolezze + stile (fragilità tattica → aggressività; patte → contempt); endpoint.
+  **79 test** verdi; lint pulito.
+
+**Verifiche dal vivo:** lo `style` derivato dal profilo arriva fino al motore (sorgente
+`"engine"`); profilo calcolato correttamente su partite sintetiche.
+
+**Possibile evoluzione:** scelta dell'**apertura-bersaglio** (giocare le linee in cui l'avversario
+rende peggio) e stima delle *blunder* con rianalisi del motore su un campione di posizioni.
+
+---
+
 ## 2026-06-28 — IA scacchi potenziata: motore di ricerca dedicato (alpha-beta forte)
 
 **Obiettivo:** potenziare il più possibile l'IA degli scacchi — analizzare tutta la scacchiera

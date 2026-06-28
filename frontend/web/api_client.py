@@ -61,6 +61,10 @@ def get_user_history(user_id):
     return _request("GET", f"/users/{user_id}/history")
 
 
+def get_chess_profile(user_id):
+    return _request("GET", f"/users/{user_id}/chess-profile")
+
+
 def create_user(data: dict):
     return _request("POST", "/users", json=data)
 

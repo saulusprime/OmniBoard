@@ -148,6 +148,14 @@ Il tempo di analisi per mossa è regolabile dal super admin (parametro *Tempo di
 motore scacchi*, default 2 secondi): più tempo = gioco più forte. Per gli scacchi il motore locale
 è preferito a un eventuale provider IA remoto perché più forte.
 
+### Modello dell'avversario
+Quando l'IA affronta un giocatore umano, analizza lo **storico delle sue partite di scacchi** per
+individuarne **schemi e debolezze**: aperture giocate e relativo rendimento, fragilità tattica
+(sconfitte rapide), tendenza alla patta, tenuta nei finali. In base al profilo **adatta il proprio
+stile**: più **aggressiva** contro chi crolla presto, più **anti-patta** (evita le semplificazioni)
+contro chi pareggia spesso. Il profilo è consultabile nella scheda del giocatore (pannello
+«Profilo scacchistico») ed è ciò che l'IA usa per prepararsi all'avversario.
+
 ---
 
 ## Dama italiana

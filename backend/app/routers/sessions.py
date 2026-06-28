@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from engine.registry import get_game, is_playable
 
-from .. import ai, ai_providers, models, schemas, services, settings_service
+from .. import ai, ai_providers, chess_profile, models, schemas, services, settings_service
 from ..database import get_db
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
@@ -112,18 +112,37 @@ def _finish_if_terminal(db: Session, game, session: models.GameSession, state) -
     db.commit()
 
 
+def _opponent_style(db: Session, game, session: models.GameSession):
+    """Stile di gioco dell'IA derivato dal profilo dell'avversario umano (solo scacchi).
+
+    Restituisce ``{'aggression':, 'contempt':}`` o ``None`` (gioco neutro) se non c'è un
+    avversario umano identificabile o il gioco non ha un profilo dedicato.
+    """
+    if game.code != chess_profile.CHESS_CODE:
+        return None
+    if session.x_is_ai and not session.o_is_ai and session.o_user_id:
+        opponent_id = session.o_user_id
+    elif session.o_is_ai and not session.x_is_ai and session.x_user_id:
+        opponent_id = session.x_user_id
+    else:
+        return None
+    profile = chess_profile.build_profile(db, opponent_id)
+    return profile["style"] if profile else None
+
+
 def _advance_ai(db: Session, game, session: models.GameSession) -> None:
     """Fa giocare i lati IA finché non tocca a un umano o la partita finisce."""
     state = _load_state(game, session)
     moves = json.loads(session.moves_json or "[]")
     provider = ai_providers.get_active_config(db)
     think_ms = settings_service.get(db, "ai.engine_ms")
+    style = _opponent_style(db, game, session)  # adatta il gioco al profilo dell'avversario
     while not game.is_terminal(state):
         player = game.current_player(state)
         if not _side_is_ai(session, player):
             break
         move, source = ai.choose_move(
-            game, state, _history_ids(moves), provider, think_ms=think_ms, jitter=15
+            game, state, _history_ids(moves), provider, think_ms=think_ms, jitter=15, style=style
         )
         _record_move(game, state, move, player, moves)
         state = game.apply(state, move)

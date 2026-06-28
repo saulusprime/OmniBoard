@@ -7,7 +7,7 @@ import json
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import models, schemas, settings_service
+from .. import chess_profile, models, schemas, settings_service
 from ..database import get_db
 from ..security import hash_password
 
@@ -74,6 +74,18 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
         universal_points=user.universal_points,
         scores=scores,
     )
+
+
+@router.get("/{user_id}/chess-profile")
+def chess_profile_endpoint(user_id: int, db: Session = Depends(get_db)):
+    """Profilo scacchistico del giocatore: schemi (aperture), debolezze e stile derivato.
+
+    È ciò che l'IA usa per adattare il proprio gioco quando affronta questo avversario.
+    """
+    profile = chess_profile.build_profile(db, user_id)
+    if profile is None:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    return profile
 
 
 @router.get("/{user_id}/history")

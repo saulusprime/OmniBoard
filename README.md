@@ -60,6 +60,9 @@ prospettiva, anche quelli con **nodi del caso** (dadi) come backgammon e ludo.
 - 🧠 **Motore scacchi forte**: ricerca alpha-beta con *iterative deepening*, *transposition
   table*, *quiescence* (niente pezzi regalati) e valutazione posizionale ricca; trova matti e
   combinazioni forzate. Budget di tempo per mossa configurabile.
+- 🕵️ **Modello dell'avversario**: l'IA analizza lo **storico** delle partite del giocatore
+  (aperture, fragilità tattica, tendenza alla patta, finali) per individuarne schemi e debolezze
+  e **adatta** il proprio stile (più aggressiva con chi crolla, anti-patta con chi pareggia).
 - 📜 **Log delle mosse** di ogni partita, salvato nello **storico di entrambi i giocatori**.
 - 🛠️ **Tutto parametrizzabile** da un'interfaccia **super admin**: punteggi, regole gruppi,
   registrazione utenti, ritardo IA, limiti, ecc. (protetta da token).
@@ -239,12 +242,13 @@ database. Configurazione tramite `.env` (vedi `.env.example`).
 - [x] Terzo gioco giocabile: **Dama italiana** (catture obbligatorie, dame, mosse a percorso)
 - [x] Quarto gioco giocabile: **Scacchi** completi + **libro di aperture** (riconoscimento + IA)
 - [x] **Login provider IA** (Qwen, Claude, OpenAI): token configurabili da super admin, salvati lato server
+- [x] **IA scacchi potenziata**: motore alpha-beta dedicato (quiescence, TT) + **modello dell'avversario** (schemi/debolezze dallo storico)
 - [ ] Autenticazione/login dei giocatori
 - [ ] Regole di gestione dei gruppi (ruoli, inviti, espulsioni)
 - [ ] Migrazioni del database (Alembic) e PostgreSQL in produzione
 - [ ] Aggiornamento in tempo reale della partita (WebSocket / polling) per il gioco a distanza
 - [ ] Affinamento regole dama (priorità FID tra catture di pari numero, patte)
-- [ ] Scacchi: patta per ripetizione; ampliamento del libro aperture; IA più profonda
+- [ ] Scacchi: patta per ripetizione; ampliamento del libro aperture; apertura-bersaglio sul profilo avversario
 - [ ] Sistema di rating (es. Elo) al posto dello schema punti provvisorio
 - [ ] (Futuro) supporto nodi del caso → Backgammon
 

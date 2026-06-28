@@ -25,6 +25,38 @@
   {% endif %}
 </div>
 
+{% if chess and chess.games %}
+<div class="card">
+  <h2>♟️ Profilo scacchistico <span class="muted" style="font-size:.8rem;">(usato dall'IA)</span></h2>
+  <p class="muted">Su {{ chess.games }} partite analizzate — vittorie {{ chess.win_rate }},
+  patte {{ chess.draw_rate }}, sconfitte {{ chess.loss_rate }}; durata media
+  {{ chess.avg_plies }} semimosse.</p>
+
+  {% if chess.weaknesses %}
+  <h3 style="margin-bottom:6px;">Debolezze individuate</h3>
+  <ul>{% for w in chess.weaknesses %}<li>{{ w }}</li>{% endfor %}</ul>
+  {% else %}
+  <p class="muted">Nessuna debolezza marcata (o partite insufficienti per concludere).</p>
+  {% endif %}
+
+  {% if chess.openings %}
+  <details style="margin-top:8px;">
+    <summary class="muted">Aperture giocate ({{ chess.openings|length }})</summary>
+    <table style="margin-top:8px;">
+      <tr><th>Apertura</th><th>Partite</th><th>Rendimento</th></tr>
+      {% for o in chess.openings %}
+      <tr><td>{{ o.name }}</td><td>{{ o.games }}</td><td>{{ o.score }}</td></tr>
+      {% endfor %}
+    </table>
+  </details>
+  {% endif %}
+
+  <p class="muted" style="margin-top:10px;font-size:.8rem;">
+    Stile IA adattato: aggressività {{ chess.style.aggression }}, contempt {{ chess.style.contempt }}.
+  </p>
+</div>
+{% endif %}
+
 <div class="card">
   <h2>Storico partite</h2>
   {% if history %}
