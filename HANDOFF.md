@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-06-28 — Nota: falso allarme `OperationalError` (moves_json)
+
+Durante una prova è comparso:
+`sqlite3.OperationalError: table game_sessions has no column named moves_json`.
+
+**Causa: errore d'uso, non un bug del codice.** Il backend era stato avviato puntando a un
+database SQLite **obsoleto/diverso**. Il default `DATABASE_URL = sqlite:///./scacchi.db` è
+**relativo alla cartella di avvio**: lanciando il backend da una directory diversa si usa/crea
+un altro file, privo della colonna `moves_json` aggiunta nello step precedente. Il
+`backend/scacchi.db` corretto contiene già la colonna (verificato: 1 utente, 2 partite).
+
+**Nessuna modifica al codice.** Come evitarlo: avviare il backend dalla cartella `backend/`
+(come fa `make backend`) oppure impostare un `DATABASE_URL` con **percorso assoluto**; un DB
+obsoleto creato per sbaglio si può eliminare (sono solo dati di sviluppo).
+
+*Miglioramento futuro:* introdurre **Alembic** per le migrazioni, così i cambi di schema non
+richiederanno più di ricreare il DB in sviluppo.
+
+---
+
 ## 2026-06-28 — Log mosse, animazione/ritardo IA e storico partite
 
 **Obiettivo:** mostrare la mossa dell'IA con un piccolo ritardo e un'animazione; aggiungere
