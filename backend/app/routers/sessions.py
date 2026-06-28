@@ -63,6 +63,10 @@ def _view(session: models.GameSession) -> dict:
     return {
         "id": session.id,
         "game_code": session.game.code,
+        "game_name": game.name,
+        "rows": game.rows,
+        "cols": game.cols,
+        "move_type": game.move_type,
         "status": session.status,
         "board": [_CELL_SYMBOL[c] for c in data["board"]],
         "current": current,

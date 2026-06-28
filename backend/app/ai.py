@@ -2,7 +2,9 @@
 
 Strategia: prova prima a far scegliere la mossa a **Qwen** (API DashScope, formato
 OpenAI-compatible); se non è configurato o la risposta non è valida, ripiega su un
-giocatore locale **ottimale** (minimax) — così il gioco è sempre giocabile.
+giocatore locale (minimax) — così il gioco è sempre giocabile. La ricerca locale è
+completa per i giochi piccoli (Tris) e limitata in profondità con euristica per quelli
+grandi (Forza 4), in base a ``Game.search_depth``.
 
 Variabili d'ambiente:
 - ``QWEN_API_KEY`` (o ``DASHSCOPE_API_KEY``): chiave API. Se assente, si usa solo il
@@ -20,10 +22,11 @@ import re
 import httpx
 
 _SYSTEM_PROMPT = (
-    "Sei un giocatore esperto di Tris (tic-tac-toe). "
-    "Rispondi sempre e solo con il numero della casella scelta, senza altro testo."
+    "Sei un giocatore esperto di giochi da tavolo. "
+    "Rispondi sempre e solo con il numero della mossa scelta, senza altro testo."
 )
 _DEFAULT_BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+_WIN = 1_000_000.0
 
 
 def choose_move(game, state) -> tuple[int, str]:
@@ -47,11 +50,11 @@ def _qwen_move(game, state, legal):
     model = os.getenv("QWEN_MODEL", "qwen-plus")
     symbol = "X" if game.current_player(state) == 0 else "O"
     prompt = (
-        "Stato della griglia di Tris (caselle numerate 0-8, da sinistra a destra e "
-        f"dall'alto in basso):\n{game.render_text(state)}\n\n"
-        f"Tocca a te, giochi con il simbolo '{symbol}'. Caselle libere: {legal}.\n"
-        "Scegli la casella migliore per vincere o non perdere. "
-        "Rispondi SOLO con il numero della casella."
+        f"Gioco: {game.name}. Stato attuale (X e O, '.' = vuoto):\n"
+        f"{game.render_text(state)}\n\n"
+        f"Tocca a te, giochi con '{symbol}'. Mosse disponibili (indici): {legal}.\n"
+        "Scegli la mossa migliore per vincere o non perdere. "
+        "Rispondi SOLO con il numero della mossa."
     )
     try:
         with httpx.Client(timeout=20.0) as client:
@@ -79,34 +82,43 @@ def _qwen_move(game, state, legal):
     return None
 
 
-# ----- Giocatore locale (minimax ottimale) -----
+# ----- Giocatore locale (minimax, completo o a profondità limitata) -----
 def _local_move(game, state, legal):
     me = game.current_player(state)
-    memo: dict = {}
+    depth = getattr(game, "search_depth", None)
+    memo: dict | None = {} if depth is None else None  # memoization solo a ricerca completa
     best_score = None
     best_moves: list = []
     for move in legal:
-        score = _minimax(game, game.apply(state, move), me, memo)
+        next_depth = None if depth is None else depth - 1
+        score = _search(game, game.apply(state, move), me, next_depth, memo)
         if best_score is None or score > best_score:
             best_score = score
             best_moves = [move]
         elif score == best_score:
             best_moves.append(move)
-    # Scelta casuale tra le mosse ugualmente ottimali: resta imbattibile ma le
-    # partite IA-vs-IA consecutive non sono tutte identiche.
+    # Scelta casuale tra le mosse ugualmente ottimali: le partite consecutive variano.
     return random.choice(best_moves)
 
 
-def _minimax(game, state, me, memo):
-    key = (state, me)
-    if key in memo:
-        return memo[key]
+def _search(game, state, me, depth, memo):
+    if memo is not None:
+        key = (state, depth, me)
+        if key in memo:
+            return memo[key]
     if game.is_terminal(state):
         winner = game.outcome(state).winner
-        value = 0 if winner is None else (1 if winner == me else -1)
+        value = 0.0 if winner is None else (_WIN if winner == me else -_WIN)
+    elif depth == 0:
+        value = float(game.heuristic(state, me))
     else:
         player = game.current_player(state)
-        values = [_minimax(game, game.apply(state, m), me, memo) for m in game.legal_moves(state)]
-        value = max(values) if player == me else min(values)
-    memo[key] = value
+        next_depth = None if depth is None else depth - 1
+        scores = [
+            _search(game, game.apply(state, m), me, next_depth, memo)
+            for m in game.legal_moves(state)
+        ]
+        value = max(scores) if player == me else min(scores)
+    if memo is not None:
+        memo[key] = value
     return value

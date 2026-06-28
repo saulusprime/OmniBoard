@@ -44,6 +44,9 @@ class TicTacToe(Game):
     code = "tictactoe"
     name = "Tris"
     is_stochastic = False
+    rows = 3
+    cols = 3
+    move_type = "cell"
 
     def initial_state(self) -> TicTacToeState:
         return TicTacToeState(board=(None,) * 9, current=0)

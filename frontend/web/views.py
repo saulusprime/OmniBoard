@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 
 from . import api_client as api
-from .forms import MatchForm, ProposalForm, TrisSetupForm, UserForm, VoteForm
+from .forms import GameSetupForm, MatchForm, ProposalForm, UserForm, VoteForm
 
 
 def _safe(request, fn, default=None):
@@ -167,12 +167,15 @@ def match_create(request):
     return render(request, "web/match_form.html", {"form": form})
 
 
-# ----- Tris giocabile -----
+# ----- Partite giocabili -----
 def play_setup(request):
     users = _safe(request, api.list_users, default=[])
+    all_games = _safe(request, api.list_games, default=[])
+    games = [g for g in all_games if g.get("playable")]
     if request.method == "POST":
-        form = TrisSetupForm(request.POST, users=users)
+        form = GameSetupForm(request.POST, users=users, games=games)
         if form.is_valid():
+            game_code = form.cleaned_data["game"]
             x_ai = form.cleaned_data["x_type"] == "ai"
             o_ai = form.cleaned_data["o_type"] == "ai"
             count = form.cleaned_data.get("games_count") or 1
@@ -180,7 +183,7 @@ def play_setup(request):
             # Entrambi IA + più partite → esegui un batch e mostra il riepilogo.
             if x_ai and o_ai and count > 1:
                 try:
-                    result = api.run_batch({"game_code": "tictactoe", "count": count})
+                    result = api.run_batch({"game_code": game_code, "count": count})
                     return render(request, "web/batch_result.html", {"r": result})
                 except api.ApiError as exc:
                     messages.error(request, str(exc))
@@ -191,14 +194,14 @@ def play_setup(request):
                         return {"type": "ai"}
                     return {"type": "human", "user_id": int(form.cleaned_data[f"{side}_user"])}
 
-                data = {"game_code": "tictactoe", "x": spec("x"), "o": spec("o")}
+                data = {"game_code": game_code, "x": spec("x"), "o": spec("o")}
                 try:
                     session = api.create_session(data)
                     return redirect("play", session_id=session["id"])
                 except api.ApiError as exc:
                     messages.error(request, str(exc))
     else:
-        form = TrisSetupForm(users=users)
+        form = GameSetupForm(users=users, games=games)
     return render(request, "web/play_setup.html", {"form": form})
 
 
@@ -207,12 +210,10 @@ def play(request, session_id):
     if session is None:
         return redirect("play_setup")
     config = _safe(request, api.get_config, default={})
-    board = session["board"]
-    rows = [[{"i": i, "v": board[i]} for i in range(r, r + 3)] for r in (0, 3, 6)]
     return render(
         request,
         "web/play.html",
-        {"s": session, "rows": rows, "ai_delay": config.get("ai_move_delay_ms", 700)},
+        {"s": session, "ai_delay": config.get("ai_move_delay_ms", 700)},
     )
 
 

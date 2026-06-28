@@ -36,6 +36,14 @@ class Game(ABC, Generic[S, M]):
     code: str = ""
     name: str = ""
     is_stochastic: bool = False
+    # Geometria del tavoliere e tipo di mossa, usati dal frontend per il rendering.
+    rows: int = 0
+    cols: int = 0
+    move_type: str = "cell"  # "cell" (clic sulla casella) | "column" (caduta nella colonna)
+    # Profondità di ricerca per l'IA locale: None = ricerca completa fino al termine
+    # (adatta a giochi piccoli come il Tris); un intero limita la profondità e usa
+    # ``heuristic`` (necessario per giochi grandi come Forza 4).
+    search_depth: int | None = None
 
     @abstractmethod
     def initial_state(self) -> S:
@@ -77,6 +85,14 @@ class Game(ABC, Generic[S, M]):
     def describe_move(self, state: S, move: M) -> str:
         """Notazione testuale di una mossa, per il log della partita."""
         return str(move)
+
+    def heuristic(self, state: S, player: Player) -> float:
+        """Valutazione euristica dello stato dal punto di vista di ``player``.
+
+        Usata dall'IA locale quando la ricerca è limitata in profondità
+        (``search_depth`` non None). Default neutro.
+        """
+        return 0.0
 
     # ----- Hook per i nodi del caso (estensione futura) -----
     def is_chance_node(self, state: S) -> bool:

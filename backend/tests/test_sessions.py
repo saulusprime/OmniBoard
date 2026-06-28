@@ -103,6 +103,50 @@ def test_user_history_records_finished_game():
         assert hist_o[0]["opponent"] == "hist_x"
 
 
+def test_connect4_session_human_vs_human():
+    with TestClient(app) as client:
+        x = make_user(client, "c4_x")
+        o = make_user(client, "c4_o")
+        session = client.post(
+            "/sessions",
+            json={
+                "game_code": "connect4",
+                "x": {"type": "human", "user_id": x["id"]},
+                "o": {"type": "human", "user_id": o["id"]},
+            },
+        ).json()
+        assert session["game_code"] == "connect4"
+        assert session["rows"] == 6
+        assert session["cols"] == 7
+        assert session["move_type"] == "column"
+        assert len(session["board"]) == 42
+        assert session["legal_moves"] == [0, 1, 2, 3, 4, 5, 6]
+
+        sid = session["id"]
+        data = session
+        for col in [0, 1, 0, 1, 0, 1, 0]:  # X allinea 4 nella colonna 0
+            data = client.post(f"/sessions/{sid}/move", json={"cell": col}).json()
+        assert data["status"] == "finished"
+        assert data["winner"] == "x"
+        assert len(data["moves"]) == 7
+
+
+def test_connect4_vs_ai_responds():
+    with TestClient(app) as client:
+        human = make_user(client, "c4_ai")
+        session = client.post(
+            "/sessions",
+            json={
+                "game_code": "connect4",
+                "x": {"type": "human", "user_id": human["id"]},
+                "o": {"type": "ai"},
+            },
+        ).json()
+        after = client.post(f"/sessions/{session['id']}/move", json={"cell": 3}).json()
+        assert "O" in after["board"]  # l'IA ha risposto
+        assert after["last_ai"]["source"] in ("qwen", "local")
+
+
 def test_move_validation():
     with TestClient(app) as client:
         x = make_user(client, "val_x")

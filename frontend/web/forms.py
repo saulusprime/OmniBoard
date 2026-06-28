@@ -53,11 +53,12 @@ class VoteForm(forms.Form):
         self.fields["user_id"].choices = _user_choices(users)
 
 
-class TrisSetupForm(forms.Form):
-    """Configurazione di una partita di Tris: ogni lato è umano o IA (Qwen)."""
+class GameSetupForm(forms.Form):
+    """Configurazione di una partita: gioco scelto e ogni lato umano o IA (Qwen)."""
 
     PLAYER_TYPES = [("human", "Umano"), ("ai", "IA (Qwen)")]
 
+    game = forms.ChoiceField(label="Gioco")
     x_type = forms.ChoiceField(label="Giocatore X (primo a muovere)", choices=PLAYER_TYPES)
     x_user = forms.ChoiceField(label="Utente per X", required=False)
     o_type = forms.ChoiceField(label="Giocatore O", choices=PLAYER_TYPES)
@@ -70,8 +71,9 @@ class TrisSetupForm(forms.Form):
         required=False,
     )
 
-    def __init__(self, *args, users=None, **kwargs):
+    def __init__(self, *args, users=None, games=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["game"].choices = [(g["code"], g["name"]) for g in (games or [])]
         choices = [("", "—")] + _user_choices(users)
         self.fields["x_user"].choices = choices
         self.fields["o_user"].choices = choices

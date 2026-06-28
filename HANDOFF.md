@@ -5,6 +5,35 @@
 
 ---
 
+## 2026-06-28 — Secondo gioco: Forza 4 (scacchiera generica)
+
+**Obiettivo:** integrare **Forza 4** come gioco giocabile (umano/IA/batch).
+
+**Realizzato:**
+- **Motore**: `engine/games/connect4.py` (griglia 7×6, mossa = colonna con caduta, vittoria a 4
+  in orizzontale/verticale/diagonale, serializzazione, notazione colonna 1-based, **euristica**
+  per finestre di 4 + controllo del centro); registrato in `registry`. Interfaccia `Game`
+  estesa con `rows`/`cols`/`move_type`, `heuristic` e `search_depth`.
+- **IA**: la ricerca locale è ora **minimax completo** per i giochi piccoli (Tris,
+  `search_depth=None`) e **a profondità limitata con euristica** per i grandi (Forza 4,
+  `search_depth=4`) — altrimenti il minimax completo sarebbe intrattabile. Prompt Qwen reso
+  generico (vale per qualsiasi gioco).
+- **Backend**: la vista sessione espone `rows`/`cols`/`move_type`/`game_name`; `/games` ora
+  indica `playable` (true solo per i giochi implementati nel motore).
+- **Frontend**: scacchiera **generica** in `play.html` (JS) che gestisce sia il clic sulla
+  casella (Tris) sia la **caduta in colonna** (Forza 4), con animazione e ritardo IA; setup
+  partita con **selettore del gioco** (solo giochi giocabili). Form `TrisSetupForm` →
+  `GameSetupForm`.
+- **Test**: motore Forza 4 (drop, vittoria verticale, colonna piena, notazione), sessione
+  Forza 4 umano-vs-umano (vittoria) e umano-vs-IA (risposta), flag `playable`. Totale **42
+  test** verdi; lint `ruff` pulito.
+
+**Verifiche dal vivo:** `/games` con `playable` corretto; sessione Forza 4 6×7 a colonne; mossa
+umana → risposta IA (euristica locale); setup con selettore Tris/Forza 4; play page che rende
+la scacchiera generica.
+
+---
+
 ## 2026-06-28 — Parametri di programma + interfaccia super admin
 
 **Obiettivo:** rendere tutto il programma parametrizzabile e gestire ogni parametro da
