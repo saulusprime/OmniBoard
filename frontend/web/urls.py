@@ -16,4 +16,7 @@ urlpatterns = [
     ),
     path("classifiche/", views.rankings, name="rankings"),
     path("partite/registra/", views.match_create, name="match_create"),
+    path("gioca/", views.play_setup, name="play_setup"),
+    path("partite/<int:session_id>/", views.play, name="play"),
+    path("partite/<int:session_id>/mossa/", views.play_move, name="play_move"),
 ]

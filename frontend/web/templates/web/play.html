@@ -1,0 +1,61 @@
+{% extends "web/base.html" %}
+{% block title %}Tris — partita {{ s.id }}{% endblock %}
+{% block content %}
+<style>
+  .board { display:grid; grid-template-columns:repeat(3,92px); grid-template-rows:repeat(3,92px);
+           gap:6px; margin:18px 0; }
+  .cell { width:92px; height:92px; font-size:2.6rem; font-weight:700; display:flex;
+          align-items:center; justify-content:center; background:#0f1419;
+          border:1px solid var(--line); border-radius:8px; color:var(--text); }
+  button.cell { cursor:pointer; }
+  button.cell:hover { border-color:var(--accent); }
+  .board form { margin:0; }
+</style>
+
+<div class="card">
+  <h1>Tris</h1>
+  <p class="muted">
+    <strong>X</strong>: {{ s.players.x.alias|default:"IA" }}
+    ({% if s.players.x.type == 'ai' %}IA{% else %}umano{% endif %})
+    &nbsp;·&nbsp;
+    <strong>O</strong>: {{ s.players.o.alias|default:"IA" }}
+    ({% if s.players.o.type == 'ai' %}IA{% else %}umano{% endif %})
+  </p>
+
+  {% if s.status == 'finished' %}
+    <p><span class="pill">
+      {% if s.winner == 'draw' %}Patta{% else %}Ha vinto {{ s.winner|upper }}{% endif %}
+    </span></p>
+  {% else %}
+    <p>Tocca a: <strong>{{ s.current|upper }}</strong>
+    {% if s.current_is_ai %}(IA){% endif %}</p>
+  {% endif %}
+
+  {% if s.last_ai %}
+    <p class="muted">L'IA ha giocato nella casella {{ s.last_ai.cell }}
+    ({% if s.last_ai.source == 'qwen' %}Qwen{% else %}IA locale{% endif %}).</p>
+  {% endif %}
+
+  <div class="board">
+    {% for row in rows %}
+      {% for c in row %}
+        {% if c.v %}
+          <div class="cell">{{ c.v }}</div>
+        {% elif s.status == 'in_progress' %}
+          <form method="post" action="{% url 'play_move' s.id %}">{% csrf_token %}
+            <input type="hidden" name="cell" value="{{ c.i }}">
+            <button class="cell" type="submit" aria-label="Casella {{ c.i }}"></button>
+          </form>
+        {% else %}
+          <div class="cell"></div>
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+  </div>
+
+  <p>
+    <a class="btn" href="{% url 'play_setup' %}">Nuova partita</a>
+    <a class="btn secondary" href="{% url 'rankings' %}">Classifiche</a>
+  </p>
+</div>
+{% endblock %}

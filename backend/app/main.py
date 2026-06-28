@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from .database import Base, SessionLocal, engine
-from .routers import games, groups, matches, rankings, users
+from .routers import games, groups, matches, rankings, sessions, users
 from .seed import seed_games
 
 
@@ -34,6 +34,7 @@ app.include_router(users.router)
 app.include_router(games.router)
 app.include_router(groups.router)
 app.include_router(matches.router)
+app.include_router(sessions.router)
 app.include_router(rankings.router)
 
 

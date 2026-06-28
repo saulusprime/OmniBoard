@@ -53,6 +53,30 @@ class VoteForm(forms.Form):
         self.fields["user_id"].choices = _user_choices(users)
 
 
+class TrisSetupForm(forms.Form):
+    """Configurazione di una partita di Tris: ogni lato è umano o IA (Qwen)."""
+
+    PLAYER_TYPES = [("human", "Umano"), ("ai", "IA (Qwen)")]
+
+    x_type = forms.ChoiceField(label="Giocatore X (primo a muovere)", choices=PLAYER_TYPES)
+    x_user = forms.ChoiceField(label="Utente per X", required=False)
+    o_type = forms.ChoiceField(label="Giocatore O", choices=PLAYER_TYPES)
+    o_user = forms.ChoiceField(label="Utente per O", required=False)
+
+    def __init__(self, *args, users=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        choices = [("", "—")] + _user_choices(users)
+        self.fields["x_user"].choices = choices
+        self.fields["o_user"].choices = choices
+
+    def clean(self):
+        cleaned = super().clean()
+        for side in ("x", "o"):
+            if cleaned.get(f"{side}_type") == "human" and not cleaned.get(f"{side}_user"):
+                self.add_error(f"{side}_user", "Seleziona un utente per il giocatore umano.")
+        return cleaned
+
+
 class MatchForm(forms.Form):
     game_code = forms.ChoiceField(label="Gioco")
     player_a = forms.ChoiceField(label="Giocatore A")

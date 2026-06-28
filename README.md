@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![Status](https://img.shields.io/badge/stato-base%20documentale-orange.svg)](#stato-del-progetto)
 
-> **Ultimo aggiornamento:** 2026-06-28 — *Fase: scaffold iniziale funzionante (anagrafica, gruppi, punteggi, classifiche).*
+> **Ultimo aggiornamento:** 2026-06-28 — *Tris giocabile (umano e IA via Qwen) oltre ad anagrafica, gruppi, punteggi e classifiche.*
 
 ---
 
@@ -51,6 +51,7 @@ prospettiva, anche quelli con **nodi del caso** (dadi) come backgammon e ludo.
 - 👤 **Anagrafica giocatori** e profili.
 - 📊 **Statistiche di gioco** per giocatore e per gioco (partite, vittorie, ranking).
 - 🧩 **Architettura a servizi**: presentazione (Django) separata dalla logica/API (FastAPI).
+- 🤖 **Avversario IA** collegato a **Qwen** (API DashScope), con fallback locale ottimale (minimax).
 - 🔓 **Open source** con licenza [MIT](./LICENCE.md).
 
 ## Giochi supportati
@@ -60,7 +61,7 @@ contiene la sola base documentale.
 
 | Gioco        | Tipo                 | Stato        |
 |--------------|----------------------|--------------|
-| Tris         | Deterministico       | 🔜 Pianificato |
+| Tris         | Deterministico       | ✅ Giocabile (umano e IA) |
 | Forza 4      | Deterministico       | 🔜 Pianificato |
 | Dama italiana| Deterministico       | 🔜 Pianificato |
 | Scacchi ♟️    | Deterministico       | 🔜 Pianificato |
@@ -220,21 +221,23 @@ database. Configurazione tramite `.env` (vedi `.env.example`).
 - [x] Gruppi: fondazione tramite proposta + voto (soglia ≥ 2)
 - [x] Punteggi per gioco + classifica universale + classifiche per gioco (globale/nazionale/regionale)
 - [x] Scheletro del motore astratto (`engine/core.py`)
-- [ ] Primo gioco giocabile: **Tris** (validazione delle primitive del motore)
+- [x] Primo gioco giocabile: **Tris** (motore + sessioni di gioco persistite)
+- [x] Avversario **IA (Qwen)** con fallback locale ottimale (minimax)
 - [ ] Autenticazione/login dei giocatori
 - [ ] Regole di gestione dei gruppi (ruoli, inviti, espulsioni)
 - [ ] Migrazioni del database (Alembic) e PostgreSQL in produzione
-- [ ] Rendering interattivo della scacchiera + gioco in tempo reale (WebSocket)
+- [ ] Aggiornamento in tempo reale della partita (WebSocket / polling) per il gioco a distanza
 - [ ] Forza 4, Dama italiana, **Scacchi** completi
 - [ ] Sistema di rating (es. Elo) al posto dello schema punti provvisorio
 - [ ] (Futuro) supporto nodi del caso → Backgammon
 
 ## Stato del progetto
 
-🟢 **Scaffold funzionante.** Backend FastAPI e frontend Django girano end-to-end: si possono
-creare giocatori, fondare gruppi tramite voto, registrare partite e consultare le classifiche
-(universale e per gioco). Mancano i giochi giocabili (motore in fase di scheletro),
-l'autenticazione e il tempo reale.
+🟢 **Primo gioco giocabile.** Backend FastAPI e frontend Django girano end-to-end: si possono
+creare giocatori, fondare gruppi tramite voto, consultare le classifiche e **giocare a Tris**
+(umano vs umano in locale, umano vs IA, IA vs IA). L'IA è collegata a **Qwen** con fallback
+locale ottimale. A fine partita i punteggi si aggiornano in automatico. Mancano autenticazione,
+gioco a distanza in tempo reale e gli altri giochi.
 
 ## Documentazione correlata
 

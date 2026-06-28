@@ -1,0 +1,15 @@
+{% extends "web/base.html" %}
+{% block title %}Gioca a Tris{% endblock %}
+{% block content %}
+<div class="card" style="max-width:560px;">
+  <h1>♟ Nuova partita di Tris</h1>
+  <p class="muted">Scegli chi gioca con <strong>X</strong> (muove per primo) e chi con
+  <strong>O</strong>. Ogni lato può essere un giocatore umano o l'<strong>IA (Qwen)</strong>.
+  Per giocare in due sullo stesso schermo, imposta entrambi i lati come «Umano».</p>
+  <form method="post" novalidate>{% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Inizia a giocare</button>
+    <a class="btn secondary" href="{% url 'home' %}">Annulla</a>
+  </form>
+</div>
+{% endblock %}

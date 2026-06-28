@@ -112,6 +112,24 @@ si filtrano per nazione/regione.
 **Conseguenze:** facile da capire e testare; verrà sostituito da un rating (es. Elo) quando le
 partite saranno gestite end-to-end dal motore. La tabella `moves` non è ancora introdotta.
 
+### ADR-007 — Sessioni di gioco con stato persistito — 2026-06-28
+**Contesto:** per giocare davvero serve mantenere lo stato di una partita tra le richieste.
+**Decisione:** modello `GameSession` (stato serializzato dal motore in `state_json`, lati
+X/O ciascuno umano o IA, stato in_progress/finished, vincitore). Il backend valida le mosse
+col motore, fa giocare i lati IA in automatico e a fine partita assegna i punti (solo agli
+umani) tramite `services`. Per il gioco umano-vs-umano si usa per ora la modalità *hotseat*
+(due persone, stesso schermo); il gioco a distanza in tempo reale arriverà dopo.
+**Conseguenze:** confine netto motore/persistenza; la logica punti è condivisa con `/matches`.
+
+### ADR-008 — IA collegata a Qwen con fallback locale — 2026-06-28
+**Contesto:** richiesta di un avversario IA collegato a Qwen.
+**Decisione:** `ai.choose_move` interroga **Qwen** (DashScope, formato OpenAI-compatible) se
+`QWEN_API_KEY` è impostata; valida la mossa e, se assente/non valida/non raggiungibile,
+ripiega su un **minimax** locale ottimale (generico sull'interfaccia `Game`). La chiave è un
+segreto: vive solo nel backend, mai nel frontend.
+**Conseguenze:** il gioco è sempre giocabile anche senza chiave; per Tris il minimax è
+imbattibile. In futuro si potrà differenziare la difficoltà.
+
 ## Traguardi
 
 - **2026-06-28** — Definita l'architettura, scelti licenza e modello del motore; creata la
@@ -119,6 +137,9 @@ partite saranno gestite end-to-end dal motore. La tabella `moves` non è ancora 
 - **2026-06-28** — Scaffold funzionante end-to-end: backend FastAPI (anagrafica, gruppi con
   fondazione tramite voto, punteggi, classifiche universale/per-gioco) + frontend Django di
   presentazione. Verificato via curl e form (CSRF). Scheletro del motore (`engine/core.py`).
+- **2026-06-28** — Primo gioco giocabile: **Tris** (motore + sessioni persistite), con gioco
+  umano-vs-umano, umano-vs-IA (**Qwen** + fallback minimax) e IA-vs-IA. Suite **pytest** (22
+  test) e lint **ruff** (PEP8) introdotti come prassi.
 
 ## Questioni aperte
 
