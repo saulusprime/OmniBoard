@@ -1,0 +1,227 @@
+# Scacchi — Piattaforma universale per giochi da tavolo a turni
+
+> Gioca a **scacchi** e a tutti gli altri giochi da tavolo a **turni e a informazione perfetta**
+> (dama, tris, forza 4, …) tramite un unico motore astratto, direttamente dal browser.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENCE.md)
+[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
+[![Status](https://img.shields.io/badge/stato-base%20documentale-orange.svg)](#stato-del-progetto)
+
+> **Ultimo aggiornamento:** 2026-06-28 — *Fase: base documentale e configurazione del repository.*
+
+---
+
+## Indice
+
+- [Visione](#visione)
+- [Caratteristiche principali](#caratteristiche-principali)
+- [Giochi supportati](#giochi-supportati)
+- [Architettura](#architettura)
+- [Stack tecnologico](#stack-tecnologico)
+- [Struttura del repository](#struttura-del-repository)
+- [Dati raccolti](#dati-raccolti)
+- [Requisiti](#requisiti)
+- [Avvio rapido](#avvio-rapido)
+- [Roadmap e TODO](#roadmap-e-todo)
+- [Stato del progetto](#stato-del-progetto)
+- [Documentazione correlata](#documentazione-correlata)
+- [Come contribuire](#come-contribuire)
+- [Licenza](#licenza)
+
+---
+
+## Visione
+
+**Scacchi** è una piattaforma web open source per giocare in **due** a giochi da tavolo a
+turni. L'idea portante è un **motore di gioco astratto** che modella in modo generico stato,
+mosse legali e condizioni di vittoria: ogni gioco concreto (scacchi, dama, ecc.) è un
+*plugin* che implementa questo modello. Aggiungere un nuovo gioco significa scrivere le sue
+regole, non riscrivere l'infrastruttura.
+
+Il progetto nasce attorno agli **scacchi** come gioco di riferimento, ma è progettato fin
+dall'inizio per ospitare l'intera famiglia dei giochi a **informazione perfetta** e, in
+prospettiva, anche quelli con **nodi del caso** (dadi) come backgammon e ludo.
+
+## Caratteristiche principali
+
+- ♟️ **Motore astratto unico** condiviso da tutti i giochi (logica pura, testabile, senza I/O).
+- 🎲 **Deterministico + estendibile al caso**: il modello prevede *hook* per nodi stocastici
+  (dadi), così da poter aggiungere in futuro backgammon e ludo.
+- 🌐 **Esperienza web** con interfaccia grafica della scacchiera e gioco in tempo reale.
+- 👤 **Anagrafica giocatori** e profili.
+- 📊 **Statistiche di gioco** per giocatore e per gioco (partite, vittorie, ranking).
+- 🧩 **Architettura a servizi**: presentazione (Django) separata dalla logica/API (FastAPI).
+- 🔓 **Open source** con licenza [MIT](./LICENCE.md).
+
+## Giochi supportati
+
+Lo stato di implementazione è indicativo della *roadmap*; in questa fase il repository
+contiene la sola base documentale.
+
+| Gioco        | Tipo                 | Stato        |
+|--------------|----------------------|--------------|
+| Tris         | Deterministico       | 🔜 Pianificato |
+| Forza 4      | Deterministico       | 🔜 Pianificato |
+| Dama italiana| Deterministico       | 🔜 Pianificato |
+| Scacchi ♟️    | Deterministico       | 🔜 Pianificato |
+| Backgammon   | Con nodi del caso 🎲  | 🧪 Futuro      |
+
+I giochi più semplici (tris, forza 4, dama) servono a validare le primitive del motore prima
+di affrontare la complessità degli scacchi. Le regole di ciascun gioco sono documentate in
+[MANUAL.md](./MANUAL.md).
+
+## Architettura
+
+La piattaforma è organizzata in tre livelli logici più il database:
+
+```text
+        ┌──────────────────────────────────────────────────────────────┐
+        │                          BROWSER                               │
+        │           UI scacchiera · lobby · profilo · statistiche        │
+        └───────────────▲───────────────────────────────┬──────────────┘
+                        │ HTML / static / JS             │ WebSocket (mosse live)
+                        │                                 │
+        ┌───────────────┴─────────────────┐              │
+        │   FRONTEND — Django              │              │
+        │   • template e viste            │              │
+        │   • rendering scacchiera        │              │
+        │   • sessione utente / UI login  │              │
+        └───────────────┬─────────────────┘              │
+                        │ REST (HTTP) + WebSocket         │
+                        ▼                                 ▼
+        ┌──────────────────────────────────────────────────────────────┐
+        │   BACKEND — FastAPI                                            │
+        │   • API REST + WebSocket                                       │
+        │   • orchestrazione partite e validazione mosse                 │
+        │   • anagrafica giocatori, statistiche, ranking                 │
+        │            │                              │                    │
+        │            ▼                              ▼                    │
+        │   ┌─────────────────┐          ┌────────────────────────┐     │
+        │   │  GAME ENGINE     │          │   DATABASE             │     │
+        │   │  (pacchetto      │          │   players · matches ·  │     │
+        │   │   Python puro)   │          │   moves · statistics   │     │
+        │   │  scacchi, dama,  │          │   (PostgreSQL / SQLite)│     │
+        │   │  tris, forza4 …  │          └────────────────────────┘     │
+        │   └─────────────────┘                                         │
+        └──────────────────────────────────────────────────────────────┘
+```
+
+**Responsabilità dei componenti:**
+
+- **Frontend (Django)** — livello di presentazione. Serve le pagine web, disegna la
+  scacchiera interattiva, gestisce la sessione utente lato browser e consuma le API del
+  backend. Non possiede i dati di dominio.
+- **Backend (FastAPI)** — interfaccia verso la *backend* e cuore della logica applicativa.
+  Espone API REST e WebSocket, valida le mosse tramite il motore, persiste partite e
+  statistiche, gestisce l'anagrafica e i ranking. È l'unica fonte di verità dei dati.
+- **Game engine** — pacchetto Python puro, indipendente dai framework, che definisce il
+  modello astratto di gioco (stato, mosse, generazione mosse legali, condizioni terminali,
+  esito) con supporto opzionale a nodi del caso. I singoli giochi sono implementazioni di
+  questo modello. Completamente coperto da unit test, senza dipendenze da I/O.
+- **Database** — conserva anagrafica giocatori, partite, storico mosse e statistiche.
+  PostgreSQL in produzione, SQLite in sviluppo.
+
+> Le decisioni architetturali e le relative motivazioni sono tracciate in [MEMORY.md](./MEMORY.md).
+
+## Stack tecnologico
+
+| Livello        | Tecnologia                                  |
+|----------------|---------------------------------------------|
+| Frontend/web   | **Django** (template + JS/Canvas per la scacchiera) |
+| API/backend    | **FastAPI** (REST + WebSocket)              |
+| Motore         | **Python** puro (nessuna dipendenza da framework) |
+| Persistenza    | **PostgreSQL** (prod) · **SQLite** (sviluppo) |
+| Migrazioni     | Alembic (lato backend)                       |
+| Test           | pytest                                        |
+| Qualità codice | ruff (lint + format)                          |
+| Linguaggio doc | Italiano                                      |
+
+## Struttura del repository
+
+Struttura **pianificata** (in questa fase esistono solo documentazione e configurazione):
+
+```text
+Scacchi/
+├── README.md            # questo file — documento di progetto sempre aggiornato
+├── HANDOFF.md           # storico cronologico delle sessioni di lavoro
+├── MEMORY.md            # diario tecnico: architettura, scelte, traguardi
+├── MANUAL.md            # manuale dei giochi + manuale dell'applicazione
+├── LICENCE.md           # licenza MIT + nota su trattamento dati
+├── CONTRIBUTING.md      # linee guida per contribuire
+├── CODE_OF_CONDUCT.md   # codice di condotta
+├── SECURITY.md          # come segnalare vulnerabilità
+├── .github/             # configurazione GitHub (CI, template issue/PR, dependabot)
+├── .gitignore
+├── .editorconfig
+├── .env.example         # variabili d'ambiente di esempio
+│
+├── engine/              # (futuro) motore di gioco astratto + giochi
+├── backend/             # (futuro) servizio FastAPI + accesso al database
+└── frontend/            # (futuro) progetto Django
+```
+
+## Dati raccolti
+
+Il database è pensato per raccogliere, nel rispetto della normativa (vedi nota privacy in
+[LICENCE.md](./LICENCE.md)):
+
+- **Anagrafica giocatori** — identificativo, username, credenziali (hash), data di
+  registrazione e preferenze.
+- **Partite (matches)** — gioco, partecipanti, data/ora, esito, durata.
+- **Storico mosse (moves)** — sequenza delle mosse per ogni partita (per replay/analisi).
+- **Statistiche** — partite giocate/vinte/perse/patte per giocatore e per gioco, ranking
+  (es. Elo), serie di vittorie.
+
+## Requisiti
+
+- Python 3.12+
+- PostgreSQL (in produzione) — SQLite è sufficiente per lo sviluppo
+- (Frontend) un browser moderno
+
+> Le istruzioni dettagliate di installazione e avvio verranno aggiunte qui non appena lo
+> scaffold del codice sarà presente.
+
+## Avvio rapido
+
+> ⚠️ In questa fase il repository contiene solo la base documentale: non c'è ancora codice
+> eseguibile. Questa sezione verrà completata con i comandi reali (creazione virtualenv,
+> installazione dipendenze, migrazioni del database, avvio di Django e FastAPI) appena lo
+> scaffold sarà implementato.
+
+## Roadmap e TODO
+
+- [x] Base documentale del progetto (README, HANDOFF, MEMORY, MANUAL, LICENCE)
+- [x] Configurazione GitHub (CI, template issue/PR, dependabot, contributing, code of conduct, security)
+- [ ] Scaffold del motore astratto (`engine/`) con interfacce e test
+- [ ] Primo gioco completo: **Tris** (validazione delle primitive)
+- [ ] Scaffold backend FastAPI (`backend/`) + schema database + migrazioni
+- [ ] Scaffold frontend Django (`frontend/`) + rendering scacchiera
+- [ ] Anagrafica giocatori e autenticazione
+- [ ] Forza 4 e Dama italiana
+- [ ] **Scacchi** completi
+- [ ] Statistiche e ranking
+- [ ] Gioco in tempo reale via WebSocket
+- [ ] (Futuro) supporto nodi del caso → Backgammon
+
+## Stato del progetto
+
+🟠 **Base documentale.** Sono presenti i documenti di progetto e la configurazione del
+repository. Lo sviluppo del codice (motore, backend, frontend) non è ancora iniziato.
+
+## Documentazione correlata
+
+- [HANDOFF.md](./HANDOFF.md) — storico delle sessioni di lavoro.
+- [MEMORY.md](./MEMORY.md) — diario tecnico e decisioni architetturali.
+- [MANUAL.md](./MANUAL.md) — manuale dei giochi e dell'applicazione.
+- [CONTRIBUTING.md](./CONTRIBUTING.md) — come contribuire.
+- [LICENCE.md](./LICENCE.md) — licenza e nota sul trattamento dei dati.
+
+## Come contribuire
+
+I contributi sono benvenuti! Leggi [CONTRIBUTING.md](./CONTRIBUTING.md) e il
+[Codice di Condotta](./CODE_OF_CONDUCT.md). Per segnalare una vulnerabilità di sicurezza
+consulta [SECURITY.md](./SECURITY.md).
+
+## Licenza
+
+Distribuito con licenza **MIT**. Vedi [LICENCE.md](./LICENCE.md).

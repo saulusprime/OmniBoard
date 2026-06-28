@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # Dipendenze Python (radice). Aggiungere altre voci per backend/frontend/engine
+  # quando avranno i propri file di dipendenze.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "ci"

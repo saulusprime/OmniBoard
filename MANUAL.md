@@ -1,0 +1,157 @@
+# MANUAL — Manuale dei giochi e dell'applicazione
+
+> Manuale d'uso della piattaforma **Scacchi** e regolamento di ogni gioco integrato.
+> Ogni nuovo gioco aggiunto alla piattaforma va documentato qui seguendo il
+> [modello per nuovi giochi](#modello-per-nuovi-giochi).
+>
+> **Ultimo aggiornamento:** 2026-06-28
+
+---
+
+## Indice
+
+- [Parte 1 — Manuale dell'applicazione](#parte-1--manuale-dellapplicazione)
+- [Parte 2 — Regolamento dei giochi](#parte-2--regolamento-dei-giochi)
+  - [Scacchi](#scacchi)
+  - [Dama italiana](#dama-italiana)
+  - [Tris (Tic-Tac-Toe)](#tris-tic-tac-toe)
+  - [Forza 4](#forza-4)
+- [Modello per nuovi giochi](#modello-per-nuovi-giochi)
+
+---
+
+# Parte 1 — Manuale dell'applicazione
+
+> ⚠️ L'applicazione è in fase di base documentale: le funzionalità descritte rappresentano
+> l'esperienza d'uso **prevista**. Questa parte sarà allineata all'implementazione man mano
+> che il software prende forma.
+
+## Cos'è Scacchi
+
+Scacchi è una piattaforma web per giocare in **due** a giochi da tavolo a turni
+(scacchi, dama, tris, forza 4 e altri). Si gioca dal browser, senza installare nulla.
+
+## Flusso d'uso previsto
+
+1. **Registrazione / accesso.** Crea un profilo (anagrafica giocatore) o accedi con le tue
+   credenziali.
+2. **Scelta del gioco.** Dal menu principale selezioni il gioco a cui vuoi giocare.
+3. **Partita.** Si gioca a turni: l'interfaccia mostra la scacchiera, evidenzia le mosse
+   legali e impedisce le mosse illegali (la legalità è verificata dal server).
+4. **Fine partita.** Al termine viene mostrato l'esito (vittoria/sconfitta/patta) e la
+   partita viene registrata.
+5. **Profilo e statistiche.** Nel tuo profilo trovi le statistiche per gioco: partite
+   giocate, vinte, perse, patte ed eventuale ranking.
+
+## Concetti generali
+
+- **Due giocatori.** Ogni partita è tra due giocatori.
+- **Turni.** Si alternano le mosse; in alcuni giochi esiste un giocatore che muove per primo.
+- **Mosse legali.** L'interfaccia propone solo mosse valide; il server è l'arbitro finale.
+- **Esito.** Vittoria, sconfitta o patta, secondo le regole del gioco.
+
+---
+
+# Parte 2 — Regolamento dei giochi
+
+## Scacchi
+
+**Giocatori:** 2 (Bianco e Nero). **Tavoliere:** 8×8 (64 caselle).
+**Obiettivo:** dare **scacco matto** al re avversario.
+
+### Disposizione iniziale
+Ogni giocatore dispone di: 1 re, 1 donna, 2 torri, 2 alfieri, 2 cavalli, 8 pedoni.
+Il Bianco muove per primo. La casella in basso a destra è chiara («bianco a destra»); la donna
+va sulla casella del proprio colore («donna sul suo colore»).
+
+### Movimento dei pezzi
+- **Re:** una casella in qualsiasi direzione.
+- **Donna:** in linea retta (orizzontale, verticale, diagonale) per qualsiasi distanza.
+- **Torre:** in orizzontale e verticale per qualsiasi distanza.
+- **Alfiere:** in diagonale per qualsiasi distanza.
+- **Cavallo:** a «L» (2+1 caselle); è l'unico pezzo che scavalca gli altri.
+- **Pedone:** avanza di una casella (due dalla posizione iniziale); cattura in diagonale.
+
+### Mosse speciali
+- **Arrocco:** mossa congiunta di re e torre, se nessuno dei due si è mosso, non ci sono pezzi
+  fra loro, il re non è sotto scacco e non attraversa caselle attaccate.
+- **En passant:** cattura speciale di un pedone avversario che è appena avanzato di due caselle.
+- **Promozione:** un pedone che raggiunge l'ultima traversa viene promosso (di norma a donna).
+
+### Fine della partita
+- **Scacco matto:** il re è sotto attacco e non esistono mosse legali → vittoria.
+- **Stallo (patta):** il giocatore di turno non ha mosse legali ma non è sotto scacco.
+- **Altre patte:** materiale insufficiente, triplice ripetizione, regola delle 50 mosse,
+  accordo tra i giocatori.
+
+---
+
+## Dama italiana
+
+**Giocatori:** 2. **Tavoliere:** 8×8, si gioca sulle caselle scure. **Pedine:** 12 per parte.
+**Obiettivo:** catturare o bloccare tutte le pedine avversarie.
+
+### Regole principali (variante italiana / FID)
+- Le pedine muovono in diagonale in avanti di una casella.
+- La **cattura** avviene saltando una pedina avversaria adiacente con casella libera oltre.
+- La cattura è **obbligatoria**; in caso di scelte multiple valgono le regole di precedenza
+  della variante italiana (es. si deve eseguire la presa che cattura più pezzi).
+- Una pedina **non** può catturare una dama (regola tipica della variante italiana).
+- Raggiungendo l'ultima traversa la pedina diventa **dama** e può muovere/catturare anche
+  all'indietro.
+
+### Fine della partita
+Vince chi cattura tutte le pedine avversarie o lascia l'avversario senza mosse legali.
+
+> Nota: esistono diverse varianti di dama (italiana, inglese/checkers, internazionale).
+> Questa sezione descrive la **dama italiana**; eventuali altre varianti integrate saranno
+> documentate separatamente.
+
+---
+
+## Tris (Tic-Tac-Toe)
+
+**Giocatori:** 2 (X e O). **Tavoliere:** 3×3.
+**Obiettivo:** allineare tre dei propri simboli in orizzontale, verticale o diagonale.
+
+### Regole
+- I giocatori, a turno, posizionano il proprio simbolo in una casella libera.
+- Vince chi completa per primo una fila di tre.
+- Se la griglia si riempie senza allineamenti, la partita è **patta**.
+
+---
+
+## Forza 4
+
+**Giocatori:** 2. **Tavoliere:** griglia verticale 7 colonne × 6 righe.
+**Obiettivo:** allineare quattro proprie pedine consecutive.
+
+### Regole
+- A turno si fa cadere una pedina in una colonna; occupa la posizione libera più in basso.
+- Vince chi allinea **quattro** pedine consecutive in orizzontale, verticale o diagonale.
+- Se la griglia si riempie senza allineamenti, la partita è **patta**.
+
+---
+
+## Modello per nuovi giochi
+
+Per documentare un nuovo gioco, copiare questo schema:
+
+```markdown
+## <Nome del gioco>
+
+**Giocatori:** 2. **Tavoliere:** <dimensioni/forma>.
+**Obiettivo:** <condizione di vittoria>.
+
+### Disposizione iniziale
+<come si parte>
+
+### Regole di movimento / azioni
+<mosse ammesse>
+
+### Mosse speciali / casi particolari
+<se presenti — incl. eventuali nodi del caso/dadi>
+
+### Fine della partita
+<vittoria / sconfitta / patta>
+```

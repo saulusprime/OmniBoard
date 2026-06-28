@@ -1,0 +1,68 @@
+# ----- Python -----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ----- Virtual environments -----
+.venv/
+venv/
+env/
+ENV/
+
+# ----- Ambiente / segreti -----
+.env
+.env.*
+!.env.example
+
+# ----- Django -----
+*.log
+local_settings.py
+staticfiles/
+media/
+
+# ----- Database (sviluppo) -----
+*.sqlite3
+*.sqlite3-journal
+*.db
+
+# ----- Test / coverage -----
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.cache/
+.tox/
+coverage.xml
+
+# ----- Tooling -----
+.ruff_cache/
+.mypy_cache/
+
+# ----- Frontend assets (eventuali) -----
+node_modules/
+
+# ----- IDE / editor -----
+.idea/
+*.swp
+*.swo
+# .vscode/  # scommenta se non vuoi versionare le impostazioni VS Code
+
+# ----- macOS -----
+.DS_Store
