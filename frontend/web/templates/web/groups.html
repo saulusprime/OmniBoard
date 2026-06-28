@@ -1,0 +1,54 @@
+{% extends "web/base.html" %}
+{% block title %}Gruppi{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Gruppi</h1>
+  <p class="muted">Per fondare un gruppo serve una proposta votata a favore da almeno
+  due giocatori. (Le regole di gestione del gruppo arriveranno più avanti.)</p>
+  <p><a class="btn" href="{% url 'group_propose' %}">+ Proponi un gruppo</a></p>
+</div>
+
+<div class="card">
+  <h2>Gruppi fondati</h2>
+  {% if groups %}
+    {% for g in groups %}
+    <div class="card" style="margin:0 0 12px;">
+      <strong>{{ g.name }}</strong>
+      <div class="muted">Membri:
+        {% for m in g.members %}{{ m.alias }}{% if m.role == 'founder' %} (fondatore){% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+  <p class="muted">Nessun gruppo ancora fondato.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Proposte in corso</h2>
+  {% if proposals %}
+  <table>
+    <tr><th>Nome</th><th>Voti</th><th>Stato</th><th style="width:340px;">Vota</th></tr>
+    {% for p in proposals %}
+    <tr>
+      <td>{{ p.name }}</td>
+      <td>{{ p.favor_count }}/{{ p.threshold }}</td>
+      <td>{% if p.status == 'founded' %}<span class="pill">fondato</span>{% else %}in corso{% endif %}</td>
+      <td>
+        {% if p.status == 'pending' %}
+        <form method="post" action="{% url 'proposal_vote' p.id %}"
+              style="display:flex; gap:8px; align-items:center;">{% csrf_token %}
+          {{ vote_form.user_id }}
+          {{ vote_form.in_favor }}
+          <button class="btn" type="submit">Vota</button>
+        </form>
+        {% else %}—{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">Nessuna proposta in corso.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![Status](https://img.shields.io/badge/stato-base%20documentale-orange.svg)](#stato-del-progetto)
 
-> **Ultimo aggiornamento:** 2026-06-28 — *Fase: base documentale e configurazione del repository.*
+> **Ultimo aggiornamento:** 2026-06-28 — *Fase: scaffold iniziale funzionante (anagrafica, gruppi, punteggi, classifiche).*
 
 ---
 
@@ -138,26 +138,27 @@ La piattaforma è organizzata in tre livelli logici più il database:
 
 ## Struttura del repository
 
-Struttura **pianificata** (in questa fase esistono solo documentazione e configurazione):
-
 ```text
 Scacchi/
-├── README.md            # questo file — documento di progetto sempre aggiornato
-├── HANDOFF.md           # storico cronologico delle sessioni di lavoro
-├── MEMORY.md            # diario tecnico: architettura, scelte, traguardi
-├── MANUAL.md            # manuale dei giochi + manuale dell'applicazione
-├── LICENCE.md           # licenza MIT + nota su trattamento dati
-├── CONTRIBUTING.md      # linee guida per contribuire
-├── CODE_OF_CONDUCT.md   # codice di condotta
-├── SECURITY.md          # come segnalare vulnerabilità
+├── README.md / HANDOFF.md / MEMORY.md / MANUAL.md / LICENCE.md   # documentazione
+├── CONTRIBUTING.md / CODE_OF_CONDUCT.md / SECURITY.md            # community
+├── Makefile             # comandi di sviluppo (install / backend / frontend)
 ├── .github/             # configurazione GitHub (CI, template issue/PR, dependabot)
-├── .gitignore
-├── .editorconfig
 ├── .env.example         # variabili d'ambiente di esempio
 │
-├── engine/              # (futuro) motore di gioco astratto + giochi
-├── backend/             # (futuro) servizio FastAPI + accesso al database
-└── frontend/            # (futuro) progetto Django
+├── engine/              # motore di gioco astratto (pacchetto Python puro)
+│   └── core.py          # interfaccia astratta Game (con hook per nodi del caso)
+│
+├── backend/             # servizio FastAPI + accesso al database
+│   └── app/
+│       ├── main.py      # app FastAPI (create_all + seed + router)
+│       ├── models.py    # modelli SQLAlchemy (utenti, giochi, punteggi, gruppi)
+│       ├── schemas.py   # schemi Pydantic
+│       └── routers/     # users, games, groups, matches, rankings
+│
+└── frontend/            # progetto Django (presentazione, nessun DB proprio)
+    ├── scacchi_web/     # settings, urls, wsgi/asgi
+    └── web/             # views, forms, api_client (HTTP→backend), templates
 ```
 
 ## Dati raccolti
@@ -183,30 +184,57 @@ Il database è pensato per raccogliere, nel rispetto della normativa (vedi nota 
 
 ## Avvio rapido
 
-> ⚠️ In questa fase il repository contiene solo la base documentale: non c'è ancora codice
-> eseguibile. Questa sezione verrà completata con i comandi reali (creazione virtualenv,
-> installazione dipendenze, migrazioni del database, avvio di Django e FastAPI) appena lo
-> scaffold sarà implementato.
+Servono Python 3.12+. I due servizi (backend e frontend) si avviano in due terminali.
+Con il `Makefile` di comodo:
+
+```bash
+make install        # crea .venv e installa le dipendenze di backend e frontend
+make backend        # terminale 1 → FastAPI su http://127.0.0.1:8000  (/docs per l'API)
+make frontend       # terminale 2 → Django  su http://127.0.0.1:8001
+```
+
+In alternativa, manualmente:
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r backend/requirements.txt -r frontend/requirements.txt
+
+# terminale 1 — backend
+cd backend && uvicorn app.main:app --reload --port 8000
+
+# terminale 2 — frontend
+python frontend/manage.py runserver 8001
+```
+
+Apri <http://127.0.0.1:8001/>. Il backend crea/aggiorna automaticamente lo schema SQLite
+(`backend/scacchi.db`) e popola il catalogo dei giochi al primo avvio. Il frontend non usa
+database. Configurazione tramite `.env` (vedi `.env.example`).
 
 ## Roadmap e TODO
 
 - [x] Base documentale del progetto (README, HANDOFF, MEMORY, MANUAL, LICENCE)
 - [x] Configurazione GitHub (CI, template issue/PR, dependabot, contributing, code of conduct, security)
-- [ ] Scaffold del motore astratto (`engine/`) con interfacce e test
-- [ ] Primo gioco completo: **Tris** (validazione delle primitive)
-- [ ] Scaffold backend FastAPI (`backend/`) + schema database + migrazioni
-- [ ] Scaffold frontend Django (`frontend/`) + rendering scacchiera
-- [ ] Anagrafica giocatori e autenticazione
-- [ ] Forza 4 e Dama italiana
-- [ ] **Scacchi** completi
-- [ ] Statistiche e ranking
-- [ ] Gioco in tempo reale via WebSocket
+- [x] Scaffold backend FastAPI (`backend/`) + schema database (SQLAlchemy/SQLite)
+- [x] Scaffold frontend Django (`frontend/`) — interfaccia web e menu
+- [x] Anagrafica giocatori (nome, cognome, alias, email, nazionalità, regione)
+- [x] Gruppi: fondazione tramite proposta + voto (soglia ≥ 2)
+- [x] Punteggi per gioco + classifica universale + classifiche per gioco (globale/nazionale/regionale)
+- [x] Scheletro del motore astratto (`engine/core.py`)
+- [ ] Primo gioco giocabile: **Tris** (validazione delle primitive del motore)
+- [ ] Autenticazione/login dei giocatori
+- [ ] Regole di gestione dei gruppi (ruoli, inviti, espulsioni)
+- [ ] Migrazioni del database (Alembic) e PostgreSQL in produzione
+- [ ] Rendering interattivo della scacchiera + gioco in tempo reale (WebSocket)
+- [ ] Forza 4, Dama italiana, **Scacchi** completi
+- [ ] Sistema di rating (es. Elo) al posto dello schema punti provvisorio
 - [ ] (Futuro) supporto nodi del caso → Backgammon
 
 ## Stato del progetto
 
-🟠 **Base documentale.** Sono presenti i documenti di progetto e la configurazione del
-repository. Lo sviluppo del codice (motore, backend, frontend) non è ancora iniziato.
+🟢 **Scaffold funzionante.** Backend FastAPI e frontend Django girano end-to-end: si possono
+creare giocatori, fondare gruppi tramite voto, registrare partite e consultare le classifiche
+(universale e per gioco). Mancano i giochi giocabili (motore in fase di scheletro),
+l'autenticazione e il tempo reale.
 
 ## Documentazione correlata
 

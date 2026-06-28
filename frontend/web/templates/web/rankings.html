@@ -1,0 +1,65 @@
+{% extends "web/base.html" %}
+{% block title %}Classifiche{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Classifica universale</h1>
+  <p class="muted">Somma dei punti ottenuti da ogni giocatore su tutti i giochi.</p>
+  {% if universal %}
+  <table>
+    <tr><th>#</th><th>Giocatore</th><th>Nazione</th><th>Punti</th></tr>
+    {% for e in universal %}
+    <tr>
+      <td>{{ e.rank }}</td>
+      <td>{{ e.alias }} <span class="muted">({{ e.full_name }})</span></td>
+      <td>{{ e.nationality|default:"—" }}</td>
+      <td>{{ e.points }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">Classifica ancora vuota.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Classifica per gioco</h2>
+  <form method="get" style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+    <div style="min-width:150px;">
+      <label>Gioco</label>
+      <select name="game">
+        {% for g in games %}
+        <option value="{{ g.code }}" {% if g.code == sel_game %}selected{% endif %}>{{ g.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>Ambito</label>
+      <select name="scope">
+        <option value="global" {% if scope == 'global' %}selected{% endif %}>Globale</option>
+        <option value="national" {% if scope == 'national' %}selected{% endif %}>Nazionale</option>
+        <option value="regional" {% if scope == 'regional' %}selected{% endif %}>Regionale</option>
+      </select>
+    </div>
+    <div><label>Nazione</label><input name="country" value="{{ country }}" placeholder="es. IT"></div>
+    <div><label>Regione</label><input name="region" value="{{ region }}" placeholder="es. Lazio"></div>
+    <button class="btn" type="submit">Mostra</button>
+  </form>
+
+  {% if game_rank is not None %}
+    {% if game_rank %}
+    <table style="margin-top:16px;">
+      <tr><th>#</th><th>Giocatore</th><th>Nazione</th><th>Regione</th><th>Punti</th></tr>
+      {% for e in game_rank %}
+      <tr>
+        <td>{{ e.rank }}</td><td>{{ e.alias }}</td>
+        <td>{{ e.nationality|default:"—" }}</td><td>{{ e.region|default:"—" }}</td>
+        <td>{{ e.points }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <p class="muted" style="margin-top:16px;">Nessun punteggio per questo filtro.</p>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

@@ -22,32 +22,53 @@
 
 # Parte 1 — Manuale dell'applicazione
 
-> ⚠️ L'applicazione è in fase di base documentale: le funzionalità descritte rappresentano
-> l'esperienza d'uso **prevista**. Questa parte sarà allineata all'implementazione man mano
-> che il software prende forma.
+> ⚠️ L'applicazione è in fase di **scaffold**. Sono già disponibili: registrazione
+> giocatori, gruppi (fondazione tramite voto), punteggi e classifiche. NON sono ancora
+> disponibili: il gioco vero e proprio sulla scacchiera, l'autenticazione/login e il tempo
+> reale. I punteggi si popolano per ora registrando manualmente i risultati delle partite.
 
 ## Cos'è Scacchi
 
 Scacchi è una piattaforma web per giocare in **due** a giochi da tavolo a turni
 (scacchi, dama, tris, forza 4 e altri). Si gioca dal browser, senza installare nulla.
 
-## Flusso d'uso previsto
+## Avvio e navigazione
 
-1. **Registrazione / accesso.** Crea un profilo (anagrafica giocatore) o accedi con le tue
-   credenziali.
-2. **Scelta del gioco.** Dal menu principale selezioni il gioco a cui vuoi giocare.
-3. **Partita.** Si gioca a turni: l'interfaccia mostra la scacchiera, evidenzia le mosse
-   legali e impedisce le mosse illegali (la legalità è verificata dal server).
-4. **Fine partita.** Al termine viene mostrato l'esito (vittoria/sconfitta/patta) e la
-   partita viene registrata.
-5. **Profilo e statistiche.** Nel tuo profilo trovi le statistiche per gioco: partite
-   giocate, vinte, perse, patte ed eventuale ranking.
+Avvia backend e frontend (vedi [README.md](./README.md#avvio-rapido)) e apri
+<http://127.0.0.1:8001/>. Il menu in alto dà accesso a: **Home**, **Giocatori**, **Gruppi**,
+**Classifiche**, **Registra partita**.
 
-## Concetti generali
+## Funzionalità disponibili
+
+### Creazione di un giocatore
+Da **Giocatori → Nuovo giocatore** si registra un profilo con: nome, cognome, alias (univoco),
+email (univoca), nazionalità e regione (queste ultime usate per le classifiche
+nazionale/regionale). La password è opzionale in questa fase. Un utente può restare singolo o
+far parte di uno o più gruppi.
+
+### Gruppi e fondazione tramite voto
+Da **Gruppi → Proponi un gruppo** si crea una proposta di fondazione; il proponente vota
+automaticamente a favore. Quando i voti a favore raggiungono la soglia (almeno **2**), il
+gruppo viene **fondato** e i votanti ne diventano membri (il proponente come *fondatore*). Le
+regole di gestione del gruppo (ruoli, inviti, espulsioni) saranno definite più avanti.
+
+### Punteggi e partite
+Ogni giocatore ha un **punteggio per ciascun gioco**, che cresce giocando. In questa fase i
+risultati si inseriscono da **Registra partita** (vittoria +3, patta +1, sconfitta +0). Il
+dettaglio dei punteggi è nella scheda del giocatore.
+
+### Classifiche e gamification
+- **Classifica universale**: somma dei punti di un giocatore su *tutti* i giochi → è la base
+  della gamification.
+- **Classifica per gioco**, con ambito **globale**, **nazionale** (per nazionalità) o
+  **regionale** (per regione).
+
+## Concetti generali di gioco
 
 - **Due giocatori.** Ogni partita è tra due giocatori.
 - **Turni.** Si alternano le mosse; in alcuni giochi esiste un giocatore che muove per primo.
-- **Mosse legali.** L'interfaccia propone solo mosse valide; il server è l'arbitro finale.
+- **Mosse legali.** L'interfaccia proporrà solo mosse valide; il server sarà l'arbitro finale
+  (quando il motore di gioco sarà collegato).
 - **Esito.** Vittoria, sconfitta o patta, secondo le regole del gioco.
 
 ---

@@ -5,6 +5,54 @@
 
 ---
 
+## 2026-06-28 — Scaffold iniziale: backend, frontend, anagrafica, gruppi, punteggi, classifiche
+
+**Obiettivo della sessione:** primo scaffold funzionante. Interfaccia web di presentazione
+con menu, creazione utenti, fondazione gruppi tramite voto, punteggi per gioco e classifiche.
+
+**Realizzato:**
+- **Backend FastAPI** (`backend/app/`): modelli SQLAlchemy (User, Game, Score,
+  GroupProposal, GroupProposalVote, Group, GroupMembership), schemi Pydantic, router
+  `users` / `games` / `groups` / `matches` / `rankings`, hashing password pbkdf2 (stdlib),
+  seed del catalogo giochi, creazione tabelle allo startup (SQLite in sviluppo).
+- **Frontend Django** (`frontend/`): progetto `scacchi_web` + app `web`. Volutamente
+  **senza database** (app DB-dipendenti disattivate, messaggi su cookie); tutte le
+  operazioni passano dal backend via `web/api_client.py` (httpx). Pagine: home/presentazione,
+  giocatori (lista + creazione), gruppi (proposte + voto), classifiche (universale + per
+  gioco con ambito globale/nazionale/regionale), registrazione partita. UI con menu e stile.
+- **Engine** (`engine/core.py`): scheletro dell'interfaccia astratta `Game` con hook per
+  nodi del caso (non ancora implementati).
+- **Funzionalità anagrafica/gruppi/punteggi:** utente con nome, cognome, alias, email,
+  nazionalità, regione; fondazione gruppo quando i voti a favore raggiungono la soglia
+  (default 2, proponente vota in automatico); punteggio per gioco accumulato registrando
+  partite (vittoria +3, patta +1); classifica universale = somma dei punti; classifiche per
+  gioco filtrabili per nazione/regione.
+- **Tooling:** `Makefile` (install/backend/frontend), `requirements.txt` per backend e
+  frontend, README di `backend/` e `frontend/`.
+
+**Decisioni e scelte tecniche:**
+- Frontend Django senza DB proprio (coerente con l'architettura: il backend è l'unica fonte
+  di verità). Backend e frontend su porte 8000 / 8001.
+- Schema punti provvisorio (3/1/0); in futuro rating tipo Elo. Tabella `moves` non ancora
+  introdotta (arriverà col motore e la gestione partite end-to-end).
+- Per ora niente Alembic: tabelle create con `create_all` (migrazioni in seguito).
+
+**Verifiche eseguite (tutte superate):** installazione dipendenze (Python 3.12, Django 6.0,
+FastAPI 0.138); `manage.py check` senza problemi; import dell'app backend; flusso API
+completo via curl (creazione utenti, alias duplicato → 409, registrazione partite,
+dettaglio punteggi, classifica universale e per gioco globale/nazionale/regionale, proposta
+gruppo + voto → fondazione); rendering di tutte le pagine del frontend con dati dal backend;
+creazione utente via form Django (CSRF) end-to-end fino alla conferma nel backend.
+
+**Bug trovato e corretto:** i `default` delle colonne SQLAlchemy si applicano al flush, non
+all'istanziazione: una `Score` nuova aveva attributi `None` e il `+= 1` falliva. Risolto
+inizializzando esplicitamente i valori a 0 alla creazione (`backend/app/routers/matches.py`).
+
+**Prossimi passi:** primo gioco giocabile (Tris) nel motore; autenticazione; regole di
+gestione dei gruppi; rendering interattivo della scacchiera.
+
+---
+
 ## 2026-06-28 — Avvio della base documentale (stack Django + FastAPI)
 
 **Obiettivo della sessione:** creare la base documentale del progetto e la configurazione

@@ -1,0 +1,12 @@
+{% extends "web/base.html" %}
+{% block title %}Nuovo giocatore{% endblock %}
+{% block content %}
+<div class="card" style="max-width:540px;">
+  <h1>Nuovo giocatore</h1>
+  <form method="post" novalidate>{% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Crea</button>
+    <a class="btn secondary" href="{% url 'users_list' %}">Annulla</a>
+  </form>
+</div>
+{% endblock %}

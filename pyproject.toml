@@ -1,0 +1,17 @@
+# Configurazione di tooling per la piattaforma Scacchi (lint PEP8 + test).
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+# E/W = stile PEP8 (pycodestyle), F = pyflakes, I = ordinamento import.
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# I test del frontend chiamano django.setup() prima degli import delle viste.
+"frontend/tests/*" = ["E402"]
+
+[tool.pytest.ini_options]
+pythonpath = ["backend", "frontend", "."]
+testpaths = ["engine/tests", "backend/tests", "frontend/tests"]

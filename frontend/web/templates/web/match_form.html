@@ -1,0 +1,13 @@
+{% extends "web/base.html" %}
+{% block title %}Registra partita{% endblock %}
+{% block content %}
+<div class="card" style="max-width:540px;">
+  <h1>Registra partita</h1>
+  <p class="muted">Registra il risultato di una partita: i punteggi dei due giocatori per
+  il gioco scelto verranno aggiornati (vittoria +3, patta +1).</p>
+  <form method="post" novalidate>{% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Registra</button>
+  </form>
+</div>
+{% endblock %}

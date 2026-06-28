@@ -1,0 +1,23 @@
+{% extends "web/base.html" %}
+{% block title %}Giocatori{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Giocatori</h1>
+  <p><a class="btn" href="{% url 'user_create' %}">+ Nuovo giocatore</a></p>
+  {% if users %}
+  <table>
+    <tr><th>Alias</th><th>Nome</th><th>Nazionalità</th><th>Regione</th></tr>
+    {% for u in users %}
+    <tr>
+      <td><a href="{% url 'user_detail' u.id %}">{{ u.alias }}</a></td>
+      <td>{{ u.first_name }} {{ u.last_name }}</td>
+      <td>{{ u.nationality|default:"—" }}</td>
+      <td>{{ u.region|default:"—" }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">Ancora nessun giocatore registrato.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -95,10 +95,30 @@ in cartella.
 (2 giocatori, estendibilità al caso, set di giochi) restano validi.
 **Conseguenze:** il prototipo precedente è considerato storico (vedi [HANDOFF.md](./HANDOFF.md)).
 
+### ADR-005 — Frontend Django senza database proprio — 2026-06-28
+**Contesto:** il backend è l'unica fonte di verità dei dati; avere due ORM (Django + backend)
+sugli stessi dati crea attrito.
+**Decisione:** il frontend Django disattiva le app che richiedono un DB (auth, sessioni,
+admin) e usa i messaggi su cookie; tutte le operazioni passano dal backend via HTTP
+(`web/api_client.py`, httpx).
+**Conseguenze:** nessun `migrate` da eseguire sul frontend; confine netto. L'autenticazione
+sarà gestita lato backend e integrata in seguito.
+
+### ADR-006 — Punteggi: schema provvisorio prima del rating — 2026-06-28
+**Contesto:** servono punteggi per gioco e classifiche prima che il motore gestisca partite reali.
+**Decisione:** punti semplici (vittoria +3, patta +1, sconfitta +0) registrati via
+`POST /matches`; il punteggio universale è la somma su tutti i giochi; le classifiche per gioco
+si filtrano per nazione/regione.
+**Conseguenze:** facile da capire e testare; verrà sostituito da un rating (es. Elo) quando le
+partite saranno gestite end-to-end dal motore. La tabella `moves` non è ancora introdotta.
+
 ## Traguardi
 
 - **2026-06-28** — Definita l'architettura, scelti licenza e modello del motore; creata la
   base documentale e la configurazione GitHub.
+- **2026-06-28** — Scaffold funzionante end-to-end: backend FastAPI (anagrafica, gruppi con
+  fondazione tramite voto, punteggi, classifiche universale/per-gioco) + frontend Django di
+  presentazione. Verificato via curl e form (CSRF). Scheletro del motore (`engine/core.py`).
 
 ## Questioni aperte
 

@@ -1,0 +1,30 @@
+{% extends "web/base.html" %}
+{% block title %}Scacchi — Piattaforma di giochi da tavolo{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>♟ Scacchi</h1>
+  <p class="muted">Gioca a scacchi e ad altri giochi da tavolo a turni — dama, tris,
+  forza 4 — tramite un unico motore. Registrati, sfida gli altri giocatori e scala le
+  classifiche.</p>
+  <p>
+    <a class="btn" href="{% url 'user_create' %}">Crea un giocatore</a>
+    <a class="btn secondary" href="{% url 'rankings' %}">Vedi le classifiche</a>
+  </p>
+</div>
+
+<div class="card">
+  <h2>Giochi disponibili</h2>
+  {% if games %}
+  <div class="grid">
+    {% for g in games %}
+    <div class="card" style="margin:0;">
+      <strong>{{ g.name }}</strong><br>
+      <span class="muted">{% if g.is_stochastic %}con dadi 🎲{% else %}deterministico{% endif %}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="muted">Nessun gioco disponibile. Verifica che il backend sia avviato.</p>
+  {% endif %}
+</div>
+{% endblock %}

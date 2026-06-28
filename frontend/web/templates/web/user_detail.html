@@ -1,0 +1,27 @@
+{% extends "web/base.html" %}
+{% block title %}{{ u.alias }}{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>{{ u.alias }} <span class="pill">{{ u.universal_points }} pt universali</span></h1>
+  <p class="muted">{{ u.first_name }} {{ u.last_name }} · {{ u.email }}<br>
+  {{ u.nationality|default:"—" }}{% if u.region %} / {{ u.region }}{% endif %}</p>
+  <a class="btn secondary" href="{% url 'users_list' %}">← Tutti i giocatori</a>
+</div>
+
+<div class="card">
+  <h2>Punteggi per gioco</h2>
+  {% if u.scores %}
+  <table>
+    <tr><th>Gioco</th><th>Punti</th><th>Partite</th><th>Vinte</th><th>Patte</th><th>Perse</th></tr>
+    {% for s in u.scores %}
+    <tr>
+      <td>{{ s.game_name }}</td><td>{{ s.points }}</td><td>{{ s.matches_played }}</td>
+      <td>{{ s.wins }}</td><td>{{ s.draws }}</td><td>{{ s.losses }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">Nessuna partita giocata.</p>
+  {% endif %}
+</div>
+{% endblock %}
