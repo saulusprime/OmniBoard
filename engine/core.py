@@ -61,6 +61,19 @@ class Game(ABC, Generic[S, M]):
     def outcome(self, state: S) -> Outcome:
         """Esito della partita; valido solo se ``is_terminal`` è True."""
 
+    # ----- Serializzazione e presentazione -----
+    def serialize_state(self, state: S) -> dict:
+        """Rappresentazione JSON-serializzabile dello stato (per la persistenza)."""
+        raise NotImplementedError
+
+    def deserialize_state(self, data: dict) -> S:
+        """Ricostruisce lo stato da una rappresentazione serializzata."""
+        raise NotImplementedError
+
+    def render_text(self, state: S) -> str:
+        """Rappresentazione testuale dello stato (utile per log e prompt IA)."""
+        raise NotImplementedError
+
     # ----- Hook per i nodi del caso (estensione futura) -----
     def is_chance_node(self, state: S) -> bool:
         """True se l'evoluzione dipende da un evento aleatorio (es. lancio di dadi)."""

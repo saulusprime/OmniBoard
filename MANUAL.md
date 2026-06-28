@@ -22,10 +22,11 @@
 
 # Parte 1 — Manuale dell'applicazione
 
-> ⚠️ L'applicazione è in fase di **scaffold**. Sono già disponibili: registrazione
-> giocatori, gruppi (fondazione tramite voto), punteggi e classifiche. NON sono ancora
-> disponibili: il gioco vero e proprio sulla scacchiera, l'autenticazione/login e il tempo
-> reale. I punteggi si popolano per ora registrando manualmente i risultati delle partite.
+> ⚠️ L'applicazione è in sviluppo. Sono già disponibili: registrazione giocatori, gruppi
+> (fondazione tramite voto), punteggi, classifiche e il **gioco del Tris** (umano vs umano,
+> umano vs IA, IA vs IA). NON sono ancora disponibili: autenticazione/login, gli altri giochi
+> e il gioco a distanza in tempo reale (il Tris fra due umani è per ora *hotseat*, sullo
+> stesso schermo).
 
 ## Cos'è Scacchi
 
@@ -53,9 +54,10 @@ gruppo viene **fondato** e i votanti ne diventano membri (il proponente come *fo
 regole di gestione del gruppo (ruoli, inviti, espulsioni) saranno definite più avanti.
 
 ### Punteggi e partite
-Ogni giocatore ha un **punteggio per ciascun gioco**, che cresce giocando. In questa fase i
-risultati si inseriscono da **Registra partita** (vittoria +3, patta +1, sconfitta +0). Il
-dettaglio dei punteggi è nella scheda del giocatore.
+Ogni giocatore ha un **punteggio per ciascun gioco**, che cresce giocando. Concludendo una
+partita di **Tris** i punteggi dei giocatori umani si aggiornano in automatico; in più si
+possono inserire risultati manualmente da **Registra partita** (vittoria +3, patta +1,
+sconfitta +0). Il dettaglio dei punteggi è nella scheda del giocatore.
 
 ### Classifiche e gamification
 - **Classifica universale**: somma dei punti di un giocatore su *tutti* i giochi → è la base
@@ -139,6 +141,14 @@ Vince chi cattura tutte le pedine avversarie o lascia l'avversario senza mosse l
 - I giocatori, a turno, posizionano il proprio simbolo in una casella libera.
 - Vince chi completa per primo una fila di tre.
 - Se la griglia si riempie senza allineamenti, la partita è **patta**.
+
+### Come giocarci nell'app
+Dal menu **Gioca** scegli chi controlla **X** (muove per primo) e **O**: ogni lato può essere
+un giocatore **umano** oppure l'**IA**. Per giocare in due, imposta entrambi i lati su «Umano»
+(si gioca a turni sullo stesso schermo). Clicca una casella libera per muovere; se l'avversario
+è l'IA, risponde subito. A fine partita i punteggi dei giocatori umani vengono aggiornati.
+L'IA è collegata a **Qwen**; se non è configurata una chiave API, gioca una strategia locale
+ottimale (imbattibile a Tris).
 
 ---
 

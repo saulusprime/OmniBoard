@@ -5,6 +5,44 @@
 
 ---
 
+## 2026-06-28 — Tris giocabile (umano e IA via Qwen)
+
+**Obiettivo della sessione:** primo gioco realmente giocabile, il **Tris**, con possibilità di
+giocare tra umani e contro un'IA collegata a **Qwen**.
+
+**Realizzato:**
+- **Motore** (`engine/`): gioco concreto `TicTacToe` (stato immutabile, mosse legali,
+  vittoria/patta, serializzazione, rendering testuale); registro dei giochi (`registry.py`);
+  estesa l'interfaccia `Game` con `serialize_state`/`deserialize_state`/`render_text`.
+- **Backend** (`backend/app/`): modello `GameSession` (stato persistito, lati umano/IA),
+  router `sessions` (crea partita, mossa, lettura), modulo `ai.py` (Qwen via DashScope
+  OpenAI-compatible + **fallback minimax locale ottimale**), modulo `services.py` con la
+  logica punti condivisa (refactor di `matches.py`). A fine partita i punteggi dei giocatori
+  umani si aggiornano automaticamente.
+- **Frontend** (`frontend/`): pagina di setup partita (X/O = umano o IA), scacchiera Tris
+  cliccabile, gestione turni e messaggi (incl. «L'IA ha giocato…»); voce di menu «Gioca».
+- **Config**: variabili `QWEN_API_KEY` / `QWEN_BASE_URL` / `QWEN_MODEL` in `.env.example`;
+  `httpx` aggiunto alle dipendenze backend.
+
+**Prassi PEP8 + test + commit (richiesta dall'utente):**
+- Aggiunta suite **pytest** (`pyproject.toml` con `pythonpath`/`testpaths`) + `ruff` (PEP8) +
+  `requirements-dev.txt`. **22 test** verdi (engine, API backend, sessioni, smoke frontend).
+- Lint `ruff` pulito; codice formattato.
+
+**Verifiche dal vivo:** AI-vs-AI → patta (minimax); flusso umano-vs-IA dal frontend con CSRF
+(creazione partita, mossa umana, risposta IA, banner «L'IA ha giocato», turno che torna
+all'umano); backend `/sessions/{id}` coerente.
+
+**Note tecniche:** l'IA usa Qwen se `QWEN_API_KEY` è impostata, altrimenti il minimax locale
+(così il gioco è sempre giocabile). Aggiunto un piccolo hack di `sys.path` in
+`backend/app/__init__.py` per importare il pacchetto `engine` dalla root a prescindere dalla
+cartella di avvio.
+
+**Prossimi passi:** autenticazione; gioco a distanza in tempo reale; Forza 4 / Dama / Scacchi;
+rating Elo; regole di gestione dei gruppi.
+
+---
+
 ## 2026-06-28 — Scaffold iniziale: backend, frontend, anagrafica, gruppi, punteggi, classifiche
 
 **Obiettivo della sessione:** primo scaffold funzionante. Interfaccia web di presentazione

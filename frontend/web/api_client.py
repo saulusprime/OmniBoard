@@ -83,6 +83,19 @@ def record_match(data: dict):
     return _request("POST", "/matches", json=data)
 
 
+# ----- Sessioni di gioco -----
+def create_session(data: dict):
+    return _request("POST", "/sessions", json=data)
+
+
+def get_session(session_id):
+    return _request("GET", f"/sessions/{session_id}")
+
+
+def session_move(session_id, data: dict):
+    return _request("POST", f"/sessions/{session_id}/move", json=data)
+
+
 # ----- Classifiche -----
 def universal_ranking():
     return _request("GET", "/rankings/universal")

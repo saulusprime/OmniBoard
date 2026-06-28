@@ -146,3 +146,27 @@ class GroupMembership(Base):
 
     group = relationship("Group", back_populates="memberships")
     user = relationship("User", back_populates="memberships")
+
+
+class GameSession(Base):
+    """Partita giocabile con stato persistito. Ogni lato può essere umano o IA."""
+
+    __tablename__ = "game_sessions"
+
+    id = Column(Integer, primary_key=True)
+    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
+    x_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # None se IA
+    o_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # None se IA
+    x_is_ai = Column(Boolean, default=False, nullable=False)
+    o_is_ai = Column(Boolean, default=False, nullable=False)
+    state_json = Column(String, nullable=False)  # stato serializzato dal motore
+    status = Column(String, default="in_progress", nullable=False)  # in_progress | finished
+    winner = Column(String, nullable=True)  # x | o | draw
+    last_ai_cell = Column(Integer, nullable=True)
+    last_ai_source = Column(String, nullable=True)  # qwen | local
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+    game = relationship("Game")
+    x_user = relationship("User", foreign_keys=[x_user_id])
+    o_user = relationship("User", foreign_keys=[o_user_id])

@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 
 from . import api_client as api
-from .forms import MatchForm, ProposalForm, UserForm, VoteForm
+from .forms import MatchForm, ProposalForm, TrisSetupForm, UserForm, VoteForm
 
 
 def _safe(request, fn, default=None):
@@ -163,3 +163,48 @@ def match_create(request):
     else:
         form = MatchForm(users=users, games=games)
     return render(request, "web/match_form.html", {"form": form})
+
+
+# ----- Tris giocabile -----
+def play_setup(request):
+    users = _safe(request, api.list_users, default=[])
+    if request.method == "POST":
+        form = TrisSetupForm(request.POST, users=users)
+        if form.is_valid():
+
+            def spec(side):
+                if form.cleaned_data[f"{side}_type"] == "ai":
+                    return {"type": "ai"}
+                return {"type": "human", "user_id": int(form.cleaned_data[f"{side}_user"])}
+
+            data = {"game_code": "tictactoe", "x": spec("x"), "o": spec("o")}
+            try:
+                session = api.create_session(data)
+                return redirect("play", session_id=session["id"])
+            except api.ApiError as exc:
+                messages.error(request, str(exc))
+    else:
+        form = TrisSetupForm(users=users)
+    return render(request, "web/play_setup.html", {"form": form})
+
+
+def play(request, session_id):
+    session = _safe(request, lambda: api.get_session(session_id))
+    if session is None:
+        return redirect("play_setup")
+    board = session["board"]
+    rows = [[{"i": i, "v": board[i]} for i in range(r, r + 3)] for r in (0, 3, 6)]
+    return render(request, "web/play.html", {"s": session, "rows": rows})
+
+
+def play_move(request, session_id):
+    if request.method != "POST":
+        return redirect("play", session_id=session_id)
+    try:
+        cell = int(request.POST.get("cell", ""))
+        api.session_move(session_id, {"cell": cell})
+    except (ValueError, TypeError):
+        messages.error(request, "Mossa non valida.")
+    except api.ApiError as exc:
+        messages.error(request, str(exc))
+    return redirect("play", session_id=session_id)

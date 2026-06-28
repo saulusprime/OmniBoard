@@ -28,6 +28,9 @@ Documentazione interattiva dell'API: <http://127.0.0.1:8000/docs>
 | POST   | `/groups/proposals/{id}/vote` | Vota una proposta |
 | GET    | `/groups` · `/groups/proposals` | Gruppi fondati / proposte |
 | POST   | `/matches` | Registra il risultato di una partita (aggiorna i punteggi) |
+| POST   | `/sessions` | Crea una partita giocabile (lati umano/IA) |
+| GET    | `/sessions/{id}` | Stato della partita |
+| POST   | `/sessions/{id}/move` | Esegue una mossa (e fa rispondere l'IA) |
 | GET    | `/rankings/universal` | Classifica universale |
 | GET    | `/rankings/games/{code}?scope=global\|national\|regional` | Classifica per gioco |
 
