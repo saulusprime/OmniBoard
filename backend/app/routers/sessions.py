@@ -39,8 +39,13 @@ def _record_move(game, state_before, move, player: int, moves: list) -> None:
             "ply": len(moves) + 1,
             "player": "X" if player == 0 else "O",
             "notation": game.describe_move(state_before, move),
+            "id": game.move_id(move),
         }
     )
+
+
+def _history_ids(moves: list) -> list:
+    return [m["id"] for m in moves if "id" in m]
 
 
 def _view(session: models.GameSession) -> dict:
@@ -75,6 +80,7 @@ def _view(session: models.GameSession) -> dict:
         "legal_moves": legal,
         "playable_moves": playable_moves,
         "winner": session.winner,
+        "opening": game.opening_name(_history_ids(json.loads(session.moves_json or "[]"))),
         "moves": json.loads(session.moves_json or "[]"),
         "players": {
             "x": {
@@ -114,7 +120,7 @@ def _advance_ai(db: Session, game, session: models.GameSession) -> None:
         player = game.current_player(state)
         if not _side_is_ai(session, player):
             break
-        move, source = ai.choose_move(game, state)
+        move, source = ai.choose_move(game, state, _history_ids(moves))
         _record_move(game, state, move, player, moves)
         state = game.apply(state, move)
         # last_ai_cell è un intero (cella/colonna); per la dama la mossa è un percorso → None.
@@ -187,9 +193,11 @@ def run_batch(payload: schemas.BatchCreate, db: Session = Depends(get_db)):
     tally = {"x": 0, "o": 0, "draw": 0}
     for _ in range(payload.count):
         state = game.initial_state()
+        history: list[str] = []
         while not game.is_terminal(state):
-            cell, _source = ai.choose_move(game, state)
-            state = game.apply(state, cell)
+            move, _source = ai.choose_move(game, state, history)
+            history.append(game.move_id(move))
+            state = game.apply(state, move)
         winner = game.outcome(state).winner
         key = "draw" if winner is None else ("x" if winner == 0 else "o")
         tally[key] += 1

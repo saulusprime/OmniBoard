@@ -115,6 +115,19 @@ va sulla casella del proprio colore («donna sul suo colore»).
 - **Altre patte:** materiale insufficiente, triplice ripetizione, regola delle 50 mosse,
   accordo tra i giocatori.
 
+### Come giocarci nell'app
+Dal menu **Gioca** scegli **Scacchi** e imposta i due lati (umano o IA). Clicca un tuo pezzo:
+l'app evidenzia le case raggiungibili; clicca la destinazione per muovere. Arrocco (muovi il re
+di due case), en passant e promozione sono gestiti automaticamente; in caso di promozione l'app
+chiede quale pezzo (Donna/Torre/Alfiere/Cavallo). Durante la partita viene mostrato il **nome
+dell'apertura** riconosciuta (es. *Partita Italiana*, *Difesa Siciliana*, *Partita Scozzese*).
+
+### Tecniche di apertura
+L'app riconosce le aperture più comuni dal libro integrato (Italiana, Siciliana, Scozzese,
+Spagnola, Francese, Caro-Kann, Petroff, Inglese, Gambetto di Donna, Est-Indiana, Nimzo-Indiana,
+ecc.) e l'**IA segue le linee di libro** nelle prime mosse, per poi proseguire con la propria
+ricerca. *Nota:* non è ancora gestita la patta per **triplice ripetizione**.
+
 ---
 
 ## Dama italiana

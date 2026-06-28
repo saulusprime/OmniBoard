@@ -27,13 +27,24 @@ _SYSTEM_PROMPT = (
 )
 _DEFAULT_BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
 _WIN = 1_000_000.0
+_POS_INF = float("inf")
+_NEG_INF = float("-inf")
 
 
-def choose_move(game, state) -> tuple[int, str]:
-    """Sceglie una mossa legale. Ritorna (cella, sorgente) con sorgente 'qwen'|'local'."""
+def choose_move(game, state, history=None):
+    """Sceglie una mossa legale. Ritorna (mossa, sorgente) con sorgente 'book'|'qwen'|'local'.
+
+    Ordine: libro delle aperture (se ``history`` è fornito e la posizione segue una linea
+    nota) → Qwen → giocatore locale (minimax alpha-beta).
+    """
     legal = list(game.legal_moves(state))
     if not legal:
         raise ValueError("Nessuna mossa legale disponibile")
+
+    if history is not None:
+        book = game.opening_move(state, history)
+        if book is not None and book in legal:
+            return book, "book"
 
     move = _qwen_move(game, state, legal)
     if move is not None and move in legal:
@@ -82,16 +93,15 @@ def _qwen_move(game, state, legal):
     return None
 
 
-# ----- Giocatore locale (minimax, completo o a profondità limitata) -----
+# ----- Giocatore locale (minimax con potatura alpha-beta) -----
 def _local_move(game, state, legal):
     me = game.current_player(state)
-    depth = getattr(game, "search_depth", None)
-    memo: dict | None = {} if depth is None else None  # memoization solo a ricerca completa
+    depth = getattr(game, "search_depth", None)  # None = ricerca completa (giochi piccoli)
     best_score = None
     best_moves: list = []
     for move in legal:
         next_depth = None if depth is None else depth - 1
-        score = _search(game, game.apply(state, move), me, next_depth, memo)
+        score = _search(game, game.apply(state, move), me, next_depth, _NEG_INF, _POS_INF)
         if best_score is None or score > best_score:
             best_score = score
             best_moves = [move]
@@ -101,24 +111,25 @@ def _local_move(game, state, legal):
     return random.choice(best_moves)
 
 
-def _search(game, state, me, depth, memo):
-    if memo is not None:
-        key = (state, depth, me)
-        if key in memo:
-            return memo[key]
+def _search(game, state, me, depth, alpha, beta):
     if game.is_terminal(state):
         winner = game.outcome(state).winner
-        value = 0.0 if winner is None else (_WIN if winner == me else -_WIN)
-    elif depth == 0:
-        value = float(game.heuristic(state, me))
-    else:
-        player = game.current_player(state)
-        next_depth = None if depth is None else depth - 1
-        scores = [
-            _search(game, game.apply(state, m), me, next_depth, memo)
-            for m in game.legal_moves(state)
-        ]
-        value = max(scores) if player == me else min(scores)
-    if memo is not None:
-        memo[key] = value
+        return 0.0 if winner is None else (_WIN if winner == me else -_WIN)
+    if depth == 0:
+        return float(game.heuristic(state, me))
+    next_depth = None if depth is None else depth - 1
+    if game.current_player(state) == me:
+        value = _NEG_INF
+        for m in game.legal_moves(state):
+            value = max(value, _search(game, game.apply(state, m), me, next_depth, alpha, beta))
+            alpha = max(alpha, value)
+            if alpha >= beta:
+                break
+        return value
+    value = _POS_INF
+    for m in game.legal_moves(state):
+        value = min(value, _search(game, game.apply(state, m), me, next_depth, alpha, beta))
+        beta = min(beta, value)
+        if beta <= alpha:
+            break
     return value

@@ -197,30 +197,15 @@ class Draughts(Game):
         return sep.join(_coord(s) for s in move)
 
     def legal_moves_view(self, state: DraughtsState) -> list[dict]:
-        views = []
-        for move in self.legal_moves(state):
-            start, end = move[0], move[-1]
-            captures = [
-                (divmod(a, SIZE)[0] + divmod(b, SIZE)[0]) // 2 * SIZE
-                + (divmod(a, SIZE)[1] + divmod(b, SIZE)[1]) // 2
-                for a, b in zip(move, move[1:])
-                if abs(divmod(b, SIZE)[0] - divmod(a, SIZE)[0]) == 2
-            ]
-            _player, king = state.board[start]
-            er = end // SIZE
-            promote = not king and (
-                (state.current == 0 and er == 0) or (state.current == 1 and er == 7)
-            )
-            views.append(
-                {
-                    "id": self.move_id(move),
-                    "from": start,
-                    "to": end,
-                    "captures": captures,
-                    "symbol": _SYMBOL[(state.current, king or promote)],
-                }
-            )
-        return views
+        return [
+            {
+                "id": self.move_id(move),
+                "from": move[0],
+                "to": move[-1],
+                "changes": self.board_changes(state, move),
+            }
+            for move in self.legal_moves(state)
+        ]
 
     def heuristic(self, state: DraughtsState, player: int) -> float:
         score = 0.0

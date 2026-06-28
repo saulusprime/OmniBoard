@@ -5,6 +5,42 @@
 
 ---
 
+## 2026-06-28 — Quarto gioco: Scacchi (con libro di aperture)
+
+**Obiettivo:** integrare gli **scacchi** completi e gestire le **tecniche di apertura**.
+
+**Realizzato:**
+- **Motore** (`engine/games/chess.py`): regole complete — generazione mosse legali con
+  filtro di scacco, **arrocco**, **en passant**, **promozione**, **scacco matto/stallo**,
+  **regola 50 mosse**, **materiale insufficiente**. Euristica materiale + centralità.
+  Correttezza verificata con **perft** (20 / 400 / 8902 esatti) + test su matto del barbiere,
+  stallo, promozioni.
+- **Aperture** (`engine/games/openings.py`): libro in notazione UCI (Italiana, Siciliana,
+  Scozzese, Spagnola, Francese, Caro-Kann, Petroff, Inglese, Gambetto di Donna, Est-Indiana,
+  Nimzo, …). `detect_opening` riconosce l'apertura in corso; `book_move` propone una
+  continuazione di libro. L'IA, in apertura, **gioca le linee di libro** (sorgente "book"),
+  poi passa a Qwen/minimax.
+- **IA**: aggiunta la **potatura alpha-beta** alla ricerca locale (necessaria per gli scacchi;
+  giova a tutti i giochi). `choose_move` ora accetta lo `history` (id mosse) per il libro.
+- **Backend**: il log delle mosse registra anche l'**id** (UCI); la vista sessione espone il
+  nome dell'**apertura** corrente; l'IA riceve lo storico per il libro (anche nel batch).
+- **Frontend**: la scacchiera "a selezione" ora copre anche gli scacchi (board 8×8 a colori,
+  selezione origine→destinazione, **scelta di promozione**, arrocco/en passant gestiti via le
+  `changes` della mossa); il nome dell'apertura è mostrato in pagina. Vista dama riallineata a
+  `changes`.
+- **Test**: motore scacchi (perft, matto, stallo, promozioni, aperture) + sessione scacchi
+  (basi, apertura riconosciuta, IA da libro); aggiornati i test esistenti. **58 test** verdi;
+  lint `ruff` pulito.
+
+**Verifiche dal vivo:** sessione scacchi (64 celle, 20 mosse iniziali); `e2e4` → l'IA risponde
+da libro (`d7d6`, "Difesa Pirc"); `/games` segna chess `playable`; frontend con Scacchi nel
+selettore e scacchiera resa.
+
+**Semplificazione nota (scacchi):** non è gestita la **patta per ripetizione** (richiede lo
+storico nello stato); gestiti stallo, matto, 50 mosse e materiale insufficiente.
+
+---
+
 ## 2026-06-28 — Terzo gioco: Dama italiana
 
 **Obiettivo:** integrare la **Dama italiana** giocabile (umano/IA).

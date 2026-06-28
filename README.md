@@ -51,8 +51,11 @@ prospettiva, anche quelli con **nodi del caso** (dadi) come backgammon e ludo.
 - 👤 **Anagrafica giocatori** e profili.
 - 📊 **Statistiche di gioco** per giocatore e per gioco (partite, vittorie, ranking).
 - 🧩 **Architettura a servizi**: presentazione (Django) separata dalla logica/API (FastAPI).
-- 🤖 **Avversario IA** collegato a **Qwen** (API DashScope), con fallback locale ottimale (minimax)
-  e mossa mostrata con un piccolo ritardo e animazione.
+- 🤖 **Avversario IA** collegato a **Qwen** (API DashScope), con fallback locale (minimax
+  alpha-beta) e mossa mostrata con un piccolo ritardo e animazione.
+- ♟️ **Scacchi completi** (arrocco, en passant, promozione, matto/stallo) con **libro di
+  aperture** (Italiana, Siciliana, Scozzese, Spagnola…): l'apertura viene riconosciuta e l'IA
+  la segue.
 - 📜 **Log delle mosse** di ogni partita, salvato nello **storico di entrambi i giocatori**.
 - 🛠️ **Tutto parametrizzabile** da un'interfaccia **super admin**: punteggi, regole gruppi,
   registrazione utenti, ritardo IA, limiti, ecc. (protetta da token).
@@ -68,7 +71,7 @@ contiene la sola base documentale.
 | Tris         | Deterministico       | ✅ Giocabile (umano e IA) |
 | Forza 4      | Deterministico       | ✅ Giocabile (umano e IA) |
 | Dama italiana| Deterministico       | ✅ Giocabile (umano e IA) |
-| Scacchi ♟️    | Deterministico       | 🔜 Pianificato |
+| Scacchi ♟️    | Deterministico       | ✅ Giocabile (umano e IA, con libro aperture) |
 | Backgammon   | Con nodi del caso 🎲  | 🧪 Futuro      |
 
 I giochi più semplici (tris, forza 4, dama) servono a validare le primitive del motore prima
@@ -230,20 +233,21 @@ database. Configurazione tramite `.env` (vedi `.env.example`).
 - [x] Avversario **IA (Qwen)** con fallback locale (minimax completo per Tris, a profondità + euristica per Forza 4)
 - [x] Secondo gioco giocabile: **Forza 4** (scacchiera generica nel frontend)
 - [x] Terzo gioco giocabile: **Dama italiana** (catture obbligatorie, dame, mosse a percorso)
+- [x] Quarto gioco giocabile: **Scacchi** completi + **libro di aperture** (riconoscimento + IA)
 - [ ] Autenticazione/login dei giocatori
 - [ ] Regole di gestione dei gruppi (ruoli, inviti, espulsioni)
 - [ ] Migrazioni del database (Alembic) e PostgreSQL in produzione
 - [ ] Aggiornamento in tempo reale della partita (WebSocket / polling) per il gioco a distanza
-- [ ] **Scacchi** completi
 - [ ] Affinamento regole dama (priorità FID tra catture di pari numero, patte)
+- [ ] Scacchi: patta per ripetizione; ampliamento del libro aperture; IA più profonda
 - [ ] Sistema di rating (es. Elo) al posto dello schema punti provvisorio
 - [ ] (Futuro) supporto nodi del caso → Backgammon
 
 ## Stato del progetto
 
-🟢 **Tre giochi giocabili.** Backend FastAPI e frontend Django girano end-to-end: si possono
+🟢 **Quattro giochi giocabili.** Backend FastAPI e frontend Django girano end-to-end: si possono
 creare giocatori, fondare gruppi tramite voto, consultare le classifiche e **giocare a Tris,
-Forza 4 e Dama italiana** (umano vs umano in locale, umano vs IA, IA vs IA — con la possibilità di simulare **N partite
+Forza 4, Dama italiana e Scacchi** (umano vs umano in locale, umano vs IA, IA vs IA — con la possibilità di simulare **N partite
 consecutive** IA-vs-IA, es. 100). L'IA è collegata a **Qwen** con fallback locale ottimale e la
 sua mossa appare con un piccolo ritardo e animazione. Ogni partita ha un **log delle mosse**
 (widget in pagina) salvato nello **storico di entrambi i giocatori**. A fine partita i punteggi

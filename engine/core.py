@@ -100,8 +100,27 @@ class Game(ABC, Generic[S, M]):
 
     def legal_moves_view(self, state: S) -> list[dict]:
         """Mosse legali in forma strutturata per il frontend (usata dai giochi a
-        selezione origine/destinazione, es. dama). Default: solo l'id."""
+        selezione origine/destinazione, es. dama/scacchi). Default: solo l'id."""
         return [{"id": self.move_id(m)} for m in self.legal_moves(state)]
+
+    def board_changes(self, state: S, move: M) -> list:
+        """Celle modificate da una mossa: lista di [indice, nuovo_simbolo|None].
+
+        Generica: confronta la board prima/dopo la mossa. Gestisce così arrocco,
+        en passant, promozione e catture senza logica dedicata nel frontend.
+        """
+        before = self.view_board(state)
+        after = self.view_board(self.apply(state, move))
+        return [[i, after[i]] for i in range(len(before)) if before[i] != after[i]]
+
+    # ----- Aperture (per i giochi che ne hanno, es. scacchi) -----
+    def opening_move(self, state: S, history: list[str]):
+        """Mossa da 'libro' se la posizione segue una linea nota; altrimenti None."""
+        return None
+
+    def opening_name(self, history: list[str]) -> str | None:
+        """Nome dell'apertura riconosciuta dalla sequenza di mosse; altrimenti None."""
+        return None
 
     def heuristic(self, state: S, player: Player) -> float:
         """Valutazione euristica dello stato dal punto di vista di ``player``.

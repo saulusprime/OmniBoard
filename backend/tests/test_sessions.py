@@ -71,7 +71,9 @@ def test_session_records_moves():
             data = client.post(f"/sessions/{sid}/move", json={"move": str(cell)}).json()
 
         assert len(data["moves"]) == 3
-        assert data["moves"][0] == {"ply": 1, "player": "X", "notation": "a1"}
+        assert data["moves"][0]["ply"] == 1
+        assert data["moves"][0]["player"] == "X"
+        assert data["moves"][0]["notation"] == "a1"
         assert data["moves"][1]["player"] == "O"
         assert data["moves"][2]["notation"] == "b1"
 
@@ -168,7 +170,7 @@ def test_draughts_session_basics_and_move():
         playable = session["playable_moves"]
         assert len(playable) == 7  # apertura del Bianco
         first = playable[0]
-        assert {"id", "from", "to", "captures", "symbol"} <= set(first)
+        assert {"id", "from", "to", "changes"} <= set(first)
 
         after = client.post(f"/sessions/{session['id']}/move", json={"move": first["id"]}).json()
         assert len(after["moves"]) == 1
@@ -190,6 +192,46 @@ def test_draughts_vs_ai_responds():
         after = client.post(f"/sessions/{session['id']}/move", json={"move": first["id"]}).json()
         assert len(after["moves"]) == 2  # mossa umana + risposta IA
         assert after["current"] == "x"
+
+
+def test_chess_session_basics_and_opening():
+    with TestClient(app) as client:
+        x = make_user(client, "ch_x")
+        o = make_user(client, "ch_o")
+        session = client.post(
+            "/sessions",
+            json={
+                "game_code": "chess",
+                "x": {"type": "human", "user_id": x["id"]},
+                "o": {"type": "human", "user_id": o["id"]},
+            },
+        ).json()
+        assert session["game_code"] == "chess"
+        assert session["move_type"] == "chess"
+        assert len(session["board"]) == 64
+        assert len(session["playable_moves"]) == 20
+        assert "e2e4" in {m["id"] for m in session["playable_moves"]}
+
+        after = client.post(f"/sessions/{session['id']}/move", json={"move": "e2e4"}).json()
+        assert after["opening"] == "Apertura di Re"
+        assert after["current"] == "o"
+
+
+def test_chess_vs_ai_uses_opening_book():
+    with TestClient(app) as client:
+        human = make_user(client, "ch_ai")
+        session = client.post(
+            "/sessions",
+            json={
+                "game_code": "chess",
+                "x": {"type": "human", "user_id": human["id"]},
+                "o": {"type": "ai"},
+            },
+        ).json()
+        after = client.post(f"/sessions/{session['id']}/move", json={"move": "e2e4"}).json()
+        assert len(after["moves"]) == 2  # mossa umana + risposta IA da libro
+        assert after["current"] == "x"
+        assert after["opening"] is not None  # linea di apertura riconosciuta
 
 
 def test_move_validation():

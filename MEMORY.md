@@ -179,6 +179,18 @@ non cattura dama, promozione che termina la mossa. IA: minimax a profondità lim
 **Conseguenze:** sistema di mosse generico per qualsiasi gioco futuro (anche gli scacchi).
 Restano da implementare le priorità FID fini e le patte (semplificazioni documentate).
 
+### ADR-013 — Scacchi completi + libro di aperture + alpha-beta — 2026-06-28
+**Contesto:** integrare gli scacchi (gioco di riferimento) e "gestire le tecniche di apertura".
+**Decisione:** motore scacchi completo (mosse legali con filtro di scacco, arrocco, en passant,
+promozione, matto/stallo, 50 mosse, materiale insufficiente), validato con **perft**. Un
+**libro di aperture** in UCI (`openings.py`) riconosce l'apertura (`detect_opening`) e fornisce
+continuazioni (`book_move`); l'IA gioca il libro in apertura, poi minimax. Aggiunta la potatura
+**alpha-beta** (richiesta dalla profondità degli scacchi; rimossa la memoization per mantenere
+i valori esatti con alpha-beta). `choose_move(game, state, history)` riceve lo storico (id UCI);
+la vista sessione espone il nome dell'apertura; il log registra l'id mossa.
+**Conseguenze:** l'IA segue Italiana/Siciliana/Scozzese/… in apertura. Semplificazione: niente
+patta per ripetizione (richiede lo storico nello stato). Profondità IA 3 (compromesso velocità).
+
 ## Traguardi
 
 - **2026-06-28** — Definita l'architettura, scelti licenza e modello del motore; creata la
@@ -199,6 +211,8 @@ Restano da implementare le priorità FID fini e le patte (semplificazioni docume
 - **2026-06-28** — Terzo gioco: **Dama italiana** (catture obbligatorie/massimo, dame, promozione);
   codifica mossa generica per id (cella/colonna/percorso), scacchiera con selezione origine→
   destinazione. 50 test verdi.
+- **2026-06-28** — Quarto gioco: **Scacchi** completi (verificati con perft) + **libro di
+  aperture** (riconoscimento + IA che segue le linee) + potatura alpha-beta. 58 test verdi.
 
 ## Questioni aperte
 

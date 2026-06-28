@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scacchi — partita 1</title>
+  <style>
+    :root {
+      --bg:#0f1419; --panel:#1b232d; --accent:#d9a441; --text:#e8eaed;
+      --muted:#9aa4af; --line:#2c3742;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+           background:var(--bg); color:var(--text); }
+    a { color:var(--accent); }
+    .wrap { max-width: 980px; margin:0 auto; padding:0 20px; }
+    header { background:var(--panel); border-bottom:2px solid var(--accent); }
+    nav { display:flex; gap:18px; align-items:center; min-height:60px; flex-wrap:wrap; }
+    nav a { color:var(--text); text-decoration:none; font-weight:500; }
+    nav a:hover { color:var(--accent); }
+    nav .brand { font-size:1.3rem; font-weight:700; color:var(--accent); margin-right:auto; }
+    main { padding:28px 0 60px; }
+    h1,h2 { line-height:1.2; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:10px;
+            padding:20px; margin-bottom:18px; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+    th { color:var(--muted); font-weight:600; }
+    .btn { display:inline-block; background:var(--accent); color:#1a1a1a; padding:9px 16px;
+           border-radius:8px; text-decoration:none; font-weight:600; border:none; cursor:pointer;
+           font-size:1rem; }
+    .btn.secondary { background:transparent; color:var(--accent); border:1px solid var(--accent); }
+    form p { margin:0 0 14px; }
+    label { display:block; color:var(--muted); margin-bottom:4px; }
+    input, select { width:100%; padding:8px 10px; border-radius:7px; border:1px solid var(--line);
+                    background:#0f1419; color:var(--text); font-size:1rem; }
+    .messages { list-style:none; padding:0; margin:0 0 18px; }
+    .messages li { padding:10px 14px; border-radius:8px; margin-bottom:8px; }
+    .messages .success { background:#16331f; border:1px solid #2e7d4f; }
+    .messages .error { background:#3a1c1c; border:1px solid #a23b3b; }
+    .muted { color:var(--muted); }
+    .pill { background:var(--accent); color:#1a1a1a; border-radius:20px; padding:2px 10px;
+            font-size:.8rem; font-weight:700; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; }
+  </style>
+</head>
+<body>
+  <header><div class="wrap"><nav>
+    <a class="brand" href="/">♟ Scacchi</a>
+    <a href="/">Home</a>
+    <a href="/gioca/">Gioca</a>
+    <a href="/giocatori/">Giocatori</a>
+    <a href="/gruppi/">Gruppi</a>
+    <a href="/classifiche/">Classifiche</a>
+    <a href="/partite/registra/">Registra partita</a>
+    <a href="/admin/">Admin</a>
+  </nav></div></header>
+  <main><div class="wrap">
+    
+    
+<style>
+  .play { display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; }
+  .board { display:grid; gap:4px; margin:8px 0; }
+  .cell { display:flex; align-items:center; justify-content:center; background:#0f1419;
+          border:1px solid var(--line); border-radius:6px; color:var(--text); font-weight:700;
+          padding:0; line-height:1; }
+  .cell.x { color:#e8eaed; }
+  .cell.o { color:#d9a441; }
+  .cell.light { background:#0a0d11; border-color:#0a0d11; }
+  .cell.dark { background:#222c38; }
+  .cell.csq-l { background:#2b3543; }
+  .cell.csq-d { background:#161d26; }
+  .cell.sel { outline:3px solid var(--accent); }
+  .cell.dest { box-shadow: inset 0 0 0 3px #2e7d4f; }
+  .colbtns { display:grid; gap:4px; margin-bottom:4px; }
+  .colbtn { background:transparent; border:1px solid var(--accent); color:var(--accent);
+            border-radius:8px; cursor:pointer; padding:6px 0; font-weight:700; }
+  .colbtn:disabled { opacity:.3; cursor:default; }
+  button.cell { cursor:pointer; }
+  button.cell:hover:enabled { border-color:var(--accent); }
+  button.cell:disabled { cursor:default; }
+  .pop { animation: pop .3s ease-out; }
+  @keyframes pop { from { transform:scale(.3); opacity:0; } to { transform:scale(1); opacity:1; } }
+  .side { min-width:220px; flex:1; }
+  .movelog { list-style:decimal inside; padding:0; margin:8px 0 0; max-height:360px; overflow:auto; }
+  .movelog li { padding:4px 6px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
+  #thinking { display:none; color:var(--accent); font-weight:600; margin-top:8px; }
+  #opening { margin-top:4px; }
+</style>
+
+<script id="session-data" type="application/json">{"id": 1, "game_code": "chess", "game_name": "Scacchi", "rows": 8, "cols": 8, "move_type": "chess", "status": "in_progress", "board": ["\u265c", "\u265e", "\u265d", "\u265b", "\u265a", "\u265d", "\u265e", "\u265c", "\u265f", "\u265f", "\u265f", null, "\u265f", "\u265f", "\u265f", "\u265f", null, null, null, "\u265f", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "\u2659", null, null, null, null, null, null, null, null, null, null, null, "\u2659", "\u2659", "\u2659", "\u2659", null, "\u2659", "\u2659", "\u2659", "\u2656", "\u2658", "\u2657", "\u2655", "\u2654", "\u2657", "\u2658", "\u2656"], "current": "x", "current_is_ai": false, "legal_moves": [], "playable_moves": [{"id": "e4e5", "from": 36, "to": 28, "changes": [[28, "\u2659"], [36, null]]}, {"id": "a2a3", "from": 48, "to": 40, "changes": [[40, "\u2659"], [48, null]]}, {"id": "a2a4", "from": 48, "to": 32, "changes": [[32, "\u2659"], [48, null]]}, {"id": "b2b3", "from": 49, "to": 41, "changes": [[41, "\u2659"], [49, null]]}, {"id": "b2b4", "from": 49, "to": 33, "changes": [[33, "\u2659"], [49, null]]}, {"id": "c2c3", "from": 50, "to": 42, "changes": [[42, "\u2659"], [50, null]]}, {"id": "c2c4", "from": 50, "to": 34, "changes": [[34, "\u2659"], [50, null]]}, {"id": "d2d3", "from": 51, "to": 43, "changes": [[43, "\u2659"], [51, null]]}, {"id": "d2d4", "from": 51, "to": 35, "changes": [[35, "\u2659"], [51, null]]}, {"id": "f2f3", "from": 53, "to": 45, "changes": [[45, "\u2659"], [53, null]]}, {"id": "f2f4", "from": 53, "to": 37, "changes": [[37, "\u2659"], [53, null]]}, {"id": "g2g3", "from": 54, "to": 46, "changes": [[46, "\u2659"], [54, null]]}, {"id": "g2g4", "from": 54, "to": 38, "changes": [[38, "\u2659"], [54, null]]}, {"id": "h2h3", "from": 55, "to": 47, "changes": [[47, "\u2659"], [55, null]]}, {"id": "h2h4", "from": 55, "to": 39, "changes": [[39, "\u2659"], [55, null]]}, {"id": "b1a3", "from": 57, "to": 40, "changes": [[40, "\u2658"], [57, null]]}, {"id": "b1c3", "from": 57, "to": 42, "changes": [[42, "\u2658"], [57, null]]}, {"id": "d1e2", "from": 59, "to": 52, "changes": [[52, "\u2655"], [59, null]]}, {"id": "d1f3", "from": 59, "to": 45, "changes": [[45, "\u2655"], [59, null]]}, {"id": "d1g4", "from": 59, "to": 38, "changes": [[38, "\u2655"], [59, null]]}, {"id": "d1h5", "from": 59, "to": 31, "changes": [[31, "\u2655"], [59, null]]}, {"id": "e1e2", "from": 60, "to": 52, "changes": [[52, "\u2654"], [60, null]]}, {"id": "f1e2", "from": 61, "to": 52, "changes": [[52, "\u2657"], [61, null]]}, {"id": "f1d3", "from": 61, "to": 43, "changes": [[43, "\u2657"], [61, null]]}, {"id": "f1c4", "from": 61, "to": 34, "changes": [[34, "\u2657"], [61, null]]}, {"id": "f1b5", "from": 61, "to": 25, "changes": [[25, "\u2657"], [61, null]]}, {"id": "f1a6", "from": 61, "to": 16, "changes": [[16, "\u2657"], [61, null]]}, {"id": "g1f3", "from": 62, "to": 45, "changes": [[45, "\u2658"], [62, null]]}, {"id": "g1h3", "from": 62, "to": 47, "changes": [[47, "\u2658"], [62, null]]}, {"id": "g1e2", "from": 62, "to": 52, "changes": [[52, "\u2658"], [62, null]]}], "winner": null, "opening": "Difesa Pirc", "moves": [{"ply": 1, "player": "X", "notation": "e2-e4", "id": "e2e4"}, {"ply": 2, "player": "O", "notation": "d7-d6", "id": "d7d6"}], "players": {"x": {"type": "human", "user_id": 1, "alias": "sc1"}, "o": {"type": "ai", "user_id": null, "alias": null}}, "last_ai": null}</script>
+
+<div class="card">
+  <h1>Scacchi</h1>
+  <p class="muted">
+    <strong>X</strong>: sc1
+    (umano)
+    &nbsp;·&nbsp;
+    <strong>O</strong>: IA
+    (IA)
+  </p>
+
+  <div class="play">
+    <div>
+      <div id="turninfo"></div>
+      <div id="opening" class="muted"></div>
+      <div id="boardarea"></div>
+      <div id="thinking">L'IA sta pensando…</div>
+      <noscript><p class="muted">Questa pagina richiede JavaScript per giocare.</p></noscript>
+    </div>
+    <div class="side">
+      <h2>Mosse</h2>
+      <ol class="movelog" id="movelog"></ol>
+    </div>
+  </div>
+
+  <p style="margin-top:18px;">
+    <a class="btn" href="/gioca/">Nuova partita</a>
+    <a class="btn secondary" href="/classifiche/">Classifiche</a>
+  </p>
+</div>
+
+<script>
+(function () {
+  const SESSION = JSON.parse(document.getElementById("session-data").textContent);
+  const MOVE_URL = "/partite/1/mossa.json";
+  const CSRF = "9W4AUFc0QXY5J4TbGa9AQqOrZPlR73snQd4coptqKVEqYnkHjFCH3nerQRyshYZq";
+  const AI_DELAY = 700;
+  const X_AI = false;
+  const O_AI = true;
+
+  const rows = SESSION.rows, cols = SESSION.cols, moveType = SESSION.move_type;
+  const isSelect = moveType === "draughts" || moveType === "chess";
+  const cellPx = cols <= 3 ? 88 : (cols <= 7 ? 56 : 46);
+  const WHITE_SET = "X⛀⛁♔♕♖♗♘♙", BLACK_SET = "O⛂⛃♚♛♜♝♞♟";
+  let board = SESSION.board.slice();
+  let pmoves = SESSION.playable_moves || [];
+  let current = SESSION.current || "";
+  let status = SESSION.status;
+  let busy = false;
+  let selected = null;
+
+  const area = document.getElementById("boardarea");
+  const thinking = document.getElementById("thinking");
+
+  const idx = (r, c) => r * cols + c;
+  const symFor = (side) => (side === "x" ? "X" : "O");
+  const sideIsAi = (side) => (side === "x" ? X_AI : O_AI);
+  const isDark = (i) => ((Math.floor(i / cols) + (i % cols)) % 2) === 1;
+  const playableFrom = (i) => pmoves.filter((m) => m.from === i);
+
+  function landingIndex(c) {
+    for (let r = rows - 1; r >= 0; r--) {
+      const i = idx(r, c);
+      if (board[i] === null) return i;
+    }
+    return -1;
+  }
+
+  function buildBoard() {
+    area.innerHTML = "";
+    if (moveType === "column") {
+      const head = document.createElement("div");
+      head.className = "colbtns";
+      head.style.gridTemplateColumns = `repeat(${cols}, ${cellPx}px)`;
+      for (let c = 0; c < cols; c++) {
+        const b = document.createElement("button");
+        b.className = "colbtn"; b.textContent = "▼"; b.dataset.col = c;
+        b.addEventListener("click", () => onColumn(c));
+        head.appendChild(b);
+      }
+      area.appendChild(head);
+    }
+    const grid = document.createElement("div");
+    grid.className = "board"; grid.id = "grid";
+    grid.style.gridTemplateColumns = `repeat(${cols}, ${cellPx}px)`;
+    grid.style.gridTemplateRows = `repeat(${rows}, ${cellPx}px)`;
+    for (let i = 0; i < rows * cols; i++) {
+      let el;
+      const usable = moveType === "cell" || moveType === "chess" || (moveType === "draughts" && isDark(i));
+      if (usable) {
+        el = document.createElement("button");
+        if (moveType === "cell") el.addEventListener("click", () => onCell(i));
+        else el.addEventListener("click", () => onSelect(i));
+      } else {
+        el = document.createElement("div");
+      }
+      el.className = "cell";
+      if (moveType === "draughts") el.classList.add(isDark(i) ? "dark" : "light");
+      if (moveType === "chess") el.classList.add(isDark(i) ? "csq-d" : "csq-l");
+      el.style.fontSize = (cellPx * 0.72) + "px";
+      grid.appendChild(el);
+    }
+    area.appendChild(grid);
+  }
+
+  function pieceClass(v) {
+    if (v && WHITE_SET.includes(v)) return "x";
+    if (v && BLACK_SET.includes(v)) return "o";
+    return null;
+  }
+
+  function renderCells(animate) {
+    const grid = document.getElementById("grid");
+    const dests = selected !== null ? new Set(playableFrom(selected).map((m) => m.to)) : new Set();
+    for (let i = 0; i < board.length; i++) {
+      const el = grid.children[i];
+      const v = board[i];
+      el.textContent = v || "";
+      el.classList.remove("x", "o", "sel", "dest", "pop");
+      const pc = pieceClass(v);
+      if (pc) el.classList.add(pc);
+      if (moveType === "cell") el.disabled = v !== null || status !== "in_progress";
+      if (isSelect && el.tagName === "BUTTON") el.disabled = status !== "in_progress";
+      if (isSelect) {
+        if (i === selected) el.classList.add("sel");
+        if (dests.has(i)) el.classList.add("dest");
+      }
+      if (animate && animate.has(i)) { void el.offsetWidth; el.classList.add("pop"); }
+    }
+    if (moveType === "column") {
+      area.querySelectorAll(".colbtn").forEach((b) => {
+        const c = parseInt(b.dataset.col, 10);
+        b.disabled = status !== "in_progress" || board[idx(0, c)] !== null;
+      });
+    }
+  }
+
+  function renderMoves(moves) {
+    const ol = document.getElementById("movelog");
+    ol.innerHTML = "";
+    (moves || []).forEach((m) => {
+      const li = document.createElement("li");
+      li.textContent = m.player + " → " + m.notation;
+      ol.appendChild(li);
+    });
+  }
+
+  function setStatus(session) {
+    status = session.status;
+    current = session.current || "";
+    const el = document.getElementById("turninfo");
+    if (session.status === "finished") {
+      el.innerHTML = session.winner === "draw"
+        ? '<span class="pill">Patta</span>'
+        : '<span class="pill">Ha vinto ' + session.winner.toUpperCase() + "</span>";
+    } else {
+      el.innerHTML = "Tocca a: <strong>" + current.toUpperCase() + "</strong>" +
+        (session.current_is_ai ? " (IA)" : "");
+    }
+    document.getElementById("opening").textContent = session.opening ? "Apertura: " + session.opening : "";
+  }
+
+  async function doHuman(moveId, mutate) {
+    if (busy || status !== "in_progress") return;
+    const mover = current;
+    if (sideIsAi(mover)) return;
+    busy = true;
+    const snapshot = board.slice();
+    const animated = mutate(mover);
+    selected = null;
+    renderCells(animated);
+    const next = mover === "x" ? "o" : "x";
+    if (sideIsAi(next)) thinking.style.display = "block";
+    try {
+      const res = await fetch(MOVE_URL, {
+        method: "POST",
+        headers: { "X-CSRFToken": CSRF, "Content-Type": "application/x-www-form-urlencoded" },
+        body: "move=" + encodeURIComponent(moveId),
+      });
+      const session = await res.json();
+      if (!res.ok) throw new Error(session.error || "Mossa non valida");
+      renderMoves(session.moves);
+      const aiCells = new Set();
+      for (let i = 0; i < session.board.length; i++) {
+        if (session.board[i] !== board[i]) aiCells.add(i);
+      }
+      const finish = () => {
+        board = session.board.slice();
+        pmoves = session.playable_moves || [];
+        renderCells(aiCells);
+        thinking.style.display = "none";
+        setStatus(session);
+        busy = false;
+      };
+      if (aiCells.size > 0) setTimeout(finish, AI_DELAY); else finish();
+    } catch (err) {
+      board = snapshot;
+      renderCells(new Set());
+      thinking.style.display = "none";
+      busy = false;
+      alert(err.message || "Mossa non valida");
+    }
+  }
+
+  function onCell(i) {
+    if (board[i] !== null) return;
+    doHuman(String(i), (mover) => { board[i] = symFor(mover); return new Set([i]); });
+  }
+
+  function onColumn(c) {
+    const land = landingIndex(c);
+    if (land < 0) return;
+    doHuman(String(c), (mover) => { board[land] = symFor(mover); return new Set([land]); });
+  }
+
+  function applyMove(mv) {
+    doHuman(mv.id, () => {
+      const changed = new Set();
+      (mv.changes || []).forEach(([sq, sym]) => { board[sq] = sym; changed.add(sq); });
+      return changed;
+    });
+  }
+
+  function choosePromotion(opts) {
+    const ans = (window.prompt(
+      "Promozione: q = Donna, r = Torre, b = Alfiere, n = Cavallo", "q"
+    ) || "q").toLowerCase().trim();
+    return opts.find((m) => m.id.endsWith(ans)) || opts.find((m) => m.id.endsWith("q")) || opts[0];
+  }
+
+  function onSelect(i) {
+    if (busy || status !== "in_progress" || sideIsAi(current)) return;
+    if (selected !== null) {
+      const opts = playableFrom(selected).filter((m) => m.to === i);
+      if (opts.length === 1) { applyMove(opts[0]); return; }
+      if (opts.length > 1) { applyMove(choosePromotion(opts)); return; }
+    }
+    selected = playableFrom(i).length > 0 ? i : null;
+    renderCells(new Set());
+  }
+
+  buildBoard();
+  renderCells(new Set());
+  renderMoves(SESSION.moves);
+  setStatus(SESSION);
+})();
+</script>
+
+  </div></main>
+</body>
+</html>
