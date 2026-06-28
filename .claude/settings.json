@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/Saulus/Sviluppo/Scacchi status)",
+      "Bash(git config *)",
+      "Bash(echo \"\\(exit: $?\\)\")",
+      "Bash(git add *)"
+    ]
+  }
+}

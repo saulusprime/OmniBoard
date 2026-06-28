@@ -1,0 +1,42 @@
+name: 🐛 Bug report
+description: Segnala un comportamento errato
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Grazie per la segnalazione! Compila i campi qui sotto.
+        Per vulnerabilità di sicurezza **non** usare questo modulo: vedi SECURITY.md.
+  - type: textarea
+    id: descrizione
+    attributes:
+      label: Descrizione del problema
+      description: Cosa è successo? Cosa ti aspettavi che succedesse?
+    validations:
+      required: true
+  - type: textarea
+    id: riproduzione
+    attributes:
+      label: Passi per riprodurre
+      description: Elenca i passi per riprodurre il problema.
+      placeholder: |
+        1. Vai a '...'
+        2. Clicca su '...'
+        3. Osserva l'errore
+    validations:
+      required: true
+  - type: input
+    id: gioco
+    attributes:
+      label: Gioco interessato
+      description: Se pertinente (es. Scacchi, Dama, Tris, Forza 4).
+    validations:
+      required: false
+  - type: textarea
+    id: ambiente
+    attributes:
+      label: Ambiente
+      description: Browser, sistema operativo, versione, ecc.
+    validations:
+      required: false

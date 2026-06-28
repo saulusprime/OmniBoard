@@ -1,0 +1,41 @@
+name: 💡 Feature request / Nuovo gioco
+description: Proponi una funzionalità o un nuovo gioco
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: Grazie per l'idea! Descrivi la proposta nel modo più chiaro possibile.
+  - type: textarea
+    id: problema
+    attributes:
+      label: Problema o esigenza
+      description: Quale problema risolve o quale esigenza soddisfa la proposta?
+    validations:
+      required: true
+  - type: textarea
+    id: soluzione
+    attributes:
+      label: Soluzione proposta
+      description: Cosa vorresti che venisse realizzato?
+    validations:
+      required: true
+  - type: dropdown
+    id: tipo
+    attributes:
+      label: Tipo di proposta
+      options:
+        - Funzionalità dell'applicazione
+        - Nuovo gioco
+        - Miglioramento del motore
+        - Documentazione
+        - Altro
+    validations:
+      required: true
+  - type: textarea
+    id: alternative
+    attributes:
+      label: Alternative considerate
+      description: Hai valutato altre soluzioni?
+    validations:
+      required: false

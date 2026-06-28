@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Domande e discussioni
+    url: https://github.com/
+    about: Per domande generali usa le Discussions del repository (aggiorna questo URL).
+  - name: 🔒 Vulnerabilità di sicurezza
+    url: https://github.com/
+    about: Non aprire una issue pubblica. Segui SECURITY.md (Security advisories).

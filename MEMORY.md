@@ -1,0 +1,109 @@
+# MEMORY — Diario tecnico e decisioni architetturali
+
+> Diario tecnico del progetto **Scacchi**: andamento, traguardi, dettagli architetturali e
+> scelte tecniche con le relative motivazioni. Complementare a [HANDOFF.md](./HANDOFF.md)
+> (che è il registro cronologico delle sessioni). Le decisioni rilevanti sono annotate come
+> *ADR* (Architecture Decision Record).
+>
+> **Ultimo aggiornamento:** 2026-06-28
+
+---
+
+## Modello concettuale del motore
+
+Il cuore del progetto è un **motore di gioco astratto** che descrive in modo generico un
+gioco a turni tra due giocatori. Le primitive previste:
+
+- **GameState** — rappresentazione immutabile dello stato (configurazione del tavoliere,
+  giocatore di turno, eventuali metadati come arrocco/en-passant negli scacchi).
+- **Move** — una mossa applicabile a uno stato; applicarla produce un nuovo stato.
+- **Generazione mosse legali** — dato uno stato, l'elenco delle mosse ammesse.
+- **Condizione terminale ed esito** — vittoria/sconfitta/patta e relativo punteggio.
+- **Nodo del caso (opzionale)** — punto in cui l'evoluzione dipende da un evento aleatorio
+  (es. lancio di dadi), con una distribuzione di esiti. Riservato a giochi come backgammon.
+
+Ogni **gioco concreto** (scacchi, dama, tris, forza 4) implementa queste primitive come
+*plugin*. L'infrastruttura (backend, frontend, persistenza) lavora solo contro le primitive
+astratte e non conosce le regole dei singoli giochi.
+
+**Principi:**
+- Logica **pura**: il motore non fa I/O (niente rete, niente DB, niente tempo reale) ed è
+  quindi facilmente testabile in modo deterministico.
+- Stato **immutabile**: applicare una mossa restituisce un nuovo stato, semplifica
+  replay/undo e l'analisi.
+- Validazione **lato motore**: la legalità di una mossa è decisa dal motore, mai dal client.
+
+## Architettura a servizi
+
+Tre livelli logici + database (vedi diagramma in [README.md](./README.md#architettura)):
+
+1. **Frontend — Django**: presentazione. Template, rendering della scacchiera (JS/Canvas),
+   gestione della sessione utente lato browser. Consuma le API del backend; non possiede dati
+   di dominio.
+2. **Backend — FastAPI**: API REST + WebSocket, orchestrazione delle partite, validazione
+   delle mosse tramite il motore, persistenza, anagrafica, statistiche e ranking. Unica fonte
+   di verità dei dati.
+3. **Engine** — pacchetto Python puro indipendente dai framework.
+4. **Database** — PostgreSQL (prod) / SQLite (sviluppo), di proprietà del backend.
+
+**Flusso di una mossa (previsto):** il browser invia la mossa → Django la inoltra → FastAPI
+la valida con il motore → se legale aggiorna lo stato, persiste la mossa e notifica
+l'avversario via WebSocket → al termine registra l'esito e aggiorna le statistiche.
+
+## Schema dati (bozza)
+
+Tabelle previste lato backend (i dettagli saranno fissati con le migrazioni):
+
+- **players** — `id`, `username`, `email`, `password_hash`, `created_at`, preferenze.
+- **games** — catalogo dei tipi di gioco (`code`, `name`, `is_stochastic`).
+- **matches** — `id`, `game_code`, `player_white`, `player_black`, `started_at`, `ended_at`,
+  `result`, `winner`.
+- **moves** — `id`, `match_id`, `ply`, `notation`, `state_after` (per replay/analisi).
+- **statistics** — aggregati per (`player`, `game`): partite, vittorie, sconfitte, patte,
+  ranking (Elo), serie.
+
+## Decisioni architetturali (ADR)
+
+### ADR-001 — Stack Python: Django (frontend) + FastAPI (backend) — 2026-06-28
+**Contesto:** richiesta di un frontend web basato su Django e di un'interfaccia FastAPI verso
+la backend, con database per statistiche e anagrafica.
+**Decisione:** separare la presentazione (Django) dalla logica/API e dai dati (FastAPI +
+database). Il motore è un pacchetto Python puro condiviso, usato dal backend.
+**Conseguenze:** due servizi distinti; confine netto via API REST/WebSocket; il frontend non
+accede direttamente al database di dominio. Maggiore separazione delle responsabilità a costo
+di un confine di rete tra i due servizi.
+
+### ADR-002 — Licenza MIT — 2026-06-28
+**Contesto:** progetto open source destinato alla pubblicazione sul web.
+**Decisione:** licenza **MIT** (permissiva, massima adozione e riuso).
+**Conseguenze:** nessun obbligo di copyleft sulle modifiche; il trattamento dei dati degli
+utenti è gestito separatamente dalla nota privacy in [LICENCE.md](./LICENCE.md).
+
+### ADR-003 — Motore deterministico estendibile ai nodi del caso — 2026-06-28
+**Contesto:** focus sui giochi deterministici (scacchi, dama, …) ma con interesse a includere
+in futuro giochi con dadi.
+**Decisione:** progettare il modello astratto deterministico-first, con *hook* espliciti per
+nodi del caso, senza implementarli subito.
+**Conseguenze:** complessità iniziale contenuta; backgammon/ludo restano abilitabili senza
+riprogettare il motore.
+
+### ADR-004 — Cambio di stack rispetto al prototipo precedente — 2026-06-28
+**Contesto:** una sessione precedente (2026-06-27) aveva avviato un monorepo
+TypeScript/React/Node-Express/Prisma con Dama italiana funzionante; quel codice non è presente
+in cartella.
+**Decisione:** ripartire da zero con lo stack Python descritto in ADR-001. I principi di gioco
+(2 giocatori, estendibilità al caso, set di giochi) restano validi.
+**Conseguenze:** il prototipo precedente è considerato storico (vedi [HANDOFF.md](./HANDOFF.md)).
+
+## Traguardi
+
+- **2026-06-28** — Definita l'architettura, scelti licenza e modello del motore; creata la
+  base documentale e la configurazione GitHub.
+
+## Questioni aperte
+
+- Strategia di autenticazione tra Django e FastAPI (sessione vs token): da definire allo
+  scaffold del backend.
+- Scelta tra Django template + Canvas e un approccio più ricco lato client per la scacchiera.
+- Formato di notazione delle mosse da persistere (specifico per gioco vs generico).
+- ORM lato backend (SQLAlchemy) e gestione migrazioni con Alembic: da confermare.
