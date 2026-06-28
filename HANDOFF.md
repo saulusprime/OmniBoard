@@ -5,6 +5,33 @@
 
 ---
 
+## 2026-06-28 — Fix: "bad request" su mossa.json (IA remota + desync)
+
+**Sintomo:** in una partita di scacchi (sessione 13), dopo alcuni minuti, errore *bad request*
+su `…/mossa.json`.
+
+**Diagnosi (verificata sul DB):** nella posizione di sessione 13 il Bianco (umano) era **sotto
+scacco** con **3 sole mosse legali** (`d1e2`, `f1e2`, `f3e5`); il motore era corretto. Il 400
+"Mossa non valida" derivava da un **disallineamento client↔server**: la mossa inviata non era
+più legale nello stato reale. Causa a monte: la **classe dell'IA remota** (`_qwen_move`).
+
+**Difetti corretti:**
+1. **`backend/app/ai.py` (`_qwen_move`)**: confrontava un intero con mosse che per scacchi/dama
+   sono tuple/percorsi → non combaciava **mai** → ad ogni mossa IA faceva una chiamata HTTP
+   (fino a 20s) e poi ripiegava sul locale (rallentamento "dopo alcuni minuti"). Ora il match
+   avviene per **id mossa** (estratto `_match_move`, valido per tutti i giochi) e restituisce
+   l'oggetto-mossa; timeout ridotto e configurabile (`QWEN_TIMEOUT`, default 10s).
+2. **Frontend (`play.html`)**: in caso di errore di una mossa il client faceva *revert* allo
+   stato pre-mossa, ma il server poteva aver già applicato la mossa → disallineamento permanente.
+   Ora il client si **risincronizza** con lo stato reale (nuovo endpoint `…/stato.json`,
+   `play_state_json`) invece di indovinare.
+
+**Test:** aggiunti test di `_match_move` (scacchi/tris/dama) senza rete. **62 test** verdi; lint
+pulito. Verificato dal vivo: `stato.json` 200; mossa legale ok; mossa illegale → 400 JSON
+(gestito dal risync).
+
+---
+
 ## 2026-06-28 — Quarto gioco: Scacchi (con libro di aperture)
 
 **Obiettivo:** integrare gli **scacchi** completi e gestire le **tecniche di apertura**.

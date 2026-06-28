@@ -241,6 +241,15 @@ def play_move_json(request, session_id):
         return JsonResponse({"error": str(exc)}, status=400)
 
 
+def play_state_json(request, session_id):
+    """Stato corrente della partita in JSON: usato dal client per risincronizzarsi
+    quando una mossa fallisce (evita disallineamenti client/server)."""
+    try:
+        return JsonResponse(api.get_session(session_id))
+    except api.ApiError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
+
+
 # ----- Super admin: parametri di programma -----
 def admin(request):
     settings = _safe(request, api.get_settings, default=[])
