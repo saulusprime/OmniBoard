@@ -171,3 +171,16 @@ class GameSession(Base):
     game = relationship("Game")
     x_user = relationship("User", foreign_keys=[x_user_id])
     o_user = relationship("User", foreign_keys=[o_user_id])
+
+
+class Setting(Base):
+    """Parametro di configurazione del programma, gestibile dal super admin."""
+
+    __tablename__ = "settings"
+
+    key = Column(String, primary_key=True)
+    value = Column(String, nullable=False)  # valore serializzato come testo
+    value_type = Column(String, nullable=False)  # int | float | bool | str
+    category = Column(String, nullable=False)
+    label = Column(String, nullable=False)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)

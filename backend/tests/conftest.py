@@ -10,3 +10,4 @@ from pathlib import Path
 
 _tmp_dir = tempfile.mkdtemp(prefix="scacchi-test-")
 os.environ["DATABASE_URL"] = f"sqlite:///{Path(_tmp_dir) / 'test.db'}"
+os.environ["ADMIN_TOKEN"] = "test-admin"

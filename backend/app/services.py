@@ -1,18 +1,14 @@
 """Logica di assegnazione dei punteggi, condivisa da partite e sessioni di gioco.
 
-Schema punti provvisorio: vittoria +3, patta +1, sconfitta +0. Sarà sostituibile
-con un sistema di rating (es. Elo).
+I punti assegnati sono parametri configurabili dal super admin
+(``scoring.points_win`` / ``points_draw`` / ``points_loss``).
 """
 
 from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from . import models
-
-POINTS_WIN = 3.0
-POINTS_DRAW = 1.0
-POINTS_LOSS = 0.0
+from . import models, settings_service
 
 
 def score_for(db: Session, user_id: int, game_id: int) -> models.Score:
@@ -37,13 +33,13 @@ def award(db: Session, user_id: int, game_id: int, result: str) -> models.Score:
     score = score_for(db, user_id, game_id)
     score.matches_played += 1
     if result == "win":
-        score.points += POINTS_WIN
+        score.points += settings_service.get(db, "scoring.points_win")
         score.wins += 1
     elif result == "draw":
-        score.points += POINTS_DRAW
+        score.points += settings_service.get(db, "scoring.points_draw")
         score.draws += 1
     else:
-        score.points += POINTS_LOSS
+        score.points += settings_service.get(db, "scoring.points_loss")
         score.losses += 1
     return score
 

@@ -1,0 +1,49 @@
+{% extends "web/base.html" %}
+{% block title %}Super admin — Parametri{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>⚙️ Super admin — Parametri di programma</h1>
+  <p class="muted">Tutti i parametri configurabili dell'applicazione. Modifica i valori e salva
+  inserendo il <strong>token super admin</strong> (variabile <code>ADMIN_TOKEN</code> del
+  server).</p>
+
+  {% if settings %}
+  <form method="post" novalidate>{% csrf_token %}
+    {% regroup settings by category as gruppi %}
+    {% for g in gruppi %}
+      <h2>{{ g.grouper }}</h2>
+      <table>
+        <tr><th style="width:55%;">Parametro</th><th>Valore</th></tr>
+        {% for s in g.list %}
+        <tr>
+          <td>{{ s.label }}<br><span class="muted" style="font-size:.8rem;">{{ s.key }} (default: {{ s.default }})</span></td>
+          <td>
+            {% if s.type == 'bool' %}
+              <select name="{{ s.key }}">
+                <option value="true" {% if s.value %}selected{% endif %}>Sì</option>
+                <option value="false" {% if not s.value %}selected{% endif %}>No</option>
+              </select>
+            {% elif s.type == 'int' or s.type == 'float' %}
+              <input type="number" {% if s.type == 'float' %}step="any"{% endif %}
+                     name="{{ s.key }}" value="{{ s.value }}">
+            {% else %}
+              <input type="text" name="{{ s.key }}" value="{{ s.value }}">
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    {% endfor %}
+
+    <div style="margin-top:18px; max-width:360px;">
+      <label for="admin_token">Token super admin</label>
+      <input type="password" id="admin_token" name="admin_token"
+             placeholder="ADMIN_TOKEN del server" autocomplete="off">
+    </div>
+    <p style="margin-top:14px;"><button class="btn" type="submit">Salva parametri</button></p>
+  </form>
+  {% else %}
+  <p class="muted">Impossibile caricare i parametri (backend non raggiungibile?).</p>
+  {% endif %}
+</div>
+{% endblock %}

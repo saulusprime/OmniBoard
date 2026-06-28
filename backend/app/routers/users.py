@@ -7,7 +7,7 @@ import json
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
+from .. import models, schemas, settings_service
 from ..database import get_db
 from ..security import hash_password
 
@@ -16,6 +16,10 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 @router.post("", response_model=schemas.UserOut, status_code=201)
 def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
+    if not settings_service.get(db, "users.allow_registration"):
+        raise HTTPException(
+            status_code=403, detail="Registrazioni disabilitate dall'amministratore"
+        )
     if db.query(models.User).filter(models.User.alias == payload.alias).first():
         raise HTTPException(status_code=409, detail="Alias già in uso")
     if db.query(models.User).filter(models.User.email == payload.email).first():

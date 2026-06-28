@@ -143,6 +143,19 @@ fallback senza JS.
 **Conseguenze:** nessun blocco lato server; il backend resta veloce. Cambio di schema
 (`moves_json`): senza Alembic, in sviluppo va eliminato il DB per ricrearlo.
 
+### ADR-010 — Parametri centralizzati + super admin — 2026-06-28
+**Contesto:** rendere l'intero programma parametrizzabile e gestibile da un'unica interfaccia.
+**Decisione:** un **registro** dei parametri (`settings_service.SETTINGS_DEFS`: tipo, default,
+categoria, label) con valori persistiti in tabella `settings`; `get()` legge dal DB con
+fallback al default. Le modifiche passano da `PUT /admin/settings` protetto da
+`ADMIN_TOKEN` (header `X-Admin-Token`); la lettura è aperta e `GET /config` espone il
+sottoinsieme utile al frontend. Il delay/animazione IA resta lato client ma il valore è un
+parametro (`ai.move_delay_ms`).
+**Conseguenze:** comportamento configurabile a runtime senza ridistribuire; aggiungere un
+parametro è una sola voce nel registro. Auth dei *giocatori* ancora assente: per ora il super
+admin è protetto da un token condiviso (non da ruoli utente). Nuova tabella `settings` creata
+da `create_all` (è additiva: nessun problema di migrazione su DB esistenti).
+
 ## Traguardi
 
 - **2026-06-28** — Definita l'architettura, scelti licenza e modello del motore; creata la
@@ -155,6 +168,9 @@ fallback senza JS.
   test) e lint **ruff** (PEP8) introdotti come prassi.
 - **2026-06-28** — Partite consecutive IA-vs-IA (batch) + **log mosse**, **storico per
   giocatore** e mossa IA con **ritardo/animazione** lato client. 27 test verdi.
+- **2026-06-28** — **Parametri di programma centralizzati** + interfaccia **super admin**
+  (token): punteggi, voti gruppo, registrazione utenti, ritardo IA, max batch configurabili a
+  runtime. 33 test verdi.
 
 ## Questioni aperte
 

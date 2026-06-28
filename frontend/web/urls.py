@@ -20,4 +20,5 @@ urlpatterns = [
     path("partite/<int:session_id>/", views.play, name="play"),
     path("partite/<int:session_id>/mossa/", views.play_move, name="play_move"),
     path("partite/<int:session_id>/mossa.json", views.play_move_json, name="play_move_json"),
+    path("admin/", views.admin, name="admin"),
 ]

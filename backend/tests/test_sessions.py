@@ -151,9 +151,10 @@ def test_batch_ai_vs_ai():
 def test_batch_invalid_count():
     with TestClient(app) as client:
         too_low = client.post("/sessions/batch", json={"game_code": "tictactoe", "count": 0})
-        assert too_low.status_code == 422
+        assert too_low.status_code == 422  # < 1: violazione di schema
+        # oltre il massimo configurabile (games.batch_max, default 1000): regola applicativa
         too_high = client.post("/sessions/batch", json={"game_code": "tictactoe", "count": 1001})
-        assert too_high.status_code == 422
+        assert too_high.status_code == 400
 
 
 def test_human_vs_ai_responds():

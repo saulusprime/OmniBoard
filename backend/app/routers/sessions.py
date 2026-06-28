@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from engine.registry import get_game, is_playable
 
-from .. import ai, models, schemas, services
+from .. import ai, models, schemas, services, settings_service
 from ..database import get_db
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
@@ -170,6 +170,11 @@ def run_batch(payload: schemas.BatchCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Gioco non trovato")
     if not is_playable(payload.game_code):
         raise HTTPException(status_code=400, detail="Gioco non ancora giocabile")
+    max_batch = int(settings_service.get(db, "games.batch_max"))
+    if payload.count > max_batch:
+        raise HTTPException(
+            status_code=400, detail=f"Numero massimo di partite consecutive: {max_batch}"
+        )
     game = get_game(payload.game_code)
 
     tally = {"x": 0, "o": 0, "draw": 0}

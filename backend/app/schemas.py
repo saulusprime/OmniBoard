@@ -156,7 +156,10 @@ class MoveIn(BaseModel):
 
 
 class BatchCreate(BaseModel):
-    """Esegue ``count`` partite consecutive IA-vs-IA e ne restituisce il riepilogo."""
+    """Esegue ``count`` partite consecutive IA-vs-IA e ne restituisce il riepilogo.
+
+    Il limite massimo di ``count`` è il parametro configurabile ``games.batch_max``.
+    """
 
     game_code: str = "tictactoe"
     count: int = 1
@@ -164,9 +167,15 @@ class BatchCreate(BaseModel):
     @field_validator("count")
     @classmethod
     def valid_count(cls, v: int) -> int:
-        if not 1 <= v <= 1000:
-            raise ValueError("count deve essere tra 1 e 1000")
+        if v < 1:
+            raise ValueError("count deve essere >= 1")
         return v
+
+
+class SettingsUpdate(BaseModel):
+    """Aggiornamento di uno o più parametri (valori come stringhe dal form)."""
+
+    values: dict[str, str]
 
 
 # ----- Classifiche -----

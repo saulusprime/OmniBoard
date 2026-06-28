@@ -206,9 +206,14 @@ def play(request, session_id):
     session = _safe(request, lambda: api.get_session(session_id))
     if session is None:
         return redirect("play_setup")
+    config = _safe(request, api.get_config, default={})
     board = session["board"]
     rows = [[{"i": i, "v": board[i]} for i in range(r, r + 3)] for r in (0, 3, 6)]
-    return render(request, "web/play.html", {"s": session, "rows": rows})
+    return render(
+        request,
+        "web/play.html",
+        {"s": session, "rows": rows, "ai_delay": config.get("ai_move_delay_ms", 700)},
+    )
 
 
 def play_move(request, session_id):
@@ -236,3 +241,20 @@ def play_move_json(request, session_id):
         return JsonResponse(api.session_move(session_id, {"cell": cell}))
     except api.ApiError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
+
+
+# ----- Super admin: parametri di programma -----
+def admin(request):
+    settings = _safe(request, api.get_settings, default=[])
+    if request.method == "POST":
+        token = request.POST.get("admin_token", "")
+        values = {
+            s["key"]: request.POST.get(s["key"], "") for s in settings if s["key"] in request.POST
+        }
+        try:
+            api.update_settings(values, token)
+            messages.success(request, "Parametri aggiornati.")
+            return redirect("admin")
+        except api.ApiError as exc:
+            messages.error(request, str(exc))
+    return render(request, "web/admin.html", {"settings": settings})

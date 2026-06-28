@@ -81,7 +81,7 @@
   const CSRF = "{{ csrf_token }}";
   const X_AI = {% if s.players.x.type == 'ai' %}true{% else %}false{% endif %};
   const O_AI = {% if s.players.o.type == 'ai' %}true{% else %}false{% endif %};
-  const AI_DELAY = 700; // ms: piccolo ritardo prima di mostrare la mossa dell'IA
+  const AI_DELAY = {{ ai_delay|default:700 }}; // ms (parametro super admin: ai.move_delay_ms)
 
   const board = document.getElementById("board");
   const thinking = document.getElementById("thinking");

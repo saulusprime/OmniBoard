@@ -65,6 +65,14 @@ sconfitta +0). Il dettaglio dei punteggi è nella scheda del giocatore.
 - **Classifica per gioco**, con ambito **globale**, **nazionale** (per nazionalità) o
   **regionale** (per regione).
 
+### Super admin (parametri di programma)
+Dal menu **Admin** si accede all'interfaccia di amministrazione, dove **tutti i parametri**
+del programma sono modificabili: nome del sito, abilitazione delle registrazioni, punti per
+vittoria/patta/sconfitta, voti minimi per fondare un gruppo, ritardo della mossa dell'IA,
+numero massimo di partite consecutive, ecc. I parametri sono raggruppati per categoria; per
+salvare una modifica occorre inserire il **token super admin** (configurato sul server con la
+variabile `ADMIN_TOKEN`). Le modifiche hanno effetto immediato.
+
 ## Concetti generali di gioco
 
 - **Due giocatori.** Ogni partita è tra due giocatori.

@@ -104,6 +104,21 @@ def run_batch(data: dict):
     return _request("POST", "/sessions/batch", json=data)
 
 
+# ----- Configurazione / super admin -----
+def get_config():
+    return _request("GET", "/config")
+
+
+def get_settings():
+    return _request("GET", "/admin/settings")
+
+
+def update_settings(values: dict, token: str):
+    return _request(
+        "PUT", "/admin/settings", json={"values": values}, headers={"X-Admin-Token": token}
+    )
+
+
 # ----- Classifiche -----
 def universal_ranking():
     return _request("GET", "/rankings/universal")

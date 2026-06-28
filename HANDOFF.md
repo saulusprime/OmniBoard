@@ -5,6 +5,36 @@
 
 ---
 
+## 2026-06-28 — Parametri di programma + interfaccia super admin
+
+**Obiettivo:** rendere tutto il programma parametrizzabile e gestire ogni parametro da
+un'interfaccia di super admin.
+
+**Realizzato:**
+- **Backend**: registro centrale dei parametri in `settings_service.py` (categorie: Generale,
+  Utenti, Punteggio, Gruppi, IA, Giochi; tipo, default, etichetta) + tabella `settings`;
+  `seed_settings` allo startup. Router `admin` (`GET /admin/settings` aperto in lettura,
+  `PUT /admin/settings` protetto da header `X-Admin-Token` == env `ADMIN_TOKEN`) e router
+  `config` (`GET /config` pubblico per il frontend).
+- **Parametri collegati al comportamento**: punteggi vittoria/patta/sconfitta (`services`),
+  voti minimi per fondare un gruppo (`groups`), abilitazione registrazione utenti (`users`),
+  ritardo mossa IA (frontend), numero massimo partite batch (`sessions`).
+- **Frontend**: pagina **super admin** (`/admin/`) che mostra i parametri raggruppati per
+  categoria con input per tipo (sì/no, numero, testo) e richiede il token per salvare; voce
+  di menu «Admin». Il ritardo IA della pagina di gioco ora arriva da `/config`.
+- **Config**: `ADMIN_TOKEN` in `.env.example`; nei test impostato a `test-admin` (conftest).
+- **Test**: parametri seedati/elencati, `/config`, token obbligatorio per la modifica, chiave
+  sconosciuta → 400, punteggio configurabile (vittoria a 5 → score 5), registrazione
+  disattivabile (403). Totale **33 test** verdi; lint `ruff` pulito.
+
+**Verifiche dal vivo:** `/admin/` rende il form; `PUT` senza token → 401; modifica con token via
+CSRF → `ai.move_delay_ms` 700→1500 effettivo subito su `/config`.
+
+**Estendibilità:** aggiungere un parametro = una voce in `SETTINGS_DEFS` + leggerlo con
+`settings_service.get(...)` dove serve; comparirà da solo nell'interfaccia super admin.
+
+---
+
 ## 2026-06-28 — Nota: falso allarme `OperationalError` (moves_json)
 
 Durante una prova è comparso:

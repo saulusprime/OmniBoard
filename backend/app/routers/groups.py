@@ -10,7 +10,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
+from .. import models, schemas, settings_service
 from ..database import get_db
 
 router = APIRouter(prefix="/groups", tags=["groups"])
@@ -47,7 +47,8 @@ def create_proposal(payload: schemas.GroupProposalCreate, db: Session = Depends(
     proposer = db.get(models.User, payload.proposed_by)
     if not proposer:
         raise HTTPException(status_code=404, detail="Utente proponente non trovato")
-    threshold = max(2, payload.threshold)  # almeno due utenti devono votare
+    min_votes = int(settings_service.get(db, "groups.min_votes_to_found"))
+    threshold = max(min_votes, payload.threshold)
 
     proposal = models.GroupProposal(
         name=payload.name, proposed_by=payload.proposed_by, threshold=threshold

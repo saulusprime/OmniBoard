@@ -32,6 +32,9 @@ Documentazione interattiva dell'API: <http://127.0.0.1:8000/docs>
 | POST   | `/sessions/batch` | Simula N partite consecutive IA-vs-IA (riepilogo) |
 | GET    | `/sessions/{id}` | Stato della partita |
 | POST   | `/sessions/{id}/move` | Esegue una mossa (e fa rispondere l'IA) |
+| GET    | `/config` | Parametri pubblici per il frontend |
+| GET    | `/admin/settings` | Elenco parametri (lettura aperta) |
+| PUT    | `/admin/settings` | Modifica parametri (header `X-Admin-Token`) |
 | GET    | `/rankings/universal` | Classifica universale |
 | GET    | `/rankings/games/{code}?scope=global\|national\|regional` | Classifica per gioco |
 

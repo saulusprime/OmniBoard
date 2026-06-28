@@ -54,6 +54,8 @@ prospettiva, anche quelli con **nodi del caso** (dadi) come backgammon e ludo.
 - 🤖 **Avversario IA** collegato a **Qwen** (API DashScope), con fallback locale ottimale (minimax)
   e mossa mostrata con un piccolo ritardo e animazione.
 - 📜 **Log delle mosse** di ogni partita, salvato nello **storico di entrambi i giocatori**.
+- 🛠️ **Tutto parametrizzabile** da un'interfaccia **super admin**: punteggi, regole gruppi,
+  registrazione utenti, ritardo IA, limiti, ecc. (protetta da token).
 - 🔓 **Open source** con licenza [MIT](./LICENCE.md).
 
 ## Giochi supportati
@@ -222,6 +224,7 @@ database. Configurazione tramite `.env` (vedi `.env.example`).
 - [x] Anagrafica giocatori (nome, cognome, alias, email, nazionalità, regione)
 - [x] Gruppi: fondazione tramite proposta + voto (soglia ≥ 2)
 - [x] Punteggi per gioco + classifica universale + classifiche per gioco (globale/nazionale/regionale)
+- [x] Interfaccia **super admin**: parametri di programma configurabili (punteggi, regole, IA, limiti)
 - [x] Scheletro del motore astratto (`engine/core.py`)
 - [x] Primo gioco giocabile: **Tris** (motore + sessioni di gioco persistite)
 - [x] Avversario **IA (Qwen)** con fallback locale ottimale (minimax)
@@ -241,8 +244,9 @@ creare giocatori, fondare gruppi tramite voto, consultare le classifiche e **gio
 consecutive** IA-vs-IA, es. 100). L'IA è collegata a **Qwen** con fallback locale ottimale e la
 sua mossa appare con un piccolo ritardo e animazione. Ogni partita ha un **log delle mosse**
 (widget in pagina) salvato nello **storico di entrambi i giocatori**. A fine partita i punteggi
-si aggiornano in automatico. Mancano autenticazione, gioco a distanza in tempo reale e gli altri
-giochi.
+si aggiornano in automatico. I parametri di programma (punteggi, regole, ecc.) sono modificabili
+da un'**interfaccia super admin**. Mancano autenticazione dei giocatori, gioco a distanza in
+tempo reale e gli altri giochi.
 
 ## Documentazione correlata
 

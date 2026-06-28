@@ -7,8 +7,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from .database import Base, SessionLocal, engine
-from .routers import games, groups, matches, rankings, sessions, users
+from .routers import admin, config, games, groups, matches, rankings, sessions, users
 from .seed import seed_games
+from .settings_service import seed_settings
 
 
 @asynccontextmanager
@@ -18,6 +19,7 @@ async def lifespan(app: FastAPI):
     db = SessionLocal()
     try:
         seed_games(db)
+        seed_settings(db)
     finally:
         db.close()
     yield
@@ -36,6 +38,8 @@ app.include_router(groups.router)
 app.include_router(matches.router)
 app.include_router(sessions.router)
 app.include_router(rankings.router)
+app.include_router(admin.router)
+app.include_router(config.router)
 
 
 @app.get("/health", tags=["meta"])
