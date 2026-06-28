@@ -171,18 +171,30 @@ def play_setup(request):
     if request.method == "POST":
         form = TrisSetupForm(request.POST, users=users)
         if form.is_valid():
+            x_ai = form.cleaned_data["x_type"] == "ai"
+            o_ai = form.cleaned_data["o_type"] == "ai"
+            count = form.cleaned_data.get("games_count") or 1
 
-            def spec(side):
-                if form.cleaned_data[f"{side}_type"] == "ai":
-                    return {"type": "ai"}
-                return {"type": "human", "user_id": int(form.cleaned_data[f"{side}_user"])}
+            # Entrambi IA + più partite → esegui un batch e mostra il riepilogo.
+            if x_ai and o_ai and count > 1:
+                try:
+                    result = api.run_batch({"game_code": "tictactoe", "count": count})
+                    return render(request, "web/batch_result.html", {"r": result})
+                except api.ApiError as exc:
+                    messages.error(request, str(exc))
+            else:
 
-            data = {"game_code": "tictactoe", "x": spec("x"), "o": spec("o")}
-            try:
-                session = api.create_session(data)
-                return redirect("play", session_id=session["id"])
-            except api.ApiError as exc:
-                messages.error(request, str(exc))
+                def spec(side):
+                    if form.cleaned_data[f"{side}_type"] == "ai":
+                        return {"type": "ai"}
+                    return {"type": "human", "user_id": int(form.cleaned_data[f"{side}_user"])}
+
+                data = {"game_code": "tictactoe", "x": spec("x"), "o": spec("o")}
+                try:
+                    session = api.create_session(data)
+                    return redirect("play", session_id=session["id"])
+                except api.ApiError as exc:
+                    messages.error(request, str(exc))
     else:
         form = TrisSetupForm(users=users)
     return render(request, "web/play_setup.html", {"form": form})

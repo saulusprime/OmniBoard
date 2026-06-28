@@ -87,6 +87,25 @@ def test_ai_vs_ai_draws():
         assert all(cell is not None for cell in session["board"])
 
 
+def test_batch_ai_vs_ai():
+    """100 partite consecutive IA-vs-IA: con minimax sono tutte patte."""
+    with TestClient(app) as client:
+        result = client.post(
+            "/sessions/batch", json={"game_code": "tictactoe", "count": 100}
+        ).json()
+        assert result["count"] == 100
+        assert result["x_wins"] + result["o_wins"] + result["draws"] == 100
+        assert result["draws"] == 100  # gioco perfetto su entrambi i lati
+
+
+def test_batch_invalid_count():
+    with TestClient(app) as client:
+        too_low = client.post("/sessions/batch", json={"game_code": "tictactoe", "count": 0})
+        assert too_low.status_code == 422
+        too_high = client.post("/sessions/batch", json={"game_code": "tictactoe", "count": 1001})
+        assert too_high.status_code == 422
+
+
 def test_human_vs_ai_responds():
     with TestClient(app) as client:
         human = make_user(client, "hva_x")

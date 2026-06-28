@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-06-28 — IA-vs-IA: N partite consecutive
+
+**Obiettivo:** quando entrambi i giocatori sono IA, permettere di giocare N partite
+consecutive (es. 100) e vedere il riepilogo.
+
+**Realizzato:**
+- **Backend**: endpoint `POST /sessions/batch` ({game_code, count 1..1000}) che simula N
+  partite IA-vs-IA in memoria (nessuna persistenza, nessun punteggio) e restituisce il
+  riepilogo (vittorie X/O, patte). Schema `BatchCreate` con validazione di `count`.
+- **IA**: il minimax locale ora sceglie **a caso tra le mosse ugualmente ottimali** → le
+  partite consecutive variano pur restando a gioco perfetto (a Tris quindi sempre patte).
+- **Frontend**: nuovo campo «Partite consecutive» nel setup (usato solo se entrambi i lati
+  sono IA e count > 1); pagina di riepilogo `batch_result.html`.
+- **Test**: aggiunti test del batch (riepilogo coerente; validazione count 0/1001 → 422).
+  Totale **24 test** verdi; lint `ruff` pulito.
+
+**Nota:** con Qwen configurato un batch numeroso comporta molte chiamate API (più lento).
+
+---
+
 ## 2026-06-28 — Tris giocabile (umano e IA via Qwen)
 
 **Obiettivo della sessione:** primo gioco realmente giocabile, il **Tris**, con possibilità di

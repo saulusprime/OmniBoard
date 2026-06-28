@@ -143,6 +143,38 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
     return _view(session)
 
 
+@router.post("/batch", status_code=201)
+def run_batch(payload: schemas.BatchCreate, db: Session = Depends(get_db)):
+    """Gioca ``count`` partite consecutive IA-vs-IA e restituisce il riepilogo.
+
+    Non persiste le singole partite (nessun giocatore umano, nessun punteggio): è una
+    simulazione. Con Qwen configurato può richiedere tempo (molte chiamate all'API).
+    """
+    if not db.query(models.Game).filter_by(code=payload.game_code).first():
+        raise HTTPException(status_code=404, detail="Gioco non trovato")
+    if not is_playable(payload.game_code):
+        raise HTTPException(status_code=400, detail="Gioco non ancora giocabile")
+    game = get_game(payload.game_code)
+
+    tally = {"x": 0, "o": 0, "draw": 0}
+    for _ in range(payload.count):
+        state = game.initial_state()
+        while not game.is_terminal(state):
+            cell, _source = ai.choose_move(game, state)
+            state = game.apply(state, cell)
+        winner = game.outcome(state).winner
+        key = "draw" if winner is None else ("x" if winner == 0 else "o")
+        tally[key] += 1
+
+    return {
+        "game_code": payload.game_code,
+        "count": payload.count,
+        "x_wins": tally["x"],
+        "o_wins": tally["o"],
+        "draws": tally["draw"],
+    }
+
+
 @router.get("/{session_id}")
 def get_session(session_id: int, db: Session = Depends(get_db)):
     session = db.get(models.GameSession, session_id)

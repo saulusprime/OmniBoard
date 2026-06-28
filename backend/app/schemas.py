@@ -155,6 +155,20 @@ class MoveIn(BaseModel):
     cell: int
 
 
+class BatchCreate(BaseModel):
+    """Esegue ``count`` partite consecutive IA-vs-IA e ne restituisce il riepilogo."""
+
+    game_code: str = "tictactoe"
+    count: int = 1
+
+    @field_validator("count")
+    @classmethod
+    def valid_count(cls, v: int) -> int:
+        if not 1 <= v <= 1000:
+            raise ValueError("count deve essere tra 1 e 1000")
+        return v
+
+
 # ----- Classifiche -----
 class RankingEntry(BaseModel):
     rank: int
