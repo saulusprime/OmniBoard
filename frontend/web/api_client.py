@@ -119,6 +119,23 @@ def update_settings(values: dict, token: str):
     )
 
 
+def get_ai_providers():
+    return _request("GET", "/admin/ai-providers")
+
+
+def update_ai_providers(active: str, providers: dict, token: str):
+    return _request(
+        "PUT",
+        "/admin/ai-providers",
+        json={"active": active, "providers": providers},
+        headers={"X-Admin-Token": token},
+    )
+
+
+def test_ai_provider(code: str, token: str):
+    return _request("POST", f"/admin/ai-providers/{code}/test", headers={"X-Admin-Token": token})
+
+
 # ----- Classifiche -----
 def universal_ranking():
     return _request("GET", "/rankings/universal")

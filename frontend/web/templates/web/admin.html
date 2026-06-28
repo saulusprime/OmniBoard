@@ -6,6 +6,7 @@
   <p class="muted">Tutti i parametri configurabili dell'applicazione. Modifica i valori e salva
   inserendo il <strong>token super admin</strong> (variabile <code>ADMIN_TOKEN</code> del
   server).</p>
+  <p><a class="btn secondary" href="{% url 'admin_ai' %}">🔌 Provider IA (token Qwen, Claude, …)</a></p>
 
   {% if settings %}
   <form method="post" novalidate>{% csrf_token %}

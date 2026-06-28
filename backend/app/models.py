@@ -184,3 +184,17 @@ class Setting(Base):
     category = Column(String, nullable=False)
     label = Column(String, nullable=False)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+
+class AiProvider(Base):
+    """Credenziali e configurazione di un provider IA (Qwen, Claude, OpenAI, …)."""
+
+    __tablename__ = "ai_providers"
+
+    code = Column(String, primary_key=True)  # qwen | anthropic | openai
+    label = Column(String, nullable=False)
+    kind = Column(String, nullable=False)  # "openai" (compatibile) | "anthropic"
+    base_url = Column(String, nullable=True)
+    model = Column(String, nullable=True)
+    api_key = Column(String, nullable=True)  # token; non esposto in lettura dall'API
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)

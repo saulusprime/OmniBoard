@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from .ai_providers import seed_providers
 from .database import Base, SessionLocal, engine
 from .routers import admin, config, games, groups, matches, rankings, sessions, users
 from .seed import seed_games
@@ -20,6 +21,7 @@ async def lifespan(app: FastAPI):
     try:
         seed_games(db)
         seed_settings(db)
+        seed_providers(db)
     finally:
         db.close()
     yield

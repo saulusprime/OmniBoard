@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![Status](https://img.shields.io/badge/stato-base%20documentale-orange.svg)](#stato-del-progetto)
 
-> **Ultimo aggiornamento:** 2026-06-28 — *Tris giocabile (umano e IA via Qwen) oltre ad anagrafica, gruppi, punteggi e classifiche.*
+> **Ultimo aggiornamento:** 2026-06-28 — *Login provider IA (Qwen, Claude, OpenAI) configurabili da super admin; quattro giochi giocabili (Tris, Forza 4, Dama, Scacchi).*
 
 ---
 
@@ -51,8 +51,9 @@ prospettiva, anche quelli con **nodi del caso** (dadi) come backgammon e ludo.
 - 👤 **Anagrafica giocatori** e profili.
 - 📊 **Statistiche di gioco** per giocatore e per gioco (partite, vittorie, ranking).
 - 🧩 **Architettura a servizi**: presentazione (Django) separata dalla logica/API (FastAPI).
-- 🤖 **Avversario IA** collegato a **Qwen** (API DashScope), con fallback locale (minimax
-  alpha-beta) e mossa mostrata con un piccolo ritardo e animazione.
+- 🤖 **Avversario IA** multi-provider (**Qwen**, **Claude/Anthropic**, **OpenAI**): i token si
+  configurano da una pagina **«Provider IA»** del super admin (salvati lato server, non nel
+  `.env`), con fallback locale (minimax alpha-beta) e mossa mostrata con ritardo e animazione.
 - ♟️ **Scacchi completi** (arrocco, en passant, promozione, matto/stallo) con **libro di
   aperture** (Italiana, Siciliana, Scozzese, Spagnola…): l'apertura viene riconosciuta e l'IA
   la segue.
@@ -234,6 +235,7 @@ database. Configurazione tramite `.env` (vedi `.env.example`).
 - [x] Secondo gioco giocabile: **Forza 4** (scacchiera generica nel frontend)
 - [x] Terzo gioco giocabile: **Dama italiana** (catture obbligatorie, dame, mosse a percorso)
 - [x] Quarto gioco giocabile: **Scacchi** completi + **libro di aperture** (riconoscimento + IA)
+- [x] **Login provider IA** (Qwen, Claude, OpenAI): token configurabili da super admin, salvati lato server
 - [ ] Autenticazione/login dei giocatori
 - [ ] Regole di gestione dei gruppi (ruoli, inviti, espulsioni)
 - [ ] Migrazioni del database (Alembic) e PostgreSQL in produzione
@@ -248,8 +250,9 @@ database. Configurazione tramite `.env` (vedi `.env.example`).
 🟢 **Quattro giochi giocabili.** Backend FastAPI e frontend Django girano end-to-end: si possono
 creare giocatori, fondare gruppi tramite voto, consultare le classifiche e **giocare a Tris,
 Forza 4, Dama italiana e Scacchi** (umano vs umano in locale, umano vs IA, IA vs IA — con la possibilità di simulare **N partite
-consecutive** IA-vs-IA, es. 100). L'IA è collegata a **Qwen** con fallback locale ottimale e la
-sua mossa appare con un piccolo ritardo e animazione. Ogni partita ha un **log delle mosse**
+consecutive** IA-vs-IA, es. 100). L'IA può usare un **provider remoto** (Qwen, Claude o OpenAI),
+con token configurabili dalla pagina super admin «Provider IA», e ripiega sul giocatore locale
+ottimale; la sua mossa appare con un piccolo ritardo e animazione. Ogni partita ha un **log delle mosse**
 (widget in pagina) salvato nello **storico di entrambi i giocatori**. A fine partita i punteggi
 si aggiornano in automatico. I parametri di programma (punteggi, regole, ecc.) sono modificabili
 da un'**interfaccia super admin**. Mancano autenticazione dei giocatori, gioco a distanza in

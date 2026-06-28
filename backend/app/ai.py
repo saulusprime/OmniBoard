@@ -1,16 +1,15 @@
 """Giocatore IA.
 
-Strategia: prova prima a far scegliere la mossa a **Qwen** (API DashScope, formato
-OpenAI-compatible); se non è configurato o la risposta non è valida, ripiega su un
-giocatore locale (minimax) — così il gioco è sempre giocabile. La ricerca locale è
-completa per i giochi piccoli (Tris) e limitata in profondità con euristica per quelli
-grandi (Forza 4), in base a ``Game.search_depth``.
+Ordine di scelta della mossa: **libro delle aperture** (se è fornito lo storico e la
+posizione segue una linea nota) → **provider IA remoto** configurato (Qwen, Claude,
+OpenAI, …) → **giocatore locale** (minimax con potatura alpha-beta).
 
-Variabili d'ambiente:
-- ``QWEN_API_KEY`` (o ``DASHSCOPE_API_KEY``): chiave API. Se assente, si usa solo il
-  giocatore locale.
-- ``QWEN_BASE_URL``: default endpoint internazionale DashScope (compatible-mode).
-- ``QWEN_MODEL``: default ``qwen-plus``.
+I provider sono configurati dal super admin (token salvati in DB, non in ``.env``).
+``provider`` è un dict {code, kind, base_url, model, api_key}:
+- kind ``"openai"`` → endpoint OpenAI-compatible via httpx (Qwen/DashScope, OpenAI, …);
+- kind ``"anthropic"`` → SDK ufficiale ``anthropic`` (Claude).
+La ricerca locale è completa per i giochi piccoli (Tris) e a profondità limitata con
+euristica per quelli grandi (Forza 4, Dama, Scacchi), in base a ``Game.search_depth``.
 """
 
 from __future__ import annotations
@@ -25,17 +24,19 @@ _SYSTEM_PROMPT = (
     "Sei un giocatore esperto di giochi da tavolo. "
     "Rispondi sempre e solo con l'id esatto della mossa scelta, senza altro testo."
 )
-_DEFAULT_BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
 _WIN = 1_000_000.0
 _POS_INF = float("inf")
 _NEG_INF = float("-inf")
 
 
-def choose_move(game, state, history=None):
-    """Sceglie una mossa legale. Ritorna (mossa, sorgente) con sorgente 'book'|'qwen'|'local'.
+def _timeout() -> float:
+    return float(os.getenv("AI_TIMEOUT", os.getenv("QWEN_TIMEOUT", "10")))
 
-    Ordine: libro delle aperture (se ``history`` è fornito e la posizione segue una linea
-    nota) → Qwen → giocatore locale (minimax alpha-beta).
+
+def choose_move(game, state, history=None, provider=None):
+    """Sceglie una mossa legale. Ritorna (mossa, sorgente).
+
+    ``sorgente`` ∈ {'book', <codice provider>, 'local'}.
     """
     legal = list(game.legal_moves(state))
     if not legal:
@@ -46,67 +47,111 @@ def choose_move(game, state, history=None):
         if book is not None and book in legal:
             return book, "book"
 
-    move = _qwen_move(game, state, legal)
-    if move is not None and move in legal:
-        return move, "qwen"
+    if provider:
+        move = _remote_move(game, state, legal, provider)
+        if move is not None and move in legal:
+            return move, provider.get("code") or "remote"
+
     return _local_move(game, state, legal), "local"
 
 
-# ----- Qwen -----
-def _match_move(game, legal, content):
-    """Estrae dalla risposta del modello una mossa legale, confrontando per id.
-
-    Funziona per ogni gioco (cella, colonna o percorso/UCI) perché usa
-    ``game.move_id``. Ritorna l'oggetto-mossa o None.
-    """
-    id_to_move = {game.move_id(m): m for m in legal}
-    text = content.strip().lower()
-    for token in re.findall(r"[a-h0-9=qrbnx-]+", text):
-        if token in id_to_move:
-            return id_to_move[token]
-    # Fallback: id contenuto nel testo (prima i più lunghi, per evitare prefissi).
-    for move_id in sorted(id_to_move, key=len, reverse=True):
-        if move_id in text:
-            return id_to_move[move_id]
-    return None
-
-
-def _qwen_move(game, state, legal):
-    api_key = os.getenv("QWEN_API_KEY") or os.getenv("DASHSCOPE_API_KEY")
-    if not api_key:
-        return None
-    base_url = os.getenv("QWEN_BASE_URL", _DEFAULT_BASE_URL).rstrip("/")
-    model = os.getenv("QWEN_MODEL", "qwen-plus")
-    timeout = float(os.getenv("QWEN_TIMEOUT", "10"))
+# ----- Provider IA remoti -----
+def _build_prompt(game, state, legal):
     symbol = "X" if game.current_player(state) == 0 else "O"
     move_ids = [game.move_id(m) for m in legal]
-    prompt = (
+    return (
         f"Gioco: {game.name}. Stato attuale (X e O, '.' = vuoto):\n"
         f"{game.render_text(state)}\n\n"
         f"Tocca a te, giochi con '{symbol}'. Mosse legali disponibili (id): {move_ids}.\n"
         "Scegli la mossa migliore per vincere o non perdere. "
         "Rispondi SOLO con l'id esatto della mossa scelta (uno di quelli elencati)."
     )
-    try:
-        with httpx.Client(timeout=timeout) as client:
-            response = client.post(
-                f"{base_url}/chat/completions",
-                headers={"Authorization": f"Bearer {api_key}"},
-                json={
-                    "model": model,
-                    "temperature": 0.2,
-                    "messages": [
-                        {"role": "system", "content": _SYSTEM_PROMPT},
-                        {"role": "user", "content": prompt},
-                    ],
-                },
-            )
-            response.raise_for_status()
-            content = response.json()["choices"][0]["message"]["content"]
-    except (httpx.HTTPError, KeyError, IndexError, ValueError):
-        return None
 
+
+def _match_move(game, legal, content):
+    """Estrae dalla risposta del modello una mossa legale, confrontando per id.
+
+    Funziona per ogni gioco (cella, colonna o percorso/UCI) perché usa ``game.move_id``.
+    """
+    id_to_move = {game.move_id(m): m for m in legal}
+    text = content.strip().lower()
+    for token in re.findall(r"[a-h0-9=qrbnx-]+", text):
+        if token in id_to_move:
+            return id_to_move[token]
+    for move_id in sorted(id_to_move, key=len, reverse=True):
+        if move_id in text:
+            return id_to_move[move_id]
+    return None
+
+
+def _openai_complete(provider, prompt):
+    """Chiamata a un endpoint OpenAI-compatible (Qwen/DashScope, OpenAI, …)."""
+    base_url = (provider.get("base_url") or "").rstrip("/")
+    with httpx.Client(timeout=_timeout()) as client:
+        response = client.post(
+            f"{base_url}/chat/completions",
+            headers={"Authorization": f"Bearer {provider['api_key']}"},
+            json={
+                "model": provider.get("model"),
+                "temperature": 0.2,
+                "messages": [
+                    {"role": "system", "content": _SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt},
+                ],
+            },
+        )
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"]
+
+
+def _anthropic_complete(provider, prompt):
+    """Chiamata a Claude tramite l'SDK ufficiale Anthropic (Messages API)."""
+    import anthropic  # import pigro: dipendenza necessaria solo per il provider Claude
+
+    client = anthropic.Anthropic(
+        api_key=provider["api_key"],
+        base_url=provider.get("base_url") or None,
+        timeout=_timeout(),
+        max_retries=0,
+    )
+    message = client.messages.create(
+        model=provider.get("model") or "claude-opus-4-8",
+        max_tokens=64,
+        system=_SYSTEM_PROMPT,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    if getattr(message, "stop_reason", None) == "refusal":
+        return None
+    return "".join(b.text for b in message.content if getattr(b, "type", None) == "text")
+
+
+def _complete(provider, prompt):
+    """Invia il prompt al provider e restituisce il testo della risposta (può sollevare)."""
+    if provider.get("kind") == "anthropic":
+        return _anthropic_complete(provider, prompt)
+    return _openai_complete(provider, prompt)
+
+
+def _remote_move(game, state, legal, provider):
+    """Mossa scelta dal provider remoto; None se non configurato/errore/non valida."""
+    try:
+        content = _complete(provider, _build_prompt(game, state, legal))
+    except Exception:  # noqa: BLE001 - best effort: in caso di errore si usa il locale
+        return None
+    if not content:
+        return None
     return _match_move(game, legal, content)
+
+
+def ping(provider):
+    """Verifica le credenziali con una chiamata minima. Ritorna (ok, dettaglio)."""
+    try:
+        content = _complete(provider, "Rispondi solo con: ok")
+    except Exception as exc:  # noqa: BLE001 - si riporta l'errore all'utente
+        return False, str(exc)
+    if not content:
+        return False, "Nessuna risposta dal provider"
+    return True, content.strip()[:120]
 
 
 # ----- Giocatore locale (minimax con potatura alpha-beta) -----

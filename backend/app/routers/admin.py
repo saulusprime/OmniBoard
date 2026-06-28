@@ -11,7 +11,7 @@ import os
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import schemas, settings_service
+from .. import ai_providers, schemas, settings_service
 from ..database import get_db
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -37,3 +37,28 @@ def update_settings(payload: schemas.SettingsUpdate, db: Session = Depends(get_d
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return settings_service.get_all(db)
+
+
+# ----- Provider IA (login/token verso Qwen, Claude, …) -----
+def _providers_payload(db: Session) -> dict:
+    return {
+        "providers": ai_providers.list_providers(db),
+        "active": settings_service.get(db, "ai.provider"),
+    }
+
+
+@router.get("/ai-providers")
+def list_ai_providers(db: Session = Depends(get_db)):
+    return _providers_payload(db)
+
+
+@router.put("/ai-providers", dependencies=[Depends(require_admin)])
+def update_ai_providers(payload: schemas.AiProvidersUpdate, db: Session = Depends(get_db)):
+    ai_providers.update_providers(db, payload.active, payload.providers)
+    return _providers_payload(db)
+
+
+@router.post("/ai-providers/{code}/test", dependencies=[Depends(require_admin)])
+def test_ai_provider(code: str, db: Session = Depends(get_db)):
+    ok, detail = ai_providers.test_provider(db, code)
+    return {"ok": ok, "detail": detail}

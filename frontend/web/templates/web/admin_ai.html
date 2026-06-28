@@ -1,0 +1,68 @@
+{% extends "web/base.html" %}
+{% block title %}Super admin — Provider IA{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>🔌 Provider IA</h1>
+  <p class="muted">Configura qui i token verso uno o più servizi di IA (Qwen, Claude, …)
+  invece di modificare il file <code>.env</code>. Scegli il provider <strong>attivo</strong>:
+  l'avversario IA userà quello (se ha un token valido), altrimenti gioca in locale. Per
+  salvare serve il <strong>token super admin</strong> (variabile <code>ADMIN_TOKEN</code> del
+  server). Il token del provider non viene mai rimostrato: se è già impostato compare
+  «configurato».</p>
+
+  {% if providers %}
+  <form method="post" novalidate>{% csrf_token %}
+    {% for p in providers %}
+    <div class="card" style="margin:0 0 14px;">
+      <h2 style="margin-top:0;">{{ p.label }}
+        <span class="muted" style="font-size:.85rem;">({{ p.code }} · tipo {{ p.kind }})</span>
+      </h2>
+      <p>
+        <label>
+          <input type="radio" name="active" value="{{ p.code }}" {% if p.code == active %}checked{% endif %}>
+          Provider attivo
+        </label>
+      </p>
+      <p>
+        <label>Endpoint (base URL){% if p.kind == 'anthropic' %} — vuoto = predefinito{% endif %}</label>
+        <input type="text" name="{{ p.code }}__base_url" value="{{ p.base_url }}">
+      </p>
+      <p>
+        <label>Modello</label>
+        <input type="text" name="{{ p.code }}__model" value="{{ p.model }}">
+      </p>
+      <p>
+        <label>Token / API key {% if p.has_key %}<span class="pill">configurato</span>{% endif %}</label>
+        <input type="password" name="{{ p.code }}__api_key" autocomplete="off"
+               placeholder="{% if p.has_key %}lascia vuoto per non modificare{% else %}incolla il token{% endif %}">
+      </p>
+      <p>
+        <button class="btn secondary" type="submit" name="test_provider" value="{{ p.code }}">
+          Verifica connessione
+        </button>
+      </p>
+    </div>
+    {% endfor %}
+
+    <p>
+      <label>
+        <input type="radio" name="active" value="" {% if not active %}checked{% endif %}>
+        Nessuno — usa solo il giocatore locale
+      </label>
+    </p>
+
+    <div style="margin-top:14px; max-width:360px;">
+      <label for="admin_token">Token super admin</label>
+      <input type="password" id="admin_token" name="admin_token" autocomplete="off"
+             placeholder="ADMIN_TOKEN del server">
+    </div>
+    <p style="margin-top:14px;">
+      <button class="btn" type="submit">Salva</button>
+      <a class="btn secondary" href="{% url 'admin' %}">Parametri</a>
+    </p>
+  </form>
+  {% else %}
+  <p class="muted">Impossibile caricare i provider (backend non raggiungibile?).</p>
+  {% endif %}
+</div>
+{% endblock %}
