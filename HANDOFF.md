@@ -5,6 +5,43 @@
 
 ---
 
+## 2026-06-28 — `.env` di test + preregistrazione Qwen (backend legge `.env`)
+
+**Obiettivo:** creare un `.env` di sviluppo con la **configurazione Qwen preregistrata**,
+tenendolo fuori dal versionamento (`.gitignore`) per non diffondere l'API key.
+
+**Realizzato:**
+- **`.env`** creato in root (coperto da `.gitignore`, **non** tracciato — verificato con
+  `git check-ignore`): provider Qwen del workspace Aliyun (`QWEN_API_KEY`, `QWEN_BASE_URL`
+  del workspace `ws-…maas.aliyuncs.com/compatible-mode/v1`, `QWEN_MODEL=qwen-plus`,
+  `AI_TIMEOUT`) + segreti casuali per `SECRET_KEY`/`ADMIN_TOKEN`/`DJANGO_SECRET_KEY`.
+- **Il backend ora carica `.env`** (`backend/app/__init__.py`, `load_dotenv` con
+  `override=False`, eseguito prima di ogni altro import perché i moduli leggono `os.getenv`
+  all'import). Prima solo il frontend Django lo faceva: senza questo, la preregistrazione via
+  `.env` non avrebbe raggiunto il backend.
+- **Seed più robusto** (`ai_providers.seed_providers`): la migrazione del token Qwen da ambiente
+  avviene anche in **backfill** su un DB già esistente *se* Qwen non ha ancora un token (senza
+  sovrascrivere quanto impostato da UI); alla **prima adozione** del token, se nessun provider è
+  attivo, **Qwen viene attivato** in automatico. Così avviare il backend con il `.env` rende
+  l'IA Qwen subito attiva.
+- **Test ermetici** (`conftest.py`): `QWEN_API_KEY`/`DASHSCOPE_API_KEY` forzati a vuoto prima
+  dell'import dell'app, così un `.env` reale non innesca migrazioni o chiamate di rete nei test.
+  Aggiunti 3 test del seed (migrazione+attivazione, backfill su riga esistente, nessuna
+  riattivazione se l'utente ha disattivato l'IA). **69 test** verdi; lint pulito.
+
+**Verifiche dal vivo:** avviato il backend con il `.env` (DB nuovo) → `GET /admin/ai-providers`
+mostra `active=qwen`, `has_key=true`, endpoint del workspace, `model=qwen-plus`, **token non
+esposto**. Verifica connessione reale: la chiave **autentica** (`GET …/models` → 200, modelli del
+workspace elencati, incl. `qwen-plus`), ma la chat ritorna **403 `insufficient_quota`** —
+*«The free tier of the model has been exhausted… disable "use free tier only" mode»*.
+
+**Conclusione:** configurazione corretta e cablaggio end-to-end funzionante; per giocare davvero
+contro Qwen occorre **abilitare l'accesso a pagamento** (disattivare la modalità solo-free-tier)
+nella console Alibaba Model Studio, oppure attendere il reset della quota. Finché la quota è
+esaurita, l'IA ripiega in automatico sul **giocatore locale** (minimax alpha-beta).
+
+---
+
 ## 2026-06-28 — Login provider IA: token configurabili da super admin (Qwen/Claude/OpenAI)
 
 **Obiettivo:** invece di modificare a mano il `.env` per inserire `QWEN_API_KEY`, costruire

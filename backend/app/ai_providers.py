@@ -45,10 +45,14 @@ _VALID = {d["code"] for d in PROVIDER_DEFS}
 def seed_providers(db: Session) -> None:
     """Inserisce i provider mancanti (preservando i valori già impostati).
 
-    Al primo inserimento di Qwen, eredita eventuali ``QWEN_*`` da ambiente, così chi
-    usava il vecchio metodo via .env passa al nuovo senza riconfigurare.
+    Migrazione del token Qwen da ambiente (``QWEN_API_KEY``/``DASHSCOPE_API_KEY`` +
+    ``QWEN_BASE_URL``/``QWEN_MODEL``): avviene sia alla creazione della riga, sia in
+    *backfill* su un DB già esistente **solo se** Qwen non ha ancora un token (così non
+    si sovrascrive quanto configurato dall'interfaccia super admin). Alla prima
+    adozione del token, se nessun provider è attivo, Qwen viene reso attivo.
     """
     env_key = os.getenv("QWEN_API_KEY") or os.getenv("DASHSCOPE_API_KEY")
+    qwen_migrated = False
     for d in PROVIDER_DEFS:
         row = db.get(models.AiProvider, d["code"])
         if row is None:
@@ -59,6 +63,7 @@ def seed_providers(db: Session) -> None:
                 base_url = os.getenv("QWEN_BASE_URL", base_url)
                 model = os.getenv("QWEN_MODEL", model)
                 api_key = env_key
+                qwen_migrated = bool(env_key)
             db.add(
                 models.AiProvider(
                     code=d["code"],
@@ -69,9 +74,16 @@ def seed_providers(db: Session) -> None:
                     api_key=api_key,
                 )
             )
-        else:  # allinea solo i metadati statici, preserva config/credenziali
+        else:  # allinea i metadati statici, preserva config/credenziali
             row.label = d["label"]
             row.kind = d["kind"]
+            if d["code"] == "qwen" and not row.api_key and env_key:
+                row.api_key = env_key
+                row.base_url = os.getenv("QWEN_BASE_URL", row.base_url)
+                row.model = os.getenv("QWEN_MODEL", row.model)
+                qwen_migrated = True
+    if qwen_migrated and not settings_service.get(db, "ai.provider"):
+        settings_service.update_many(db, {"ai.provider": "qwen"})
     db.commit()
 
 
