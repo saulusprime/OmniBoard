@@ -51,7 +51,9 @@ prospettiva, anche quelli con **nodi del caso** (dadi) come backgammon e ludo.
 - 👤 **Anagrafica giocatori** e profili.
 - 📊 **Statistiche di gioco** per giocatore e per gioco (partite, vittorie, ranking).
 - 🧩 **Architettura a servizi**: presentazione (Django) separata dalla logica/API (FastAPI).
-- 🤖 **Avversario IA** collegato a **Qwen** (API DashScope), con fallback locale ottimale (minimax).
+- 🤖 **Avversario IA** collegato a **Qwen** (API DashScope), con fallback locale ottimale (minimax)
+  e mossa mostrata con un piccolo ritardo e animazione.
+- 📜 **Log delle mosse** di ogni partita, salvato nello **storico di entrambi i giocatori**.
 - 🔓 **Open source** con licenza [MIT](./LICENCE.md).
 
 ## Giochi supportati
@@ -236,9 +238,11 @@ database. Configurazione tramite `.env` (vedi `.env.example`).
 🟢 **Primo gioco giocabile.** Backend FastAPI e frontend Django girano end-to-end: si possono
 creare giocatori, fondare gruppi tramite voto, consultare le classifiche e **giocare a Tris**
 (umano vs umano in locale, umano vs IA, IA vs IA — con la possibilità di simulare **N partite
-consecutive** IA-vs-IA, es. 100). L'IA è collegata a **Qwen** con fallback locale ottimale.
-A fine partita i punteggi si aggiornano in automatico. Mancano autenticazione, gioco a distanza
-in tempo reale e gli altri giochi.
+consecutive** IA-vs-IA, es. 100). L'IA è collegata a **Qwen** con fallback locale ottimale e la
+sua mossa appare con un piccolo ritardo e animazione. Ogni partita ha un **log delle mosse**
+(widget in pagina) salvato nello **storico di entrambi i giocatori**. A fine partita i punteggi
+si aggiornano in automatico. Mancano autenticazione, gioco a distanza in tempo reale e gli altri
+giochi.
 
 ## Documentazione correlata
 

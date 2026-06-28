@@ -2,14 +2,24 @@
 {% block title %}Tris — partita {{ s.id }}{% endblock %}
 {% block content %}
 <style>
+  .play { display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; }
   .board { display:grid; grid-template-columns:repeat(3,92px); grid-template-rows:repeat(3,92px);
-           gap:6px; margin:18px 0; }
+           gap:6px; margin:8px 0; }
+  .board form { margin:0; }
   .cell { width:92px; height:92px; font-size:2.6rem; font-weight:700; display:flex;
           align-items:center; justify-content:center; background:#0f1419;
-          border:1px solid var(--line); border-radius:8px; color:var(--text); }
+          border:1px solid var(--line); border-radius:8px; color:var(--text); padding:0; }
   button.cell { cursor:pointer; }
-  button.cell:hover { border-color:var(--accent); }
-  .board form { margin:0; }
+  button.cell:hover:enabled { border-color:var(--accent); }
+  button.cell:disabled { cursor:default; }
+  .pop { animation: pop .28s ease-out; }
+  @keyframes pop { from { transform:scale(.4); opacity:0; } to { transform:scale(1); opacity:1; } }
+  .side { min-width:220px; flex:1; }
+  .movelog { list-style:decimal inside; padding:0; margin:8px 0 0; max-height:300px; overflow:auto; }
+  .movelog li { padding:4px 6px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
+  #thinking { display:none; color:var(--accent); font-weight:600; margin-top:8px; }
+  #thinking::after { content:"…"; animation: dots 1s steps(4) infinite; }
+  @keyframes dots { 0%{opacity:.2} 50%{opacity:1} 100%{opacity:.2} }
 </style>
 
 <div class="card">
@@ -22,40 +32,165 @@
     ({% if s.players.o.type == 'ai' %}IA{% else %}umano{% endif %})
   </p>
 
-  {% if s.status == 'finished' %}
-    <p><span class="pill">
-      {% if s.winner == 'draw' %}Patta{% else %}Ha vinto {{ s.winner|upper }}{% endif %}
-    </span></p>
-  {% else %}
-    <p>Tocca a: <strong>{{ s.current|upper }}</strong>
-    {% if s.current_is_ai %}(IA){% endif %}</p>
-  {% endif %}
-
-  {% if s.last_ai %}
-    <p class="muted">L'IA ha giocato nella casella {{ s.last_ai.cell }}
-    ({% if s.last_ai.source == 'qwen' %}Qwen{% else %}IA locale{% endif %}).</p>
-  {% endif %}
-
-  <div class="board">
-    {% for row in rows %}
-      {% for c in row %}
-        {% if c.v %}
-          <div class="cell">{{ c.v }}</div>
-        {% elif s.status == 'in_progress' %}
-          <form method="post" action="{% url 'play_move' s.id %}">{% csrf_token %}
-            <input type="hidden" name="cell" value="{{ c.i }}">
-            <button class="cell" type="submit" aria-label="Casella {{ c.i }}"></button>
-          </form>
+  <div class="play">
+    <div>
+      <div id="turninfo">
+        {% if s.status == 'finished' %}
+          <span class="pill">{% if s.winner == 'draw' %}Patta{% else %}Ha vinto {{ s.winner|upper }}{% endif %}</span>
         {% else %}
-          <div class="cell"></div>
+          Tocca a: <strong>{{ s.current|upper }}</strong>{% if s.current_is_ai %} (IA){% endif %}
         {% endif %}
-      {% endfor %}
-    {% endfor %}
+      </div>
+      <div class="board" id="board">
+        {% for row in rows %}
+          {% for c in row %}
+            {% if c.v %}
+              <div class="cell">{{ c.v }}</div>
+            {% elif s.status == 'in_progress' %}
+              <form class="cellform" data-i="{{ c.i }}" method="post"
+                    action="{% url 'play_move' s.id %}">{% csrf_token %}
+                <input type="hidden" name="cell" value="{{ c.i }}">
+                <button class="cell empty" type="submit" aria-label="Casella {{ c.i }}"></button>
+              </form>
+            {% else %}
+              <div class="cell"></div>
+            {% endif %}
+          {% endfor %}
+        {% endfor %}
+      </div>
+      <div id="thinking">L'IA sta pensando</div>
+    </div>
+
+    <div class="side">
+      <h2>Mosse</h2>
+      <ol class="movelog" id="movelog">
+        {% for m in s.moves %}<li>{{ m.player }} → {{ m.notation }}</li>{% endfor %}
+      </ol>
+    </div>
   </div>
 
-  <p>
+  <p style="margin-top:18px;">
     <a class="btn" href="{% url 'play_setup' %}">Nuova partita</a>
     <a class="btn secondary" href="{% url 'rankings' %}">Classifiche</a>
   </p>
 </div>
+
+<script>
+(function () {
+  const MOVE_URL = "{% url 'play_move_json' s.id %}";
+  const CSRF = "{{ csrf_token }}";
+  const X_AI = {% if s.players.x.type == 'ai' %}true{% else %}false{% endif %};
+  const O_AI = {% if s.players.o.type == 'ai' %}true{% else %}false{% endif %};
+  const AI_DELAY = 700; // ms: piccolo ritardo prima di mostrare la mossa dell'IA
+
+  const board = document.getElementById("board");
+  const thinking = document.getElementById("thinking");
+  let current = "{{ s.current|default:'' }}";
+  let status = "{{ s.status }}";
+  let busy = false;
+
+  if (!board) return;
+
+  const symFor = (side) => (side === "x" ? "X" : "O");
+  const sideIsAi = (side) => (side === "x" ? X_AI : O_AI);
+
+  function cellForm(i) { return board.querySelector('.cellform[data-i="' + i + '"]'); }
+
+  function placeMark(i, sym) {
+    const form = cellForm(i);
+    if (!form) return;
+    const btn = form.querySelector("button");
+    btn.textContent = sym;
+    btn.classList.remove("empty");
+    btn.classList.add("pop");
+    btn.disabled = true;
+  }
+
+  function revertMark(i) {
+    const form = cellForm(i);
+    if (!form) return;
+    const btn = form.querySelector("button");
+    btn.textContent = "";
+    btn.classList.add("empty");
+    btn.classList.remove("pop");
+    btn.disabled = false;
+  }
+
+  function disableAll() {
+    board.querySelectorAll("button.cell").forEach((b) => (b.disabled = true));
+  }
+
+  function renderMoves(moves) {
+    const ol = document.getElementById("movelog");
+    ol.innerHTML = "";
+    (moves || []).forEach((m) => {
+      const li = document.createElement("li");
+      li.textContent = m.player + " → " + m.notation;
+      ol.appendChild(li);
+    });
+  }
+
+  function setStatus(session) {
+    status = session.status;
+    current = session.current || "";
+    const el = document.getElementById("turninfo");
+    if (session.status === "finished") {
+      el.innerHTML = session.winner === "draw"
+        ? '<span class="pill">Patta</span>'
+        : '<span class="pill">Ha vinto ' + session.winner.toUpperCase() + "</span>";
+    } else {
+      el.innerHTML = "Tocca a: <strong>" + current.toUpperCase() + "</strong>" +
+        (session.current_is_ai ? " (IA)" : "");
+    }
+  }
+
+  async function onClick(i) {
+    if (busy || status !== "in_progress") return;
+    const mover = current;
+    if (sideIsAi(mover)) return;
+    busy = true;
+    placeMark(i, symFor(mover)); // mostra subito la mossa dell'umano
+    const next = mover === "x" ? "o" : "x";
+    if (sideIsAi(next)) thinking.style.display = "block";
+    try {
+      const res = await fetch(MOVE_URL, {
+        method: "POST",
+        headers: { "X-CSRFToken": CSRF, "Content-Type": "application/x-www-form-urlencoded" },
+        body: "cell=" + i,
+      });
+      const session = await res.json();
+      if (!res.ok) throw new Error(session.error || "Mossa non valida");
+      renderMoves(session.moves);
+      const ai = session.last_ai;
+      if (ai && ai.cell !== null && ai.cell !== undefined) {
+        setTimeout(() => {
+          placeMark(ai.cell, session.board[ai.cell]); // mossa dell'IA animata
+          thinking.style.display = "none";
+          setStatus(session);
+          if (session.status === "finished") disableAll();
+          busy = false;
+        }, AI_DELAY);
+      } else {
+        thinking.style.display = "none";
+        setStatus(session);
+        if (session.status === "finished") disableAll();
+        busy = false;
+      }
+    } catch (err) {
+      thinking.style.display = "none";
+      revertMark(i);
+      setStatus({ status: status, current: current, current_is_ai: sideIsAi(current) });
+      alert(err.message || "Mossa non valida");
+      busy = false;
+    }
+  }
+
+  board.addEventListener("submit", function (e) {
+    const form = e.target.closest(".cellform");
+    if (!form) return;
+    e.preventDefault(); // JS: animazione + delay; senza JS il form fa il POST normale
+    onClick(parseInt(form.dataset.i, 10));
+  });
+})();
+</script>
 {% endblock %}

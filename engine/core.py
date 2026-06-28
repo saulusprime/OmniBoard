@@ -74,6 +74,10 @@ class Game(ABC, Generic[S, M]):
         """Rappresentazione testuale dello stato (utile per log e prompt IA)."""
         raise NotImplementedError
 
+    def describe_move(self, state: S, move: M) -> str:
+        """Notazione testuale di una mossa, per il log della partita."""
+        return str(move)
+
     # ----- Hook per i nodi del caso (estensione futura) -----
     def is_chance_node(self, state: S) -> bool:
         """True se l'evoluzione dipende da un evento aleatorio (es. lancio di dadi)."""

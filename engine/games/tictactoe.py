@@ -23,6 +23,7 @@ LINES = [
 ]
 
 _SYMBOLS = {0: "X", 1: "O", None: "."}
+_COLS = ("a", "b", "c")
 
 
 @dataclass(frozen=True)
@@ -78,3 +79,7 @@ class TicTacToe(Game):
     def render_text(self, state: TicTacToeState) -> str:
         b = [_SYMBOLS[c] for c in state.board]
         return f"{b[0]}|{b[1]}|{b[2]}\n{b[3]}|{b[4]}|{b[5]}\n{b[6]}|{b[7]}|{b[8]}"
+
+    def describe_move(self, state: TicTacToeState, move: int) -> str:
+        row, col = divmod(move, 3)
+        return f"{_COLS[col]}{row + 1}"

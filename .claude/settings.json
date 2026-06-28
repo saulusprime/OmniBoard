@@ -26,7 +26,9 @@
       "Bash(PYTHONPATH=backend DATABASE_URL=\"sqlite:////private/tmp/claude-501/-Users-Saulus-Sviluppo-Scacchi/e45d73a7-5da7-41af-bdeb-17f04cd98240/scratchpad/play.db\" .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --log-level warning)",
       "Bash(xargs kill -9)",
       "Bash(curl -s http://127.0.0.1:8000/sessions/2)",
-      "Bash(python3 -m json.tool)"
+      "Bash(python3 -m json.tool)",
+      "Bash(PYTHONPATH=backend DATABASE_URL=\"sqlite:////private/tmp/claude-501/-Users-Saulus-Sviluppo-Scacchi/e45d73a7-5da7-41af-bdeb-17f04cd98240/scratchpad/log.db\" .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --log-level warning)",
+      "Bash(curl -s http://127.0.0.1:8001/partite/1/ -o play.html -w 'HTTP %{http_code}\\\\n')"
     ]
   }
 }

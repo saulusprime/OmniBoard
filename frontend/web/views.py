@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from django.contrib import messages
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 
 from . import api_client as api
@@ -48,7 +49,8 @@ def user_detail(request, user_id):
     user = _safe(request, lambda: api.get_user(user_id))
     if user is None:
         return redirect("users_list")
-    return render(request, "web/user_detail.html", {"u": user})
+    history = _safe(request, lambda: api.get_user_history(user_id), default=[])
+    return render(request, "web/user_detail.html", {"u": user, "history": history})
 
 
 def groups(request):
@@ -220,3 +222,17 @@ def play_move(request, session_id):
     except api.ApiError as exc:
         messages.error(request, str(exc))
     return redirect("play", session_id=session_id)
+
+
+def play_move_json(request, session_id):
+    """Endpoint JSON per le mosse (usato dal JS per l'animazione, stesso origine)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Metodo non consentito"}, status=405)
+    try:
+        cell = int(request.POST.get("cell", ""))
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "Mossa non valida"}, status=400)
+    try:
+        return JsonResponse(api.session_move(session_id, {"cell": cell}))
+    except api.ApiError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)

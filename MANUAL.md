@@ -148,9 +148,15 @@ un giocatore **umano** oppure l'**IA**. Per giocare in due, imposta entrambi i l
 (si gioca a turni sullo stesso schermo). Clicca una casella libera per muovere; se l'avversario
 è l'IA, risponde subito. A fine partita i punteggi dei giocatori umani vengono aggiornati.
 L'IA è collegata a **Qwen**; se non è configurata una chiave API, gioca una strategia locale
-ottimale (imbattibile a Tris). Se imposti **entrambi i lati come IA**, puoi indicare un numero
-di **partite consecutive** (es. 100): l'app le gioca tutte e mostra il riepilogo (vittorie X,
-vittorie O, patte).
+ottimale (imbattibile a Tris). Quando muove l'IA, la sua mossa compare con un piccolo
+**ritardo** e un'**animazione** (durante l'attesa vedi «L'IA sta pensando»). Se imposti
+**entrambi i lati come IA**, puoi indicare un numero di **partite consecutive** (es. 100):
+l'app le gioca tutte e mostra il riepilogo (vittorie X, vittorie O, patte).
+
+Durante la partita, accanto alla scacchiera, un **widget** mostra il **log delle mosse**
+(es. «X → b2»). A fine partita il log viene salvato nello **storico di entrambi i giocatori**:
+lo trovi nella scheda di ciascun giocatore, sezione «Storico partite», con l'esito e il
+dettaglio delle mosse.
 
 ---
 

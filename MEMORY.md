@@ -130,6 +130,19 @@ segreto: vive solo nel backend, mai nel frontend.
 **Conseguenze:** il gioco è sempre giocabile anche senza chiave; per Tris il minimax è
 imbattibile. In futuro si potrà differenziare la difficoltà.
 
+### ADR-009 — Log mosse e storico; animazione IA lato client — 2026-06-28
+**Contesto:** servono il log delle mosse, lo storico per giocatore e un'esperienza con la
+mossa dell'IA mostrata con ritardo/animazione.
+**Decisione:** il log è persistito in `GameSession.moves_json` (lista di {ply, player,
+notation}); il motore fornisce `describe_move`. Lo storico è derivato dalle `GameSession`
+concluse che coinvolgono l'utente (`GET /users/{id}/history`), quindi una stessa partita
+appare nello storico di entrambi i giocatori senza duplicazioni. Il **ritardo e l'animazione**
+della mossa IA sono lato **frontend** (JS: mossa umana subito, mossa IA dopo ~700ms con
+animazione), evitando `sleep` nel backend (che rallenterebbe test e batch). Il form resta come
+fallback senza JS.
+**Conseguenze:** nessun blocco lato server; il backend resta veloce. Cambio di schema
+(`moves_json`): senza Alembic, in sviluppo va eliminato il DB per ricrearlo.
+
 ## Traguardi
 
 - **2026-06-28** — Definita l'architettura, scelti licenza e modello del motore; creata la
@@ -140,6 +153,8 @@ imbattibile. In futuro si potrà differenziare la difficoltà.
 - **2026-06-28** — Primo gioco giocabile: **Tris** (motore + sessioni persistite), con gioco
   umano-vs-umano, umano-vs-IA (**Qwen** + fallback minimax) e IA-vs-IA. Suite **pytest** (22
   test) e lint **ruff** (PEP8) introdotti come prassi.
+- **2026-06-28** — Partite consecutive IA-vs-IA (batch) + **log mosse**, **storico per
+  giocatore** e mossa IA con **ritardo/animazione** lato client. 27 test verdi.
 
 ## Questioni aperte
 

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>aldo</title>
+  <style>
+    :root {
+      --bg:#0f1419; --panel:#1b232d; --accent:#d9a441; --text:#e8eaed;
+      --muted:#9aa4af; --line:#2c3742;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+           background:var(--bg); color:var(--text); }
+    a { color:var(--accent); }
+    .wrap { max-width: 980px; margin:0 auto; padding:0 20px; }
+    header { background:var(--panel); border-bottom:2px solid var(--accent); }
+    nav { display:flex; gap:18px; align-items:center; min-height:60px; flex-wrap:wrap; }
+    nav a { color:var(--text); text-decoration:none; font-weight:500; }
+    nav a:hover { color:var(--accent); }
+    nav .brand { font-size:1.3rem; font-weight:700; color:var(--accent); margin-right:auto; }
+    main { padding:28px 0 60px; }
+    h1,h2 { line-height:1.2; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:10px;
+            padding:20px; margin-bottom:18px; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+    th { color:var(--muted); font-weight:600; }
+    .btn { display:inline-block; background:var(--accent); color:#1a1a1a; padding:9px 16px;
+           border-radius:8px; text-decoration:none; font-weight:600; border:none; cursor:pointer;
+           font-size:1rem; }
+    .btn.secondary { background:transparent; color:var(--accent); border:1px solid var(--accent); }
+    form p { margin:0 0 14px; }
+    label { display:block; color:var(--muted); margin-bottom:4px; }
+    input, select { width:100%; padding:8px 10px; border-radius:7px; border:1px solid var(--line);
+                    background:#0f1419; color:var(--text); font-size:1rem; }
+    .messages { list-style:none; padding:0; margin:0 0 18px; }
+    .messages li { padding:10px 14px; border-radius:8px; margin-bottom:8px; }
+    .messages .success { background:#16331f; border:1px solid #2e7d4f; }
+    .messages .error { background:#3a1c1c; border:1px solid #a23b3b; }
+    .muted { color:var(--muted); }
+    .pill { background:var(--accent); color:#1a1a1a; border-radius:20px; padding:2px 10px;
+            font-size:.8rem; font-weight:700; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; }
+  </style>
+</head>
+<body>
+  <header><div class="wrap"><nav>
+    <a class="brand" href="/">♟ Scacchi</a>
+    <a href="/">Home</a>
+    <a href="/gioca/">Gioca</a>
+    <a href="/giocatori/">Giocatori</a>
+    <a href="/gruppi/">Gruppi</a>
+    <a href="/classifiche/">Classifiche</a>
+    <a href="/partite/registra/">Registra partita</a>
+  </nav></div></header>
+  <main><div class="wrap">
+    
+    
+<div class="card">
+  <h1>aldo <span class="pill">3,0 pt universali</span></h1>
+  <p class="muted">Aldo Bianchi · aldo@example.it<br>
+  IT / Lazio</p>
+  <a class="btn secondary" href="/giocatori/">← Tutti i giocatori</a>
+</div>
+
+<div class="card">
+  <h2>Punteggi per gioco</h2>
+  
+  <table>
+    <tr><th>Gioco</th><th>Punti</th><th>Partite</th><th>Vinte</th><th>Patte</th><th>Perse</th></tr>
+    
+    <tr>
+      <td>Tris</td><td>3,0</td><td>1</td>
+      <td>1</td><td>0</td><td>0</td>
+    </tr>
+    
+  </table>
+  
+</div>
+
+<div class="card">
+  <h2>Storico partite</h2>
+  
+    
+    <div class="card" style="margin:0 0 12px;">
+      <strong>Tris</strong> — vs carla
+      <span class="pill">Vittoria</span>
+      
+      <div class="muted">lato X · 2026-06-28T11:25:22.870236</div>
+      <details style="margin-top:8px;">
+        <summary class="muted">Log mosse (5)</summary>
+        <ol style="margin:8px 0 0;">
+          <li>X → a1</li><li>O → a2</li><li>X → b1</li><li>O → b2</li><li>X → c1</li>
+        </ol>
+      </details>
+    </div>
+    
+  
+</div>
+
+  </div></main>
+</body>
+</html>

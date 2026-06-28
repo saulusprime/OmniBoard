@@ -1,8 +1,9 @@
 """Sessioni di gioco giocabili (umano vs umano, umano vs IA, IA vs IA).
 
-Il backend mantiene lo stato della partita, valida le mosse tramite il motore e fa
-giocare automaticamente i lati controllati dall'IA finché non tocca a un umano o la
-partita finisce. A fine partita aggiorna i punteggi dei giocatori umani.
+Il backend mantiene lo stato della partita e il log delle mosse, valida le mosse
+tramite il motore e fa giocare automaticamente i lati controllati dall'IA finché non
+tocca a un umano o la partita finisce. A fine partita aggiorna i punteggi dei giocatori
+umani; il log resta consultabile nello storico dei giocatori.
 """
 
 from __future__ import annotations
@@ -34,6 +35,16 @@ def _side_is_ai(session: models.GameSession, player: int) -> bool:
     return session.x_is_ai if player == 0 else session.o_is_ai
 
 
+def _record_move(game, state_before, move, player: int, moves: list) -> None:
+    moves.append(
+        {
+            "ply": len(moves) + 1,
+            "player": "X" if player == 0 else "O",
+            "notation": game.describe_move(state_before, move),
+        }
+    )
+
+
 def _view(session: models.GameSession) -> dict:
     game = get_game(session.game.code)
     state = _load_state(game, session)
@@ -58,6 +69,7 @@ def _view(session: models.GameSession) -> dict:
         "current_is_ai": current_is_ai,
         "legal_moves": legal,
         "winner": session.winner,
+        "moves": json.loads(session.moves_json or "[]"),
         "players": {
             "x": {
                 "type": "ai" if session.x_is_ai else "human",
@@ -91,14 +103,17 @@ def _finish_if_terminal(db: Session, game, session: models.GameSession, state) -
 def _advance_ai(db: Session, game, session: models.GameSession) -> None:
     """Fa giocare i lati IA finché non tocca a un umano o la partita finisce."""
     state = _load_state(game, session)
+    moves = json.loads(session.moves_json or "[]")
     while not game.is_terminal(state):
         player = game.current_player(state)
         if not _side_is_ai(session, player):
             break
         cell, source = ai.choose_move(game, state)
+        _record_move(game, state, cell, player, moves)
         state = game.apply(state, cell)
         session.last_ai_cell = cell
         session.last_ai_source = source
+    session.moves_json = json.dumps(moves)
     _save_state(game, session, state)
     db.commit()
     _finish_if_terminal(db, game, session, state)
@@ -133,6 +148,7 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
         x_is_ai=x_ai,
         o_is_ai=o_ai,
         state_json=json.dumps(game.serialize_state(state)),
+        moves_json="[]",
         status="in_progress",
     )
     db.add(session)
@@ -199,7 +215,10 @@ def make_move(session_id: int, payload: schemas.MoveIn, db: Session = Depends(ge
     if payload.cell not in game.legal_moves(state):
         raise HTTPException(status_code=400, detail="Mossa non valida")
 
+    moves = json.loads(session.moves_json or "[]")
+    _record_move(game, state, payload.cell, player, moves)
     state = game.apply(state, payload.cell)
+    session.moves_json = json.dumps(moves)
     _save_state(game, session, state)
     session.last_ai_cell = None
     session.last_ai_source = None

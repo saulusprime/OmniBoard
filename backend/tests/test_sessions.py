@@ -53,6 +53,56 @@ def test_human_vs_human_x_wins_and_scores():
         assert o_tris["losses"] == 1
 
 
+def test_session_records_moves():
+    with TestClient(app) as client:
+        x = make_user(client, "log_x")
+        o = make_user(client, "log_o")
+        sid = client.post(
+            "/sessions",
+            json={
+                "game_code": "tictactoe",
+                "x": {"type": "human", "user_id": x["id"]},
+                "o": {"type": "human", "user_id": o["id"]},
+            },
+        ).json()["id"]
+
+        data = None
+        for cell in [0, 3, 1]:
+            data = client.post(f"/sessions/{sid}/move", json={"cell": cell}).json()
+
+        assert len(data["moves"]) == 3
+        assert data["moves"][0] == {"ply": 1, "player": "X", "notation": "a1"}
+        assert data["moves"][1]["player"] == "O"
+        assert data["moves"][2]["notation"] == "b1"
+
+
+def test_user_history_records_finished_game():
+    with TestClient(app) as client:
+        x = make_user(client, "hist_x")
+        o = make_user(client, "hist_o")
+        sid = client.post(
+            "/sessions",
+            json={
+                "game_code": "tictactoe",
+                "x": {"type": "human", "user_id": x["id"]},
+                "o": {"type": "human", "user_id": o["id"]},
+            },
+        ).json()["id"]
+        for cell in [0, 3, 1, 4, 2]:  # X vince
+            client.post(f"/sessions/{sid}/move", json={"cell": cell})
+
+        hist_x = client.get(f"/users/{x['id']}/history").json()
+        assert len(hist_x) == 1
+        assert hist_x[0]["result"] == "win"
+        assert hist_x[0]["opponent"] == "hist_o"
+        assert hist_x[0]["your_side"] == "x"
+        assert len(hist_x[0]["moves"]) == 5
+
+        hist_o = client.get(f"/users/{o['id']}/history").json()
+        assert hist_o[0]["result"] == "loss"
+        assert hist_o[0]["opponent"] == "hist_x"
+
+
 def test_move_validation():
     with TestClient(app) as client:
         x = make_user(client, "val_x")

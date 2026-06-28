@@ -5,6 +5,31 @@
 
 ---
 
+## 2026-06-28 — Log mosse, animazione/ritardo IA e storico partite
+
+**Obiettivo:** mostrare la mossa dell'IA con un piccolo ritardo e un'animazione; aggiungere
+un widget con il log delle mosse; salvare il log nello storico di entrambi i giocatori.
+
+**Realizzato:**
+- **Motore**: `Game.describe_move` (notazione mossa) + implementazione Tris (es. cella 4 → `b2`).
+- **Backend**: nuova colonna `GameSession.moves_json` (log mosse); le mosse (umane e IA) sono
+  registrate in creazione/mossa/auto-IA; il `_view` espone `moves`. Nuovo endpoint
+  `GET /users/{id}/history` con le partite concluse (esito dal punto di vista del giocatore,
+  avversario, log mosse) — la stessa partita compare nello storico di **entrambi** i giocatori.
+- **Frontend**: pagina di gioco riscritta con **widget del log mosse** e **JS** che mostra
+  subito la mossa dell'umano e poi rivela la mossa dell'IA dopo un **ritardo (~700ms)** con
+  animazione `pop` e indicatore «L'IA sta pensando». Endpoint JSON same-origin
+  `…/mossa.json` per il JS (CSRF via header); il form resta come fallback senza JS. La scheda
+  giocatore mostra lo **«Storico partite»** con log mosse espandibile.
+- **Test**: notazione mosse, registrazione del log nella sessione, storico per-utente (esito
+  vittoria/sconfitta dai due lati). Totale **27 test** verdi; lint `ruff` pulito.
+
+**⚠️ Cambio schema DB:** aggiunta `moves_json` a `game_sessions`. Senza migrazioni (Alembic non
+ancora introdotto), per lo sviluppo va **eliminato il DB** esistente per ricrearlo:
+`rm backend/scacchi.db` prima di riavviare il backend.
+
+---
+
 ## 2026-06-28 — IA-vs-IA: N partite consecutive
 
 **Obiettivo:** quando entrambi i giocatori sono IA, permettere di giocare N partite

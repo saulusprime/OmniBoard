@@ -24,4 +24,27 @@
   <p class="muted">Nessuna partita giocata.</p>
   {% endif %}
 </div>
+
+<div class="card">
+  <h2>Storico partite</h2>
+  {% if history %}
+    {% for h in history %}
+    <div class="card" style="margin:0 0 12px;">
+      <strong>{{ h.game_name }}</strong> — vs {{ h.opponent }}
+      {% if h.result == 'win' %}<span class="pill">Vittoria</span>
+      {% elif h.result == 'draw' %}<span class="pill">Patta</span>
+      {% else %}<span class="muted">Sconfitta</span>{% endif %}
+      <div class="muted">lato {{ h.your_side|upper }} · {{ h.date }}</div>
+      <details style="margin-top:8px;">
+        <summary class="muted">Log mosse ({{ h.moves|length }})</summary>
+        <ol style="margin:8px 0 0;">
+          {% for m in h.moves %}<li>{{ m.player }} → {{ m.notation }}</li>{% endfor %}
+        </ol>
+      </details>
+    </div>
+    {% endfor %}
+  {% else %}
+  <p class="muted">Nessuna partita conclusa nello storico.</p>
+  {% endif %}
+</div>
 {% endblock %}

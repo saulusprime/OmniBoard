@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -68,3 +70,48 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
         universal_points=user.universal_points,
         scores=scores,
     )
+
+
+@router.get("/{user_id}/history")
+def user_history(user_id: int, db: Session = Depends(get_db)):
+    """Storico delle partite concluse del giocatore, con il log delle mosse."""
+    user = db.get(models.User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+
+    sessions = (
+        db.query(models.GameSession)
+        .filter(
+            (models.GameSession.x_user_id == user_id) | (models.GameSession.o_user_id == user_id),
+            models.GameSession.status == "finished",
+        )
+        .order_by(models.GameSession.created_at.desc())
+        .all()
+    )
+
+    history = []
+    for s in sessions:
+        your_side = "x" if s.x_user_id == user_id else "o"
+        if s.winner == "draw":
+            result = "draw"
+        elif s.winner == your_side:
+            result = "win"
+        else:
+            result = "loss"
+        if your_side == "x":
+            opponent = "IA" if s.o_is_ai else (s.o_user.alias if s.o_user else "—")
+        else:
+            opponent = "IA" if s.x_is_ai else (s.x_user.alias if s.x_user else "—")
+        history.append(
+            {
+                "session_id": s.id,
+                "game_code": s.game.code,
+                "game_name": s.game.name,
+                "date": s.created_at,
+                "your_side": your_side,
+                "opponent": opponent,
+                "result": result,
+                "moves": json.loads(s.moves_json or "[]"),
+            }
+        )
+    return history

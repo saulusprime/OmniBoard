@@ -160,6 +160,7 @@ class GameSession(Base):
     x_is_ai = Column(Boolean, default=False, nullable=False)
     o_is_ai = Column(Boolean, default=False, nullable=False)
     state_json = Column(String, nullable=False)  # stato serializzato dal motore
+    moves_json = Column(String, default="[]", nullable=False)  # log delle mosse
     status = Column(String, default="in_progress", nullable=False)  # in_progress | finished
     winner = Column(String, nullable=True)  # x | o | draw
     last_ai_cell = Column(Integer, nullable=True)

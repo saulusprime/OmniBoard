@@ -53,3 +53,11 @@ def test_serialize_roundtrip():
     state = game.apply(game.initial_state(), 4)
     restored = game.deserialize_state(game.serialize_state(state))
     assert restored == state
+
+
+def test_describe_move_notation():
+    game = TicTacToe()
+    state = game.initial_state()
+    assert game.describe_move(state, 0) == "a1"
+    assert game.describe_move(state, 4) == "b2"
+    assert game.describe_move(state, 8) == "c3"
