@@ -215,6 +215,23 @@ token è salvato **in chiaro** nel DB — in produzione va cifrato / spostato in
 **Alternativa scartata:** continuare con le sole variabili d'ambiente (non autoconfigurabili da
 UI, una sola IA per volta).
 
+### ADR-016 — Chiamata IA remota: niente auto-attivazione + connect timeout breve — 2026-06-28
+**Contesto:** dopo aver preregistrato Qwen via `.env` e averlo **auto-attivato**, il backend si
+è **bloccato**: il provider remoto veniva chiamato **in linea** nella richiesta di mossa e il
+connect verso l'endpoint Qwen su IPv6 irraggiungibile restava in `SYN_SENT`; le chiamate si
+accumulavano e l'API smetteva di rispondere. (Qwen è inoltre a quota esaurita → 403.)
+**Decisione:**
+- `seed_providers` **non attiva** automaticamente alcun provider: la preregistrazione memorizza
+  solo il token; l'attivazione è esplicita dal super admin. Attivare un provider non verificato
+  scatena chiamate remote inutili a ogni mossa.
+- le chiamate remote usano un **connect timeout breve** (`httpx.Timeout(total, connect=min(4,
+  total))`, sia OpenAI-compatible sia Anthropic): un endpoint irraggiungibile fallisce in fretta
+  e si ripiega sul **giocatore locale**.
+**Conseguenze:** l'IA è sempre reattiva (in assenza di provider valido gioca in locale); un
+provider remoto si attiva consapevolmente dopo averlo verificato con «Verifica connessione».
+**Possibile evoluzione:** spostare la mossa IA fuori dal ciclo di richiesta (task/async) e/o un
+*circuit breaker* che disattiva temporaneamente un provider che fallisce ripetutamente.
+
 ## Traguardi
 
 - **2026-06-28** — Definita l'architettura, scelti licenza e modello del motore; creata la
@@ -240,6 +257,9 @@ UI, una sola IA per volta).
 - **2026-06-28** — **Login provider IA** multi-provider (Qwen/Claude/OpenAI): token configurabili
   da super admin e salvati in DB (mai esposti dall'API), provider attivo selezionabile, pagina
   `/admin/ia/` con verifica connessione. 66 test verdi.
+- **2026-06-28** — `.env` legge anche dal backend + preregistrazione Qwen; poi **fix freeze**:
+  niente auto-attivazione di provider non verificati e **connect timeout** breve sulle chiamate
+  IA remote (un endpoint irraggiungibile non blocca più il backend). 68 test verdi.
 
 ## Questioni aperte
 

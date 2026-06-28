@@ -33,6 +33,18 @@ def _timeout() -> float:
     return float(os.getenv("AI_TIMEOUT", os.getenv("QWEN_TIMEOUT", "10")))
 
 
+def _http_timeout() -> httpx.Timeout:
+    """Timeout con connect breve.
+
+    Un endpoint remoto irraggiungibile (es. un indirizzo IPv6 che non risponde e
+    resta in SYN_SENT) deve fallire in fretta: altrimenti la chiamata IA — eseguita
+    in linea nella richiesta di mossa — bloccherebbe a lungo il backend. Superato il
+    connect/timeout si ripiega sul giocatore locale.
+    """
+    total = _timeout()
+    return httpx.Timeout(total, connect=min(4.0, total))
+
+
 def choose_move(game, state, history=None, provider=None):
     """Sceglie una mossa legale. Ritorna (mossa, sorgente).
 
@@ -87,7 +99,7 @@ def _match_move(game, legal, content):
 def _openai_complete(provider, prompt):
     """Chiamata a un endpoint OpenAI-compatible (Qwen/DashScope, OpenAI, …)."""
     base_url = (provider.get("base_url") or "").rstrip("/")
-    with httpx.Client(timeout=_timeout()) as client:
+    with httpx.Client(timeout=_http_timeout()) as client:
         response = client.post(
             f"{base_url}/chat/completions",
             headers={"Authorization": f"Bearer {provider['api_key']}"},
@@ -111,7 +123,7 @@ def _anthropic_complete(provider, prompt):
     client = anthropic.Anthropic(
         api_key=provider["api_key"],
         base_url=provider.get("base_url") or None,
-        timeout=_timeout(),
+        timeout=_http_timeout(),
         max_retries=0,
     )
     message = client.messages.create(

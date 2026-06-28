@@ -5,6 +5,46 @@
 
 ---
 
+## 2026-06-28 — Fix freeze del backend: chiamata IA remota inline + auto-attivazione Qwen
+
+**Sintomo:** di nuovo *Bad Request* su `…/mossa.json` (sessione 18) e backend che smette di
+rispondere a **tutti** gli endpoint (anche `/health`).
+
+**Diagnosi (verificata):** sessione 18 = scacchi, Nero (umano) **sotto scacco** dopo `Bb5+` →
+il 400 era la risposta **corretta** a una mossa non legale. La causa profonda era un **freeze del
+backend**: il worker uvicorn aveva due connessioni TCP **`SYN_SENT`** verso l'endpoint Qwen su
+**IPv6** (`240b:…`, rete cinese) irraggiungibile dall'Europa. Avendo io **auto-attivato Qwen**
+dal `.env` (vedi voce precedente), ogni turno IA chiamava il provider remoto **in linea** nella
+richiesta di mossa; `httpx` (client sync, senza Happy Eyeballs) tentava prima l'IPv6 e restava
+appeso nel connect. Le chiamate si accumulavano e il backend si bloccava; la `resync()` del
+client non riusciva più a raggiungerlo, lasciando mosse legali **stale** → 400 sulla mossa ormai
+illegale. (Qwen è comunque inutilizzabile: 403 `insufficient_quota`.)
+
+**Correzioni:**
+1. **Niente auto-attivazione** (`ai_providers.seed_providers`): la preregistrazione via `.env`
+   **memorizza** il token ma non rende attivo il provider. L'attivazione è una scelta **esplicita**
+   dal super admin (un provider non verificato — token errato, quota esaurita, endpoint
+   irraggiungibile — non deve far partire chiamate remote a ogni mossa).
+2. **Timeout di connect breve** (`ai._http_timeout`, `httpx.Timeout(total, connect=min(4, total))`)
+   per le chiamate OpenAI-compatible e Anthropic: un endpoint che non risponde fallisce in fretta
+   e si ripiega sul giocatore locale, invece di bloccare la richiesta.
+3. **Qwen disattivato** nel DB di sviluppo (`ai.provider=""`): l'IA usa il **giocatore locale**
+   (immediato). Resta riattivabile da `/admin/ia/` quando si abiliterà l'accesso a pagamento.
+
+**Test:** aggiornati i test del seed (memorizza senza attivare; backfill senza attivazione).
+**68 test** verdi; lint pulito.
+
+**Verifiche dal vivo:** dopo il fix, `GET /sessions/18` risponde in **~14ms** (prima si bloccava);
+mossa illegale → 400 `{"detail":"Mossa non valida"}` (corretto); su sessione scacchi nuova, mossa
+legale `e2e4` → **200 in ~0.02s** con risposta IA locale immediata. Le 6 parate legali allo scacco
+in sessione 18 sono `b8d7, b8c6, c8d7, d8d7, e8e7, c7c6`.
+
+**Nota frontend:** la scacchiera restringe già la selezione alle mosse legali del server e si
+risincronizza (`resync`) su errore; falliva solo perché il backend era congelato. Nessuna modifica
+frontend necessaria.
+
+---
+
 ## 2026-06-28 — `.env` di test + preregistrazione Qwen (backend legge `.env`)
 
 **Obiettivo:** creare un `.env` di sviluppo con la **configurazione Qwen preregistrata**,

@@ -48,11 +48,14 @@ def seed_providers(db: Session) -> None:
     Migrazione del token Qwen da ambiente (``QWEN_API_KEY``/``DASHSCOPE_API_KEY`` +
     ``QWEN_BASE_URL``/``QWEN_MODEL``): avviene sia alla creazione della riga, sia in
     *backfill* su un DB già esistente **solo se** Qwen non ha ancora un token (così non
-    si sovrascrive quanto configurato dall'interfaccia super admin). Alla prima
-    adozione del token, se nessun provider è attivo, Qwen viene reso attivo.
+    si sovrascrive quanto configurato dall'interfaccia super admin).
+
+    NON attiva automaticamente alcun provider: l'attivazione è una scelta **esplicita**
+    dal super admin. Attivare un provider non verificato (token errato, quota esaurita,
+    endpoint irraggiungibile) farebbe partire chiamate remote inutili a ogni mossa; in
+    assenza di provider attivo l'IA usa direttamente il giocatore locale.
     """
     env_key = os.getenv("QWEN_API_KEY") or os.getenv("DASHSCOPE_API_KEY")
-    qwen_migrated = False
     for d in PROVIDER_DEFS:
         row = db.get(models.AiProvider, d["code"])
         if row is None:
@@ -63,7 +66,6 @@ def seed_providers(db: Session) -> None:
                 base_url = os.getenv("QWEN_BASE_URL", base_url)
                 model = os.getenv("QWEN_MODEL", model)
                 api_key = env_key
-                qwen_migrated = bool(env_key)
             db.add(
                 models.AiProvider(
                     code=d["code"],
@@ -81,9 +83,6 @@ def seed_providers(db: Session) -> None:
                 row.api_key = env_key
                 row.base_url = os.getenv("QWEN_BASE_URL", row.base_url)
                 row.model = os.getenv("QWEN_MODEL", row.model)
-                qwen_migrated = True
-    if qwen_migrated and not settings_service.get(db, "ai.provider"):
-        settings_service.update_many(db, {"ai.provider": "qwen"})
     db.commit()
 
 
