@@ -72,6 +72,13 @@ SETTINGS_DEFS = [
         "label": "Provider IA attivo (vuoto = solo giocatore locale)",
     },
     {
+        "key": "ai.engine_ms",
+        "type": "int",
+        "default": 2000,
+        "category": "IA",
+        "label": "Tempo di analisi del motore scacchi per mossa (millisecondi)",
+    },
+    {
         "key": "games.batch_max",
         "type": "int",
         "default": 1000,

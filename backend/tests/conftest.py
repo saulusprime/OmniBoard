@@ -16,3 +16,5 @@ os.environ["ADMIN_TOKEN"] = "test-admin"
 # attiva alcun provider, e nessun test effettua chiamate di rete.
 os.environ["QWEN_API_KEY"] = ""
 os.environ["DASHSCOPE_API_KEY"] = ""
+# Limita il tempo del motore scacchi nei test: partite rapide, niente attese di 2s/mossa.
+os.environ["AI_ENGINE_MS_MAX"] = "60"

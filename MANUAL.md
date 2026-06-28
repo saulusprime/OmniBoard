@@ -139,6 +139,15 @@ Spagnola, Francese, Caro-Kann, Petroff, Inglese, Gambetto di Donna, Est-Indiana,
 ecc.) e l'**IA segue le linee di libro** nelle prime mosse, per poi proseguire con la propria
 ricerca. *Nota:* non è ancora gestita la patta per **triplice ripetizione**.
 
+### L'IA degli scacchi (motore)
+Finita l'apertura, l'IA usa un **motore di ricerca dedicato** (alpha-beta con *iterative
+deepening*, *transposition table* e *quiescence search*) che **analizza la scacchiera in
+profondità mossa dopo mossa**: valuta materiale, posizione dei pezzi, struttura dei pedoni,
+sicurezza del re e altro, trova matti e combinazioni forzate ed evita di lasciare pezzi in presa.
+Il tempo di analisi per mossa è regolabile dal super admin (parametro *Tempo di analisi del
+motore scacchi*, default 2 secondi): più tempo = gioco più forte. Per gli scacchi il motore locale
+è preferito a un eventuale provider IA remoto perché più forte.
+
 ---
 
 ## Dama italiana

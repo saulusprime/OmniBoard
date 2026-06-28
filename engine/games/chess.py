@@ -144,6 +144,31 @@ class Chess(Game):
             halfmove=0,
         )
 
+    @staticmethod
+    def from_fen(fen: str) -> ChessState:
+        """Costruisce uno stato da una stringa FEN (utile per test e analisi)."""
+        parts = fen.split()
+        rows = parts[0].split("/")
+        board = [None] * 64
+        for r, row in enumerate(rows):
+            c = 0
+            for ch in row:
+                if ch.isdigit():
+                    c += int(ch)
+                else:
+                    board[r * 8 + c] = ch
+                    c += 1
+        current = WHITE if len(parts) < 2 or parts[1] == "w" else BLACK
+        rights = parts[2] if len(parts) > 2 else "KQkq"
+        castling = ("K" in rights, "Q" in rights, "k" in rights, "q" in rights)
+        ep = None
+        if len(parts) > 3 and parts[3] != "-":
+            ep = (8 - int(parts[3][1])) * 8 + (ord(parts[3][0]) - 97)
+        halfmove = int(parts[4]) if len(parts) > 4 else 0
+        return ChessState(
+            board=tuple(board), current=current, castling=castling, ep=ep, halfmove=halfmove
+        )
+
     def current_player(self, state):
         return state.current
 
@@ -399,6 +424,25 @@ class Chess(Game):
                 }
             )
         return views
+
+    def engine_move(self, state, history=None, time_limit=2.0, max_depth=64, style=None, jitter=0):
+        """Mossa scelta dal motore di ricerca dedicato (alpha-beta + quiescence + TT).
+
+        È molto più forte del minimax generico: analizza la scacchiera in profondità
+        mossa dopo mossa, entro un budget di tempo. ``style`` modula il gioco in base al
+        profilo dell'avversario (schemi/debolezze); ``jitter`` varia tra partite.
+        """
+        from . import chess_engine
+
+        return chess_engine.best_move(
+            self,
+            state,
+            history=history,
+            time_limit=time_limit,
+            max_depth=max_depth,
+            style=style,
+            jitter=jitter,
+        )
 
     def opening_move(self, state, history):
         uci = openings.book_move(history or [])

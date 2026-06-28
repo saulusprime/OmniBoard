@@ -5,6 +5,42 @@
 
 ---
 
+## 2026-06-28 — IA scacchi potenziata: motore di ricerca dedicato (alpha-beta forte)
+
+**Obiettivo:** potenziare il più possibile l'IA degli scacchi — analizzare tutta la scacchiera
+mossa dopo mossa e confrontarsi con gli schemi principali. (Primo dei tre filoni richiesti; il
+modello dell'avversario è lo step successivo.)
+
+**Scelta di fondo:** per gli scacchi un motore **alpha-beta locale** è molto più forte di una
+singola mossa chiesta a un LLM via prompt. Quindi la potenza si costruisce sul **motore locale**,
+non sulla chiamata remota.
+
+**Realizzato:**
+- **Nuovo motore** `engine/games/chess_engine.py`: **iterative deepening** con budget di tempo,
+  **alpha-beta** (negamax) con **transposition table** (riconosce posizioni per trasposizione),
+  **quiescence search** (estende catture/promozioni e tutte le mosse sotto scacco → niente
+  *horizon effect*, l'IA non regala più pezzi), **ordinamento mosse** (TT, MVV-LVA, killer,
+  history) per più tagli/profondità, **valutazione ricca** (materiale + tabelle posizionali per
+  fase, pedoni doppiati/isolati/passati, coppia alfieri, torri su colonna aperta, sicurezza del
+  re, tempo). Parametri di **stile** (contempt/aggression) come gancio per il profilo avversario.
+- **`Chess.engine_move`** e **`Chess.from_fen`** (parser FEN, utile a test/analisi) in
+  `engine/games/chess.py`.
+- **Integrazione** (`backend/app/ai.py`): `choose_move` ora fa **libro → motore dedicato →
+  provider remoto → locale**; per gli scacchi usa il motore (sorgente `"engine"`), che ha
+  precedenza sull'LLM. Budget configurabile (`ai.engine_ms`, default 2000 ms; tetto operativo
+  via `AI_ENGINE_MS_MAX`). Piccolo **jitter** alla radice per variare tra partite senza perdere
+  forza (decisivo nel batch IA-vs-IA, motore altrimenti deterministico).
+- **Setting** `ai.engine_ms` (categoria IA) nel super admin; sessioni e batch passano il budget.
+- **Test** `backend/tests/test_chess_engine.py`: matto in 1, cattura di donna indifesa, **evita
+  la cattura perdente** (quiescence), scacco-non-matto, determinismo, rispetto del tempo. **75
+  test** verdi; lint pulito.
+
+**Verifiche dal vivo:** apertura dal libro (`e2e4`); da posizione iniziale gioca `Nc3` entro 2s;
+in una posizione tattica trova `Qd8+!!` (sacrificio di donna che forza il matto del corridoio) in
+0.01s — irraggiungibile dal vecchio minimax solo-materiale (profondità 3).
+
+---
+
 ## 2026-06-28 — Fix freeze del backend: chiamata IA remota inline + auto-attivazione Qwen
 
 **Sintomo:** di nuovo *Bad Request* su `…/mossa.json` (sessione 18) e backend che smette di

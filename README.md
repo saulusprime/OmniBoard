@@ -57,6 +57,9 @@ prospettiva, anche quelli con **nodi del caso** (dadi) come backgammon e ludo.
 - ♟️ **Scacchi completi** (arrocco, en passant, promozione, matto/stallo) con **libro di
   aperture** (Italiana, Siciliana, Scozzese, Spagnola…): l'apertura viene riconosciuta e l'IA
   la segue.
+- 🧠 **Motore scacchi forte**: ricerca alpha-beta con *iterative deepening*, *transposition
+  table*, *quiescence* (niente pezzi regalati) e valutazione posizionale ricca; trova matti e
+  combinazioni forzate. Budget di tempo per mossa configurabile.
 - 📜 **Log delle mosse** di ogni partita, salvato nello **storico di entrambi i giocatori**.
 - 🛠️ **Tutto parametrizzabile** da un'interfaccia **super admin**: punteggi, regole gruppi,
   registrazione utenti, ritardo IA, limiti, ecc. (protetta da token).

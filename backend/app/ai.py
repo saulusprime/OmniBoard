@@ -45,10 +45,12 @@ def _http_timeout() -> httpx.Timeout:
     return httpx.Timeout(total, connect=min(4.0, total))
 
 
-def choose_move(game, state, history=None, provider=None):
+def choose_move(game, state, history=None, provider=None, think_ms=None, style=None, jitter=0):
     """Sceglie una mossa legale. Ritorna (mossa, sorgente).
 
-    ``sorgente`` ∈ {'book', <codice provider>, 'local'}.
+    Ordine: **libro delle aperture** → **motore dedicato** (se il gioco ne ha uno, es.
+    scacchi: un alpha-beta profondo, più forte di un LLM) → **provider remoto** → **locale**.
+    ``sorgente`` ∈ {'book', 'engine', <codice provider>, 'local'}.
     """
     legal = list(game.legal_moves(state))
     if not legal:
@@ -59,12 +61,36 @@ def choose_move(game, state, history=None, provider=None):
         if book is not None and book in legal:
             return book, "book"
 
+    # Motore dedicato (scacchi): analizza la scacchiera in profondità ed è più forte di
+    # una mossa chiesta a un LLM, perciò ha la precedenza sul provider remoto.
+    engine_move = getattr(game, "engine_move", None)
+    if callable(engine_move):
+        move = engine_move(
+            state, history=history, time_limit=_engine_time(think_ms), style=style, jitter=jitter
+        )
+        if move is not None and move in legal:
+            return move, "engine"
+
     if provider:
         move = _remote_move(game, state, legal, provider)
         if move is not None and move in legal:
             return move, provider.get("code") or "remote"
 
     return _local_move(game, state, legal), "local"
+
+
+def _engine_time(think_ms=None) -> float:
+    """Budget di tempo (secondi) per il motore dedicato.
+
+    ``think_ms`` viene di norma dal parametro ``ai.engine_ms`` (super admin); se assente si
+    usa ``AI_ENGINE_MS`` (default 2000). ``AI_ENGINE_MS_MAX``, se impostata, è un tetto
+    massimo applicato sempre (kill-switch operativo; nei test la limita per velocità).
+    """
+    t = float(os.getenv("AI_ENGINE_MS", "2000")) if think_ms is None else float(think_ms)
+    cap = os.getenv("AI_ENGINE_MS_MAX")
+    if cap:
+        t = min(t, float(cap))
+    return max(0.05, t / 1000.0)
 
 
 # ----- Provider IA remoti -----

@@ -117,11 +117,14 @@ def _advance_ai(db: Session, game, session: models.GameSession) -> None:
     state = _load_state(game, session)
     moves = json.loads(session.moves_json or "[]")
     provider = ai_providers.get_active_config(db)
+    think_ms = settings_service.get(db, "ai.engine_ms")
     while not game.is_terminal(state):
         player = game.current_player(state)
         if not _side_is_ai(session, player):
             break
-        move, source = ai.choose_move(game, state, _history_ids(moves), provider)
+        move, source = ai.choose_move(
+            game, state, _history_ids(moves), provider, think_ms=think_ms, jitter=15
+        )
         _record_move(game, state, move, player, moves)
         state = game.apply(state, move)
         # last_ai_cell è un intero (cella/colonna); per la dama la mossa è un percorso → None.
@@ -192,12 +195,17 @@ def run_batch(payload: schemas.BatchCreate, db: Session = Depends(get_db)):
     game = get_game(payload.game_code)
 
     provider = ai_providers.get_active_config(db)
+    # Nel batch il motore scacchi usa un tempo ridotto (tante partite × tante mosse) e un
+    # po' di jitter per non ripetere identica la stessa partita (motore deterministico).
+    batch_ms = min(120, int(settings_service.get(db, "ai.engine_ms")))
     tally = {"x": 0, "o": 0, "draw": 0}
     for _ in range(payload.count):
         state = game.initial_state()
         history: list[str] = []
         while not game.is_terminal(state):
-            move, _source = ai.choose_move(game, state, history, provider)
+            move, _source = ai.choose_move(
+                game, state, history, provider, think_ms=batch_ms, jitter=20
+            )
             history.append(game.move_id(move))
             state = game.apply(state, move)
         winner = game.outcome(state).winner
