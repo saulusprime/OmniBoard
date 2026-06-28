@@ -199,6 +199,22 @@ HTTP a ogni mossa IA; timeout configurabile (`QWEN_TIMEOUT`). Il frontend, in ca
 **si risincronizza** con lo stato reale (`GET …/stato.json`) invece di fare revert.
 **Conseguenze:** niente disallineamenti persistenti; l'IA remota funziona per tutti i giochi.
 
+### ADR-015 — Login provider IA: token in DB configurabili da super admin — 2026-06-28
+**Contesto:** richiesta di non modificare a mano il `.env` per la chiave Qwen, ma offrire
+un'interfaccia di login verso uno o più servizi IA (Qwen, Claude, …) che autoconfigura il token.
+**Decisione:** introdotti i **provider IA** come entità di dominio (tabella `ai_providers`:
+codice, etichetta, `kind`, base_url, modello, **token**) con un registro dei provider noti
+(`ai_providers.py`) e un parametro `ai.provider` per il provider **attivo**. L'IA (`ai.py`) è
+multi-provider: dispatch per `kind` → `openai` (httpx, per Qwen/OpenAI) o `anthropic` (**SDK
+ufficiale**, per Claude: niente `temperature` sui modelli 4.x, gestione `stop_reason="refusal"`).
+Configurazione via `GET/PUT /admin/ai-providers` + `POST …/{code}/test` e pagina `/admin/ia/`.
+Al primo avvio `seed_providers` **migra** un eventuale `QWEN_API_KEY` da ambiente.
+**Sicurezza:** il token **non è mai restituito** dall'API (solo `has_key`); la scrittura richiede
+`X-Admin-Token`; un campo token vuoto conserva quello esistente. **Compromesso:** in sviluppo il
+token è salvato **in chiaro** nel DB — in produzione va cifrato / spostato in un secret manager.
+**Alternativa scartata:** continuare con le sole variabili d'ambiente (non autoconfigurabili da
+UI, una sola IA per volta).
+
 ## Traguardi
 
 - **2026-06-28** — Definita l'architettura, scelti licenza e modello del motore; creata la
@@ -221,6 +237,9 @@ HTTP a ogni mossa IA; timeout configurabile (`QWEN_TIMEOUT`). Il frontend, in ca
   destinazione. 50 test verdi.
 - **2026-06-28** — Quarto gioco: **Scacchi** completi (verificati con perft) + **libro di
   aperture** (riconoscimento + IA che segue le linee) + potatura alpha-beta. 58 test verdi.
+- **2026-06-28** — **Login provider IA** multi-provider (Qwen/Claude/OpenAI): token configurabili
+  da super admin e salvati in DB (mai esposti dall'API), provider attivo selezionabile, pagina
+  `/admin/ia/` con verifica connessione. 66 test verdi.
 
 ## Questioni aperte
 

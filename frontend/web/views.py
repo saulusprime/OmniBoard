@@ -265,3 +265,40 @@ def admin(request):
         except api.ApiError as exc:
             messages.error(request, str(exc))
     return render(request, "web/admin.html", {"settings": settings})
+
+
+def admin_ai(request):
+    data = _safe(request, api.get_ai_providers, default={"providers": [], "active": ""})
+    if request.method == "POST":
+        token = request.POST.get("admin_token", "")
+        test_code = request.POST.get("test_provider")
+        if test_code:
+            try:
+                result = api.test_ai_provider(test_code, token)
+                if result.get("ok"):
+                    messages.success(
+                        request, f"{test_code}: connessione OK — {result.get('detail', '')}"
+                    )
+                else:
+                    messages.error(
+                        request, f"{test_code}: {result.get('detail', 'verifica fallita')}"
+                    )
+            except api.ApiError as exc:
+                messages.error(request, str(exc))
+        else:
+            providers = {
+                p["code"]: {
+                    "base_url": request.POST.get(f"{p['code']}__base_url", ""),
+                    "model": request.POST.get(f"{p['code']}__model", ""),
+                    "api_key": request.POST.get(f"{p['code']}__api_key", ""),
+                }
+                for p in data.get("providers", [])
+            }
+            try:
+                api.update_ai_providers(request.POST.get("active", ""), providers, token)
+                messages.success(request, "Provider IA aggiornati.")
+                return redirect("admin_ai")
+            except api.ApiError as exc:
+                messages.error(request, str(exc))
+        data = _safe(request, api.get_ai_providers, default={"providers": [], "active": ""})
+    return render(request, "web/admin_ai.html", data)

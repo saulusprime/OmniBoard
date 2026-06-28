@@ -5,6 +5,49 @@
 
 ---
 
+## 2026-06-28 — Login provider IA: token configurabili da super admin (Qwen/Claude/OpenAI)
+
+**Obiettivo:** invece di modificare a mano il `.env` per inserire `QWEN_API_KEY`, costruire
+un'interfaccia di login verso **uno o più servizi IA** (Qwen, Claude, …) che autoconfigura il
+token salvandolo lato server.
+
+**Realizzato:**
+- **Backend** (`backend/app/ai_providers.py`, nuovo): registro dei provider noti
+  (`qwen` → OpenAI-compatible DashScope; `anthropic` → Claude via SDK; `openai`), tabella
+  `ai_providers` (codice, etichetta, tipo, base_url, modello, **token**, aggiornamento).
+  `seed_providers` popola i provider al primo avvio e **migra** un eventuale `QWEN_API_KEY` da
+  ambiente (chi usava il vecchio metodo passa al nuovo senza riconfigurare). Nuovo parametro
+  `ai.provider` (provider attivo) in `settings_service`. `get_active_config` fornisce all'IA la
+  config del provider attivo (con token) o `None`.
+- **IA** (`backend/app/ai.py`, riscritto multi-provider): `choose_move(..., provider=...)`
+  ordine **libro → provider remoto → locale**. Dispatch per `kind`: `openai` via `httpx`
+  (Qwen/OpenAI), `anthropic` via **SDK ufficiale** `anthropic` (no `temperature` su modelli 4.x,
+  `max_tokens=64`, gestione `stop_reason == "refusal"`). `ping(provider)` verifica le credenziali.
+- **API admin** (`routers/admin.py`): `GET /admin/ai-providers` (lettura aperta, **senza token**),
+  `PUT /admin/ai-providers` (protetto `X-Admin-Token`), `POST /admin/ai-providers/{code}/test`
+  (protetto) per verificare la connessione. **Sicurezza:** il token non è MAI restituito
+  dall'API — si espone solo `has_key`; in scrittura un campo token vuoto **mantiene** quello
+  esistente.
+- **Frontend**: pagina **«Provider IA»** (`/admin/ia/`, `admin_ai`) con un riquadro per provider
+  (radio «attivo», base URL, modello, token in campo password con badge «configurato»), pulsante
+  **«Verifica connessione»** e token super admin per salvare; collegata da `/admin/`.
+- **Sessioni**: mossa singola e batch IA-vs-IA leggono il provider attivo
+  (`ai_providers.get_active_config`) e lo passano a `choose_move`.
+- **Config**: `QWEN_API_KEY` nel `.env` ora è **opzionale** (configurabile da UI); aggiunta
+  dipendenza `anthropic>=0.40` (`backend/requirements.txt`).
+- **Test** (`backend/tests/test_ai_providers.py`, nuovi): provider seedati senza leak del token,
+  scrittura protetta da token, salvataggio chiave + provider attivo senza leak, endpoint di test
+  che segnala il token mancante (nessuna rete nei test). **66 test** verdi; lint `ruff` pulito.
+
+**Verifiche dal vivo:** `GET /admin/ai-providers` non espone `api_key`; `PUT` senza token → 401;
+`PUT` con token configura Qwen e lo attiva (risposta con `has_key=true`, niente token); endpoint
+di test su `anthropic` senza token → `ok=false`; `/admin/ia/` resa e collegata da `/admin/`.
+
+**Nota sicurezza (sviluppo):** i token sono salvati **in chiaro** nel DB (scaffold di sviluppo);
+in produzione vanno cifrati / messi in un secret manager.
+
+---
+
 ## 2026-06-28 — Fix: "bad request" su mossa.json (IA remota + desync)
 
 **Sintomo:** in una partita di scacchi (sessione 13), dopo alcuni minuti, errore *bad request*

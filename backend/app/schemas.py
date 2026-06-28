@@ -179,6 +179,16 @@ class SettingsUpdate(BaseModel):
     values: dict[str, str]
 
 
+class AiProvidersUpdate(BaseModel):
+    """Aggiornamento dei provider IA e del provider attivo.
+
+    ``providers`` mappa il codice provider ai campi {base_url, model, api_key}.
+    """
+
+    active: str = ""
+    providers: dict[str, dict] = {}
+
+
 # ----- Classifiche -----
 class RankingEntry(BaseModel):
     rank: int

@@ -73,6 +73,17 @@ numero massimo di partite consecutive, ecc. I parametri sono raggruppati per cat
 salvare una modifica occorre inserire il **token super admin** (configurato sul server con la
 variabile `ADMIN_TOKEN`). Le modifiche hanno effetto immediato.
 
+### Provider IA (login verso Qwen, Claude, OpenAI…)
+Dalla pagina **Provider IA** (pulsante in cima alla pagina Admin, oppure `/admin/ia/`) si
+configurano i servizi di intelligenza artificiale **senza toccare il file `.env`**. Per ogni
+provider (Qwen, Claude/Anthropic, OpenAI) si imposta l'endpoint, il modello e il **token/API key**,
+e si sceglie quale provider è **attivo** (oppure «Nessuno» per usare solo il giocatore locale).
+Il pulsante **«Verifica connessione»** prova le credenziali con una chiamata minima. Anche qui il
+salvataggio richiede il **token super admin**. Per sicurezza il token del provider **non viene
+mai rimostrato**: se è già impostato compare l'etichetta «configurato» e lasciando il campo vuoto
+si conserva quello esistente. Se nessun provider attivo ha un token valido, l'IA gioca in
+**locale** (minimax con potatura alpha-beta).
+
 ## Concetti generali di gioco
 
 - **Due giocatori.** Ogni partita è tra due giocatori.
@@ -179,8 +190,9 @@ Dal menu **Gioca** scegli chi controlla **X** (muove per primo) e **O**: ogni la
 un giocatore **umano** oppure l'**IA**. Per giocare in due, imposta entrambi i lati su «Umano»
 (si gioca a turni sullo stesso schermo). Clicca una casella libera per muovere; se l'avversario
 è l'IA, risponde subito. A fine partita i punteggi dei giocatori umani vengono aggiornati.
-L'IA è collegata a **Qwen**; se non è configurata una chiave API, gioca una strategia locale
-ottimale (imbattibile a Tris). Quando muove l'IA, la sua mossa compare con un piccolo
+L'IA può usare un **provider remoto** (Qwen, Claude o OpenAI, configurato in *Provider IA*); se
+nessuno è attivo o configurato, gioca una strategia locale ottimale (imbattibile a Tris). Quando
+muove l'IA, la sua mossa compare con un piccolo
 **ritardo** e un'**animazione** (durante l'attesa vedi «L'IA sta pensando»). Se imposti
 **entrambi i lati come IA**, puoi indicare un numero di **partite consecutive** (es. 100):
 l'app le gioca tutte e mostra il riepilogo (vittorie X, vittorie O, patte).
@@ -206,8 +218,9 @@ dettaglio delle mosse.
 Dal menu **Gioca** scegli **Forza 4** e imposta i due lati (umano o IA). Per muovere, usa i
 pulsanti **▼** sopra le colonne (oppure giochi in due sullo stesso schermo). La pedina cade
 nella posizione libera più in basso. Contro l'IA la mossa avversaria compare con un breve
-ritardo e animazione. L'IA di Forza 4 usa Qwen se configurato, altrimenti una strategia locale
-con ricerca a profondità limitata (forte ma non imbattibile).
+ritardo e animazione. L'IA di Forza 4 usa il provider remoto attivo (Qwen/Claude/OpenAI) se
+configurato, altrimenti una strategia locale con ricerca a profondità limitata (forte ma non
+imbattibile).
 
 ---
 

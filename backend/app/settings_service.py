@@ -65,6 +65,13 @@ SETTINGS_DEFS = [
         "label": "Ritardo prima della mossa dell'IA (millisecondi)",
     },
     {
+        "key": "ai.provider",
+        "type": "str",
+        "default": "",
+        "category": "IA",
+        "label": "Provider IA attivo (vuoto = solo giocatore locale)",
+    },
+    {
         "key": "games.batch_max",
         "type": "int",
         "default": 1000,

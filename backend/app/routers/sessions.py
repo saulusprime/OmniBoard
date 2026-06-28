@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from engine.registry import get_game, is_playable
 
-from .. import ai, models, schemas, services, settings_service
+from .. import ai, ai_providers, models, schemas, services, settings_service
 from ..database import get_db
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
@@ -116,11 +116,12 @@ def _advance_ai(db: Session, game, session: models.GameSession) -> None:
     """Fa giocare i lati IA finché non tocca a un umano o la partita finisce."""
     state = _load_state(game, session)
     moves = json.loads(session.moves_json or "[]")
+    provider = ai_providers.get_active_config(db)
     while not game.is_terminal(state):
         player = game.current_player(state)
         if not _side_is_ai(session, player):
             break
-        move, source = ai.choose_move(game, state, _history_ids(moves))
+        move, source = ai.choose_move(game, state, _history_ids(moves), provider)
         _record_move(game, state, move, player, moves)
         state = game.apply(state, move)
         # last_ai_cell è un intero (cella/colonna); per la dama la mossa è un percorso → None.
@@ -190,12 +191,13 @@ def run_batch(payload: schemas.BatchCreate, db: Session = Depends(get_db)):
         )
     game = get_game(payload.game_code)
 
+    provider = ai_providers.get_active_config(db)
     tally = {"x": 0, "o": 0, "draw": 0}
     for _ in range(payload.count):
         state = game.initial_state()
         history: list[str] = []
         while not game.is_terminal(state):
-            move, _source = ai.choose_move(game, state, history)
+            move, _source = ai.choose_move(game, state, history, provider)
             history.append(game.move_id(move))
             state = game.apply(state, move)
         winner = game.outcome(state).winner
