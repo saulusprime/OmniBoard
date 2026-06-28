@@ -72,6 +72,7 @@ class GameOut(BaseModel):
     code: str
     name: str
     is_stochastic: bool
+    playable: bool = False
 
 
 # ----- Gruppi e fondazione -----

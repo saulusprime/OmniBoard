@@ -178,6 +178,13 @@ dettaglio delle mosse.
 - Vince chi allinea **quattro** pedine consecutive in orizzontale, verticale o diagonale.
 - Se la griglia si riempie senza allineamenti, la partita è **patta**.
 
+### Come giocarci nell'app
+Dal menu **Gioca** scegli **Forza 4** e imposta i due lati (umano o IA). Per muovere, usa i
+pulsanti **▼** sopra le colonne (oppure giochi in due sullo stesso schermo). La pedina cade
+nella posizione libera più in basso. Contro l'IA la mossa avversaria compare con un breve
+ritardo e animazione. L'IA di Forza 4 usa Qwen se configurato, altrimenti una strategia locale
+con ricerca a profondità limitata (forte ma non imbattibile).
+
 ---
 
 ## Modello per nuovi giochi

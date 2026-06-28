@@ -35,6 +35,14 @@ def test_games_seeded():
         assert {"chess", "checkers", "tictactoe", "connect4", "backgammon"} <= codes
 
 
+def test_games_playable_flag():
+    with TestClient(app) as client:
+        games = {g["code"]: g for g in client.get("/games").json()}
+        assert games["tictactoe"]["playable"] is True
+        assert games["connect4"]["playable"] is True
+        assert games["chess"]["playable"] is False
+
+
 def test_create_user_and_duplicates():
     with TestClient(app) as client:
         user = make_user(client, "dup_alias")

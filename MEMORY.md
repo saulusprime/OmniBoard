@@ -156,6 +156,17 @@ parametro è una sola voce nel registro. Auth dei *giocatori* ancora assente: pe
 admin è protetto da un token condiviso (non da ruoli utente). Nuova tabella `settings` creata
 da `create_all` (è additiva: nessun problema di migrazione su DB esistenti).
 
+### ADR-011 — Forza 4 + scacchiera generica + IA a profondità limitata — 2026-06-28
+**Contesto:** integrare Forza 4 riusando l'infrastruttura, senza duplicare frontend/AI.
+**Decisione:** il motore espone `rows`/`cols`/`move_type` (cell|column) così il frontend rende
+una **scacchiera generica** (JS) valida per più giochi; la mossa è un indice generico (cella o
+colonna). L'IA locale usa minimax **completo** se `search_depth is None` (Tris) e **limitato +
+euristica** se impostato (Forza 4: `search_depth=4`), perché lo spazio di Forza 4 è troppo
+grande per la ricerca completa. `/games` espone `playable` (presenza nel registro del motore).
+**Conseguenze:** aggiungere un gioco da tavoliere = implementare il `Game` (con geometria e,
+se grande, euristica) e registrarlo; il frontend lo gioca senza modifiche. L'IA limitata non è
+imbattibile a Forza 4 (compromesso voluto velocità/forza; la profondità è regolabile).
+
 ## Traguardi
 
 - **2026-06-28** — Definita l'architettura, scelti licenza e modello del motore; creata la
@@ -171,6 +182,8 @@ da `create_all` (è additiva: nessun problema di migrazione su DB esistenti).
 - **2026-06-28** — **Parametri di programma centralizzati** + interfaccia **super admin**
   (token): punteggi, voti gruppo, registrazione utenti, ritardo IA, max batch configurabili a
   runtime. 33 test verdi.
+- **2026-06-28** — Secondo gioco: **Forza 4** (motore + euristica), scacchiera **generica** nel
+  frontend (clic-cella o caduta-colonna), IA a profondità limitata per i giochi grandi. 42 test verdi.
 
 ## Questioni aperte
 
