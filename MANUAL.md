@@ -148,7 +148,9 @@ un giocatore **umano** oppure l'**IA**. Per giocare in due, imposta entrambi i l
 (si gioca a turni sullo stesso schermo). Clicca una casella libera per muovere; se l'avversario
 è l'IA, risponde subito. A fine partita i punteggi dei giocatori umani vengono aggiornati.
 L'IA è collegata a **Qwen**; se non è configurata una chiave API, gioca una strategia locale
-ottimale (imbattibile a Tris).
+ottimale (imbattibile a Tris). Se imposti **entrambi i lati come IA**, puoi indicare un numero
+di **partite consecutive** (es. 100): l'app le gioca tutte e mostra il riepilogo (vittorie X,
+vittorie O, patte).
 
 ---
 

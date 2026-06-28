@@ -62,6 +62,13 @@ class TrisSetupForm(forms.Form):
     x_user = forms.ChoiceField(label="Utente per X", required=False)
     o_type = forms.ChoiceField(label="Giocatore O", choices=PLAYER_TYPES)
     o_user = forms.ChoiceField(label="Utente per O", required=False)
+    games_count = forms.IntegerField(
+        label="Partite consecutive (solo se entrambi IA)",
+        min_value=1,
+        max_value=1000,
+        initial=1,
+        required=False,
+    )
 
     def __init__(self, *args, users=None, **kwargs):
         super().__init__(*args, **kwargs)

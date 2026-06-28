@@ -235,9 +235,10 @@ database. Configurazione tramite `.env` (vedi `.env.example`).
 
 🟢 **Primo gioco giocabile.** Backend FastAPI e frontend Django girano end-to-end: si possono
 creare giocatori, fondare gruppi tramite voto, consultare le classifiche e **giocare a Tris**
-(umano vs umano in locale, umano vs IA, IA vs IA). L'IA è collegata a **Qwen** con fallback
-locale ottimale. A fine partita i punteggi si aggiornano in automatico. Mancano autenticazione,
-gioco a distanza in tempo reale e gli altri giochi.
+(umano vs umano in locale, umano vs IA, IA vs IA — con la possibilità di simulare **N partite
+consecutive** IA-vs-IA, es. 100). L'IA è collegata a **Qwen** con fallback locale ottimale.
+A fine partita i punteggi si aggiornano in automatico. Mancano autenticazione, gioco a distanza
+in tempo reale e gli altri giochi.
 
 ## Documentazione correlata
 

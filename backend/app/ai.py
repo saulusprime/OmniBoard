@@ -14,6 +14,7 @@ Variabili d'ambiente:
 from __future__ import annotations
 
 import os
+import random
 import re
 
 import httpx
@@ -82,12 +83,18 @@ def _qwen_move(game, state, legal):
 def _local_move(game, state, legal):
     me = game.current_player(state)
     memo: dict = {}
-    best_score, best_move = None, legal[0]
+    best_score = None
+    best_moves: list = []
     for move in legal:
         score = _minimax(game, game.apply(state, move), me, memo)
         if best_score is None or score > best_score:
-            best_score, best_move = score, move
-    return best_move
+            best_score = score
+            best_moves = [move]
+        elif score == best_score:
+            best_moves.append(move)
+    # Scelta casuale tra le mosse ugualmente ottimali: resta imbattibile ma le
+    # partite IA-vs-IA consecutive non sono tutte identiche.
+    return random.choice(best_moves)
 
 
 def _minimax(game, state, me, memo):

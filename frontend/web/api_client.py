@@ -96,6 +96,10 @@ def session_move(session_id, data: dict):
     return _request("POST", f"/sessions/{session_id}/move", json=data)
 
 
+def run_batch(data: dict):
+    return _request("POST", "/sessions/batch", json=data)
+
+
 # ----- Classifiche -----
 def universal_ranking():
     return _request("GET", "/rankings/universal")
