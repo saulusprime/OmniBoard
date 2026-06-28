@@ -32,7 +32,9 @@
       "Bash(.venv/bin/python -)",
       "Bash(git commit -q -m 'docs: nota su falso allarme OperationalError \\(DB obsoleto, errore d'\\\\''uso\\) *)",
       "Bash(PYTHONPATH=backend DATABASE_URL=\"sqlite:////private/tmp/claude-501/-Users-Saulus-Sviluppo-Scacchi/e45d73a7-5da7-41af-bdeb-17f04cd98240/scratchpad/admin.db\" ADMIN_TOKEN=\"live-admin\" .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --log-level warning)",
-      "Bash(PYTHONPATH=backend DATABASE_URL=\"sqlite:////private/tmp/claude-501/-Users-Saulus-Sviluppo-Scacchi/e45d73a7-5da7-41af-bdeb-17f04cd98240/scratchpad/c4.db\" ADMIN_TOKEN=\"live-admin\" .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --log-level warning)"
+      "Bash(PYTHONPATH=backend DATABASE_URL=\"sqlite:////private/tmp/claude-501/-Users-Saulus-Sviluppo-Scacchi/e45d73a7-5da7-41af-bdeb-17f04cd98240/scratchpad/c4.db\" ADMIN_TOKEN=\"live-admin\" .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --log-level warning)",
+      "Bash(PYTHONPATH=. .venv/bin/python -)",
+      "Bash(PYTHONPATH=backend DATABASE_URL=\"sqlite:////private/tmp/claude-501/-Users-Saulus-Sviluppo-Scacchi/e45d73a7-5da7-41af-bdeb-17f04cd98240/scratchpad/dm.db\" ADMIN_TOKEN=\"live-admin\" .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --log-level warning)"
     ]
   }
 }

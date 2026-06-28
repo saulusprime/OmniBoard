@@ -167,6 +167,18 @@ grande per la ricerca completa. `/games` espone `playable` (presenza nel registr
 se grande, euristica) e registrarlo; il frontend lo gioca senza modifiche. L'IA limitata non è
 imbattibile a Forza 4 (compromesso voluto velocità/forza; la profondità è regolabile).
 
+### ADR-012 — Dama italiana + mosse identificate da stringa — 2026-06-28
+**Contesto:** la dama ha mosse "da casella a casella" con catture multiple: non più un singolo
+indice come Tris/Forza 4.
+**Decisione:** una mossa è identificata da una **stringa** (`Game.move_id`): cella (`"4"`),
+colonna (`"3"`) o percorso (`"35-21"`). Il backend valida confrontando l'id; `MoveIn.move:str`.
+La vista sessione espone `view_board` (simboli per gioco) e `playable_moves` (from/to/captures/
+symbol) per i giochi a selezione. Il frontend ha un terzo `move_type` "draughts" (origine→
+destinazione). Regole dama: catture obbligatorie a massimo numero, dama corto raggio, pedina
+non cattura dama, promozione che termina la mossa. IA: minimax a profondità limitata + euristica.
+**Conseguenze:** sistema di mosse generico per qualsiasi gioco futuro (anche gli scacchi).
+Restano da implementare le priorità FID fini e le patte (semplificazioni documentate).
+
 ## Traguardi
 
 - **2026-06-28** — Definita l'architettura, scelti licenza e modello del motore; creata la
@@ -184,6 +196,9 @@ imbattibile a Forza 4 (compromesso voluto velocità/forza; la profondità è reg
   runtime. 33 test verdi.
 - **2026-06-28** — Secondo gioco: **Forza 4** (motore + euristica), scacchiera **generica** nel
   frontend (clic-cella o caduta-colonna), IA a profondità limitata per i giochi grandi. 42 test verdi.
+- **2026-06-28** — Terzo gioco: **Dama italiana** (catture obbligatorie/massimo, dame, promozione);
+  codifica mossa generica per id (cella/colonna/percorso), scacchiera con selezione origine→
+  destinazione. 50 test verdi.
 
 ## Questioni aperte
 

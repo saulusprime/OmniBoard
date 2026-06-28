@@ -67,7 +67,7 @@ contiene la sola base documentale.
 |--------------|----------------------|--------------|
 | Tris         | Deterministico       | ✅ Giocabile (umano e IA) |
 | Forza 4      | Deterministico       | ✅ Giocabile (umano e IA) |
-| Dama italiana| Deterministico       | 🔜 Pianificato |
+| Dama italiana| Deterministico       | ✅ Giocabile (umano e IA) |
 | Scacchi ♟️    | Deterministico       | 🔜 Pianificato |
 | Backgammon   | Con nodi del caso 🎲  | 🧪 Futuro      |
 
@@ -229,19 +229,21 @@ database. Configurazione tramite `.env` (vedi `.env.example`).
 - [x] Primo gioco giocabile: **Tris** (motore + sessioni di gioco persistite)
 - [x] Avversario **IA (Qwen)** con fallback locale (minimax completo per Tris, a profondità + euristica per Forza 4)
 - [x] Secondo gioco giocabile: **Forza 4** (scacchiera generica nel frontend)
+- [x] Terzo gioco giocabile: **Dama italiana** (catture obbligatorie, dame, mosse a percorso)
 - [ ] Autenticazione/login dei giocatori
 - [ ] Regole di gestione dei gruppi (ruoli, inviti, espulsioni)
 - [ ] Migrazioni del database (Alembic) e PostgreSQL in produzione
 - [ ] Aggiornamento in tempo reale della partita (WebSocket / polling) per il gioco a distanza
-- [ ] Dama italiana, **Scacchi** completi
+- [ ] **Scacchi** completi
+- [ ] Affinamento regole dama (priorità FID tra catture di pari numero, patte)
 - [ ] Sistema di rating (es. Elo) al posto dello schema punti provvisorio
 - [ ] (Futuro) supporto nodi del caso → Backgammon
 
 ## Stato del progetto
 
-🟢 **Due giochi giocabili.** Backend FastAPI e frontend Django girano end-to-end: si possono
-creare giocatori, fondare gruppi tramite voto, consultare le classifiche e **giocare a Tris e
-Forza 4** (umano vs umano in locale, umano vs IA, IA vs IA — con la possibilità di simulare **N partite
+🟢 **Tre giochi giocabili.** Backend FastAPI e frontend Django girano end-to-end: si possono
+creare giocatori, fondare gruppi tramite voto, consultare le classifiche e **giocare a Tris,
+Forza 4 e Dama italiana** (umano vs umano in locale, umano vs IA, IA vs IA — con la possibilità di simulare **N partite
 consecutive** IA-vs-IA, es. 100). L'IA è collegata a **Qwen** con fallback locale ottimale e la
 sua mossa appare con un piccolo ritardo e animazione. Ogni partita ha un **log delle mosse**
 (widget in pagina) salvato nello **storico di entrambi i giocatori**. A fine partita i punteggi

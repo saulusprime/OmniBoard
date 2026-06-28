@@ -153,7 +153,7 @@ class SessionCreate(BaseModel):
 
 
 class MoveIn(BaseModel):
-    cell: int
+    move: str  # identificatore della mossa (vedi Game.move_id): cella, colonna o percorso
 
 
 class BatchCreate(BaseModel):

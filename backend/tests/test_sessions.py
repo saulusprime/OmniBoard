@@ -38,7 +38,7 @@ def test_human_vs_human_x_wins_and_scores():
         sid = session["id"]
         data = session
         for cell in [0, 3, 1, 4, 2]:  # X completa la riga in alto
-            data = client.post(f"/sessions/{sid}/move", json={"cell": cell}).json()
+            data = client.post(f"/sessions/{sid}/move", json={"move": str(cell)}).json()
 
         assert data["status"] == "finished"
         assert data["winner"] == "x"
@@ -68,7 +68,7 @@ def test_session_records_moves():
 
         data = None
         for cell in [0, 3, 1]:
-            data = client.post(f"/sessions/{sid}/move", json={"cell": cell}).json()
+            data = client.post(f"/sessions/{sid}/move", json={"move": str(cell)}).json()
 
         assert len(data["moves"]) == 3
         assert data["moves"][0] == {"ply": 1, "player": "X", "notation": "a1"}
@@ -89,7 +89,7 @@ def test_user_history_records_finished_game():
             },
         ).json()["id"]
         for cell in [0, 3, 1, 4, 2]:  # X vince
-            client.post(f"/sessions/{sid}/move", json={"cell": cell})
+            client.post(f"/sessions/{sid}/move", json={"move": str(cell)})
 
         hist_x = client.get(f"/users/{x['id']}/history").json()
         assert len(hist_x) == 1
@@ -125,7 +125,7 @@ def test_connect4_session_human_vs_human():
         sid = session["id"]
         data = session
         for col in [0, 1, 0, 1, 0, 1, 0]:  # X allinea 4 nella colonna 0
-            data = client.post(f"/sessions/{sid}/move", json={"cell": col}).json()
+            data = client.post(f"/sessions/{sid}/move", json={"move": str(col)}).json()
         assert data["status"] == "finished"
         assert data["winner"] == "x"
         assert len(data["moves"]) == 7
@@ -142,9 +142,54 @@ def test_connect4_vs_ai_responds():
                 "o": {"type": "ai"},
             },
         ).json()
-        after = client.post(f"/sessions/{session['id']}/move", json={"cell": 3}).json()
+        after = client.post(f"/sessions/{session['id']}/move", json={"move": "3"}).json()
         assert "O" in after["board"]  # l'IA ha risposto
         assert after["last_ai"]["source"] in ("qwen", "local")
+
+
+def test_draughts_session_basics_and_move():
+    with TestClient(app) as client:
+        x = make_user(client, "dm_x")
+        o = make_user(client, "dm_o")
+        session = client.post(
+            "/sessions",
+            json={
+                "game_code": "checkers",
+                "x": {"type": "human", "user_id": x["id"]},
+                "o": {"type": "human", "user_id": o["id"]},
+            },
+        ).json()
+        assert session["game_code"] == "checkers"
+        assert session["rows"] == 8
+        assert session["cols"] == 8
+        assert session["move_type"] == "draughts"
+        assert len(session["board"]) == 64
+
+        playable = session["playable_moves"]
+        assert len(playable) == 7  # apertura del Bianco
+        first = playable[0]
+        assert {"id", "from", "to", "captures", "symbol"} <= set(first)
+
+        after = client.post(f"/sessions/{session['id']}/move", json={"move": first["id"]}).json()
+        assert len(after["moves"]) == 1
+        assert after["current"] == "o"
+
+
+def test_draughts_vs_ai_responds():
+    with TestClient(app) as client:
+        human = make_user(client, "dm_ai")
+        session = client.post(
+            "/sessions",
+            json={
+                "game_code": "checkers",
+                "x": {"type": "human", "user_id": human["id"]},
+                "o": {"type": "ai"},
+            },
+        ).json()
+        first = session["playable_moves"][0]
+        after = client.post(f"/sessions/{session['id']}/move", json={"move": first["id"]}).json()
+        assert len(after["moves"]) == 2  # mossa umana + risposta IA
+        assert after["current"] == "x"
 
 
 def test_move_validation():
@@ -160,8 +205,8 @@ def test_move_validation():
             },
         ).json()["id"]
 
-        client.post(f"/sessions/{sid}/move", json={"cell": 0})
-        occupied = client.post(f"/sessions/{sid}/move", json={"cell": 0})
+        client.post(f"/sessions/{sid}/move", json={"move": "0"})
+        occupied = client.post(f"/sessions/{sid}/move", json={"move": "0"})
         assert occupied.status_code == 400
 
 
@@ -215,7 +260,7 @@ def test_human_vs_ai_responds():
         assert session["current"] == "x"  # l'umano (X) muove per primo
 
         sid = session["id"]
-        after = client.post(f"/sessions/{sid}/move", json={"cell": 4}).json()
+        after = client.post(f"/sessions/{sid}/move", json={"move": "4"}).json()
         # l'IA (O) deve aver risposto
         assert "O" in after["board"]
         assert after["last_ai"] is not None

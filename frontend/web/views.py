@@ -220,11 +220,9 @@ def play(request, session_id):
 def play_move(request, session_id):
     if request.method != "POST":
         return redirect("play", session_id=session_id)
+    move = request.POST.get("move", "")
     try:
-        cell = int(request.POST.get("cell", ""))
-        api.session_move(session_id, {"cell": cell})
-    except (ValueError, TypeError):
-        messages.error(request, "Mossa non valida.")
+        api.session_move(session_id, {"move": move})
     except api.ApiError as exc:
         messages.error(request, str(exc))
     return redirect("play", session_id=session_id)
@@ -234,12 +232,11 @@ def play_move_json(request, session_id):
     """Endpoint JSON per le mosse (usato dal JS per l'animazione, stesso origine)."""
     if request.method != "POST":
         return JsonResponse({"error": "Metodo non consentito"}, status=405)
-    try:
-        cell = int(request.POST.get("cell", ""))
-    except (ValueError, TypeError):
+    move = request.POST.get("move", "")
+    if not move:
         return JsonResponse({"error": "Mossa non valida"}, status=400)
     try:
-        return JsonResponse(api.session_move(session_id, {"cell": cell}))
+        return JsonResponse(api.session_move(session_id, {"move": move}))
     except api.ApiError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
 

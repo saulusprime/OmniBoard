@@ -134,6 +134,17 @@ va sulla casella del proprio colore («donna sul suo colore»).
 ### Fine della partita
 Vince chi cattura tutte le pedine avversarie o lascia l'avversario senza mosse legali.
 
+### Come giocarci nell'app
+Dal menu **Gioca** scegli **Dama italiana** e imposta i due lati (umano o IA). Clicca una tua
+pedina (Bianco = ⛀/⛁, Nero = ⛂/⛃): l'app evidenzia le destinazioni possibili; clicca la
+casella di arrivo per muovere. Quando è disponibile una **cattura** la mossa è obbligatoria e
+l'app propone solo le catture (col massimo numero di prese). Contro l'IA la risposta avversaria
+compare con un breve ritardo.
+
+> Note sull'implementazione attuale: non sono ancora applicate le priorità FID fini tra catture
+> di pari numero (preferire la dama, catturare più dame, prima le dame) né le patte per
+> ripetizione; saranno affinate in seguito.
+
 > Nota: esistono diverse varianti di dama (italiana, inglese/checkers, internazionale).
 > Questa sezione descrive la **dama italiana**; eventuali altre varianti integrate saranno
 > documentate separatamente.

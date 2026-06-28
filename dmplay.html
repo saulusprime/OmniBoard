@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dama italiana — partita 1</title>
+  <style>
+    :root {
+      --bg:#0f1419; --panel:#1b232d; --accent:#d9a441; --text:#e8eaed;
+      --muted:#9aa4af; --line:#2c3742;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+           background:var(--bg); color:var(--text); }
+    a { color:var(--accent); }
+    .wrap { max-width: 980px; margin:0 auto; padding:0 20px; }
+    header { background:var(--panel); border-bottom:2px solid var(--accent); }
+    nav { display:flex; gap:18px; align-items:center; min-height:60px; flex-wrap:wrap; }
+    nav a { color:var(--text); text-decoration:none; font-weight:500; }
+    nav a:hover { color:var(--accent); }
+    nav .brand { font-size:1.3rem; font-weight:700; color:var(--accent); margin-right:auto; }
+    main { padding:28px 0 60px; }
+    h1,h2 { line-height:1.2; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:10px;
+            padding:20px; margin-bottom:18px; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+    th { color:var(--muted); font-weight:600; }
+    .btn { display:inline-block; background:var(--accent); color:#1a1a1a; padding:9px 16px;
+           border-radius:8px; text-decoration:none; font-weight:600; border:none; cursor:pointer;
+           font-size:1rem; }
+    .btn.secondary { background:transparent; color:var(--accent); border:1px solid var(--accent); }
+    form p { margin:0 0 14px; }
+    label { display:block; color:var(--muted); margin-bottom:4px; }
+    input, select { width:100%; padding:8px 10px; border-radius:7px; border:1px solid var(--line);
+                    background:#0f1419; color:var(--text); font-size:1rem; }
+    .messages { list-style:none; padding:0; margin:0 0 18px; }
+    .messages li { padding:10px 14px; border-radius:8px; margin-bottom:8px; }
+    .messages .success { background:#16331f; border:1px solid #2e7d4f; }
+    .messages .error { background:#3a1c1c; border:1px solid #a23b3b; }
+    .muted { color:var(--muted); }
+    .pill { background:var(--accent); color:#1a1a1a; border-radius:20px; padding:2px 10px;
+            font-size:.8rem; font-weight:700; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; }
+  </style>
+</head>
+<body>
+  <header><div class="wrap"><nav>
+    <a class="brand" href="/">♟ Scacchi</a>
+    <a href="/">Home</a>
+    <a href="/gioca/">Gioca</a>
+    <a href="/giocatori/">Giocatori</a>
+    <a href="/gruppi/">Gruppi</a>
+    <a href="/classifiche/">Classifiche</a>
+    <a href="/partite/registra/">Registra partita</a>
+    <a href="/admin/">Admin</a>
+  </nav></div></header>
+  <main><div class="wrap">
+    
+    
+<style>
+  .play { display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; }
+  .board { display:grid; gap:4px; margin:8px 0; }
+  .cell { display:flex; align-items:center; justify-content:center; background:#0f1419;
+          border:1px solid var(--line); border-radius:6px; color:var(--text); font-weight:700;
+          padding:0; line-height:1; }
+  .cell.x { color:#e0564f; }
+  .cell.o { color:#d9a441; }
+  .cell.light { background:#0a0d11; border-color:#0a0d11; }
+  .cell.dark { background:#222c38; }
+  .cell.sel { outline:3px solid var(--accent); }
+  .cell.dest { box-shadow: inset 0 0 0 3px #2e7d4f; }
+  .colbtns { display:grid; gap:4px; margin-bottom:4px; }
+  .colbtn { background:transparent; border:1px solid var(--accent); color:var(--accent);
+            border-radius:8px; cursor:pointer; padding:6px 0; font-weight:700; }
+  .colbtn:disabled { opacity:.3; cursor:default; }
+  button.cell { cursor:pointer; }
+  button.cell:hover:enabled { border-color:var(--accent); }
+  button.cell:disabled { cursor:default; }
+  .pop { animation: pop .3s ease-out; }
+  @keyframes pop { from { transform:scale(.3); opacity:0; } to { transform:scale(1); opacity:1; } }
+  .side { min-width:220px; flex:1; }
+  .movelog { list-style:decimal inside; padding:0; margin:8px 0 0; max-height:360px; overflow:auto; }
+  .movelog li { padding:4px 6px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
+  #thinking { display:none; color:var(--accent); font-weight:600; margin-top:8px; }
+</style>
+
+<script id="session-data" type="application/json">{"id": 1, "game_code": "checkers", "game_name": "Dama italiana", "rows": 8, "cols": 8, "move_type": "draughts", "status": "in_progress", "board": [null, "\u26c2", null, "\u26c2", null, "\u26c2", null, "\u26c2", "\u26c2", null, "\u26c2", null, "\u26c2", null, "\u26c2", null, null, "\u26c2", null, null, null, "\u26c2", null, "\u26c2", null, null, "\u26c2", null, null, null, null, null, null, "\u26c0", null, null, null, null, null, null, null, null, "\u26c0", null, "\u26c0", null, "\u26c0", null, null, "\u26c0", null, "\u26c0", null, "\u26c0", null, "\u26c0", "\u26c0", null, "\u26c0", null, "\u26c0", null, "\u26c0", null], "current": "x", "current_is_ai": false, "legal_moves": [], "playable_moves": [{"id": "33-19", "from": 33, "to": 19, "captures": [26], "symbol": "\u26c0"}], "winner": null, "moves": [{"ply": 1, "player": "X", "notation": "a3-b4"}, {"ply": 2, "player": "O", "notation": "d6-c5"}], "players": {"x": {"type": "human", "user_id": 1, "alias": "dama1"}, "o": {"type": "ai", "user_id": null, "alias": null}}, "last_ai": null}</script>
+
+<div class="card">
+  <h1>Dama italiana</h1>
+  <p class="muted">
+    <strong>X</strong>: dama1
+    (umano)
+    &nbsp;·&nbsp;
+    <strong>O</strong>: IA
+    (IA)
+  </p>
+
+  <div class="play">
+    <div>
+      <div id="turninfo"></div>
+      <div id="boardarea"></div>
+      <div id="thinking">L'IA sta pensando…</div>
+      <noscript><p class="muted">Questa pagina richiede JavaScript per giocare.</p></noscript>
+    </div>
+    <div class="side">
+      <h2>Mosse</h2>
+      <ol class="movelog" id="movelog"></ol>
+    </div>
+  </div>
+
+  <p style="margin-top:18px;">
+    <a class="btn" href="/gioca/">Nuova partita</a>
+    <a class="btn secondary" href="/classifiche/">Classifiche</a>
+  </p>
+</div>
+
+<script>
+(function () {
+  const SESSION = JSON.parse(document.getElementById("session-data").textContent);
+  const MOVE_URL = "/partite/1/mossa.json";
+  const CSRF = "1vQUcJzXpsQWgOQbVVyHYwJpPyl6uuXGQNjCTpDIpvaC4ZlyzFLrtoEz1lbMkwty";
+  const AI_DELAY = 700;
+  const X_AI = false;
+  const O_AI = true;
+
+  const rows = SESSION.rows, cols = SESSION.cols, moveType = SESSION.move_type;
+  const cellPx = cols <= 3 ? 88 : (cols <= 7 ? 56 : 46);
+  let board = SESSION.board.slice();
+  let pmoves = SESSION.playable_moves || [];
+  let current = SESSION.current || "";
+  let status = SESSION.status;
+  let busy = false;
+  let selected = null;
+
+  const area = document.getElementById("boardarea");
+  const thinking = document.getElementById("thinking");
+
+  const idx = (r, c) => r * cols + c;
+  const symFor = (side) => (side === "x" ? "X" : "O");
+  const sideIsAi = (side) => (side === "x" ? X_AI : O_AI);
+  const isDark = (i) => ((Math.floor(i / cols) + (i % cols)) % 2) === 1;
+  const playableFrom = (i) => pmoves.filter((m) => m.from === i);
+
+  function landingIndex(move) {
+    if (moveType === "cell") return board[move] === null ? move : -1;
+    for (let r = rows - 1; r >= 0; r--) {
+      const i = idx(r, move);
+      if (board[i] === null) return i;
+    }
+    return -1;
+  }
+
+  function buildBoard() {
+    area.innerHTML = "";
+    if (moveType === "column") {
+      const head = document.createElement("div");
+      head.className = "colbtns";
+      head.style.gridTemplateColumns = `repeat(${cols}, ${cellPx}px)`;
+      for (let c = 0; c < cols; c++) {
+        const b = document.createElement("button");
+        b.className = "colbtn"; b.textContent = "▼"; b.dataset.col = c;
+        b.addEventListener("click", () => onColumn(c));
+        head.appendChild(b);
+      }
+      area.appendChild(head);
+    }
+    const grid = document.createElement("div");
+    grid.className = "board"; grid.id = "grid";
+    grid.style.gridTemplateColumns = `repeat(${cols}, ${cellPx}px)`;
+    grid.style.gridTemplateRows = `repeat(${rows}, ${cellPx}px)`;
+    for (let i = 0; i < rows * cols; i++) {
+      let el;
+      if (moveType === "cell") {
+        el = document.createElement("button");
+        el.addEventListener("click", () => onCell(i));
+      } else if (moveType === "draughts" && isDark(i)) {
+        el = document.createElement("button");
+        el.addEventListener("click", () => onDraughts(i));
+      } else {
+        el = document.createElement("div");
+      }
+      el.className = "cell";
+      if (moveType === "draughts") el.classList.add(isDark(i) ? "dark" : "light");
+      el.style.fontSize = (cellPx * 0.72) + "px";
+      grid.appendChild(el);
+    }
+    area.appendChild(grid);
+  }
+
+  function pieceClass(v) {
+    if (v === "X" || v === "⛀" || v === "⛁") return "x";
+    if (v === "O" || v === "⛂" || v === "⛃") return "o";
+    return null;
+  }
+
+  function renderCells(animate) {
+    const grid = document.getElementById("grid");
+    const dests = selected !== null ? new Set(playableFrom(selected).map((m) => m.to)) : new Set();
+    for (let i = 0; i < board.length; i++) {
+      const el = grid.children[i];
+      const v = board[i];
+      el.textContent = v || "";
+      el.classList.remove("x", "o", "sel", "dest", "pop");
+      const pc = pieceClass(v);
+      if (pc) el.classList.add(pc);
+      if (moveType === "cell") el.disabled = v !== null || status !== "in_progress";
+      if (moveType === "draughts") {
+        if (i === selected) el.classList.add("sel");
+        if (dests.has(i)) el.classList.add("dest");
+      }
+      if (animate && animate.has(i)) { void el.offsetWidth; el.classList.add("pop"); }
+    }
+    if (moveType === "column") {
+      area.querySelectorAll(".colbtn").forEach((b) => {
+        const c = parseInt(b.dataset.col, 10);
+        b.disabled = status !== "in_progress" || board[idx(0, c)] !== null;
+      });
+    }
+  }
+
+  function renderMoves(moves) {
+    const ol = document.getElementById("movelog");
+    ol.innerHTML = "";
+    (moves || []).forEach((m) => {
+      const li = document.createElement("li");
+      li.textContent = m.player + " → " + m.notation;
+      ol.appendChild(li);
+    });
+  }
+
+  function setStatus(session) {
+    status = session.status;
+    current = session.current || "";
+    const el = document.getElementById("turninfo");
+    if (session.status === "finished") {
+      el.innerHTML = session.winner === "draw"
+        ? '<span class="pill">Patta</span>'
+        : '<span class="pill">Ha vinto ' + session.winner.toUpperCase() + "</span>";
+    } else {
+      el.innerHTML = "Tocca a: <strong>" + current.toUpperCase() + "</strong>" +
+        (session.current_is_ai ? " (IA)" : "");
+    }
+  }
+
+  async function doHuman(moveId, mutate) {
+    if (busy || status !== "in_progress") return;
+    const mover = current;
+    if (sideIsAi(mover)) return;
+    busy = true;
+    const snapshot = board.slice();
+    const animated = mutate(mover);
+    selected = null;
+    renderCells(animated);
+    const next = mover === "x" ? "o" : "x";
+    if (sideIsAi(next)) thinking.style.display = "block";
+    try {
+      const res = await fetch(MOVE_URL, {
+        method: "POST",
+        headers: { "X-CSRFToken": CSRF, "Content-Type": "application/x-www-form-urlencoded" },
+        body: "move=" + encodeURIComponent(moveId),
+      });
+      const session = await res.json();
+      if (!res.ok) throw new Error(session.error || "Mossa non valida");
+      renderMoves(session.moves);
+      const aiCells = new Set();
+      for (let i = 0; i < session.board.length; i++) {
+        if (session.board[i] !== board[i]) aiCells.add(i);
+      }
+      const finish = () => {
+        board = session.board.slice();
+        pmoves = session.playable_moves || [];
+        renderCells(aiCells);
+        thinking.style.display = "none";
+        setStatus(session);
+        busy = false;
+      };
+      if (aiCells.size > 0) setTimeout(finish, AI_DELAY); else finish();
+    } catch (err) {
+      board = snapshot;
+      renderCells(new Set());
+      thinking.style.display = "none";
+      busy = false;
+      alert(err.message || "Mossa non valida");
+    }
+  }
+
+  function onCell(i) {
+    if (board[i] !== null) return;
+    doHuman(String(i), (mover) => { board[i] = symFor(mover); return new Set([i]); });
+  }
+
+  function onColumn(c) {
+    const land = landingIndex(c);
+    if (land < 0) return;
+    doHuman(String(c), (mover) => { board[land] = symFor(mover); return new Set([land]); });
+  }
+
+  function onDraughts(i) {
+    if (busy || status !== "in_progress" || sideIsAi(current)) return;
+    if (selected !== null) {
+      const mv = playableFrom(selected).find((m) => m.to === i);
+      if (mv) {
+        doHuman(mv.id, () => {
+          board[mv.from] = null;
+          (mv.captures || []).forEach((cap) => { board[cap] = null; });
+          board[mv.to] = mv.symbol;
+          return new Set([mv.to]);
+        });
+        return;
+      }
+    }
+    selected = playableFrom(i).length > 0 ? i : null;
+    renderCells(new Set());
+  }
+
+  buildBoard();
+  renderCells(new Set());
+  renderMoves(SESSION.moves);
+  setStatus(SESSION);
+})();
+</script>
+
+  </div></main>
+</body>
+</html>

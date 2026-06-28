@@ -20,8 +20,6 @@ from ..database import get_db
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
-_CELL_SYMBOL = {0: "X", 1: "O", None: None}
-
 
 def _load_state(game, session: models.GameSession):
     return game.deserialize_state(json.loads(session.state_json))
@@ -48,17 +46,20 @@ def _record_move(game, state_before, move, player: int, moves: list) -> None:
 def _view(session: models.GameSession) -> dict:
     game = get_game(session.game.code)
     state = _load_state(game, session)
-    data = game.serialize_state(state)
     finished = session.status == "finished"
 
     current = None
     current_is_ai = False
     legal: list[int] = []
+    playable_moves: list[dict] = []
     if not finished:
         player = game.current_player(state)
         current = "x" if player == 0 else "o"
         current_is_ai = _side_is_ai(session, player)
-        legal = list(game.legal_moves(state))
+        # Per i giochi a indice (Tris/Forza 4) il client usa gli interi; per la dama
+        # usa la lista strutturata `playable_moves` (origine/destinazione/catture).
+        legal = [m for m in game.legal_moves(state) if isinstance(m, int)]
+        playable_moves = game.legal_moves_view(state)
 
     return {
         "id": session.id,
@@ -68,10 +69,11 @@ def _view(session: models.GameSession) -> dict:
         "cols": game.cols,
         "move_type": game.move_type,
         "status": session.status,
-        "board": [_CELL_SYMBOL[c] for c in data["board"]],
+        "board": game.view_board(state),
         "current": current,
         "current_is_ai": current_is_ai,
         "legal_moves": legal,
+        "playable_moves": playable_moves,
         "winner": session.winner,
         "moves": json.loads(session.moves_json or "[]"),
         "players": {
@@ -112,10 +114,11 @@ def _advance_ai(db: Session, game, session: models.GameSession) -> None:
         player = game.current_player(state)
         if not _side_is_ai(session, player):
             break
-        cell, source = ai.choose_move(game, state)
-        _record_move(game, state, cell, player, moves)
-        state = game.apply(state, cell)
-        session.last_ai_cell = cell
+        move, source = ai.choose_move(game, state)
+        _record_move(game, state, move, player, moves)
+        state = game.apply(state, move)
+        # last_ai_cell è un intero (cella/colonna); per la dama la mossa è un percorso → None.
+        session.last_ai_cell = move if isinstance(move, int) else None
         session.last_ai_source = source
     session.moves_json = json.dumps(moves)
     _save_state(game, session, state)
@@ -221,12 +224,13 @@ def make_move(session_id: int, payload: schemas.MoveIn, db: Session = Depends(ge
     player = game.current_player(state)
     if _side_is_ai(session, player):
         raise HTTPException(status_code=409, detail="È il turno dell'IA")
-    if payload.cell not in game.legal_moves(state):
+    chosen = next((m for m in game.legal_moves(state) if game.move_id(m) == payload.move), None)
+    if chosen is None:
         raise HTTPException(status_code=400, detail="Mossa non valida")
 
     moves = json.loads(session.moves_json or "[]")
-    _record_move(game, state, payload.cell, player, moves)
-    state = game.apply(state, payload.cell)
+    _record_move(game, state, chosen, player, moves)
+    state = game.apply(state, chosen)
     session.moves_json = json.dumps(moves)
     _save_state(game, session, state)
     session.last_ai_cell = None

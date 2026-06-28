@@ -5,6 +5,36 @@
 
 ---
 
+## 2026-06-28 — Terzo gioco: Dama italiana
+
+**Obiettivo:** integrare la **Dama italiana** giocabile (umano/IA).
+
+**Realizzato:**
+- **Motore**: `engine/games/draughts.py` (8×8 su caselle scure, 12 pedine/parte). Regole:
+  pedine muovono/catturano solo in avanti; **dama** corto raggio in tutte le diagonali;
+  **cattura obbligatoria** col **massimo numero di prese**; **una pedina non cattura una dama**;
+  promozione a dama sull'ultima traversa (termina la mossa). Euristica (materiale + avanzamento)
+  per l'IA a profondità limitata. Registrato come `checkers`.
+- **Codifica mosse generica**: l'interfaccia `Game` ora ha `move_id`, `view_board`,
+  `legal_moves_view`; una mossa è identificata da una **stringa id** (cella, colonna o percorso
+  `35-21`). Il backend valida la mossa per id; `MoveIn.cell:int` → `MoveIn.move:str`. La vista
+  sessione espone `board` (via `view_board`, simboli ⛀⛁⛂⛃ per la dama) e `playable_moves`
+  (lista strutturata from/to/captures/symbol) per i giochi a selezione.
+- **Frontend**: scacchiera generica estesa al tipo **draughts** (selezione origine→destinazione,
+  evidenziazione mosse, catture, dame), oltre a clic-cella (Tris) e colonna (Forza 4); il JS
+  invia l'**id mossa**. Setup con la Dama nel selettore.
+- **Test**: motore dama (cattura obbligatoria, massimo prese, pedina-non-cattura-dama,
+  promozione), sessione dama (basi + mossa, vs IA); aggiornati i test esistenti alla nuova
+  codifica `move`. Totale **50 test** verdi; lint `ruff` pulito.
+
+**Verifiche dal vivo:** sessione dama 8×8 (64 celle, 7 mosse d'apertura); mossa umana a3-b4 →
+risposta IA d6-c5; frontend con Dama nel selettore e scacchiera resa.
+
+**Semplificazioni note (dama):** non sono ancora applicate le priorità FID fini tra catture di
+pari numero (preferire la dama, catturare più dame, prima le dame) né le patte per ripetizione.
+
+---
+
 ## 2026-06-28 — Secondo gioco: Forza 4 (scacchiera generica)
 
 **Obiettivo:** integrare **Forza 4** come gioco giocabile (umano/IA/batch).

@@ -86,6 +86,23 @@ class Game(ABC, Generic[S, M]):
         """Notazione testuale di una mossa, per il log della partita."""
         return str(move)
 
+    def move_id(self, move: M) -> str:
+        """Identificatore stringa di una mossa, usato dal client per selezionarla."""
+        return str(move)
+
+    def view_board(self, state: S) -> list:
+        """Board come lista di simboli (o None) per il rendering nel frontend.
+
+        Default: usa ``serialize_state`` mappando 0->'X', 1->'O' (Tris, Forza 4).
+        """
+        symbols = {0: "X", 1: "O", None: None}
+        return [symbols.get(c) for c in self.serialize_state(state)["board"]]
+
+    def legal_moves_view(self, state: S) -> list[dict]:
+        """Mosse legali in forma strutturata per il frontend (usata dai giochi a
+        selezione origine/destinazione, es. dama). Default: solo l'id."""
+        return [{"id": self.move_id(m)} for m in self.legal_moves(state)]
+
     def heuristic(self, state: S, player: Player) -> float:
         """Valutazione euristica dello stato dal punto di vista di ``player``.
 
