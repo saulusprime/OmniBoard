@@ -191,6 +191,14 @@ la vista sessione espone il nome dell'apertura; il log registra l'id mossa.
 **Conseguenze:** l'IA segue Italiana/Siciliana/Scozzese/… in apertura. Semplificazione: niente
 patta per ripetizione (richiede lo storico nello stato). Profondità IA 3 (compromesso velocità).
 
+### ADR-014 — IA remota robusta + risincronizzazione client — 2026-06-28
+**Contesto:** errore "bad request" su `mossa.json` dopo alcuni minuti (desync client/server).
+**Decisione:** `_qwen_move` ora individua la mossa per **id** (`_match_move`, valido per ogni
+gioco) anziché per intero — prima non combaciava mai per scacchi/dama, sprecando una chiamata
+HTTP a ogni mossa IA; timeout configurabile (`QWEN_TIMEOUT`). Il frontend, in caso di errore,
+**si risincronizza** con lo stato reale (`GET …/stato.json`) invece di fare revert.
+**Conseguenze:** niente disallineamenti persistenti; l'IA remota funziona per tutti i giochi.
+
 ## Traguardi
 
 - **2026-06-28** — Definita l'architettura, scelti licenza e modello del motore; creata la

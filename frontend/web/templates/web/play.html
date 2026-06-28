@@ -67,6 +67,7 @@
 (function () {
   const SESSION = JSON.parse(document.getElementById("session-data").textContent);
   const MOVE_URL = "{% url 'play_move_json' s.id %}";
+  const STATE_URL = "{% url 'play_state_json' s.id %}";
   const CSRF = "{{ csrf_token }}";
   const AI_DELAY = {{ ai_delay|default:700 }};
   const X_AI = {% if s.players.x.type == 'ai' %}true{% else %}false{% endif %};
@@ -179,6 +180,26 @@
     });
   }
 
+  function applySession(session) {
+    board = session.board.slice();
+    pmoves = session.playable_moves || [];
+    selected = null;
+    renderMoves(session.moves);
+    renderCells(new Set());
+    setStatus(session);
+  }
+
+  async function resync() {
+    // Riallinea il client allo stato reale del server (recupero da disallineamenti).
+    try {
+      const res = await fetch(STATE_URL, { headers: { "X-CSRFToken": CSRF } });
+      const session = await res.json();
+      if (res.ok) applySession(session);
+    } catch (e) {
+      /* offline: si riprova alla prossima azione */
+    }
+  }
+
   function setStatus(session) {
     status = session.status;
     current = session.current || "";
@@ -199,7 +220,6 @@
     const mover = current;
     if (sideIsAi(mover)) return;
     busy = true;
-    const snapshot = board.slice();
     const animated = mutate(mover);
     selected = null;
     renderCells(animated);
@@ -228,10 +248,11 @@
       };
       if (aiCells.size > 0) setTimeout(finish, AI_DELAY); else finish();
     } catch (err) {
-      board = snapshot;
-      renderCells(new Set());
+      // La mossa potrebbe essere stata applicata dal server (risposta persa o IA
+      // lenta): non si torna allo snapshot, ci si risincronizza con lo stato reale.
       thinking.style.display = "none";
       busy = false;
+      await resync();
       alert(err.message || "Mossa non valida");
     }
   }

@@ -23,7 +23,7 @@ import httpx
 
 _SYSTEM_PROMPT = (
     "Sei un giocatore esperto di giochi da tavolo. "
-    "Rispondi sempre e solo con il numero della mossa scelta, senza altro testo."
+    "Rispondi sempre e solo con l'id esatto della mossa scelta, senza altro testo."
 )
 _DEFAULT_BASE_URL = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
 _WIN = 1_000_000.0
@@ -53,22 +53,42 @@ def choose_move(game, state, history=None):
 
 
 # ----- Qwen -----
+def _match_move(game, legal, content):
+    """Estrae dalla risposta del modello una mossa legale, confrontando per id.
+
+    Funziona per ogni gioco (cella, colonna o percorso/UCI) perché usa
+    ``game.move_id``. Ritorna l'oggetto-mossa o None.
+    """
+    id_to_move = {game.move_id(m): m for m in legal}
+    text = content.strip().lower()
+    for token in re.findall(r"[a-h0-9=qrbnx-]+", text):
+        if token in id_to_move:
+            return id_to_move[token]
+    # Fallback: id contenuto nel testo (prima i più lunghi, per evitare prefissi).
+    for move_id in sorted(id_to_move, key=len, reverse=True):
+        if move_id in text:
+            return id_to_move[move_id]
+    return None
+
+
 def _qwen_move(game, state, legal):
     api_key = os.getenv("QWEN_API_KEY") or os.getenv("DASHSCOPE_API_KEY")
     if not api_key:
         return None
     base_url = os.getenv("QWEN_BASE_URL", _DEFAULT_BASE_URL).rstrip("/")
     model = os.getenv("QWEN_MODEL", "qwen-plus")
+    timeout = float(os.getenv("QWEN_TIMEOUT", "10"))
     symbol = "X" if game.current_player(state) == 0 else "O"
+    move_ids = [game.move_id(m) for m in legal]
     prompt = (
         f"Gioco: {game.name}. Stato attuale (X e O, '.' = vuoto):\n"
         f"{game.render_text(state)}\n\n"
-        f"Tocca a te, giochi con '{symbol}'. Mosse disponibili (indici): {legal}.\n"
+        f"Tocca a te, giochi con '{symbol}'. Mosse legali disponibili (id): {move_ids}.\n"
         "Scegli la mossa migliore per vincere o non perdere. "
-        "Rispondi SOLO con il numero della mossa."
+        "Rispondi SOLO con l'id esatto della mossa scelta (uno di quelli elencati)."
     )
     try:
-        with httpx.Client(timeout=20.0) as client:
+        with httpx.Client(timeout=timeout) as client:
             response = client.post(
                 f"{base_url}/chat/completions",
                 headers={"Authorization": f"Bearer {api_key}"},
@@ -86,11 +106,7 @@ def _qwen_move(game, state, legal):
     except (httpx.HTTPError, KeyError, IndexError, ValueError):
         return None
 
-    for token in re.findall(r"\d+", content):
-        cell = int(token)
-        if cell in legal:
-            return cell
-    return None
+    return _match_move(game, legal, content)
 
 
 # ----- Giocatore locale (minimax con potatura alpha-beta) -----
