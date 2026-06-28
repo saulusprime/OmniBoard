@@ -76,7 +76,7 @@ def test_test_endpoint_reports_missing_key():
         assert result["ok"] is False  # nessun token configurato in test → niente rete
 
 
-def test_seed_migrates_qwen_from_env_and_activates(monkeypatch):
+def test_seed_stores_qwen_from_env_without_activating(monkeypatch):
     monkeypatch.delenv("DASHSCOPE_API_KEY", raising=False)
     monkeypatch.setenv("QWEN_API_KEY", "sk-env-123")
     monkeypatch.setenv("QWEN_BASE_URL", "https://example.test/compatible-mode/v1")
@@ -84,15 +84,17 @@ def test_seed_migrates_qwen_from_env_and_activates(monkeypatch):
     db = _fresh_session()
     try:
         ai_providers.seed_providers(db)
-        cfg = ai_providers.get_active_config(db)  # qwen attivato in automatico
-        assert cfg is not None
-        assert cfg["code"] == "qwen"
-        assert cfg["api_key"] == "sk-env-123"
-        assert cfg["base_url"] == "https://example.test/compatible-mode/v1"
-        assert cfg["model"] == "qwen-test"
+        # Token memorizzato ma NESSUN provider attivato in automatico.
+        assert ai_providers.get_active_config(db) is None
         listed = next(p for p in ai_providers.list_providers(db) if p["code"] == "qwen")
         assert listed["has_key"] is True
+        assert listed["base_url"] == "https://example.test/compatible-mode/v1"
+        assert listed["model"] == "qwen-test"
         assert "api_key" not in listed  # il token non trapela
+        # Attivandolo esplicitamente, la config (con token) diventa disponibile all'IA.
+        ai_providers.update_providers(db, active="qwen", providers={})
+        cfg = ai_providers.get_active_config(db)
+        assert cfg is not None and cfg["api_key"] == "sk-env-123"
     finally:
         db.close()
 
@@ -102,26 +104,13 @@ def test_seed_backfills_existing_keyless_qwen(monkeypatch):
     monkeypatch.setenv("QWEN_API_KEY", "")
     db = _fresh_session()
     try:
-        ai_providers.seed_providers(db)  # senza token: nessun provider attivo
-        assert ai_providers.get_active_config(db) is None
+        ai_providers.seed_providers(db)  # senza token: qwen resta senza chiave
+        listed = next(p for p in ai_providers.list_providers(db) if p["code"] == "qwen")
+        assert listed["has_key"] is False
         monkeypatch.setenv("QWEN_API_KEY", "sk-late")  # il token arriva dopo
-        ai_providers.seed_providers(db)  # backfill su riga esistente + attivazione
-        cfg = ai_providers.get_active_config(db)
-        assert cfg is not None
-        assert cfg["api_key"] == "sk-late"
-    finally:
-        db.close()
-
-
-def test_seed_does_not_override_user_choice(monkeypatch):
-    monkeypatch.delenv("DASHSCOPE_API_KEY", raising=False)
-    monkeypatch.setenv("QWEN_API_KEY", "sk-1")
-    db = _fresh_session()
-    try:
-        ai_providers.seed_providers(db)  # attiva qwen
-        ai_providers.update_providers(db, active="", providers={})  # l'utente disattiva
-        assert ai_providers.get_active_config(db) is None
-        ai_providers.seed_providers(db)  # un riavvio non deve riattivare (token già presente)
-        assert ai_providers.get_active_config(db) is None
+        ai_providers.seed_providers(db)  # backfill su riga esistente (senza attivare)
+        listed = next(p for p in ai_providers.list_providers(db) if p["code"] == "qwen")
+        assert listed["has_key"] is True
+        assert ai_providers.get_active_config(db) is None  # non viene attivato
     finally:
         db.close()
