@@ -282,6 +282,10 @@ per individuarne schemi e debolezze.
 - **2026-06-28** — **IA scacchi potenziata**: motore alpha-beta dedicato (iterative deepening,
   quiescence, transposition table, valutazione ricca) + **modello dell'avversario** dallo storico
   (schemi, debolezze → stile aggression/contempt). 79 test verdi.
+- **2026-06-28** — **Fix qualità motore scacchi**: la ricerca arrivava solo a profondità 2–3
+  (da cui il gioco "suicida"). Ricerca pseudo-legale, quiescence su sole catture + delta pruning,
+  eval a tabelle precalcolate, NamedTuple, null-move, estensione di scacco, LMR, anti-ripetizione,
+  jitter fuori dalla ricerca → profondità 4–6, matto al vecchio minimax in 67 semimosse.
 
 ## Questioni aperte
 

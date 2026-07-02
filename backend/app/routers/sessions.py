@@ -136,6 +136,10 @@ def _advance_ai(db: Session, game, session: models.GameSession) -> None:
     moves = json.loads(session.moves_json or "[]")
     provider = ai_providers.get_active_config(db)
     think_ms = settings_service.get(db, "ai.engine_ms")
+    if session.x_is_ai and session.o_is_ai:
+        # IA-vs-IA: l'intera partita gira in linea nella richiesta HTTP; un budget pieno
+        # per mossa (es. 2s × ~60 mosse) bloccherebbe la risposta per minuti.
+        think_ms = min(int(think_ms), 300)
     style = _opponent_style(db, game, session)  # adatta il gioco al profilo dell'avversario
     while not game.is_terminal(state):
         player = game.current_player(state)

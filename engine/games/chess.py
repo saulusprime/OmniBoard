@@ -12,7 +12,7 @@ stato). Sono gestite stallo, scacco matto, 50 mosse e materiale insufficiente.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from typing import NamedTuple
 
 from ..core import Game, Outcome
 from . import openings
@@ -57,8 +57,9 @@ def _color(piece):
     return WHITE if piece.isupper() else BLACK
 
 
-@dataclass(frozen=True)
-class ChessState:
+class ChessState(NamedTuple):
+    # NamedTuple (non dataclass frozen): l'istanziazione è molto più veloce e `apply`
+    # ne crea una per ogni nodo di ricerca del motore.
     board: tuple
     current: int
     castling: tuple  # (wK, wQ, bK, bQ)
@@ -68,7 +69,7 @@ class ChessState:
 
 def _initial_board() -> tuple:
     back = "RNBQKBNR"
-    board = [None] * 64
+    board: list[str | None] = [None] * 64
     for c in range(8):
         board[0 * 8 + c] = back[c].lower()  # Nero in alto
         board[1 * 8 + c] = "p"
@@ -78,11 +79,10 @@ def _initial_board() -> tuple:
 
 
 def _king_square(board, color):
-    target = "K" if color == WHITE else "k"
-    for sq, p in enumerate(board):
-        if p == target:
-            return sq
-    return None
+    try:
+        return board.index("K" if color == WHITE else "k")
+    except ValueError:
+        return None
 
 
 def _is_attacked(board, sq, by_color):
@@ -149,7 +149,7 @@ class Chess(Game):
         """Costruisce uno stato da una stringa FEN (utile per test e analisi)."""
         parts = fen.split()
         rows = parts[0].split("/")
-        board = [None] * 64
+        board: list[str | None] = [None] * 64
         for r, row in enumerate(rows):
             c = 0
             for ch in row:
@@ -213,6 +213,64 @@ class Chess(Game):
         dest = board[rr * 8 + cc]
         if dest is None or _color(dest) != color:
             moves.append((frm, rr * 8 + cc, None))
+
+    def _capture_moves(self, state):
+        """Solo catture, promozioni ed en passant (per la quiescence del motore).
+
+        Genera molto meno di ``_pseudo_moves``: nella ricerca di quiete le mosse
+        tranquille non servono, e la loro generazione dominava il tempo del motore.
+        """
+        board = state.board
+        color = state.current
+        moves = []
+        for sq, piece in enumerate(board):
+            if piece is None or _color(piece) != color:
+                continue
+            r, c = divmod(sq, 8)
+            kind = piece.upper()
+            if kind == "P":
+                direction = -1 if color == WHITE else 1
+                last_row = 0 if color == WHITE else 7
+                nr = r + direction
+                if not 0 <= nr < 8:
+                    continue
+                if nr == last_row and board[nr * 8 + c] is None:  # spinta di promozione
+                    for promo in ("Q", "R", "B", "N"):
+                        moves.append((sq, nr * 8 + c, promo))
+                for dc in (-1, 1):
+                    cc = c + dc
+                    if not 0 <= cc < 8:
+                        continue
+                    to = nr * 8 + cc
+                    dest = board[to]
+                    if dest is not None and _color(dest) != color:
+                        if nr == last_row:
+                            for promo in ("Q", "R", "B", "N"):
+                                moves.append((sq, to, promo))
+                        else:
+                            moves.append((sq, to, None))
+                    elif to == state.ep:
+                        moves.append((sq, to, None))
+            elif kind in ("N", "K"):
+                for dr, dc in _KNIGHT_D if kind == "N" else _KING_D:
+                    rr, cc = r + dr, c + dc
+                    if 0 <= rr < 8 and 0 <= cc < 8:
+                        dest = board[rr * 8 + cc]
+                        if dest is not None and _color(dest) != color:
+                            moves.append((sq, rr * 8 + cc, None))
+            else:
+                dirs = _BISHOP_D if kind == "B" else _ROOK_D if kind == "R" else _KING_D
+                for dr, dc in dirs:
+                    rr, cc = r + dr, c + dc
+                    while 0 <= rr < 8 and 0 <= cc < 8:
+                        dest = board[rr * 8 + cc]
+                        if dest is not None:
+                            if _color(dest) != color:
+                                moves.append((sq, rr * 8 + cc, None))
+                            break
+                        rr += dr
+                        cc += dc
+        return moves
 
     def _pawn_moves(self, state, sq, r, c, color, moves):
         board = state.board

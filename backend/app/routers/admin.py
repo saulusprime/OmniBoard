@@ -7,6 +7,7 @@ uguale alla variabile d'ambiente ``ADMIN_TOKEN`` impostata sul server.
 from __future__ import annotations
 
 import os
+import secrets
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
@@ -21,7 +22,8 @@ def require_admin(x_admin_token: str = Header(default="", alias="X-Admin-Token")
     expected = os.getenv("ADMIN_TOKEN", "")
     if not expected:
         raise HTTPException(status_code=503, detail="ADMIN_TOKEN non configurato sul server")
-    if x_admin_token != expected:
+    # Confronto in tempo costante: evita di rivelare il token tramite timing attack.
+    if not secrets.compare_digest(x_admin_token, expected):
         raise HTTPException(status_code=401, detail="Token super admin non valido")
 
 

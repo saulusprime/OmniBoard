@@ -5,6 +5,44 @@
 
 ---
 
+## 2026-06-28 — Fix qualità IA scacchi: il motore era troppo lento per vedere la tattica
+
+**Sintomo (utente):** l'IA «gioca al suicidio», mosse stupide e di scarso valore tattico.
+
+**Diagnosi (misurata col benchmark):** in mediogioco il motore completava solo **profondità
+2–3** (~4–8k nodi/s in puro Python) → cieco a qualunque tattica in due mosse. Cause:
+`legal_moves()` usato nella ricerca **applica ogni pseudo-mossa due volte** (filtro + ricerca);
+la quiescence rigenerava **tutte** le mosse legali a ogni nodo; `evaluate` costosa (~95µs);
+`ChessState` dataclass frozen lento da istanziare; il jitter alla radice **inquinava alpha**.
+
+**Correzioni (engine/games/chess_engine.py + chess.py):**
+- **Ricerca pseudo-legale**: la legalità si verifica dopo l'`apply` (re sotto attacco →
+  scartata); eliminato il doppio lavoro di `legal_moves` nella ricerca.
+- **Quiescence su generatore di sole catture** (`Chess._capture_moves`: catture, promozioni,
+  en passant) + **delta pruning**; ordinamento MVV-LVA leggero.
+- **`evaluate` a passaggio singolo** con tabelle precalcolate per carattere-pezzo (materiale+PST
+  già col segno, niente `upper()`/mirror a runtime); torri raccolte al volo.
+- **`ChessState` → NamedTuple** (istanziazione molto più rapida; `apply` ne crea una per nodo).
+- **Null-move pruning**, **estensione di scacco** (le sequenze forzate vengono risolte), **LMR**
+  (mosse quiete tardive ridotte, ri-cercate solo se promettono), punteggi di matto normalizzati
+  nella TT, history heuristic con tetto.
+- **Anti-ripetizione**: le posizioni già occorse nella partita (ricostruite dallo storico UCI)
+  valgono patta in ricerca → niente rimescolii senza scopo.
+- **Jitter corretto**: scelta casuale tra mosse quasi-ottimali **dopo** la ricerca (non altera
+  più alpha né i punteggi).
+- **Sviluppo in apertura**: penalità per la sortita precoce della donna coi minori a casa
+  (prima fuori libro giocava `Qf6` alla terza mossa; ora sviluppa, es. `Nc6`).
+- Extra dalla revisione: confronto `ADMIN_TOKEN` in **tempo costante** (`secrets.compare_digest`);
+  budget motore **limitato a 300ms** nelle sessioni IA-vs-IA (girano inline nella richiesta);
+  `_king_square` via `tuple.index`; annotazioni tipo sulle board.
+
+**Risultati misurati:** nps ×2.5–5 (10–20k), profondità 4–6 (prima 2–3) + estensioni;
+partita di verifica contro il vecchio minimax: **vittoria per scacco matto** in 67 semimosse
+con materiale in crescita costante (0 → +12), nessun pezzo regalato. Dal vivo: risposta dal
+libro istantanea; mossa fuori libro in ~2s (budget rispettato). **79 test** verdi; lint pulito.
+
+---
+
 ## 2026-06-28 — IA scacchi: modello dell'avversario (schemi e debolezze dallo storico)
 
 **Obiettivo:** far sì che l'IA analizzi lo **storico delle partite dell'avversario** per

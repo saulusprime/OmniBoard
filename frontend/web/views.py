@@ -51,9 +51,7 @@ def user_detail(request, user_id):
         return redirect("users_list")
     history = _safe(request, lambda: api.get_user_history(user_id), default=[])
     chess = _safe(request, lambda: api.get_chess_profile(user_id), default=None)
-    return render(
-        request, "web/user_detail.html", {"u": user, "history": history, "chess": chess}
-    )
+    return render(request, "web/user_detail.html", {"u": user, "history": history, "chess": chess})
 
 
 def groups(request):
