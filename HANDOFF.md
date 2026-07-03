@@ -5,6 +5,41 @@
 
 ---
 
+## 2026-06-28 — Libro di aperture ampliato (per posizione, con trasposizioni e file esterno)
+
+**Obiettivo (da TODO.md):** libro di aperture più ampio.
+
+**Realizzato:**
+- **Libro integrato ampliato** (`engine/games/openings.py`): da 22 a **75+ linee**, con le
+  varianti principali e linee più profonde (fino a 16-17 semimosse) — Italiana (Giuoco Piano,
+  Evans), Spagnola (chiusa, aperta, Berlinese, cambio), Scozzese (Mieses, classica, gambetto),
+  Petroff, gambetti di Re/Danese, Viennese, Quattro cavalli, Filidor; Siciliana (Najdorf,
+  Dragone-Jugoslavo, Richter-Rauzer, Scheveningen, Sveshnikov, Taimanov, Kan, Alapin, chiusa,
+  Rossolimo, Moscovita, Grand Prix); Francese (avanzata, Tarrasch, Winawer, classica, cambio);
+  Caro-Kann (classica, avanzata, cambio, Panov); Scandinava, Alekhine, Pirc austriaca, Moderna;
+  GdD (ortodossa, Tarrasch, accettato), Slava/Semi-Slava, Catalana, Londra, Trompowsky, Colle,
+  Torre; Est-Indiana (classica, Sämisch), Grünfeld, Nimzo (Rubinstein, classica), Ovest-Indiana,
+  Benoni, Benko, Olandese (classica, Leningrado); Inglese (simmetrica, siciliana in contromossa),
+  Réti, Attacco Est-Indiano, Bird. **Linee-base** con i nomi generici delle famiglie precedono le
+  varianti: a parità di profondità vince il nome generico, poi il nome si specializza (es.
+  *Difesa Siciliana* → *Siciliana Najdorf*).
+- **Libro indicizzato PER POSIZIONE** (`Chess._position_book`, cache pigra di classe +
+  `reset_book_cache`): la continuazione da libro vale anche quando la posizione è raggiunta per
+  **trasposizione** (ordine di mosse diverso — prima il match era solo per prefisso esatto).
+  I duplicati tra linee pesano la scelta casuale (le mosse più "popolari" escono più spesso).
+- **Estendibilità senza codice**: `CHESS_BOOK_FILE` nel `.env` può puntare a un file di testo
+  (`Nome apertura: e2e4 e7e5 …`, `#` commenta); le mosse non valide troncano la linea al
+  prefisso valido in fase di indicizzazione. Documentato in `.env.example` e MANUAL.
+- **Test** (`engine/tests/test_openings.py`, +5): **ogni linea integrata rigiocata col motore**
+  (mossa per mossa, tutte legali), ampiezza ≥60, nome generico→specifico, **mossa da libro per
+  trasposizione** (Colle via 1.Cf3), file esterno che estende e tronca. **87 test** verdi.
+
+**Nota di misura:** un apparente rallentamento del batch Tris (47s) è risultato **rumore
+termico** dei benchmark precedenti: con A/B alternato su codice corrente vs precedente i tempi
+convergono (20.3s vs 20.3s). Nessuna regressione.
+
+---
+
 ## 2026-06-28 — Mosse IA in background (fuori dalla richiesta HTTP) + TODO.md
 
 **Obiettivo:** eliminare l'attesa bloccante della mossa IA dentro la richiesta HTTP

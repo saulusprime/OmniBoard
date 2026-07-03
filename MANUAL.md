@@ -134,10 +134,21 @@ chiede quale pezzo (Donna/Torre/Alfiere/Cavallo). Durante la partita viene mostr
 dell'apertura** riconosciuta (es. *Partita Italiana*, *Difesa Siciliana*, *Partita Scozzese*).
 
 ### Tecniche di apertura
-L'app riconosce le aperture più comuni dal libro integrato (Italiana, Siciliana, Scozzese,
-Spagnola, Francese, Caro-Kann, Petroff, Inglese, Gambetto di Donna, Est-Indiana, Nimzo-Indiana,
-ecc.) e l'**IA segue le linee di libro** nelle prime mosse, per poi proseguire con la propria
-ricerca. *Nota:* non è ancora gestita la patta per **triplice ripetizione**.
+L'app riconosce le aperture dal **libro integrato** — oltre 70 linee con le varianti
+principali: Italiana (Giuoco Piano, Evans), Spagnola (chiusa, aperta, Berlinese, di cambio),
+Scozzese, Petroff, gambetti di Re e Danese, Siciliana (Najdorf, Dragone, Sveshnikov,
+Taimanov, Kan, Alapin, Rossolimo…), Francese (avanzata, Tarrasch, Winawer), Caro-Kann
+(classica, Panov), Scandinava, Alekhine, Pirc, Gambetto di Donna (rifiutato, accettato,
+Tarrasch), Slava e Semi-Slava, Catalana, Londra, Colle, Est-Indiana, Nimzo, Grünfeld,
+Ovest-Indiana, Benoni, Benko, Olandese, Inglese, Réti e altre. Il nome mostrato diventa più
+specifico man mano che la variante si delinea (es. *Difesa Siciliana* → *Siciliana Najdorf*).
+
+L'**IA segue le linee di libro** nelle prime mosse — il libro è indicizzato **per posizione**,
+quindi funziona anche nelle **trasposizioni** (stessa posizione raggiunta con un ordine di
+mosse diverso) — e poi prosegue con la propria ricerca. Il libro si può **estendere senza
+toccare il codice**: imposta `CHESS_BOOK_FILE` nel `.env` con il percorso di un file di testo
+(una linea per riga, `Nome apertura: e2e4 e7e5 …`). *Nota:* non è ancora gestita la patta per
+**triplice ripetizione**.
 
 ### L'IA degli scacchi (motore)
 Finita l'apertura, l'IA usa un **motore di ricerca dedicato** (alpha-beta con *iterative
