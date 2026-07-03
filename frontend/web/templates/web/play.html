@@ -194,10 +194,51 @@
     try {
       const res = await fetch(STATE_URL, { headers: { "X-CSRFToken": CSRF } });
       const session = await res.json();
-      if (res.ok) applySession(session);
+      if (res.ok) { applySession(session); maybeWatch(session); }
     } catch (e) {
       /* offline: si riprova alla prossima azione */
     }
+  }
+
+  // ----- L'IA pensa in background sul server: il client fa polling dello stato -----
+  let watching = false;
+
+  function maybeWatch(session) {
+    if (session.status === "in_progress" && session.current_is_ai) {
+      thinking.style.display = "block";
+      watchAi(AI_DELAY);
+    } else {
+      thinking.style.display = "none";
+    }
+  }
+
+  function watchAi(delay) {
+    if (watching) return; // una sola catena di polling
+    watching = true;
+    setTimeout(async () => {
+      watching = false;
+      if (busy || status !== "in_progress") return;
+      try {
+        const res = await fetch(STATE_URL, { headers: { "X-CSRFToken": CSRF } });
+        const session = await res.json();
+        if (!res.ok) throw new Error(session.error || "Stato non disponibile");
+        const changed = new Set();
+        for (let i = 0; i < session.board.length; i++) {
+          if (session.board[i] !== board[i]) changed.add(i);
+        }
+        if (changed.size || session.status !== "in_progress" || !session.current_is_ai) {
+          board = session.board.slice();
+          pmoves = session.playable_moves || [];
+          selected = null;
+          renderMoves(session.moves);
+          renderCells(changed); // la mossa dell'IA appare con l'animazione
+          setStatus(session);
+        }
+        maybeWatch(session); // continua finché tocca all'IA (anche IA-vs-IA)
+      } catch (e) {
+        watchAi(AI_DELAY * 2); // errore temporaneo: riprova più tardi
+      }
+    }, delay);
   }
 
   function setStatus(session) {
@@ -242,9 +283,11 @@
         board = session.board.slice();
         pmoves = session.playable_moves || [];
         renderCells(aiCells);
-        thinking.style.display = "none";
         setStatus(session);
         busy = false;
+        // Modalità asincrona: la risposta non contiene la mossa dell'IA (il server la
+        // sta ancora calcolando) → si passa al polling; maybeWatch gestisce lo spinner.
+        maybeWatch(session);
       };
       if (aiCells.size > 0) setTimeout(finish, AI_DELAY); else finish();
     } catch (err) {
@@ -298,6 +341,7 @@
   renderCells(new Set());
   renderMoves(SESSION.moves);
   setStatus(SESSION);
+  maybeWatch(SESSION); // se all'apertura tocca all'IA (es. IA col Bianco), avvia il polling
 })();
 </script>
 {% endblock %}

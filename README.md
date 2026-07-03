@@ -243,6 +243,7 @@ database. Configurazione tramite `.env` (vedi `.env.example`).
 - [x] Quarto gioco giocabile: **Scacchi** completi + **libro di aperture** (riconoscimento + IA)
 - [x] **Login provider IA** (Qwen, Claude, OpenAI): token configurabili da super admin, salvati lato server
 - [x] **IA scacchi potenziata**: motore alpha-beta dedicato (quiescence, TT) + **modello dell'avversario** (schemi/debolezze dallo storico)
+- [x] **Mosse IA in background**: risposta immediata, l'IA pensa in un worker e il client si aggiorna via polling
 - [ ] Autenticazione/login dei giocatori
 - [ ] Regole di gestione dei gruppi (ruoli, inviti, espulsioni)
 - [ ] Migrazioni del database (Alembic) e PostgreSQL in produzione
@@ -270,6 +271,7 @@ tempo reale e gli altri giochi.
 - [HANDOFF.md](./HANDOFF.md) — storico delle sessioni di lavoro.
 - [MEMORY.md](./MEMORY.md) — diario tecnico e decisioni architetturali.
 - [MANUAL.md](./MANUAL.md) — manuale dei giochi e dell'applicazione.
+- [TODO.md](./TODO.md) — backlog delle idee di potenziamento e miglioramento.
 - [CONTRIBUTING.md](./CONTRIBUTING.md) — come contribuire.
 - [LICENCE.md](./LICENCE.md) — licenza e nota sul trattamento dei dati.
 

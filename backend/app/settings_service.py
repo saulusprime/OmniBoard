@@ -79,6 +79,13 @@ SETTINGS_DEFS = [
         "label": "Tempo di analisi del motore scacchi per mossa (millisecondi)",
     },
     {
+        "key": "ai.async_moves",
+        "type": "bool",
+        "default": True,
+        "category": "IA",
+        "label": "Mosse IA in background (il client si aggiorna da solo; no = calcolo in linea)",
+    },
+    {
         "key": "games.batch_max",
         "type": "int",
         "default": 1000,

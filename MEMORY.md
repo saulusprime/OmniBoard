@@ -251,6 +251,22 @@ per individuarne schemi e debolezze.
 **Alternativa scartata:** affidare la forza scacchistica all'LLM remoto (debole, lento, costoso).
 **Possibile evoluzione:** scelta dell'apertura-bersaglio e stima delle blunder via rianalisi.
 
+### ADR-018 — Mosse IA in background (thread per sessione + polling) — 2026-06-28
+**Contesto:** la mossa IA era calcolata dentro la richiesta HTTP: 2s bloccanti per mossa col
+motore scacchi, minuti per una sessione IA-vs-IA (già mitigato con un tetto, ma il difetto
+strutturale restava — vedi ADR-016).
+**Decisione:** la logica di svolgimento partite vive in `gameplay.py`; `schedule_ai` lancia al
+massimo **un thread per sessione** (set + lock, idempotente) con sessione DB propria; commit
+**per mossa** così il client vede i progressi. Endpoint di creazione/mossa rispondono subito;
+`GET /sessions/{id}` fa **auto-ripristino** (riprogramma l'IA se nessun worker è attivo, mai
+calcolo inline nei GET). Client in **polling** con spinner e animazione. Configurabile:
+`ai.async_moves` (super admin) + env `AI_ASYNC` (test → `0`, sincrono).
+**Alternative scartate:** BackgroundTasks di FastAPI (legato al ciclo di richiesta, scomodo per
+auto-ripristino e idempotenza); coda esterna (Celery/Redis: giusta per multi-processo, eccessiva
+per lo scaffold — annotata in TODO.md); WebSocket (arriverà col tempo reale).
+**Conseguenze:** nessuna risposta bloccante; le partite IA-vs-IA si guardano in diretta; il
+limite è lo scheduling in-process (un solo worker uvicorn).
+
 ## Traguardi
 
 - **2026-06-28** — Definita l'architettura, scelti licenza e modello del motore; creata la
@@ -286,6 +302,9 @@ per individuarne schemi e debolezze.
   (da cui il gioco "suicida"). Ricerca pseudo-legale, quiescence su sole catture + delta pruning,
   eval a tabelle precalcolate, NamedTuple, null-move, estensione di scacco, LMR, anti-ripetizione,
   jitter fuori dalla ricerca → profondità 4–6, matto al vecchio minimax in 67 semimosse.
+- **2026-06-28** — **Mosse IA in background** (`gameplay.py`: un thread per sessione, idempotente,
+  auto-ripristino dai GET) + polling con animazione nel client; parametro `ai.async_moves`;
+  creato **TODO.md** (backlog delle idee). POST mossa: da ~2s bloccanti a 0.017s. 82 test verdi.
 
 ## Questioni aperte
 

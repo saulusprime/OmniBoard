@@ -5,6 +5,45 @@
 
 ---
 
+## 2026-06-28 — Mosse IA in background (fuori dalla richiesta HTTP) + TODO.md
+
+**Obiettivo:** eliminare l'attesa bloccante della mossa IA dentro la richiesta HTTP
+(2s/mossa col motore scacchi; minuti per una sessione IA-vs-IA) e creare il backlog
+delle idee (`TODO.md`).
+
+**Realizzato:**
+- **`backend/app/gameplay.py`** (nuovo): logica di svolgimento partite condivisa (stato,
+  log mosse, fine partita, stile avversario, `advance_ai`) + **worker in background**:
+  `schedule_ai` avvia al massimo **un thread per sessione** (idempotente, set protetto da
+  lock) con **sessione DB propria**; `advance_ai` ora committa **dopo ogni mossa**, così il
+  polling vede la partita avanzare (IA-vs-IA compresa). Il router `sessions.py` resta solo
+  HTTP e delega qui.
+- **Endpoint**: `POST /sessions` e `POST /sessions/{id}/move` **rispondono subito** e
+  programmano l'IA in background; `GET /sessions/{id}` fa **auto-ripristino** (se è il turno
+  dell'IA e nessun worker è attivo — es. server riavviato a metà pensata — lo riprogramma,
+  senza mai calcolare inline nei GET). La vista espone `ai_thinking`.
+- **Configurabilità**: parametro super admin `ai.async_moves` (default sì) + override
+  d'ambiente `AI_ASYNC` (nei test `0` → comportamento sincrono originale, risposte
+  deterministiche). SQLite con busy-timeout 15s (scritture da due thread).
+- **Frontend** (`play.html`): dopo la mossa umana (o all'apertura pagina se tocca all'IA)
+  il client fa **polling** di `stato.json` (`watchAi`/`maybeWatch`): mostra «L'IA sta
+  pensando…», applica la mossa IA con l'animazione quando compare, continua finché tocca
+  all'IA (guardare una partita IA-vs-IA ora funziona in diretta). Errori → retry con backoff.
+- **Test** (`test_async_ai.py`, +3): flusso asincrono end-to-end via polling; **idempotenza**
+  dello scheduling (GET ripetuti non causano mosse doppie); modalità sincrona intatta.
+  **82 test** verdi; lint pulito.
+- **`TODO.md`** (nuovo): backlog completo delle idee di potenziamento (motore, IA/provider,
+  giochi, piattaforma, UX, sicurezza/devops), linkato dal README.
+
+**Verifiche dal vivo (async attivo, scacchi a budget pieno 2s):** `POST mossa` risponde in
+**0.017s** con `ai_thinking=true`; il polling vede la risposta del motore (`Ng8-f6`) dopo
+~1.8s; pagina partita resa col nuovo JS di polling.
+
+**Limite noto:** scheduling **in-process** (un solo worker uvicorn); con più processi serve
+una coda di lavoro vera (annotato in TODO.md).
+
+---
+
 ## 2026-06-28 — Fix qualità IA scacchi: il motore era troppo lento per vedere la tattica
 
 **Sintomo (utente):** l'IA «gioca al suicidio», mosse stupide e di scarso valore tattico.
