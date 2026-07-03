@@ -18,3 +18,6 @@ os.environ["QWEN_API_KEY"] = ""
 os.environ["DASHSCOPE_API_KEY"] = ""
 # Limita il tempo del motore scacchi nei test: partite rapide, niente attese di 2s/mossa.
 os.environ["AI_ENGINE_MS_MAX"] = "60"
+# Mosse IA sincrone nei test (deterministico: la risposta contiene già la mossa IA).
+# I test dedicati alla modalità asincrona la riabilitano con monkeypatch.
+os.environ["AI_ASYNC"] = "0"

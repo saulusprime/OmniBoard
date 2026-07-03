@@ -13,8 +13,11 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./scacchi.db")
 
-# SQLite richiede check_same_thread=False per essere usato dal server.
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+# SQLite richiede check_same_thread=False per essere usato dal server; il timeout è il
+# busy-timeout in secondi (il worker IA in background scrive da un altro thread).
+connect_args = (
+    {"check_same_thread": False, "timeout": 15} if DATABASE_URL.startswith("sqlite") else {}
+)
 
 engine = create_engine(DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
