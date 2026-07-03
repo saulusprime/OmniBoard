@@ -19,6 +19,14 @@
 
 ## Motore scacchi
 
+- [ ] ⭐ **Avversario Stockfish (NNUE) configurabile** — integrare il vero motore Stockfish
+  come avversario tramite protocollo **UCI** (binario esterno in subprocess; percorso da
+  parametro super admin o `.env`, es. `STOCKFISH_PATH`). Forza regolabile: *Skill Level*
+  0–20, `UCI_LimitStrength`/`UCI_Elo`, tempo o profondità per mossa — selezionabile al setup
+  della partita (livelli di difficoltà "veri"). NNUE è la valutazione neurale integrata di
+  Stockfish. Fallback automatico al motore interno se il binario non è disponibile; utile
+  anche come **sparring/riferimento** per misurare la forza del motore interno e per
+  l'analisi post-partita.
 - [ ] **Patta per triplice ripetizione** dichiarata dalle regole del gioco (il motore la
   evita in ricerca, ma la partita non termina mai per ripetizione).
 - [ ] **Apertura-bersaglio dal profilo avversario** — scegliere dal libro le linee in cui
@@ -43,6 +51,12 @@
 
 ## IA e provider remoti
 
+- [ ] ⭐ **Concorrenti IA multipli** (Claude, Gemini, Grok, Qwen, …) — oggi c'è un solo
+  provider attivo globalmente; renderli **avversari selezionabili al setup della partita**
+  («gioca contro Claude», «gioca contro Gemini»), ognuno con la propria configurazione/token
+  nella pagina Provider IA. Da aggiungere ai provider: **Gemini** (Google) e **Grok** (xAI),
+  entrambi con endpoint OpenAI-compatible. In prospettiva: profilo, punteggi e **classifica
+  delle IA** (quale IA gioca meglio?), tornei IA-vs-IA tra provider diversi.
 - [ ] **Circuit breaker** sui provider remoti: dopo N errori consecutivi disattivazione
   temporanea automatica (oggi c'è solo il connect-timeout breve).
 - [ ] **Cifratura dei token provider** nel DB (oggi in chiaro, scaffold di sviluppo) o
