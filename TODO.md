@@ -25,7 +25,10 @@
   l'avversario storicamente rende peggio (`weakest_openings` già calcolate).
 - [ ] **Stima delle blunder** — rianalizzare col motore un campione di posizioni dello
   storico dell'avversario per quantificare gli errori (profilo più ricco e affidabile).
-- [ ] **Libro di aperture più ampio** — import da PGN o formato Polyglot.
+- [x] **Libro di aperture più ampio** — 75+ linee con le varianti principali, indicizzato
+  **per posizione** (vale anche nelle trasposizioni), estendibile via `CHESS_BOOK_FILE`
+  (file di testo `Nome: e2e4 e7e5 …`).
+- [ ] **Import libro da PGN o formato Polyglot** (richiede parser SAN / hash Zobrist).
 - [ ] **Potenziamenti di ricerca**: SEE (potare le catture perdenti in quiescence),
   aspiration windows alla radice, PVS, futility pruning ai nodi frontier.
 - [ ] **Finali**: euristica "mop-up" (spingere il re avversario al bordo con materiale di

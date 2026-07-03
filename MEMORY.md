@@ -305,6 +305,10 @@ limite è lo scheduling in-process (un solo worker uvicorn).
 - **2026-06-28** — **Mosse IA in background** (`gameplay.py`: un thread per sessione, idempotente,
   auto-ripristino dai GET) + polling con animazione nel client; parametro `ai.async_moves`;
   creato **TODO.md** (backlog delle idee). POST mossa: da ~2s bloccanti a 0.017s. 82 test verdi.
+- **2026-06-28** — **Libro di aperture ampliato**: 75+ linee con varianti (validate dai test
+  rigiocandole col motore), indicizzato **per posizione** (gioca da libro anche nelle
+  trasposizioni), estendibile via `CHESS_BOOK_FILE`; nomi da generico a specifico
+  (*Siciliana* → *Siciliana Najdorf*). 87 test verdi.
 
 ## Questioni aperte
 

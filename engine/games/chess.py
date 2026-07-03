@@ -12,6 +12,7 @@ stato). Sono gestite stallo, scacco matto, 50 mosse e materiale insufficiente.
 
 from __future__ import annotations
 
+import random
 from typing import NamedTuple
 
 from ..core import Game, Outcome
@@ -502,10 +503,40 @@ class Chess(Game):
             jitter=jitter,
         )
 
+    # Libro delle aperture indicizzato PER POSIZIONE (costruito pigramente una volta):
+    # le continuazioni valgono anche quando la posizione è raggiunta per trasposizione
+    # (ordine di mosse diverso). I duplicati pesano la scelta casuale.
+    _book: dict | None = None
+
+    @classmethod
+    def reset_book_cache(cls) -> None:
+        """Invalida l'indice del libro (es. dopo aver cambiato ``CHESS_BOOK_FILE``)."""
+        cls._book = None
+
+    def _position_book(self) -> dict:
+        if Chess._book is None:
+            book: dict[tuple, list[str]] = {}
+            for _name, line in openings.all_lines():
+                state = self.initial_state()
+                for uci in line:
+                    move = next(
+                        (m for m in self._pseudo_moves(state) if self.move_id(m) == uci), None
+                    )
+                    if move is None:
+                        break  # mossa non valida (file utente): si tiene il prefisso valido
+                    key = (state.board, state.current, state.castling, state.ep)
+                    book.setdefault(key, []).append(uci)
+                    state = self.apply(state, move)
+            Chess._book = book
+        return Chess._book
+
     def opening_move(self, state, history):
-        uci = openings.book_move(history or [])
-        if not uci:
+        candidates = self._position_book().get(
+            (state.board, state.current, state.castling, state.ep)
+        )
+        if not candidates:
             return None
+        uci = random.choice(candidates)
         for move in self.legal_moves(state):
             if self.move_id(move) == uci:
                 return move
