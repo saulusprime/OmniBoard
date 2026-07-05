@@ -101,6 +101,30 @@ def test_watch_pace_delays_first_ai_move(monkeypatch):
         assert len(data["moves"]) == 1
 
 
+def test_watch_pace_delays_ai_reply_to_human(monkeypatch):
+    """Il ritardo vale per OGNI mossa IA: la risposta alla mossa dell'umano non è
+    "incollata" ma arriva dopo il ritmo minimo configurato."""
+    monkeypatch.setenv("AI_ASYNC", "1")
+    monkeypatch.setenv("AI_WATCH_PACE_MS", "1500")
+    with TestClient(app) as client:
+        user = _make_user(client, "pace_r")
+        session = client.post(
+            "/sessions",
+            json={
+                "game_code": "tictactoe",
+                "x": {"type": "human", "user_id": user["id"]},
+                "o": {"type": "ai"},
+            },
+        ).json()
+        sid = session["id"]
+        client.post(f"/sessions/{sid}/move", json={"move": "4"})
+        # Subito dopo la mossa umana: l'IA sta ancora rispettando il ritmo.
+        right_after = client.get(f"/sessions/{sid}").json()
+        assert len(right_after["moves"]) == 1  # solo la mossa dell'umano
+        data = _wait_human_turn(client, sid)
+        assert len(data["moves"]) == 2  # poi arriva la risposta, singola
+
+
 def test_sync_mode_still_returns_ai_move_inline():
     # Con AI_ASYNC=0 (default della suite) la risposta contiene già la mossa dell'IA.
     with TestClient(app) as client:

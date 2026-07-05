@@ -5,6 +5,28 @@
 
 ---
 
+## 2026-07-05 — Il ritardo minimo vale per OGNI mossa dell'IA (niente risposte "incollate")
+
+**Richiesta (utente):** evitare le mosse consecutive — tra una mossa e l'altra deve esserci
+comunque un ritardo di ~1 secondo, configurabile da admin.
+
+**Fix:** il ritmo di visione introdotto nella voce precedente ora si applica a **ogni mossa
+dell'IA**, non solo alle partite IA-vs-IA e alla prima mossa: anche la **risposta alla
+mossa dell'umano** (tipicamente istantanea quando viene dal libro) rispetta il ritardo
+minimo dalla mossa precedente. In `gameplay.advance_ai` è caduta la condizione
+`both_ai or prima-mossa`: la pausa vale per tutte le mosse del worker; restano invariate
+le tutele (solo in modalità asincrona; con l'orologio la pausa è "dell'arbitro").
+
+**Configurazione:** `ai.watch_pace_ms` rietichettato «Ritardo minimo tra una mossa e
+l'altra dell'IA», **default 1000 ms** (era 1200; i DB esistenti conservano il valore già
+seedato — modificabile dal super admin). Override `AI_WATCH_PACE_MS` nei test (0).
+
+**Test (+1, 108 verdi):** subito dopo la mossa dell'umano l'IA non ha ancora risposto
+(solo 1 mossa nel log); la risposta arriva poi, singola. **Verifica dal vivo:** mossa umana
+`e2e4` → risposta di libro `e7e6` arrivata dopo **1.14s** (attesi ≥1s).
+
+---
+
 ## 2026-07-05 — Ritmo di visione: le mosse IA arrivano una alla volta (partite osservabili)
 
 **Sintomo (utente):** nelle partite IA-vs-IA le prime mosse non si vedono — troppo veloci;
