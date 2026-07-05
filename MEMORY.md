@@ -438,6 +438,13 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   `community.online_window_s`), area **Community** (`/community/`: online + «⚔️ Sfida» +
   «Le tue partite», auto-aggiornanti), badge navbar presenza + punti complessivi
   (`UserOut.universal_points`). Migrazione **0002**. 136 test verdi + e2e dal vivo.
+- **2026-07-05** — **Concorrenti IA multipli**: catalogo con **Gemini** e **Grok**
+  (OpenAI-compatible) oltre a Qwen/Claude/OpenAI; al setup ogni lato sceglie il SUO
+  concorrente («IA — Claude», «IA — Gemini», …, voce generica = provider attivo);
+  colonne `x/o_ai_provider` (migrazione **0003**), `PlayerSpec.provider` validato,
+  `ai_providers.get_config(db, code)`, risoluzione per lato in `advance_ai`
+  (Claude-vs-Gemini possibile), etichetta del concorrente in partita. Ripiego locale
+  invariato. 140 test verdi. In TODO: classifica delle IA e tornei fra provider.
 
 ## Questioni aperte
 

@@ -57,12 +57,14 @@
 
 ## IA e provider remoti
 
-- [ ] ⭐ **Concorrenti IA multipli** (Claude, Gemini, Grok, Qwen, …) — oggi c'è un solo
-  provider attivo globalmente; renderli **avversari selezionabili al setup della partita**
-  («gioca contro Claude», «gioca contro Gemini»), ognuno con la propria configurazione/token
-  nella pagina Provider IA. Da aggiungere ai provider: **Gemini** (Google) e **Grok** (xAI),
-  entrambi con endpoint OpenAI-compatible. In prospettiva: profilo, punteggi e **classifica
-  delle IA** (quale IA gioca meglio?), tornei IA-vs-IA tra provider diversi.
+- [x] ⭐ **Concorrenti IA multipli** (Claude, Gemini, Grok, Qwen, OpenAI) — avversari
+  **selezionabili al setup della partita** («IA — Claude», «IA — Gemini», … una voce per
+  provider, lati con concorrenti diversi possibili), ognuno con la propria
+  configurazione/token nella pagina Provider IA; aggiunti **Gemini** (Google) e **Grok**
+  (xAI), endpoint OpenAI-compatible. Colonne `x/o_ai_provider` (migrazione 0003).
+- [ ] **Classifica delle IA e tornei** — profilo e punteggi per concorrente IA (quale IA
+  gioca meglio?), tornei IA-vs-IA fra provider diversi; oggi i punteggi esistono solo per
+  i giocatori umani.
 - [ ] **Circuit breaker** sui provider remoti: dopo N errori consecutivi disattivazione
   temporanea automatica (oggi c'è solo il connect-timeout breve).
 - [ ] **Cifratura dei token provider** nel DB (oggi in chiaro, scaffold di sviluppo) o

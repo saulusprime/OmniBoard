@@ -86,6 +86,9 @@ def _view(session: models.GameSession) -> dict:
                 "alias": session.x_user.alias if session.x_user else None,
                 "level": session.x_ai_level,
                 "level_label": opponents.stockfish.preset_label(session.x_ai_level),
+                # Concorrente IA del lato («gioca contro …»); None = provider attivo.
+                "provider": session.x_ai_provider,
+                "provider_label": ai_providers.provider_label(session.x_ai_provider),
                 # Estetica scelta dal giocatore: tema scacchiera e segno del Tris.
                 "board_theme": x_prefs.get("board_theme") if session.x_user else None,
                 "mark": x_mark,
@@ -96,6 +99,8 @@ def _view(session: models.GameSession) -> dict:
                 "alias": session.o_user.alias if session.o_user else None,
                 "level": session.o_ai_level,
                 "level_label": opponents.stockfish.preset_label(session.o_ai_level),
+                "provider": session.o_ai_provider,
+                "provider_label": ai_providers.provider_label(session.o_ai_provider),
                 "board_theme": o_prefs.get("board_theme") if session.o_user else None,
                 "mark": o_mark,
             },
@@ -121,22 +126,29 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
     game = get_game(payload.game_code)
 
     def resolve(spec: schemas.PlayerSpec):
-        """(user_id, is_ai, ai_kind, level) per un lato: umano, IA via API o Stockfish."""
+        """(user_id, is_ai, ai_kind, level, provider) per un lato.
+
+        Umano, IA via API (con eventuale CONCORRENTE scelto: Claude/Gemini/Grok/…)
+        o Stockfish (con eventuale preset di livello).
+        """
         if spec.type == "stockfish":
             # Il livello è un preset noto ("zeus", "atena", …) o None (parametri globali).
             if spec.level and spec.level not in opponents.stockfish.PRESETS:
                 raise HTTPException(status_code=400, detail="Livello Stockfish sconosciuto")
-            return None, True, spec.type, spec.level
+            return None, True, spec.type, spec.level, None
         if spec.type == "ai":
-            return None, True, spec.type, None
+            # provider None = provider attivo globale (comportamento storico).
+            if spec.provider and not ai_providers.is_known(spec.provider):
+                raise HTTPException(status_code=400, detail="Provider IA sconosciuto")
+            return None, True, spec.type, None, spec.provider
         if not spec.user_id:
             raise HTTPException(status_code=400, detail="Manca l'utente per un giocatore umano")
         if not db.get(models.User, spec.user_id):
             raise HTTPException(status_code=404, detail="Utente non trovato")
-        return spec.user_id, False, None, None
+        return spec.user_id, False, None, None, None
 
-    x_uid, x_ai, x_kind, x_level = resolve(payload.x)
-    o_uid, o_ai, o_kind, o_level = resolve(payload.o)
+    x_uid, x_ai, x_kind, x_level, x_provider = resolve(payload.x)
+    o_uid, o_ai, o_kind, o_level, o_provider = resolve(payload.o)
 
     # Orologio di gioco (solo scacchi): valida categoria/minuti/incremento Fischer.
     try:
@@ -157,6 +169,8 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
         o_ai_kind=o_kind,
         x_ai_level=x_level,
         o_ai_level=o_level,
+        x_ai_provider=x_provider,
+        o_ai_provider=o_provider,
         remote=payload.remote,
         state_json=json.dumps(game.serialize_state(state)),
         moves_json="[]",

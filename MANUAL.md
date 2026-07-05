@@ -261,10 +261,16 @@ motore scacchi*, default 2 secondi): più tempo = gioco più forte. Per gli scac
 ### I tre tipi di avversario
 Al setup della partita ogni lato (X e O) può essere di **tre tipi**:
 
-- **Umano** — un giocatore registrato (si gioca a turni sullo stesso schermo).
-- **IA via API** — la mossa viene chiesta al **provider IA attivo** (Qwen, Claude, … —
-  configurato in *Provider IA*). Se nessun provider è attivo o la chiamata fallisce,
-  gioca il **giocatore locale** (per gli scacchi il motore interno).
+- **Umano** — un giocatore registrato (sullo stesso schermo, o a distanza — vedi Community).
+- **IA via API** — la mossa viene chiesta a un modello remoto. Puoi scegliere il
+  **concorrente specifico** («IA — Claude (Anthropic)», «IA — Gemini (Google)»,
+  «IA — Grok (xAI)», «IA — Qwen», «IA — OpenAI»: una voce per ogni provider del
+  catalogo, ognuno con la propria configurazione e il proprio token nella pagina
+  *Provider IA*), oppure la voce generica «IA via API (provider attivo)» che usa il
+  provider scelto globalmente dal super admin. I due lati possono avere **concorrenti
+  diversi** (es. Claude contro Gemini). Le voci senza token sono segnalate («token
+  mancante»): funzionano comunque, ma gioca il **giocatore locale** al posto del
+  modello remoto (stesso ripiego in caso di errore di rete).
 - **Stockfish (motore)** — il celebre motore open source con valutazione neurale (NNUE),
   se installato sul server (`brew install stockfish` / `apt install stockfish`). Si sceglie
   uno dei **sei livelli preconfigurati**, dal più forte al più debole:

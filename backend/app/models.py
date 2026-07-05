@@ -204,6 +204,11 @@ class GameSession(Base):
     # richiede il token di sessione (X-Auth-Token) del giocatore al tratto.
     # False = hotseat sullo stesso schermo (comportamento storico, nessun token).
     remote = Column(Boolean, nullable=False, default=False, server_default="0")
+    # Concorrenti IA multipli: per i lati di tipo "ai", il provider SCELTO alla
+    # creazione («gioca contro Claude/Gemini/Grok/…», codice del catalogo
+    # ai_providers). None = si usa il provider attivo globale (storico).
+    x_ai_provider = Column(String, nullable=True)
+    o_ai_provider = Column(String, nullable=True)
     x_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # None se IA
     o_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # None se IA
     x_is_ai = Column(Boolean, default=False, nullable=False)

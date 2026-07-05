@@ -102,9 +102,12 @@ class GameSetupForm(forms.Form):
     configurati o irraggiungibili.
     """
 
+    # Le voci "ai:<codice>" (un CONCORRENTE per provider: «gioca contro Claude»,
+    # «gioca contro Gemini», …) vengono aggiunte dinamicamente nell'__init__ dal
+    # catalogo del backend; "ai" da sola = provider attivo scelto dal super admin.
     PLAYER_TYPES = [
         ("human", "Umano"),
-        ("ai", "IA via API (Qwen, Claude, …)"),
+        ("ai", "IA via API (provider attivo)"),
         ("stockfish:zeus", "Stockfish — Zeus (Extreme)"),
         ("stockfish:atena", "Stockfish — Atena (Master)"),
         ("stockfish:apollo", "Stockfish — Apollo (Champion)"),
@@ -159,12 +162,25 @@ class GameSetupForm(forms.Form):
         required=False,
     )
 
-    def __init__(self, *args, users=None, games=None, **kwargs):
+    def __init__(self, *args, users=None, games=None, providers=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["game"].choices = [(g["code"], g["name"]) for g in (games or [])]
         choices = [("", "—")] + _user_choices(users)
         self.fields["x_user"].choices = choices
         self.fields["o_user"].choices = choices
+        # Concorrenti IA multipli: una voce per provider del catalogo, subito dopo
+        # "human" e "ai". Chi non ha il token è segnalato (giocherà il motore locale).
+        ai_choices = [
+            (
+                f"ai:{p['code']}",
+                f"IA — {p['label']}" + ("" if p.get("has_key") else " (token mancante)"),
+            )
+            for p in (providers or [])
+        ]
+        base = list(self.fields["x_type"].choices)
+        merged = base[:2] + ai_choices + base[2:]
+        self.fields["x_type"].choices = merged
+        self.fields["o_type"].choices = merged
 
     def clean(self):
         cleaned = super().clean()

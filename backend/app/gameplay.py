@@ -65,6 +65,11 @@ def side_level(session: models.GameSession, player: int) -> str | None:
     return session.x_ai_level if player == 0 else session.o_ai_level
 
 
+def side_provider(session: models.GameSession, player: int) -> str | None:
+    """Concorrente IA scelto per il lato ("gemini", "anthropic", …); None = attivo."""
+    return session.x_ai_provider if player == 0 else session.o_ai_provider
+
+
 def record_move(game, state_before, move, player: int, moves: list) -> None:
     moves.append(
         {
@@ -361,9 +366,21 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
     # HTTP senza che nessuno stia guardando.
     pace_s = (_watch_pace_ms(db) / 1000.0) if async_enabled(db) else 0.0
     last_move_at = time.monotonic()  # ≈ istante della mossa che ha svegliato il worker
-    # Configurazioni lette una volta per turno IA: provider API attivo e Stockfish
-    # (base globale: percorso binario + parametri del super admin).
-    provider = ai_providers.get_active_config(db)
+    # Configurazioni lette una volta per turno IA: Stockfish (base globale) e i
+    # provider API. Concorrenti IA multipli: ogni lato può avere il SUO provider
+    # («gioca contro Claude» vs «gioca contro Gemini»); la config viene risolta
+    # per lato e memoizzata (in IA-vs-IA si alternano due lati a ogni giro).
+    provider_cache: dict = {}
+
+    def provider_for(player: int):
+        code = side_provider(session, player)
+        key = code or ""  # "" = provider attivo globale (comportamento storico)
+        if key not in provider_cache:
+            provider_cache[key] = (
+                ai_providers.get_config(db, code) if code else ai_providers.get_active_config(db)
+            )
+        return provider_cache[key]
+
     stockfish_base = stockfish.get_config(db)
     think_ms = settings_service.get(db, "ai.engine_ms")
     if session.x_is_ai and session.o_is_ai:
@@ -405,7 +422,7 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
             state,
             history_ids(moves),
             kind=side_kind(session, player),
-            provider=provider,
+            provider=provider_for(player),
             # Il preset del livello (Zeus/Atena/…) si applica sopra la base globale,
             # per lato: in IA-vs-IA i due lati possono avere livelli diversi.
             stockfish_cfg=sf_cfg,

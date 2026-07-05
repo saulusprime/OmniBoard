@@ -305,12 +305,15 @@ def play_setup(request):
     users = _safe(request, api.list_users, default=[])
     all_games = _safe(request, api.list_games, default=[])
     games = [g for g in all_games if g.get("playable")]
+    # Concorrenti IA multipli: il catalogo provider popola le voci «IA — Claude»,
+    # «IA — Gemini», … del form (una per provider, oltre al provider attivo).
+    providers = _safe(request, api.get_ai_providers, default={"providers": []})["providers"]
     if request.method == "POST":
-        form = GameSetupForm(request.POST, users=users, games=games)
+        form = GameSetupForm(request.POST, users=users, games=games, providers=providers)
         if form.is_valid():
             game_code = form.cleaned_data["game"]
-            x_ai = form.cleaned_data["x_type"] == "ai"
-            o_ai = form.cleaned_data["o_type"] == "ai"
+            x_ai = form.cleaned_data["x_type"].startswith("ai")
+            o_ai = form.cleaned_data["o_type"].startswith("ai")
             count = form.cleaned_data.get("games_count") or 1
 
             # Entrambi di tipo "IA via API" + più partite → batch di simulazione con
@@ -325,13 +328,17 @@ def play_setup(request):
             else:
 
                 def spec(side):
-                    # Valori del form: "human" | "ai" | "stockfish:<livello>"; per
-                    # Stockfish si scinde in type + level (preset Zeus/Atena/…).
+                    # Valori del form: "human" | "ai" | "ai:<provider>" |
+                    # "stockfish:<livello>". Per Stockfish si scinde in type + level
+                    # (preset Zeus/Atena/…); per l'IA il suffisso è il CONCORRENTE
+                    # scelto («gioca contro Claude/Gemini/…», nessuno = attivo).
                     kind = form.cleaned_data[f"{side}_type"]
                     if kind == "human":
                         return {"type": "human", "user_id": int(form.cleaned_data[f"{side}_user"])}
                     if kind.startswith("stockfish:"):
                         return {"type": "stockfish", "level": kind.split(":", 1)[1]}
+                    if kind.startswith("ai:"):
+                        return {"type": "ai", "provider": kind.split(":", 1)[1]}
                     return {"type": kind}
 
                 data = {"game_code": game_code, "x": spec("x"), "o": spec("o")}
@@ -362,7 +369,7 @@ def play_setup(request):
                 initial.update(x_type="human", x_user=str(me["id"]))
         if request.GET.get("game"):
             initial["game"] = request.GET["game"]
-        form = GameSetupForm(users=users, games=games, initial=initial)
+        form = GameSetupForm(users=users, games=games, providers=providers, initial=initial)
     return render(request, "web/play_setup.html", {"form": form})
 
 

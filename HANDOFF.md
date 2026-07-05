@@ -5,6 +5,47 @@
 
 ---
 
+## 2026-07-05 — Concorrenti IA multipli (un provider per lato) + Gemini e Grok
+
+**Richiesta (utente):** «Concorrenti IA multipli» (voce ⭐ del TODO): avversari IA
+selezionabili al setup («gioca contro Claude», «gioca contro Gemini», …), ognuno con la
+propria configurazione nella pagina Provider IA; catalogo esteso con Gemini e Grok.
+
+**Backend:**
+
+- Catalogo (`ai_providers.py`): aggiunti **Gemini** (Google, endpoint OpenAI-compatible
+  `…/v1beta/openai`, modello `gemini-2.5-flash`) e **Grok** (xAI, `https://api.x.ai/v1`,
+  `grok-4`); la pagina Provider IA li mostra da sola (template dinamico). Nuovi helper:
+  `is_known`, `provider_label`, **`get_config(db, code)`** (config con token di un
+  provider SPECIFICO; `get_active_config` ora è un caso particolare).
+- **Migrazione 0003**: colonne `game_sessions.x_ai_provider` / `o_ai_provider` —
+  il concorrente scelto per il lato; None = provider attivo globale (storico).
+- `PlayerSpec.provider` (validato: 400 «Provider IA sconosciuto»); `_view` espone
+  per lato `provider` + `provider_label`.
+- `gameplay.advance_ai`: provider risolto **per lato** con memoizzazione
+  (`provider_for(player)`) — in IA-vs-IA i due lati possono usare modelli diversi
+  (es. Claude contro Gemini). Ripiego sul giocatore locale invariato (token assente,
+  errore di rete): la partita non si blocca mai.
+
+**Frontend:**
+
+- Setup partita: le voci **«IA — Claude (Anthropic)» / «IA — Gemini (Google)» /
+  «IA — Grok (xAI)» / Qwen / OpenAI** vengono generate dal catalogo (una per provider,
+  «(token mancante)» se non configurato) accanto a «IA via API (provider attivo)» e ai
+  preset Stockfish; il form invia `{"type":"ai","provider":<codice>}`.
+- Intestazione di partita: per i lati IA compare il concorrente («IA — Grok (xAI)»).
+
+**Test (+4, 140 verdi):** catalogo con Gemini/Grok (senza mai esporre `api_key`),
+sessione con concorrenti diversi per lato (etichette in vista, ripiego locale senza
+token), 400 su provider sconosciuto, `provider=None` = comportamento storico.
+**Dal vivo:** migrazione 0003 auto-applicata al reload; sessione Claude-vs-Grok creata
+via API con etichette corrette; voci presenti nella pagina `/gioca/`.
+
+**Prospettiva (nuova voce TODO):** profilo/punteggi per concorrente e classifica delle
+IA, tornei IA-vs-IA fra provider.
+
+---
+
 ## 2026-07-05 — Gioco a distanza fra client diversi + Community (presenza e badge)
 
 **Richiesta (utente):** partite in tempo reale fra giocatori su client differenti, con

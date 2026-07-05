@@ -172,6 +172,10 @@ class PlayerSpec(BaseModel):
     # Solo per type="stockfish": livello preconfigurato (chiave di stockfish.PRESETS,
     # es. "zeus"/"atena"/…); None = parametri globali. Validato alla creazione sessione.
     level: Optional[str] = None
+    # Solo per type="ai": CONCORRENTE scelto per questo lato («gioca contro Claude»,
+    # «gioca contro Gemini», codice del catalogo ai_providers). None = provider
+    # attivo globale. Validato alla creazione sessione.
+    provider: Optional[str] = None
 
     @field_validator("type")
     @classmethod

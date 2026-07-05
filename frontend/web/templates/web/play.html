@@ -92,10 +92,10 @@
   <h1>{{ s.game_name }}</h1>
   <p class="muted">
     <strong>X</strong>: {{ s.players.x.alias|default:"IA" }}
-    ({% if s.players.x.type == 'stockfish' %}Stockfish{% if s.players.x.level_label %} — {{ s.players.x.level_label }}{% endif %}{% elif s.players.x.type == 'ai' %}IA via API{% else %}umano{% endif %})
+    ({% if s.players.x.type == 'stockfish' %}Stockfish{% if s.players.x.level_label %} — {{ s.players.x.level_label }}{% endif %}{% elif s.players.x.type == 'ai' %}IA{% if s.players.x.provider_label %} — {{ s.players.x.provider_label }}{% else %} via API{% endif %}{% else %}umano{% endif %})
     &nbsp;·&nbsp;
     <strong>O</strong>: {{ s.players.o.alias|default:"IA" }}
-    ({% if s.players.o.type == 'stockfish' %}Stockfish{% if s.players.o.level_label %} — {{ s.players.o.level_label }}{% endif %}{% elif s.players.o.type == 'ai' %}IA via API{% else %}umano{% endif %})
+    ({% if s.players.o.type == 'stockfish' %}Stockfish{% if s.players.o.level_label %} — {{ s.players.o.level_label }}{% endif %}{% elif s.players.o.type == 'ai' %}IA{% if s.players.o.provider_label %} — {{ s.players.o.provider_label }}{% else %} via API{% endif %}{% else %}umano{% endif %})
   </p>
 
   <div class="play">

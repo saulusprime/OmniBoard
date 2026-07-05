@@ -38,6 +38,22 @@ PROVIDER_DEFS = [
         "base_url": "https://api.openai.com/v1",
         "model": "gpt-4o-mini",
     },
+    {
+        # Endpoint OpenAI-compatible di Google (AI Studio): /v1beta/openai + /chat/completions.
+        "code": "gemini",
+        "label": "Gemini (Google)",
+        "kind": "openai",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+        "model": "gemini-2.5-flash",
+    },
+    {
+        # xAI espone un endpoint nativamente OpenAI-compatible.
+        "code": "grok",
+        "label": "Grok (xAI)",
+        "kind": "openai",
+        "base_url": "https://api.x.ai/v1",
+        "model": "grok-4",
+    },
 ]
 
 _VALID = {d["code"] for d in PROVIDER_DEFS}
@@ -108,9 +124,23 @@ def list_providers(db: Session) -> list[dict]:
     return result
 
 
-def get_active_config(db: Session) -> dict | None:
-    """Configurazione del provider attivo (con token) o None se assente/senza token."""
-    code = settings_service.get(db, "ai.provider")
+def is_known(code: str) -> bool:
+    """True se il codice è nel catalogo dei provider (validazione al setup partita)."""
+    return code in _VALID
+
+
+def provider_label(code: str | None) -> str | None:
+    """Etichetta leggibile di un provider («Gemini (Google)») per le viste."""
+    return next((d["label"] for d in PROVIDER_DEFS if d["code"] == code), None)
+
+
+def get_config(db: Session, code: str | None) -> dict | None:
+    """Configurazione (con token) di un provider SPECIFICO; None se assente/senza token.
+
+    È il cuore dei concorrenti IA multipli: ogni lato di una partita può indicare
+    il proprio provider («gioca contro Claude», «gioca contro Gemini»), che viene
+    risolto qui invece che dal solo provider attivo globale.
+    """
     if not code:
         return None
     row = db.get(models.AiProvider, code)
@@ -123,6 +153,11 @@ def get_active_config(db: Session) -> dict | None:
         "model": row.model or "",
         "api_key": row.api_key,
     }
+
+
+def get_active_config(db: Session) -> dict | None:
+    """Configurazione del provider attivo (con token) o None se assente/senza token."""
+    return get_config(db, settings_service.get(db, "ai.provider"))
 
 
 def update_providers(db: Session, active, providers: dict) -> None:
