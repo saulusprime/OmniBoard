@@ -12,11 +12,18 @@ Forza regolabile dal super admin:
   (Stockfish accetta circa 1320-3190) — il modo più fedele di simulare un umano;
 - ``stockfish.move_ms``: tempo di riflessione per mossa (``go movetime``).
 
-Implementazione volutamente **one-shot**: per ogni mossa si avvia un processo, si
-inviano tutti i comandi UCI in un colpo solo (chiusi da ``quit``) e si legge l'output
-fino a ``bestmove``. Costa ~100ms di avvio a mossa ma è senza stato e thread-safe
-(le mosse IA girano su worker in thread separati); un processo persistente con lock è
-un'ottimizzazione futura annotata in TODO.md.
+Implementazione: per ogni mossa si avvia un processo dedicato (senza stato e
+thread-safe: le mosse IA girano su worker in thread separati), si inviano i comandi
+UCI e si **attende** la riga ``bestmove`` prima di chiudere con ``quit``.
+
+⚠️ Attenzione a non accodare ``quit`` insieme a ``go``: Stockfish legge stdin anche
+durante la ricerca e un ``quit`` ricevuto mentre pensa la **interrompe subito**
+(bestmove a profondità ~1 → gioco debolissimo qualunque sia il movetime). È stato un
+bug reale di questa integrazione. Un watchdog uccide il processo se non risponde.
+
+I **livelli preconfigurati** (``PRESETS``) mappano nomi di divinità greche su
+combinazioni di Elo simulato e tempo per mossa, selezionabili al setup della partita;
+il percorso del binario resta quello globale (``stockfish.path``/env/PATH).
 """
 
 from __future__ import annotations
@@ -24,12 +31,46 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import threading
 
 from .. import settings_service
 
 # Margine (secondi) oltre il movetime prima di uccidere il processo: copre avvio,
 # caricamento della rete NNUE e latenza di I/O.
 _STARTUP_GRACE = 8.0
+
+# Livelli preconfigurati dell'avversario Stockfish, dal più forte al più debole.
+# elo=0 → nessun limite (piena forza NNUE); altrimenti UCI_LimitStrength + UCI_Elo
+# (range accettato ~1320-3190): è il modo più fedele di simulare un giocatore umano.
+PRESETS: dict[str, dict] = {
+    "zeus": {"label": "Zeus (Extreme)", "elo": 0, "skill_level": 20, "move_ms": 4000},
+    "atena": {"label": "Atena (Master)", "elo": 2700, "skill_level": 20, "move_ms": 2500},
+    "apollo": {"label": "Apollo (Champion)", "elo": 2350, "skill_level": 20, "move_ms": 1800},
+    "ares": {"label": "Ares (Expert)", "elo": 2000, "skill_level": 20, "move_ms": 1200},
+    "hermes": {"label": "Hermes (Middle)", "elo": 1700, "skill_level": 20, "move_ms": 800},
+    "pan": {"label": "Pan (Learner)", "elo": 1400, "skill_level": 20, "move_ms": 500},
+}
+
+
+def preset_label(level: str | None) -> str | None:
+    """Etichetta leggibile del livello (es. «Zeus (Extreme)»); None se sconosciuto."""
+    preset = PRESETS.get(level or "")
+    return preset["label"] if preset else None
+
+
+def config_for_level(base_cfg: dict, level: str | None) -> dict:
+    """Configurazione effettiva per una partita: preset del livello sopra la base.
+
+    ``base_cfg`` è la configurazione globale (percorso binario + valori del super
+    admin); se ``level`` è un preset noto, Elo/skill/movetime vengono sovrascritti.
+    Senza livello (o livello ignoto) valgono i parametri globali.
+    """
+    preset = PRESETS.get(level or "")
+    if not preset:
+        return base_cfg
+    merged = dict(base_cfg)
+    merged.update({k: preset[k] for k in ("elo", "skill_level", "move_ms")})
+    return merged
 
 
 def get_config(db) -> dict:
@@ -80,11 +121,72 @@ def best_move(game, state, history, cfg):
     return None
 
 
+def _uci_dialogue(path: str, commands: list[str], timeout_s: float):
+    """Esegue un dialogo UCI e ritorna le righe di output **fino a** ``bestmove``.
+
+    I comandi (che devono terminare con un ``go …``) vengono inviati subito; poi si
+    LEGGE l'output riga per riga finché arriva ``bestmove`` — solo a quel punto si
+    manda ``quit``. Inviare ``quit`` insieme a ``go`` interromperebbe la ricerca
+    (vedi nota nel docstring del modulo). Un watchdog uccide il processo se non
+    risponde entro ``timeout_s``. Ritorna ``None`` in caso di errore.
+    """
+    try:
+        proc = subprocess.Popen(
+            [path],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+    except OSError:
+        return None  # binario mancante o non eseguibile
+
+    watchdog = threading.Timer(timeout_s, proc.kill)
+    watchdog.start()
+    lines: list[str] = []
+    try:
+        proc.stdin.write("\n".join(commands) + "\n")
+        proc.stdin.flush()
+        for line in proc.stdout:  # se il watchdog uccide il processo, il flusso termina
+            lines.append(line.rstrip())
+            if line.startswith("bestmove"):
+                break
+        else:
+            return None  # output finito senza bestmove (processo ucciso o non-UCI)
+    except (OSError, ValueError):
+        return None
+    finally:
+        watchdog.cancel()
+        try:
+            proc.stdin.write("quit\n")
+            proc.stdin.flush()
+        except (OSError, ValueError):
+            pass  # il processo può essere già uscito (es. finto motore nei test)
+        try:
+            proc.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+    return lines
+
+
+def _strength_commands(cfg: dict) -> list[str]:
+    """Comandi ``setoption`` per la forza richiesta (Skill Level / Elo simulato)."""
+    commands = []
+    skill = int(cfg.get("skill_level", 20))
+    if 0 <= skill < 20:  # 20 è il default del motore: si imposta solo se ridotto
+        commands.append(f"setoption name Skill Level value {skill}")
+    elo = int(cfg.get("elo") or 0)
+    if elo > 0:
+        commands.append("setoption name UCI_LimitStrength value true")
+        commands.append(f"setoption name UCI_Elo value {max(1320, min(3190, elo))}")
+    return commands
+
+
 def verify(cfg: dict):
     """Diagnostica per il super admin: il binario risponde al protocollo UCI?
 
     Ritorna ``(ok, dettaglio)``: in caso di successo il dettaglio riporta il nome che
-    il motore dichiara (es. «Stockfish 17») e la mossa proposta dalla posizione
+    il motore dichiara (es. «Stockfish 18») e la mossa proposta dalla posizione
     iniziale; altrimenti il motivo del fallimento. Nessuna eccezione esce da qui.
     """
     path = (cfg or {}).get("path") or ""
@@ -95,20 +197,15 @@ def verify(cfg: dict):
         )
     if not is_available(cfg):
         return False, f"Binario non trovato o non eseguibile: {path}"
-    try:
-        result = subprocess.run(
-            [path],
-            input="uci\nucinewgame\nposition startpos\ngo movetime 100\nquit\n",
-            capture_output=True,
-            text=True,
-            timeout=15,
-        )
-    except (OSError, subprocess.SubprocessError) as exc:
-        return False, f"Esecuzione fallita: {exc}"
+
+    commands = ["uci", "ucinewgame", "position startpos", "go movetime 500"]
+    lines = _uci_dialogue(path, commands, timeout_s=15)
+    if lines is None:
+        return False, "Esecuzione fallita o binario che non risponde"
 
     name = None
     bestmove = None
-    for line in result.stdout.splitlines():
+    for line in lines:
         if line.startswith("id name "):
             name = line[len("id name ") :].strip()
         elif line.startswith("bestmove"):
@@ -120,31 +217,13 @@ def verify(cfg: dict):
 
 
 def _ask_bestmove(cfg: dict, position: str) -> str | None:
-    """Dialogo UCI one-shot: opzioni → posizione → ``go movetime`` → ``bestmove``."""
+    """Mossa per la posizione data: opzioni di forza → posizione → ``go movetime``."""
     move_ms = max(50, int(cfg.get("move_ms") or 1000))
-    commands = ["uci"]
-    skill = int(cfg.get("skill_level", 20))
-    if 0 <= skill < 20:  # 20 è il default del motore: si imposta solo se ridotto
-        commands.append(f"setoption name Skill Level value {skill}")
-    elo = int(cfg.get("elo") or 0)
-    if elo > 0:
-        commands.append("setoption name UCI_LimitStrength value true")
-        commands.append(f"setoption name UCI_Elo value {max(1320, min(3190, elo))}")
-    commands += ["ucinewgame", position, f"go movetime {move_ms}", "quit"]
-
-    try:
-        result = subprocess.run(
-            [cfg["path"]],
-            input="\n".join(commands) + "\n",
-            capture_output=True,
-            text=True,
-            timeout=move_ms / 1000.0 + _STARTUP_GRACE,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return None  # binario mancante/non eseguibile/appeso: si ripiega sul locale
-
-    # L'ultima riga utile è "bestmove <uci> [ponder ...]".
-    for line in reversed(result.stdout.splitlines()):
+    commands = ["uci", *_strength_commands(cfg), "ucinewgame", position, f"go movetime {move_ms}"]
+    lines = _uci_dialogue(cfg["path"], commands, timeout_s=move_ms / 1000.0 + _STARTUP_GRACE)
+    if not lines:
+        return None
+    for line in reversed(lines):
         if line.startswith("bestmove"):
             parts = line.split()
             if len(parts) >= 2 and parts[1] not in ("(none)", "0000"):

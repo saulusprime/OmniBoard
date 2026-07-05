@@ -56,15 +56,22 @@ class VoteForm(forms.Form):
 class GameSetupForm(forms.Form):
     """Configurazione di una partita: gioco scelto e tipo di ogni lato.
 
-    Tre tipi di giocatore: umano, IA via API (il provider attivo: Qwen/Claude/…)
-    e Stockfish (motore configurabile dal super admin). I tipi non umani ripiegano
-    sul giocatore locale se non configurati/raggiungibili.
+    Tre tipi di giocatore: umano, IA via API (il provider attivo: Qwen/Claude/…) e
+    Stockfish in **sei livelli preconfigurati** con nomi di divinità greche, dal più
+    forte al più debole (il valore "stockfish:<livello>" viene scisso dalla vista in
+    type + level per l'API). I tipi non umani ripiegano sul giocatore locale se non
+    configurati o irraggiungibili.
     """
 
     PLAYER_TYPES = [
         ("human", "Umano"),
         ("ai", "IA via API (Qwen, Claude, …)"),
-        ("stockfish", "Stockfish (motore)"),
+        ("stockfish:zeus", "Stockfish — Zeus (Extreme)"),
+        ("stockfish:atena", "Stockfish — Atena (Master)"),
+        ("stockfish:apollo", "Stockfish — Apollo (Champion)"),
+        ("stockfish:ares", "Stockfish — Ares (Expert)"),
+        ("stockfish:hermes", "Stockfish — Hermes (Middle)"),
+        ("stockfish:pan", "Stockfish — Pan (Learner)"),
     ]
 
     game = forms.ChoiceField(label="Gioco")

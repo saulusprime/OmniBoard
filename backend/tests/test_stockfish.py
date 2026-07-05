@@ -80,6 +80,58 @@ def test_session_with_stockfish_side_plays_via_fallback():
         assert after["current"] == "x"
 
 
+def test_presets_are_complete_and_sane():
+    """I sei livelli con nomi di divinità greche, dal più forte al più debole."""
+    assert list(stockfish.PRESETS) == ["zeus", "atena", "apollo", "ares", "hermes", "pan"]
+    expected = ["Extreme", "Master", "Champion", "Expert", "Middle", "Learner"]
+    for (key, preset), difficulty in zip(stockfish.PRESETS.items(), expected):
+        assert f"({difficulty})" in preset["label"], key
+        assert preset["elo"] == 0 or 1320 <= preset["elo"] <= 3190
+        assert preset["move_ms"] >= 100
+    # Zeus è piena forza; i livelli Elo decrescono strettamente.
+    assert stockfish.PRESETS["zeus"]["elo"] == 0
+    elos = [p["elo"] for k, p in stockfish.PRESETS.items() if k != "zeus"]
+    assert elos == sorted(elos, reverse=True)
+
+
+def test_config_for_level_merges_preset_over_base():
+    base = _cfg(path="/usr/local/bin/stockfish", move_ms=999, elo=0, skill_level=20)
+    pan = stockfish.config_for_level(base, "pan")
+    assert pan["path"] == base["path"]  # il percorso resta quello globale
+    assert pan["elo"] == 1400 and pan["move_ms"] == 500
+    # Livello assente o sconosciuto → configurazione globale invariata.
+    assert stockfish.config_for_level(base, None) == base
+    assert stockfish.config_for_level(base, "boh") == base
+
+
+def test_session_with_stockfish_level_exposed_and_validated():
+    with TestClient(app) as client:
+        user = client.post(
+            "/users",
+            json={"first_name": "L", "last_name": "V", "alias": "lvl", "email": "lvl@e.it"},
+        ).json()
+        session = client.post(
+            "/sessions",
+            json={
+                "game_code": "chess",
+                "x": {"type": "human", "user_id": user["id"]},
+                "o": {"type": "stockfish", "level": "pan"},
+            },
+        ).json()
+        assert session["players"]["o"]["level"] == "pan"
+        assert session["players"]["o"]["level_label"] == "Pan (Learner)"
+        # Livello sconosciuto → 400.
+        bad = client.post(
+            "/sessions",
+            json={
+                "game_code": "chess",
+                "x": {"type": "human", "user_id": user["id"]},
+                "o": {"type": "stockfish", "level": "kraken"},
+            },
+        )
+        assert bad.status_code == 400
+
+
 def test_verify_reports_missing_binary():
     ok, detail = stockfish.verify(_cfg(path=""))
     assert ok is False and "Nessun binario" in detail

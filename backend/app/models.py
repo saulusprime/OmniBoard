@@ -167,6 +167,10 @@ class GameSession(Base):
     o_is_ai = Column(Boolean, default=False, nullable=False)
     x_ai_kind = Column(String(16), nullable=True)  # "ai" | "stockfish" (None se umano)
     o_ai_kind = Column(String(16), nullable=True)
+    # Livello preconfigurato per il lato Stockfish (chiave di stockfish.PRESETS, es.
+    # "zeus"); None = parametri globali del super admin.
+    x_ai_level = Column(String(16), nullable=True)
+    o_ai_level = Column(String(16), nullable=True)
     state_json = Column(String, nullable=False)  # stato serializzato dal motore
     moves_json = Column(String, default="[]", nullable=False)  # log delle mosse
     status = Column(String, default="in_progress", nullable=False)  # in_progress | finished

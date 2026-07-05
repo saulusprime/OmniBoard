@@ -5,6 +5,42 @@
 
 ---
 
+## 2026-07-05 — Fix forza Stockfish (bug del "quit") + sei livelli con divinità greche
+
+**Sintomo (utente):** l'avversario Stockfish «continua ad essere debole».
+
+**Causa trovata (bug reale):** il dialogo UCI one-shot accodava ``quit`` subito dopo
+``go movetime``; Stockfish legge stdin **anche durante la ricerca** e un ``quit`` ricevuto
+mentre pensa la **interrompe immediatamente** → bestmove a profondità ~1, qualunque fosse
+il movetime. L'indizio c'era già: «mossa di prova: a2a3» dalla posizione iniziale — un vero
+Stockfish non gioca a2a3.
+
+**Fix (`opponents/stockfish.py`):** nuovo `_uci_dialogue` interattivo — invia i comandi,
+**legge l'output fino a `bestmove`** e solo allora manda `quit`; watchdog (`threading.Timer`
+→ kill) se il motore non risponde. Condiviso da `_ask_bestmove` e `verify`. Dopo il fix:
+posizione iniziale @500ms → **e2e4** (prima a2a3).
+
+**Sei livelli preconfigurati** (`stockfish.PRESETS`, nomi di divinità greche, dal più forte
+al più debole): **Zeus (Extreme)** piena forza/4s, **Atena (Master)** Elo 2700/2.5s,
+**Apollo (Champion)** 2350/1.8s, **Ares (Expert)** 2000/1.2s, **Hermes (Middle)** 1700/0.8s,
+**Pan (Learner)** 1400/0.5s. L'Elo usa `UCI_LimitStrength`+`UCI_Elo`; il percorso del
+binario resta globale; `config_for_level` applica il preset sopra la base (per lato: in
+IA-vs-IA i due lati possono avere livelli diversi).
+
+**Cablaggio:** `PlayerSpec.level` (validato: preset noto o 400), colonne
+`game_sessions.x/o_ai_level`, vista con `level`/`level_label`, form di setup con le sei
+voci «Stockfish — Zeus (Extreme)» … «Pan (Learner)» (valore `stockfish:<livello>` scisso
+dalla vista), etichetta del livello nella pagina di gioco.
+**⚠️ Cambio schema senza migrazioni** (di nuovo): ricreare `backend/scacchi.db`.
+
+**Test (+3, 101 verdi):** preset completi e sensati (etichette con le sei difficoltà, Elo
+in range e strettamente decrescenti), merge preset/base, livello esposto dalla vista e
+livello sconosciuto → 400. **Verifiche dal vivo (vero Stockfish 18):** Zeus risponde in
+~5s, Pan in ~1.5s, entrambi con `last_ai.source="stockfish"`; `verify` ora riporta
+«mossa di prova: e2e4».
+
+---
+
 ## 2026-07-05 — Verifica di Stockfish dall'interfaccia (+ conferma col vero Stockfish 18)
 
 **Domanda dell'utente:** come essere sicuri che Stockfish sia installato correttamente e

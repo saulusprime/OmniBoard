@@ -139,6 +139,9 @@ class PlayerSpec(BaseModel):
     # "stockfish" (motore Stockfish configurabile). Vedi backend/app/opponents/.
     type: str
     user_id: Optional[int] = None
+    # Solo per type="stockfish": livello preconfigurato (chiave di stockfish.PRESETS,
+    # es. "zeus"/"atena"/…); None = parametri globali. Validato alla creazione sessione.
+    level: Optional[str] = None
 
     @field_validator("type")
     @classmethod

@@ -355,6 +355,11 @@ mossa ma con stato condiviso tra thread; annotato in TODO.md come ottimizzazione
   (path, Skill Level, Elo, movetime) / **IA via API**, con pacchetto `opponents/` (un modulo per
   tipo + ripiego locale garantito) e ponte UCI testato con un finto binario. 94 test verdi
   (+1 skip col vero Stockfish). ⚠️ nuove colonne `x/o_ai_kind` → ricreare il DB di sviluppo.
+- **2026-07-05** — **Fix forza Stockfish**: il `quit` accodato dopo `go` interrompeva la ricerca
+  (bestmove a profondità ~1 → gioco debole); ora il dialogo UCI attende `bestmove` con watchdog.
+  **Sei livelli** con divinità greche: Zeus (Extreme, piena forza/4s) → Atena 2700 → Apollo 2350
+  → Ares 2000 → Hermes 1700 → Pan (Learner, 1400/0.5s), selezionabili al setup per lato.
+  101 test verdi. ⚠️ nuove colonne `x/o_ai_level` → ricreare il DB di sviluppo.
 
 ## Questioni aperte
 

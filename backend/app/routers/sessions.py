@@ -60,15 +60,20 @@ def _view(session: models.GameSession) -> dict:
         "moves": moves,
         "players": {
             # type ∈ {"human", "ai" (IA via API), "stockfish"} — vedi gameplay.side_kind.
+            # level/level_label: preset Stockfish (es. "zeus" / «Zeus (Extreme)»).
             "x": {
                 "type": gameplay.side_kind(session, 0),
                 "user_id": session.x_user_id,
                 "alias": session.x_user.alias if session.x_user else None,
+                "level": session.x_ai_level,
+                "level_label": opponents.stockfish.preset_label(session.x_ai_level),
             },
             "o": {
                 "type": gameplay.side_kind(session, 1),
                 "user_id": session.o_user_id,
                 "alias": session.o_user.alias if session.o_user else None,
+                "level": session.o_ai_level,
+                "level_label": opponents.stockfish.preset_label(session.o_ai_level),
             },
         },
         # Ultima mossa IA: "source" dice chi ha giocato davvero (book / stockfish /
@@ -92,17 +97,22 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
     game = get_game(payload.game_code)
 
     def resolve(spec: schemas.PlayerSpec):
-        """(user_id, is_ai, ai_kind) per un lato: umano, IA via API o Stockfish."""
-        if spec.type in ("ai", "stockfish"):
-            return None, True, spec.type
+        """(user_id, is_ai, ai_kind, level) per un lato: umano, IA via API o Stockfish."""
+        if spec.type == "stockfish":
+            # Il livello è un preset noto ("zeus", "atena", …) o None (parametri globali).
+            if spec.level and spec.level not in opponents.stockfish.PRESETS:
+                raise HTTPException(status_code=400, detail="Livello Stockfish sconosciuto")
+            return None, True, spec.type, spec.level
+        if spec.type == "ai":
+            return None, True, spec.type, None
         if not spec.user_id:
             raise HTTPException(status_code=400, detail="Manca l'utente per un giocatore umano")
         if not db.get(models.User, spec.user_id):
             raise HTTPException(status_code=404, detail="Utente non trovato")
-        return spec.user_id, False, None
+        return spec.user_id, False, None, None
 
-    x_uid, x_ai, x_kind = resolve(payload.x)
-    o_uid, o_ai, o_kind = resolve(payload.o)
+    x_uid, x_ai, x_kind, x_level = resolve(payload.x)
+    o_uid, o_ai, o_kind, o_level = resolve(payload.o)
 
     state = game.initial_state()
     session = models.GameSession(
@@ -113,6 +123,8 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
         o_is_ai=o_ai,
         x_ai_kind=x_kind,
         o_ai_kind=o_kind,
+        x_ai_level=x_level,
+        o_ai_level=o_level,
         state_json=json.dumps(game.serialize_state(state)),
         moves_json="[]",
         status="in_progress",

@@ -167,11 +167,23 @@ Al setup della partita ogni lato (X e O) può essere di **tre tipi**:
   configurato in *Provider IA*). Se nessun provider è attivo o la chiamata fallisce,
   gioca il **giocatore locale** (per gli scacchi il motore interno).
 - **Stockfish (motore)** — il celebre motore open source con valutazione neurale (NNUE),
-  se installato sul server (`brew install stockfish` / `apt install stockfish`). Percorso e
-  forza si regolano dal super admin (categoria *Stockfish*): *Skill Level* 0–20, **Elo
-  simulato** (1320–3190, il modo più realistico di giocare contro un "umano" di quella
-  forza) e tempo di riflessione per mossa. Se il binario non c'è, ripiega sul motore
-  interno.
+  se installato sul server (`brew install stockfish` / `apt install stockfish`). Si sceglie
+  uno dei **sei livelli preconfigurati**, dal più forte al più debole:
+
+  | Livello | Difficoltà | Elo simulato | Tempo/mossa |
+  |---|---|---|---|
+  | **Zeus** | Extreme | piena forza | 4 s |
+  | **Atena** | Master | 2700 | 2,5 s |
+  | **Apollo** | Champion | 2350 | 1,8 s |
+  | **Ares** | Expert | 2000 | 1,2 s |
+  | **Hermes** | Middle | 1700 | 0,8 s |
+  | **Pan** | Learner | 1400 | 0,5 s |
+
+  L'Elo simulato usa `UCI_LimitStrength` di Stockfish: il modo più realistico di giocare
+  contro un "umano" di quella forza. Il percorso del binario resta quello globale del
+  super admin (categoria *Stockfish*), dove esistono anche i parametri manuali usati
+  quando una sessione non specifica il livello. Se il binario non c'è, ripiega sul
+  motore interno.
 
 In partita, sotto il nome dei giocatori è indicato il tipo di ciascun lato; la partita non
 si blocca mai: qualunque problema dell'avversario scelto fa subentrare il giocatore locale.

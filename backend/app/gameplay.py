@@ -57,6 +57,11 @@ def side_kind(session: models.GameSession, player: int) -> str:
     return (session.o_ai_kind or "ai") if session.o_is_ai else "human"
 
 
+def side_level(session: models.GameSession, player: int) -> str | None:
+    """Livello preconfigurato del lato Stockfish (chiave di ``stockfish.PRESETS``)."""
+    return session.x_ai_level if player == 0 else session.o_ai_level
+
+
 def record_move(game, state_before, move, player: int, moves: list) -> None:
     moves.append(
         {
@@ -109,9 +114,10 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
     """
     state = load_state(game, session)
     moves = json.loads(session.moves_json or "[]")
-    # Configurazioni lette una volta per turno IA: provider API attivo e Stockfish.
+    # Configurazioni lette una volta per turno IA: provider API attivo e Stockfish
+    # (base globale: percorso binario + parametri del super admin).
     provider = ai_providers.get_active_config(db)
-    stockfish_cfg = stockfish.get_config(db)
+    stockfish_base = stockfish.get_config(db)
     think_ms = settings_service.get(db, "ai.engine_ms")
     if session.x_is_ai and session.o_is_ai:
         # IA-vs-IA: tante mosse consecutive; un budget ridotto tiene la partita fluida.
@@ -127,7 +133,9 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
             history_ids(moves),
             kind=side_kind(session, player),
             provider=provider,
-            stockfish_cfg=stockfish_cfg,
+            # Il preset del livello (Zeus/Atena/…) si applica sopra la base globale,
+            # per lato: in IA-vs-IA i due lati possono avere livelli diversi.
+            stockfish_cfg=stockfish.config_for_level(stockfish_base, side_level(session, player)),
             think_ms=think_ms,
             jitter=15,
             style=style,

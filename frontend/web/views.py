@@ -193,10 +193,13 @@ def play_setup(request):
             else:
 
                 def spec(side):
-                    # Il tipo del form coincide con quello dell'API: human | ai | stockfish.
+                    # Valori del form: "human" | "ai" | "stockfish:<livello>"; per
+                    # Stockfish si scinde in type + level (preset Zeus/Atena/…).
                     kind = form.cleaned_data[f"{side}_type"]
                     if kind == "human":
                         return {"type": "human", "user_id": int(form.cleaned_data[f"{side}_user"])}
+                    if kind.startswith("stockfish:"):
+                        return {"type": "stockfish", "level": kind.split(":", 1)[1]}
                     return {"type": kind}
 
                 data = {"game_code": game_code, "x": spec("x"), "o": spec("o")}
