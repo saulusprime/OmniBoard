@@ -19,15 +19,31 @@ def _game_choices(games):
 
 
 class UserForm(forms.Form):
+    """Richiesta di registrazione di un nuovo giocatore.
+
+    La password è OBBLIGATORIA (serve per il login una volta approvati) e viaggia
+    verso il backend che la salva solo come hash; qui non viene mai conservata.
+    """
+
     first_name = forms.CharField(label="Nome", max_length=80)
     last_name = forms.CharField(label="Cognome", max_length=80)
     alias = forms.CharField(label="Alias", max_length=50)
     email = forms.EmailField(label="Email")
     nationality = forms.CharField(label="Nazionalità", max_length=60, required=False)
     region = forms.CharField(label="Regione", max_length=60, required=False)
-    password = forms.CharField(
-        label="Password (opzionale)", widget=forms.PasswordInput, required=False
-    )
+    password = forms.CharField(label="Password", widget=forms.PasswordInput, min_length=8)
+    password_confirm = forms.CharField(label="Conferma password", widget=forms.PasswordInput)
+
+    def clean(self):
+        data = super().clean()
+        if data.get("password") and data.get("password") != data.get("password_confirm"):
+            self.add_error("password_confirm", "Le due password non coincidono.")
+        return data
+
+
+class LoginForm(forms.Form):
+    identifier = forms.CharField(label="Alias o email", max_length=120)
+    password = forms.CharField(label="Password", widget=forms.PasswordInput)
 
 
 class ProposalForm(forms.Form):

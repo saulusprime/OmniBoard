@@ -34,11 +34,18 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# Sessione su COOKIE FIRMATO: il frontend resta senza database proprio (nessuna
+# tabella di sessione). Nel cookie vivono solo il token di sessione rilasciato
+# dal backend al login e i dati minimi del giocatore (id e alias).
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
+SESSION_COOKIE_HTTPONLY = True
 
 ROOT_URLCONF = "scacchi_web.urls"
 
@@ -51,6 +58,8 @@ TEMPLATES = [
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.contrib.messages.context_processors.messages",
+                # Espone il giocatore loggato (auth_user) a tutti i template.
+                "web.context_processors.auth_user",
             ],
         },
     },

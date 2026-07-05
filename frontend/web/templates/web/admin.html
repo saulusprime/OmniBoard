@@ -8,6 +8,33 @@
   server).</p>
   <p><a class="btn secondary" href="{% url 'admin_ai' %}">🔌 Provider IA (token Qwen, Claude, …)</a></p>
 
+  {% if pending %}
+  <h2>📝 Richieste di registrazione in attesa ({{ pending|length }})</h2>
+  <p class="muted">Solo il super admin accetta un nuovo giocatore: finché la richiesta
+  non è approvata, il login è negato. «Respingi» elimina la richiesta.</p>
+  <table>
+    <tr><th>Alias</th><th>Nome</th><th>Email</th><th style="width:34%;">Azione</th></tr>
+    {% for u in pending %}
+    <tr>
+      <td><strong>{{ u.alias }}</strong></td>
+      <td>{{ u.first_name }} {{ u.last_name }}</td>
+      <td>{{ u.email }}</td>
+      <td>
+        <form method="post" style="display:flex; gap:8px; align-items:center;">
+          {% csrf_token %}
+          <input type="password" name="admin_token" placeholder="Token super admin"
+                 autocomplete="off" style="max-width:180px;">
+          <button class="btn" type="submit" name="approve_user" value="{{ u.id }}"
+                  style="padding:6px 12px;">Approva</button>
+          <button class="btn secondary" type="submit" name="reject_user" value="{{ u.id }}"
+                  style="padding:6px 12px;">Respingi</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
   {% if settings %}
   <form method="post" novalidate>{% csrf_token %}
     {% regroup settings by category as gruppi %}

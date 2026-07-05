@@ -37,6 +37,9 @@ class User(Base):
     nationality = Column(String, nullable=True)  # paese (per classifica nazionale)
     region = Column(String, nullable=True)  # regione (per classifica regionale)
     password_hash = Column(String, nullable=True)
+    # La registrazione è una RICHIESTA: solo il super admin la accetta. Finché
+    # is_approved è False il giocatore non può autenticarsi (login negato).
+    is_approved = Column(Boolean, default=False, nullable=False)
     # Preferenze estetiche del giocatore (JSON: tema scacchiera, segno del Tris, …).
     # Registro e validazione in user_prefs.py; esposte come proprietà ``prefs``.
     prefs_json = Column(String, default="{}", nullable=False)
@@ -59,6 +62,27 @@ class User(Base):
     def universal_points(self) -> float:
         """Punteggio universale = somma dei punti su tutti i giochi (gamification)."""
         return sum(s.points for s in self.scores)
+
+
+class AuthSession(Base):
+    """Sessione di autenticazione di un giocatore (login/logout).
+
+    Il token è una stringa opaca casuale consegnata al client dopo il login;
+    il server la ritrova qui per riconoscere il giocatore (``GET /auth/me``).
+    Il logout cancella la riga; le sessioni scadute vengono ripulite pigramente
+    al primo uso. Le password NON vivono qui: in anagrafica c'è solo l'hash
+    (``User.password_hash``, PBKDF2 — vedi security.py).
+    """
+
+    __tablename__ = "auth_sessions"
+
+    id = Column(Integer, primary_key=True)
+    token = Column(String, unique=True, nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    created_at = Column(DateTime, default=utcnow)
+    expires_at = Column(DateTime, nullable=False)
+
+    user = relationship("User")
 
 
 class Game(Base):

@@ -46,6 +46,8 @@ class UserOut(BaseModel):
     email: str
     nationality: Optional[str] = None
     region: Optional[str] = None
+    # False = richiesta di registrazione in attesa del super admin (login negato).
+    is_approved: bool = False
     # Preferenze estetiche del giocatore (proprietà ``User.prefs``): tema scacchiera,
     # segno del Tris, … — vedi user_prefs.py.
     prefs: dict = {}
@@ -73,6 +75,22 @@ class ScoreOut(BaseModel):
 class UserDetail(UserOut):
     universal_points: float
     scores: list[ScoreOut] = []
+
+
+# ----- Autenticazione giocatori -----
+class LoginRequest(BaseModel):
+    """Credenziali di accesso: ci si identifica con l'alias oppure con l'email."""
+
+    identifier: str  # alias o email
+    password: str
+
+
+class LoginOut(BaseModel):
+    """Esito del login: token di sessione opaco da presentare come X-Auth-Token."""
+
+    token: str
+    expires_at: datetime
+    user: UserOut
 
 
 # ----- Giochi -----

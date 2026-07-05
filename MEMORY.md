@@ -416,6 +416,14 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   pieni (♔→♚, ⛀→⛂, ○→●; il lato lo colora il CSS), lato chiaro bordato di scuro con
   `-webkit-text-stroke`+`paint-order`; 26 coppie pezzo/casa verificate ≥3:1 (SC 1.4.11),
   minimo 4.47:1. Riferimento: `temi/scacchi-posizione-iniziale-pezzi.jpg`.
+- **2026-07-05** — **Registrazione con approvazione + autenticazione**: la registrazione è
+  una richiesta (`is_approved=False`) che **solo il super admin** accetta/respinge
+  (`POST /users/{id}/approve`, `DELETE /users/{id}`, X-Admin-Token); login/logout con
+  sessione a token (`auth_sessions`, `/auth/login|me|logout`, durata `users.session_hours`),
+  password solo hash PBKDF2 in anagrafica, 401 anti-enumerazione. Frontend: sessione Django
+  su cookie firmato (nessun DB), pagine Accedi/Esci, approvazioni in Admin. 129 test verdi.
+  ⚠️ nuova colonna `users.is_approved` + tabella `auth_sessions` → ricreare
+  `backend/scacchi.db`.
 
 ## Questioni aperte
 

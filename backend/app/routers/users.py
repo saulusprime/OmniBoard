@@ -10,12 +10,19 @@ from sqlalchemy.orm import Session
 from .. import chess_profile, models, schemas, settings_service, user_prefs
 from ..database import get_db
 from ..security import hash_password
+from .admin import require_admin
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.post("", response_model=schemas.UserOut, status_code=201)
 def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
+    """Richiesta di registrazione di un nuovo giocatore.
+
+    L'utente nasce NON approvato (``is_approved=False``): finché il super admin
+    non accetta la richiesta il login è negato. La password, se fornita, viene
+    salvata subito e solo come hash (mai in chiaro) in anagrafica.
+    """
     if not settings_service.get(db, "users.allow_registration"):
         raise HTTPException(
             status_code=403, detail="Registrazioni disabilitate dall'amministratore"
@@ -38,6 +45,40 @@ def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
     return user
+
+
+@router.post(
+    "/{user_id}/approve",
+    response_model=schemas.UserOut,
+    dependencies=[Depends(require_admin)],
+)
+def approve_user(user_id: int, db: Session = Depends(get_db)):
+    """Accetta la richiesta di registrazione: SOLO il super admin (X-Admin-Token)."""
+    user = db.get(models.User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    user.is_approved = True
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.delete("/{user_id}", status_code=204, dependencies=[Depends(require_admin)])
+def reject_user(user_id: int, db: Session = Depends(get_db)):
+    """Respinge (elimina) una richiesta di registrazione: solo il super admin.
+
+    Per prudenza si possono eliminare SOLO gli utenti in attesa: un giocatore
+    approvato ha storico e punteggi, la cancellazione non è contemplata qui.
+    """
+    user = db.get(models.User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    if user.is_approved:
+        raise HTTPException(
+            status_code=409, detail="Si può respingere solo una richiesta in attesa"
+        )
+    db.delete(user)
+    db.commit()
 
 
 @router.get("", response_model=list[schemas.UserOut])
@@ -70,6 +111,7 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
         email=user.email,
         nationality=user.nationality,
         region=user.region,
+        is_approved=user.is_approved,
         prefs=user.prefs,
         created_at=user.created_at,
         universal_points=user.universal_points,
