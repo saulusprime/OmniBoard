@@ -9,6 +9,7 @@ from django.shortcuts import redirect, render
 from . import api_client as api
 from .forms import (
     GameSetupForm,
+    LoginForm,
     MatchForm,
     PlayerPrefsForm,
     ProposalForm,
@@ -37,19 +38,69 @@ def users_list(request):
 
 
 def user_create(request):
+    """Richiesta di registrazione: crea un utente NON approvato sul backend.
+
+    Solo il super admin accetta la richiesta (pagina Admin); fino ad allora il
+    giocatore non può accedere. La conferma password resta nel frontend.
+    """
     if request.method == "POST":
         form = UserForm(request.POST)
         if form.is_valid():
             data = {k: (v or None) for k, v in form.cleaned_data.items()}
+            data.pop("password_confirm", None)  # solo controllo locale, non va al backend
             try:
                 user = api.create_user(data)
-                messages.success(request, f"Giocatore «{user['alias']}» creato.")
-                return redirect("user_detail", user_id=user["id"])
+                messages.success(
+                    request,
+                    f"Richiesta di registrazione inviata per «{user['alias']}»: "
+                    "un super admin dovrà approvarla prima che tu possa accedere.",
+                )
+                return redirect("login")
             except api.ApiError as exc:
                 messages.error(request, str(exc))
     else:
         form = UserForm()
     return render(request, "web/user_form.html", {"form": form})
+
+
+# ----- Autenticazione giocatori (login/logout con sessione) -----
+def login_view(request):
+    """Login: le credenziali vengono verificate dal backend, che apre la sessione.
+
+    Nel cookie di sessione Django (firmato) restano solo il token del backend e
+    i dati minimi del giocatore — mai la password.
+    """
+    if request.method == "POST":
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            try:
+                out = api.login(form.cleaned_data["identifier"], form.cleaned_data["password"])
+                request.session["auth_token"] = out["token"]
+                request.session["auth_user"] = {
+                    "id": out["user"]["id"],
+                    "alias": out["user"]["alias"],
+                }
+                messages.success(request, f"Bentornato, {out['user']['alias']}!")
+                return redirect("home")
+            except api.ApiError as exc:
+                messages.error(request, str(exc))
+    else:
+        form = LoginForm()
+    return render(request, "web/login.html", {"form": form})
+
+
+def logout_view(request):
+    """Logout: chiude la sessione sul backend e svuota il cookie di sessione."""
+    if request.method == "POST":
+        token = request.session.get("auth_token")
+        if token:
+            try:
+                api.logout(token)
+            except api.ApiError:
+                pass  # la sessione locale si chiude comunque
+        request.session.flush()
+        messages.success(request, "Sei uscito. A presto!")
+    return redirect("home")
 
 
 def user_detail(request, user_id):
@@ -313,6 +364,21 @@ def admin(request):
     settings = _safe(request, api.get_settings, default=[])
     if request.method == "POST":
         token = request.POST.get("admin_token", "")
+        # Richieste di registrazione: SOLO il super admin accetta (o respinge)
+        # un nuovo giocatore. Il backend verifica il token, qui si presenta solo.
+        if "approve_user" in request.POST or "reject_user" in request.POST:
+            approving = "approve_user" in request.POST
+            user_id = request.POST.get("approve_user" if approving else "reject_user")
+            try:
+                if approving:
+                    out = api.approve_user(user_id, token)
+                    messages.success(request, f"Giocatore «{out['alias']}» approvato.")
+                else:
+                    api.reject_user(user_id, token)
+                    messages.success(request, "Richiesta respinta ed eliminata.")
+            except api.ApiError as exc:
+                messages.error(request, str(exc))
+            return redirect("admin")
         # Pulsante «Verifica Stockfish»: diagnostica del binario UCI configurato.
         if "test_stockfish" in request.POST:
             try:
@@ -333,7 +399,10 @@ def admin(request):
             return redirect("admin")
         except api.ApiError as exc:
             messages.error(request, str(exc))
-    return render(request, "web/admin.html", {"settings": settings})
+    # Richieste di registrazione in attesa di approvazione, mostrate in cima.
+    users = _safe(request, api.list_users, default=[])
+    pending = [u for u in users if not u.get("is_approved")]
+    return render(request, "web/admin.html", {"settings": settings, "pending": pending})
 
 
 def admin_ai(request):

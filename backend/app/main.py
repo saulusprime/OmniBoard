@@ -8,7 +8,7 @@ from fastapi import FastAPI
 
 from .ai_providers import seed_providers
 from .database import Base, SessionLocal, engine
-from .routers import admin, config, games, groups, matches, rankings, sessions, users
+from .routers import admin, auth, config, games, groups, matches, rankings, sessions, users
 from .seed import seed_games
 from .settings_service import seed_settings
 
@@ -35,6 +35,7 @@ app = FastAPI(
 )
 
 app.include_router(users.router)
+app.include_router(auth.router)
 app.include_router(games.router)
 app.include_router(groups.router)
 app.include_router(matches.router)

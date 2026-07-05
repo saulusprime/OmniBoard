@@ -23,11 +23,12 @@
 
 # Parte 1 — Manuale dell'applicazione
 
-> ⚠️ L'applicazione è in sviluppo. Sono già disponibili: registrazione giocatori, gruppi
-> (fondazione tramite voto), punteggi, classifiche e il **gioco del Tris** (umano vs umano,
-> umano vs IA, IA vs IA). NON sono ancora disponibili: autenticazione/login, gli altri giochi
-> e il gioco a distanza in tempo reale (il Tris fra due umani è per ora *hotseat*, sullo
-> stesso schermo).
+> ⚠️ L'applicazione è in sviluppo. Sono già disponibili: registrazione giocatori (con
+> approvazione del super admin) e **login/logout**, gruppi (fondazione tramite voto),
+> punteggi, classifiche e **cinque giochi** (Tris, Forza 4, Dama, Scacchi, Backgammon —
+> umano vs umano, umano vs IA/Stockfish, IA vs IA). NON è ancora disponibile il gioco a
+> distanza in tempo reale (le partite fra due umani sono per ora *hotseat*, sullo stesso
+> schermo) e l'identità loggata non vincola ancora mosse e registrazione delle partite.
 
 ## Cos'è Scacchi
 
@@ -42,11 +43,23 @@ Avvia backend e frontend (vedi [README.md](./README.md#avvio-rapido)) e apri
 
 ## Funzionalità disponibili
 
-### Creazione di un giocatore
-Da **Giocatori → Nuovo giocatore** si registra un profilo con: nome, cognome, alias (univoco),
-email (univoca), nazionalità e regione (queste ultime usate per le classifiche
-nazionale/regionale). La password è opzionale in questa fase. Un utente può restare singolo o
-far parte di uno o più gruppi.
+### Registrazione di un giocatore (con approvazione)
+Da **Giocatori → Richiedi registrazione** si invia una **richiesta** con: nome, cognome,
+alias (univoco), email (univoca), password (obbligatoria, con conferma) e, facoltative,
+nazionalità e regione (usate per le classifiche). La richiesta **non è subito attiva**:
+**solo il super admin la accetta** dalla pagina Admin (sezione «Richieste di registrazione
+in attesa», con il token super admin) oppure la respinge, eliminandola. Fino
+all'approvazione il giocatore compare come «in attesa» e **non può accedere**. La password
+non viene mai salvata in chiaro: in anagrafica esiste solo il suo hash (PBKDF2).
+
+### Accesso (login e logout)
+Da **Accedi** (in alto a destra) si entra con **alias o email** e password. Il backend apre
+una sessione con un token dedicato; la durata è un parametro di programma («Durata della
+sessione di accesso», default 720 ore). A login avvenuto la barra mostra il proprio alias
+(collegato alla scheda personale) e il pulsante **Esci**, che chiude la sessione. Se la
+richiesta di registrazione non è ancora stata approvata, il login viene rifiutato con un
+avviso esplicito. Credenziali errate producono sempre lo stesso errore generico, senza
+rivelare quali account esistono.
 
 ### Gruppi e fondazione tramite voto
 Da **Gruppi → Proponi un gruppo** si crea una proposta di fondazione; il proponente vota

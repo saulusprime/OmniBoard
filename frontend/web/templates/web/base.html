@@ -54,6 +54,15 @@
     <a href="{% url 'rankings' %}">Classifiche</a>
     <a href="{% url 'match_create' %}">Registra partita</a>
     <a href="{% url 'admin' %}">Admin</a>
+    {% if auth_user %}
+      <a href="{% url 'user_detail' auth_user.id %}">👤 {{ auth_user.alias }}</a>
+      <form method="post" action="{% url 'logout' %}" style="margin:0;">{% csrf_token %}
+        <button class="btn secondary" type="submit"
+                style="padding:4px 12px; font-size:.85rem;">Esci</button>
+      </form>
+    {% else %}
+      <a href="{% url 'login' %}">Accedi</a>
+    {% endif %}
   </nav></div></header>
   <main><div class="wrap">
     {% if messages %}

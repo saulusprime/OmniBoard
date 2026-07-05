@@ -1,0 +1,16 @@
+{% extends "web/base.html" %}
+{% block title %}Accedi{% endblock %}
+{% block content %}
+<div class="card" style="max-width:420px;">
+  <h1>🔑 Accedi</h1>
+  <p class="muted">Entra con il tuo alias (o l'email) e la password scelta alla
+  registrazione. Se la tua richiesta non è ancora stata approvata dal super admin,
+  l'accesso verrà negato con un avviso.</p>
+  <form method="post" novalidate>{% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Accedi</button>
+  </form>
+  <p class="muted" style="margin-top:14px;">Non hai un account?
+  <a href="{% url 'user_create' %}">Richiedi la registrazione</a>.</p>
+</div>
+{% endblock %}

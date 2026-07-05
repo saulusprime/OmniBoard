@@ -5,6 +5,45 @@
 
 ---
 
+## 2026-07-05 — Registrazione con approvazione del super admin + autenticazione (login/logout)
+
+**Richiesta (utente):** la registrazione dei giocatori diventa una richiesta che **solo il
+super admin accetta**; autenticazione con **login/logout e sessione**, password **già
+hashate in anagrafica**.
+
+**Backend:**
+
+- `User.is_approved` (default **False**: ogni registrazione nasce «in attesa») e nuova
+  tabella **`auth_sessions`** (token opaco, scadenza, pulizia pigra delle scadute).
+  **⚠️ cambio schema senza migrazioni** → ricreare `backend/scacchi.db`.
+- `POST /users` = richiesta di registrazione (password opzionale a livello API, hashata
+  subito con PBKDF2 — security.py già esistente; mai salvata in chiaro).
+- **`POST /users/{id}/approve`** e **`DELETE /users/{id}`** (respinta, solo richieste in
+  attesa: 409 su utenti approvati) — entrambi dietro `require_admin` (X-Admin-Token).
+- Nuovo router **`auth.py`**: `POST /auth/login` (identificazione con alias **o** email;
+  401 identico per utente inesistente/senza password/password errata — niente enumerazione;
+  403 «in attesa di approvazione» solo a password verificata), `GET /auth/me`
+  (X-Auth-Token), `POST /auth/logout` (idempotente, 204). Durata sessione = parametro
+  **`users.session_hours`** (default 720 ore, categoria Utenti).
+
+**Frontend (senza DB proprio):**
+
+- Sessione Django su **cookie firmato** (`SESSION_ENGINE=signed_cookies` + middleware):
+  nel cookie solo token backend e {id, alias} del giocatore — mai la password.
+- Pagine: **Accedi** (`/accedi/`, alias o email + password) ed **Esci** (POST); navbar con
+  «👤 alias» → scheda personale; context processor `auth_user` per tutti i template.
+- «Giocatori → Richiedi registrazione»: password obbligatoria con conferma (solo controllo
+  locale); esito: «richiesta inviata, serve l'approvazione». Lista giocatori con badge
+  «in attesa di approvazione».
+- Pagina **Admin**: sezione «Richieste di registrazione in attesa» con Approva/Respingi
+  (token super admin nel form, come per i parametri).
+
+**Test (+5, 129 verdi):** richiesta→login 403; approvazione solo con token e login/me/
+logout dopo; 401 indistinguibili; respinta solo per richieste in attesa; scadenza sessione
+pilotata da `users.session_hours` (0 ore → token già scaduto).
+
+---
+
 ## 2026-07-05 — Pezzi a tinta piena + contrasto WCAG 2.1 (correzione estetica)
 
 **Richiesta (utente):** pezzi in **tinta piena** e contrasto sufficiente fra i colori

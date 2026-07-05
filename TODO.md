@@ -8,8 +8,9 @@
 
 - [x] ⭐ **Mossa IA fuori dalla richiesta HTTP** — l'IA pensa in background e il client
   fa polling: niente attese bloccanti (2s/mossa) né richieste che durano minuti (IA-vs-IA).
-- [ ] ⭐ **Autenticazione dei giocatori** — login/logout con sessione, password già hashate
-  in anagrafica; senza, chiunque può giocare o registrare partite a nome di chiunque.
+- [x] ⭐ **Autenticazione dei giocatori** — login/logout con sessione, password hashate in
+  anagrafica; la registrazione è una richiesta che solo il super admin accetta. Prossimo
+  passo: usare l'identità loggata per vincolare mosse e registrazione partite al giocatore.
 - [ ] **Migrazioni Alembic** — oggi `create_all`: ogni cambio schema richiede di ricreare il
   DB di sviluppo. Necessario anche per PostgreSQL in produzione.
 - [ ] ⭐ **Gioco a distanza in tempo reale** — WebSocket (o polling strutturato) per partite

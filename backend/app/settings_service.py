@@ -30,6 +30,13 @@ SETTINGS_DEFS = [
         "label": "Consenti la registrazione di nuovi giocatori",
     },
     {
+        "key": "users.session_hours",
+        "type": "int",
+        "default": 720,
+        "category": "Utenti",
+        "label": "Durata della sessione di accesso (ore)",
+    },
+    {
         "key": "scoring.points_win",
         "type": "float",
         "default": 3.0,

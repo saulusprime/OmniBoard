@@ -73,6 +73,30 @@ def create_user(data: dict):
     return _request("POST", "/users", json=data)
 
 
+# ----- Autenticazione giocatori e approvazione delle registrazioni -----
+def login(identifier: str, password: str):
+    """Login sul backend: restituisce token di sessione, scadenza e dati utente."""
+    return _request("POST", "/auth/login", json={"identifier": identifier, "password": password})
+
+
+def logout(token: str):
+    return _request("POST", "/auth/logout", headers={"X-Auth-Token": token})
+
+
+def auth_me(token: str):
+    return _request("GET", "/auth/me", headers={"X-Auth-Token": token})
+
+
+def approve_user(user_id, token: str):
+    """Accetta una richiesta di registrazione: riservato al super admin."""
+    return _request("POST", f"/users/{user_id}/approve", headers={"X-Admin-Token": token})
+
+
+def reject_user(user_id, token: str):
+    """Respinge (elimina) una richiesta in attesa: riservato al super admin."""
+    return _request("DELETE", f"/users/{user_id}", headers={"X-Admin-Token": token})
+
+
 # ----- Gruppi -----
 def list_groups():
     return _request("GET", "/groups")
