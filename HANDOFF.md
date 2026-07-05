@@ -5,6 +5,37 @@
 
 ---
 
+## 2026-07-05 — Migrazioni Alembic (fine dell'era create_all)
+
+**Richiesta (utente):** procedere con le migrazioni ad Alembic.
+
+**Impianto:**
+
+- `backend/alembic.ini` (senza URL: percorsi con `%(here)s`, indipendenti dalla CWD) +
+  `backend/migrations/` (`env.py`, `script.py.mako`, `versions/`). L'URL arriva da
+  `app.database.DATABASE_URL` (quindi da `.env`), oppure dall'override programmatico
+  `config.attributes["sqlalchemy_url"]` usato da runner e test. `render_as_batch=True`
+  per gli ALTER futuri su SQLite.
+- **Revisione 0001 «schema iniziale»** (autogenerate contro DB vuoto): tutte le 11 tabelle.
+- **`app/db_migrate.py`**: `run_migrations()` chiamata dal lifespan al posto di
+  `create_all`. Tre casi: DB nuovo → `upgrade head`; DB migrato → applica solo le revisioni
+  mancanti; DB dell'era create_all senza `alembic_version` → **adozione** con `stamp 0001`
+  se lo schema corrisponde alla baseline (marcatori: `users.is_approved` +
+  `auth_sessions`), altrimenti **errore chiaro** (eliminare il DB). Guardia per-processo:
+  i test aprono l'app decine di volte, Alembic gira una volta sola per URL.
+- `make migrate` (upgrade head) e `make migration m="descrizione"` (autogenerate).
+
+**Nuovo workflow per i cambi di schema:** modificare i modelli →
+`make migration m="..."` → riavviare (o `make migrate`). NIENTE più `rm backend/scacchi.db`.
+
+**Test (+3, 132 verdi):** allineamento migrazioni↔modelli via `compare_metadata`
+(fallisce elencando le differenze se si tocca un modello senza generare la revisione),
+adozione del DB legacy, rifiuto con errore esplicito dei DB più vecchi della baseline.
+**Verifica dal vivo:** il backend in `--reload` si è riavviato durante il lavoro e ha
+adottato da solo il `scacchi.db` di sviluppo (`alembic current` → `0001 (head)`); API ok.
+
+---
+
 ## 2026-07-05 — Registrazione con approvazione del super admin + autenticazione (login/logout)
 
 **Richiesta (utente):** la registrazione dei giocatori diventa una richiesta che **solo il

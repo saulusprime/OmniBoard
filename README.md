@@ -186,7 +186,7 @@ Scacchi/
 │
 ├── backend/             # servizio FastAPI + accesso al database
 │   └── app/
-│       ├── main.py      # app FastAPI (create_all + seed + router)
+│       ├── main.py      # app FastAPI (migrazioni + seed + router)
 │       ├── models.py    # modelli SQLAlchemy (utenti, giochi, punteggi, gruppi)
 │       ├── schemas.py   # schemi Pydantic
 │       ├── gameplay.py  # svolgimento partite + worker IA in background
@@ -254,9 +254,12 @@ cd backend && uvicorn app.main:app --reload --port 8000
 python frontend/manage.py runserver 8001
 ```
 
-Apri <http://127.0.0.1:8001/>. Il backend crea/aggiorna automaticamente lo schema SQLite
-(`backend/scacchi.db`) e popola il catalogo dei giochi al primo avvio. Il frontend non usa
-database. Configurazione tramite `.env` (vedi `.env.example`).
+Apri <http://127.0.0.1:8001/>. All'avvio il backend applica da solo le **migrazioni
+Alembic** (`backend/migrations/`) portando lo schema SQLite (`backend/scacchi.db`)
+all'ultima revisione, e popola il catalogo dei giochi. Un cambio di schema non richiede
+più di ricreare il database: `make migration m="descrizione"` genera la revisione dai
+modelli e il riavvio la applica (oppure `make migrate`). Il frontend non usa database.
+Configurazione tramite `.env` (vedi `.env.example`).
 
 ## Roadmap e TODO
 
@@ -278,9 +281,9 @@ database. Configurazione tramite `.env` (vedi `.env.example`).
 - [x] **IA scacchi potenziata**: motore alpha-beta dedicato (quiescence, TT) + **modello dell'avversario** (schemi/debolezze dallo storico)
 - [x] **Mosse IA in background**: risposta immediata, l'IA pensa in un worker e il client si aggiorna via polling
 - [x] **Tre tipi di avversario** (umano / Stockfish UCI configurabile / IA via API) con codice separato per tipo (`opponents/`)
-- [ ] Autenticazione/login dei giocatori
+- [x] Autenticazione/login dei giocatori (registrazione approvata dal super admin, sessioni a token)
 - [ ] Regole di gestione dei gruppi (ruoli, inviti, espulsioni)
-- [ ] Migrazioni del database (Alembic) e PostgreSQL in produzione
+- [x] Migrazioni del database (Alembic); PostgreSQL in produzione resta da provare
 - [ ] Aggiornamento in tempo reale della partita (WebSocket / polling) per il gioco a distanza
 - [ ] Affinamento regole dama (priorità FID tra catture di pari numero, patte)
 - [ ] Scacchi: patta per ripetizione; ampliamento del libro aperture; apertura-bersaglio sul profilo avversario
