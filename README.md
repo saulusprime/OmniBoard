@@ -45,8 +45,8 @@ prospettiva, anche quelli con **nodi del caso** (dadi) come backgammon e ludo.
 ## Caratteristiche principali
 
 - ♟️ **Motore astratto unico** condiviso da tutti i giochi (logica pura, testabile, senza I/O).
-- 🎲 **Deterministico + estendibile al caso**: il modello prevede *hook* per nodi stocastici
-  (dadi), così da poter aggiungere in futuro backgammon e ludo.
+- 🎲 **Deterministico + stocastico**: i *nodi del caso* previsti dal modello sono realtà —
+  il **Backgammon** è giocabile (i dadi li tira il server, arbitro imparziale); Ludo in arrivo.
 - 🌐 **Esperienza web** con interfaccia grafica della scacchiera e gioco in tempo reale.
 - 👤 **Anagrafica giocatori** e profili.
 - 📊 **Statistiche di gioco** per giocatore e per gioco (partite, vittorie, ranking).
@@ -82,7 +82,7 @@ contiene la sola base documentale.
 | Forza 4      | Deterministico       | ✅ Giocabile (umano e IA) |
 | Dama italiana| Deterministico       | ✅ Giocabile (umano e IA) |
 | Scacchi ♟️    | Deterministico       | ✅ Giocabile (umano e IA, con libro aperture) |
-| Backgammon   | Con nodi del caso 🎲  | 🧪 Futuro      |
+| Backgammon   | Con nodi del caso 🎲  | ✅ Giocabile (umano e IA; il server tira i dadi) |
 
 I giochi più semplici (tris, forza 4, dama) servono a validare le primitive del motore prima
 di affrontare la complessità degli scacchi. Le regole di ciascun gioco sono documentate in
@@ -170,6 +170,8 @@ Scacchi/
 │   │   ├── outcome.py   #   esito di una partita (Outcome)
 │   │   └── registry.py  #   registro dei giochi disponibili
 │   ├── tictactoe/       # Tris: game.py (regole) + state.py (stato)
+│   ├── (ogni gioco segue lo stesso schema)
+├── backgammon/      # Backgammon: primo gioco stocastico (nodi del caso)
 │   ├── connect4/        # Forza 4: game.py + state.py
 │   ├── draughts/        # Dama italiana: game.py + state.py
 │   ├── chess/           # Scacchi:
@@ -280,7 +282,7 @@ database. Configurazione tramite `.env` (vedi `.env.example`).
 - [ ] Affinamento regole dama (priorità FID tra catture di pari numero, patte)
 - [ ] Scacchi: patta per ripetizione; ampliamento del libro aperture; apertura-bersaglio sul profilo avversario
 - [ ] Sistema di rating (es. Elo) al posto dello schema punti provvisorio
-- [ ] (Futuro) supporto nodi del caso → Backgammon
+- [x] **Backgammon**: primo gioco stocastico — nodi del caso realizzati (il server tira i dadi)
 
 ## Stato del progetto
 

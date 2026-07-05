@@ -3,6 +3,9 @@
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+# "integrazioni/" ospita codice esterno/sperimentale (es. KittenTTS): non fa parte
+# dell'applicazione e non viene lintato né riformattato.
+extend-exclude = ["integrazioni"]
 
 [tool.ruff.lint]
 # E/W = stile PEP8 (pycodestyle), F = pyflakes, I = ordinamento import.

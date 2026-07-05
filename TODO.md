@@ -72,7 +72,12 @@
   più dame, prima le dame); patte per ripetizione.
 - [ ] **Forza 4**: motore dedicato più profondo (bitboard + tabella trasposizioni).
 - [ ] **Nuovi giochi deterministici**: Othello/Reversi, Filetto 3D, Gomoku.
-- [ ] **Nodi del caso**: Backgammon e Ludo (l'interfaccia `Game` ha già gli hook previsti).
+- [x] **Backgammon** — nodi del caso realizzati: il server tira i dadi (`resolve_chance`),
+  un dado = una mossa, colpi/barra/uscita implementati.
+- [ ] Backgammon: affinamenti — tiro iniziale "un dado a testa", regola del dado
+  maggiore obbligatorio, cubo del raddoppio, punteggi gammon/backgammon, IA
+  expectiminimax (oggi greedy dado per dado).
+- [ ] **Ludo** (nodi del caso, come il backgammon).
 
 ## Piattaforma e gamification
 

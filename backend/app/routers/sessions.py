@@ -10,6 +10,7 @@ aggiornati; il log resta consultabile nello storico dei giocatori.
 from __future__ import annotations
 
 import json
+import random
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -58,6 +59,9 @@ def _view(session: models.GameSession) -> dict:
         "winner": session.winner,
         "finish_reason": session.finish_reason,  # "time" = decisa dall'orologio
         "clock": gameplay.clock_view(session, game),  # None se partita senza orologio
+        # Riga informativa specifica del gioco (es. "Dadi da giocare: 5 3" nel
+        # backgammon); None per i giochi che non ne hanno bisogno.
+        "status_line": game.view_status(state),
         "opening": game.opening_name(gameplay.history_ids(moves)),
         "moves": moves,
         "players": {
@@ -144,6 +148,7 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
     db.commit()
     db.refresh(session)
 
+    gameplay.resolve_chance(db, session=session, game=game)  # es. primo tiro di dadi
     gameplay.schedule_ai(db, session)  # se il primo a muovere è l'IA, pensa in background
     return _view(session)
 
@@ -176,6 +181,15 @@ def run_batch(payload: schemas.BatchCreate, db: Session = Depends(get_db)):
         state = game.initial_state()
         history: list[str] = []
         while not game.is_terminal(state):
+            if game.is_chance_node(state):
+                # Giochi stocastici (backgammon): nel batch il tiro dei dadi viene
+                # estratto qui, senza log (la simulazione non viene persistita).
+                outcomes = game.chance_outcomes(state)
+                event = random.choices(
+                    [e for e, _p in outcomes], weights=[p for _e, p in outcomes], k=1
+                )[0]
+                state = game.apply_chance(state, event)
+                continue
             move, _source = opponents.choose_move(
                 game, state, history, kind="ai", provider=provider, think_ms=batch_ms, jitter=20
             )
@@ -199,9 +213,12 @@ def get_session(session_id: int, db: Session = Depends(get_db)):
     session = db.get(models.GameSession, session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Sessione non trovata")
+    game = get_game(session.game.code)
+    # Nodi del caso pigri: chi legge lo stato materializza l'eventuale tiro di dadi.
+    gameplay.resolve_chance(db, game, session)
     # Bandierina pigra: l'orologio è autorevole anche se nessuno muove più — la
     # lettura di stato (il polling del client) chiude la partita a tempo scaduto.
-    gameplay.check_time(db, get_game(session.game.code), session)
+    gameplay.check_time(db, game, session)
     # Auto-ripristino: se è il turno dell'IA e nessun worker è attivo (es. server
     # riavviato a metà pensata), il polling stesso riprogramma il calcolo.
     gameplay.schedule_ai(db, session, sync_fallback=False)
@@ -215,6 +232,8 @@ def make_move(session_id: int, payload: schemas.MoveIn, db: Session = Depends(ge
         raise HTTPException(status_code=404, detail="Sessione non trovata")
 
     game = get_game(session.game.code)
+    # Nodi del caso: se i dadi sono ancora da tirare, si tirano ora (server-side).
+    gameplay.resolve_chance(db, game, session)
     # L'orologio decide prima della mossa: se il tempo del giocatore è già scaduto,
     # la partita viene chiusa e la mossa rifiutata.
     gameplay.check_time(db, game, session)
@@ -244,5 +263,9 @@ def make_move(session_id: int, payload: schemas.MoveIn, db: Session = Depends(ge
 
     gameplay.finish_if_terminal(db, game, session, state)
     if session.status != "finished":
+        # Se il turno è passato a un nodo del caso (backgammon: dadi del prossimo
+        # giocatore), la risposta include già il tiro: chi gioca in locale in due
+        # non deve aspettare un polling per vedere i propri dadi.
+        gameplay.resolve_chance(db, game, session)
         gameplay.schedule_ai(db, session)  # la risposta parte subito, l'IA pensa in background
     return _view(session)

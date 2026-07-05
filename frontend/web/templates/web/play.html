@@ -66,6 +66,7 @@
         <span class="clock" id="clock-o">O --:--</span>
       </div>
       <div id="opening" class="muted"></div>
+      <div id="statusline" class="muted"></div>
       <div id="boardarea"></div>
       <div id="thinking">L'IA sta pensando…</div>
       <div id="aisource" class="muted" style="font-size:.85rem;"></div>
@@ -100,7 +101,8 @@
   const O_AI = {% if s.players.o.type != 'human' %}true{% else %}false{% endif %};
 
   const rows = SESSION.rows, cols = SESSION.cols, moveType = SESSION.move_type;
-  const isSelect = moveType === "draughts" || moveType === "chess";
+  const isSelect =
+    moveType === "draughts" || moveType === "chess" || moveType === "backgammon";
   const cellPx = cols <= 3 ? 88 : (cols <= 7 ? 56 : 46);
   const WHITE_SET = "X⛀⛁♔♕♖♗♘♙", BLACK_SET = "O⛂⛃♚♛♜♝♞♟";
   let board = SESSION.board.slice();
@@ -147,7 +149,8 @@
     grid.style.gridTemplateRows = `repeat(${rows}, ${cellPx}px)`;
     for (let i = 0; i < rows * cols; i++) {
       let el;
-      const usable = moveType === "cell" || moveType === "chess" || (moveType === "draughts" && isDark(i));
+      const usable = moveType === "cell" || moveType === "chess" ||
+        moveType === "backgammon" || (moveType === "draughts" && isDark(i));
       if (usable) {
         el = document.createElement("button");
         if (moveType === "cell") el.addEventListener("click", () => onCell(i));
@@ -536,6 +539,8 @@
         (session.current_is_ai ? " (IA)" : "");
     }
     document.getElementById("opening").textContent = session.opening ? "Apertura: " + session.opening : "";
+    // Riga di stato specifica del gioco (es. i dadi da giocare nel backgammon).
+    document.getElementById("statusline").textContent = session.status_line || "";
     // Trasparenza: chi ha giocato davvero l'ultima mossa IA (utile per verificare che
     // Stockfish o il provider API siano attivi; "libro"/"motore interno" = ripiego locale).
     const SOURCES = { book: "libro aperture", stockfish: "Stockfish",

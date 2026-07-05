@@ -42,7 +42,7 @@ def test_games_playable_flag():
         assert games["connect4"]["playable"] is True
         assert games["checkers"]["playable"] is True
         assert games["chess"]["playable"] is True
-        assert games["backgammon"]["playable"] is False
+        assert games["backgammon"]["playable"] is True  # primo gioco stocastico
 
 
 def test_create_user_and_duplicates():

@@ -120,7 +120,10 @@ class Game(ABC, Generic[S, M]):
         """
         return 0.0
 
-    # ----- Hook per i nodi del caso (estensione futura) -----
+    # ----- Nodi del caso (giochi stocastici, es. backgammon) -----
+    # Il flusso è: quando ``is_chance_node`` è vero non ci sono mosse legali; chi
+    # orchestra la partita (il backend) estrae un evento secondo ``chance_outcomes``
+    # e lo applica con ``apply_chance``. Le mosse dei giocatori restano deterministiche.
     def is_chance_node(self, state: S) -> bool:
         """True se l'evoluzione dipende da un evento aleatorio (es. lancio di dadi)."""
         return False
@@ -128,3 +131,16 @@ class Game(ABC, Generic[S, M]):
     def chance_outcomes(self, state: S) -> Sequence[tuple[object, float]]:
         """Coppie (evento, probabilità) per un nodo del caso; vuoto altrimenti."""
         return []
+
+    def apply_chance(self, state: S, event) -> S:
+        """Applica un evento aleatorio (es. un tiro di dadi) a un nodo del caso."""
+        raise NotImplementedError
+
+    def describe_chance(self, event) -> str:
+        """Notazione testuale di un evento aleatorio, per il log della partita."""
+        return str(event)
+
+    # ----- Informazioni accessorie per il client -----
+    def view_status(self, state: S) -> str | None:
+        """Riga di stato informativa da mostrare in partita (es. i dadi del turno)."""
+        return None

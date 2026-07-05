@@ -305,6 +305,23 @@ provato con un finto binario); la partita non si blocca mai (ripiego garantito).
 **Alternativa scartata:** processo Stockfish persistente con lock (più veloce di ~100ms a
 mossa ma con stato condiviso tra thread; annotato in TODO.md come ottimizzazione).
 
+### ADR-021 — Nodi del caso: il server tira i dadi (Backgammon) — 2026-07-05
+**Contesto:** il Backgammon è il primo gioco stocastico; gli hook `is_chance_node`/
+`chance_outcomes` esistevano dal giorno uno ma mancava chi applicasse gli eventi.
+**Decisione:** il contratto `Game` si completa con **`apply_chance`** (+ `describe_chance`
+e `view_status`); l'estrazione casuale è responsabilità del **backend** — `gameplay.
+resolve_chance` tira i dadi (estrazione pesata), registra il tiro nel log («🎲 5-3») e
+gestisce i turni che passano da soli quando il tiro è ingiocabile. Chiamata pigra dalle
+letture di stato e prima/dopo le mosse: chiunque "tocchi" la partita materializza il tiro.
+Il **motore resta deterministico e testabile** (i test applicano tiri espliciti).
+Modello del turno: **un dado = una mossa** (stato con dadi residui; doppio = 4 mosse;
+`_normalize` chiude il turno) — l'alternativa "una mossa = l'intero turno" esplode
+combinatoriamente e non si sposa con la UI a selezione.
+**Conseguenze:** vale per ogni futuro gioco coi dadi (Ludo); l'IA locale gioca greedy
+dado per dado (`search_depth=1`) — expectiminimax in TODO. Nessun cambio schema DB.
+**Semplificazioni documentate:** niente tiro iniziale "un dado a testa", regola del dado
+maggiore, cubo del raddoppio, gammon/backgammon.
+
 ## Traguardi
 
 - **2026-06-28** — Definita l'architettura, scelti licenza e modello del motore; creata la
@@ -380,6 +397,10 @@ mossa ma con stato condiviso tra thread; annotato in TODO.md come ottimizzazione
   (catena ricostruita dal diff, vittime che spariscono quando scavalcate), promozioni con
   pezzo originale in volo e trasformazione all'arrivo, catturati visibili fino
   all'atterraggio. Sintassi JS validata con `node --check`. 108 test verdi.
+- **2026-07-05** — **Backgammon giocabile** (ADR-021): quinto gioco, primo stocastico — i nodi
+  del caso funzionano (il **server tira i dadi**, `resolve_chance`, tiri nel log «🎲 5-3»);
+  un dado = una mossa, colpi/barra/uscita, vista 2×14 sul frontend generico, IA greedy.
+  121 test verdi. `integrazioni/` (codice esterno utente) esclusa dal lint, non committata.
 
 ## Questioni aperte
 

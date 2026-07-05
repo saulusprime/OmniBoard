@@ -5,6 +5,56 @@
 
 ---
 
+## 2026-07-05 — Backgammon: primo gioco stocastico (i nodi del caso diventano realtà)
+
+**Obiettivo:** implementare il Backgammon rispettando l'architettura generale (una
+directory per gioco, una classe per file, interfaccia `Game`) con codice molto commentato.
+
+**Architettura — i nodi del caso, previsti dal giorno uno, ora funzionano:**
+- `engine/common/game.py`: completato il contratto con **`apply_chance`** (applica un
+  evento aleatorio a un nodo del caso), `describe_chance` (notazione per il log) e
+  `view_status` (riga informativa per il client, es. i dadi del turno).
+- **Il SERVER tira i dadi** (`gameplay.resolve_chance`): arbitro imparziale — nessun
+  client può scegliere o ripetere il tiro. Estrazione pesata su `chance_outcomes`,
+  registrata nel log («🎲 5-3»; se ingiocabile: «— nessuna mossa possibile, il turno
+  passa» e si continua a tirare). Chiamata pigra dalle letture di stato, prima/dopo le
+  mosse umane, nel ciclo del worker IA e nel batch (lì senza log).
+
+**Il gioco (`engine/backgammon/`, `game.py` + `state.py`):**
+- Stato: 24 punte con segno (+X/−O), barra, pedine fuori, giocatore, **dadi residui**
+  (None = nodo del caso). X muove 23→0 (casa 0..5), O all'opposto.
+- Modello del turno: **un dado = una mossa**; doppio = 4 mosse; il turno passa da solo
+  quando i dadi finiscono o nessuno è giocabile (`_normalize`).
+- Regole: punte **bloccate** con ≥2 avversarie; **colpo** della singola (va sulla barra,
+  notazione «13/8*»); **rientro obbligatorio** dalla barra; **uscita** con tutte in casa
+  (dado esatto sempre; maggiore solo dalla punta più lontana). Vince chi porta fuori 15.
+- Vista a griglia **2×14** per il frontend generico: punte 12..23 sopra, 11..0 sotto,
+  colonne extra per barre e uscite; celle «2○»/«5●». Notazione a pip («13/8», «bar/22»,
+  «6/off»). IA locale greedy dado per dado (`search_depth=1`, euristica: pip, pedine
+  fuori, blot, barra — l'expectiminimax è in TODO).
+- **Semplificazioni documentate:** niente tiro iniziale "un dado a testa" (inizia X),
+  niente regola del dado maggiore obbligatorio, niente cubo/gammon.
+
+**Integrazione:** registrato nel registry (→ `playable` automatico); vista di sessione
+con `status_line` («Dadi da giocare: 5 3 — obbligo di rientro…»); frontend: il
+backgammon usa la selezione origine→destinazione esistente + riga di stato. Il batch
+IA-vs-IA risolve i nodi del caso in linea.
+
+**Extra:** esclusa dal lint la nuova directory `integrazioni/` (codice esterno
+dell'utente, es. KittenTTS — non tracciata e non committata).
+
+**Test (+13, 121 verdi):** motore (nodi del caso e probabilità 21 tiri, doppi=4 mosse,
+punte bloccate, colpo→barra, rientro obbligatorio, uscita esatta/scarto, passaggio del
+turno con tiro ingiocabile, vittoria, serializzazione, viste, euristica simmetrica) +
+sessioni end-to-end (tiro del server già alla creazione, notazione a pip nel log, turno
+che passa con tiro dell'avversario pronto, partita contro l'IA). Aggiornato il test del
+flag `playable`.
+
+**Verifica dal vivo:** partita umano-vs-IA completa di un giro: «🎲 5-3 → 6/3, 8/3 →
+🎲 6-4 (IA) → 8/2, 6/2 → 🎲 3-2» con riga di stato e mosse giocabili corrette.
+
+---
+
 ## 2026-07-05 — Animazioni per intero: percorsi a tappe (cavallo a "L", prese multiple, promozioni)
 
 **Richiesta (utente):** ogni mossa va visualizzata per intero — il cavallo deve fare tutto

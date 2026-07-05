@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import random
 import threading
 import time
 from datetime import datetime, timezone
@@ -284,6 +285,52 @@ def clock_view(session: models.GameSession, game) -> dict | None:
     }
 
 
+# ----- Nodi del caso: il SERVER tira i dadi (giochi stocastici, es. backgammon) -----
+def resolve_chance(db: Session, game, session: models.GameSession) -> bool:
+    """Se lo stato è un nodo del caso, estrae e applica gli eventi aleatori.
+
+    Il tiro è del **server** (arbitro): nessun client può scegliere o rigiocare i
+    dadi. Ogni tiro viene registrato nel log della partita (es. «🎲 5-3»); se il
+    tiro non è giocabile il turno passa da solo e si continua a tirare per l'altro
+    giocatore, finché qualcuno può muovere o la partita finisce. Ritorna True se
+    lo stato è cambiato (chi chiama deve ricaricare stato e log).
+
+    Chiamata dalle letture di stato (pigra, come la bandierina dell'orologio),
+    prima delle mosse umane e nel ciclo del worker IA: chiunque "tocchi" la
+    partita materializza il tiro mancante.
+    """
+    if session.status != "in_progress" or not game.is_stochastic:
+        return False
+    state = load_state(game, session)
+    if not game.is_chance_node(state):
+        return False
+    moves = json.loads(session.moves_json or "[]")
+    guard = 0
+    while game.is_chance_node(state) and guard < 8:
+        guard += 1  # difesa da loop teorici: 8 passaggi consecutivi non esistono in pratica
+        outcomes = game.chance_outcomes(state)
+        events = [e for e, _p in outcomes]
+        weights = [p for _e, p in outcomes]
+        event = random.choices(events, weights=weights, k=1)[0]
+        roller = game.current_player(state)
+        state = game.apply_chance(state, event)
+        notation = game.describe_chance(event)
+        if game.current_player(state) != roller and not game.is_terminal(state):
+            notation += " — nessuna mossa possibile, il turno passa"
+        moves.append(
+            {
+                "ply": len(moves) + 1,
+                "player": "X" if roller == 0 else "O",
+                "notation": notation,
+                # niente "id": i tiri non sono mosse (restano fuori dallo storico UCI)
+            }
+        )
+    session.moves_json = json.dumps(moves)
+    save_state(game, session, state)
+    db.commit()
+    return True
+
+
 # ----- Avanzamento IA -----
 def _watch_pace_ms(db: Session) -> int:
     """Ritmo minimo (ms) tra le mosse IA "osservate" dal client.
@@ -324,6 +371,12 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
         think_ms = min(int(think_ms), 300)
     style = opponent_style(db, game, session)  # adatta il gioco al profilo dell'avversario
     while not game.is_terminal(state):
+        # Giochi stocastici: prima delle mosse il server materializza il tiro dei
+        # dadi (può anche far passare il turno se il tiro non è giocabile).
+        if resolve_chance(db, game, session):
+            state = load_state(game, session)
+            moves = json.loads(session.moves_json or "[]")
+            continue  # ricontrolla dal principio: turno/terminalità possono essere cambiati
         player = game.current_player(state)
         if not side_is_ai(session, player):
             break

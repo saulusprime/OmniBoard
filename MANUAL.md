@@ -15,6 +15,7 @@
   - [Scacchi](#scacchi)
   - [Dama italiana](#dama-italiana)
   - [Tris (Tic-Tac-Toe)](#tris-tic-tac-toe)
+  - [Backgammon](#backgammon)
   - [Forza 4](#forza-4)
 - [Modello per nuovi giochi](#modello-per-nuovi-giochi)
 
@@ -320,6 +321,34 @@ lo trovi nella scheda di ciascun giocatore, sezione «Storico partite», con l'e
 dettaglio delle mosse.
 
 ---
+
+## Backgammon
+
+**Giocatori:** 2. **Tavoliere:** 24 punte; 15 pedine a testa. **Dadi:** 2 (i doppi valgono
+quattro mosse). X percorre il tavoliere verso le punte basse (casa 1–6), O verso le alte.
+
+- A ogni turno il **server tira i dadi** (arbitro imparziale: nessun client può scegliere
+  o ripetere il tiro; il tiro compare nel log, es. «🎲 5-3»).
+- **Un dado = una mossa** di una pedina; il turno continua finché restano dadi giocabili,
+  poi passa (anche da solo, se nessun dado è giocabile).
+- Una punta con **2+ pedine avversarie è bloccata**; una pedina avversaria **singola**
+  viene **colpita** e va sulla **barra** (nel log: asterisco, es. «13/8*»).
+- Chi ha pedine sulla barra **deve rientrarle** prima di ogni altra mossa (nel campo
+  avversario, col valore del dado).
+- **Uscita** (bear-off): solo con tutte le 15 pedine nella propria casa; dado esatto,
+  oppure maggiore solo dalla punta occupata più lontana. **Vince chi porta fuori tutte
+  e 15 le pedine.**
+
+### Come giocarci nell'app
+Dal menu **Gioca** scegli **Backgammon**. La riga sopra il tavoliere mostra i **dadi da
+giocare**; clicca una tua pedina (le mosse possibili si illuminano) e poi la destinazione.
+Le colonne laterali del tavoliere sono la **barra** e l'**uscita**. Contro l'IA vale tutto
+quanto già visto (ritmo tra le mosse, animazioni, suono).
+
+**Semplificazioni note:** non è modellato il tiro iniziale «un dado a testa» (comincia X);
+non è imposta la regola del «dado maggiore obbligatorio» quando solo uno è giocabile;
+niente cubo del raddoppio né punteggi gammon/backgammon. L'IA gioca *greedy* dado per dado
+(l'expectiminimax è in TODO).
 
 ## Forza 4
 
