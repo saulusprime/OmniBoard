@@ -249,13 +249,100 @@
     return { left: r.left - g.left, top: r.top - g.top, w: r.width, h: r.height };
   }
 
+  // ----- Percorsi a tappe: la mossa va visualizzata PER INTERO -----
+  function knightWaypoint(from, to) {
+    // Il cavallo percorre la sua "L": prima il lato lungo, poi quello corto.
+    const fr = Math.floor(from / cols), fc = from % cols;
+    const tr = Math.floor(to / cols), tc = to % cols;
+    const dr = tr - fr, dc = tc - fc;
+    if (Math.abs(dr) === 2 && Math.abs(dc) === 1) return [(fr + dr) * cols + fc];
+    if (Math.abs(dr) === 1 && Math.abs(dc) === 2) return [fr * cols + (fc + dc)];
+    return [];
+  }
+
+  function draughtsChain(from, to, victims) {
+    // Ricostruisce la catena di salti della dama: ogni presa scavalca una vittima
+    // adiacente in diagonale e atterra due caselle oltre. Ritorna gli atterraggi
+    // intermedi e l'ordine delle vittime; null se non ricostruibile (→ volo diretto).
+    const path = [], order = [];
+    const remaining = new Set(victims);
+    let cur = from, guard = 0;
+    while (remaining.size > 0 && guard++ < 16) {
+      let advanced = false;
+      for (const v of remaining) {
+        const vr = Math.floor(v / cols), vc = v % cols;
+        const cr = Math.floor(cur / cols), cc = cur % cols;
+        if (Math.abs(vr - cr) === 1 && Math.abs(vc - cc) === 1) {
+          const lr = vr + (vr - cr), lc = vc + (vc - cc);
+          if (lr >= 0 && lr < rows && lc >= 0 && lc < cols) {
+            cur = lr * cols + lc;
+            path.push(cur); order.push(v);
+            remaining.delete(v); advanced = true;
+            break;
+          }
+        }
+      }
+      if (!advanced) return null;
+    }
+    if (cur !== to) return null;
+    return { waypoints: path.slice(0, -1), victimOrder: order };
+  }
+
+  function syncCell(i, popIt) {
+    // Riallinea la presentazione di una singola casella allo stato corrente.
+    const el = document.getElementById("grid").children[i];
+    el.textContent = board[i] || "";
+    el.classList.remove("x", "o", "pop");
+    el.style.color = "";
+    const pc = pieceClass(board[i]);
+    if (pc) el.classList.add(pc);
+    if (popIt) { void el.offsetWidth; el.classList.add("pop"); }
+  }
+
+  function showGhost(i, sym) {
+    // Mostra temporaneamente un pezzo ormai rimosso dallo stato (vittima in attesa
+    // di essere "mangiata" o pezzo catturato su cui il flyer sta per atterrare).
+    const el = document.getElementById("grid").children[i];
+    el.textContent = sym;
+    el.classList.remove("x", "o", "pop");
+    const pc = pieceClass(sym);
+    if (pc) el.classList.add(pc);
+    el.style.color = "";
+  }
+
+  function flyPiece(sym, cells, onSegment, onDone) {
+    // Fa volare un pezzo lungo una sequenza di caselle, UN SEGMENTO ALLA VOLTA
+    // (ANIM_MS a segmento): il cavallo fa la "L", la dama fa salto per salto.
+    const grid = document.getElementById("grid");
+    const rects = cells.map(cellRect);
+    const a = rects[0];
+    const pc = pieceClass(sym);
+    const fly = document.createElement("div");
+    fly.className = "flyer" + (pc ? " " + pc : "");
+    fly.textContent = sym;
+    fly.style.cssText = `left:${a.left}px;top:${a.top}px;width:${a.w}px;height:${a.h}px;` +
+      `font-size:${cellPx * 0.72}px;transition-duration:${ANIM_MS}ms;`;
+    grid.appendChild(fly);
+    let k = 0;
+    const step = () => {
+      if (k >= rects.length - 1) { fly.remove(); if (onDone) onDone(); return; }
+      k++;
+      fly.style.transform = `translate(${rects[k].left - a.left}px, ${rects[k].top - a.top}px)`;
+      setTimeout(() => { if (onSegment) onSegment(k); step(); }, ANIM_MS + 20);
+    };
+    void fly.offsetWidth; // forza il reflow: la transizione parte dall'origine
+    step();
+  }
+
   function transitionBoard(next, animate = true) {
     // Confronta la board attuale con la nuova e:
-    // - fa SCIVOLARE i pezzi mossi, accoppiando per simbolo le caselle svuotate con
-    //   quelle occupate (copre anche arrocco = 2 coppie, en passant e promozione);
-    // - fa "cadere" dall'alto le pedine del Forza 4 (comparsa senza origine);
-    // - fa comparire con il "pop" i simboli del Tris;
-    // - suona al termine del movimento (più grave se c'è stata una cattura).
+    // - fa SCIVOLARE i pezzi lungo il PERCORSO COMPLETO della mossa (cavallo a "L",
+    //   prese multiple della dama salto per salto, arrocco = 2 coppie);
+    // - le vittime restano visibili finché il pezzo in volo non le raggiunge;
+    // - nelle promozioni vola il pezzo ORIGINALE, che si trasforma all'arrivo (pop):
+    //   prima si muove il pezzo, poi si crea la dama/donna;
+    // - fa "cadere" dall'alto le pedine del Forza 4 e comparire col "pop" il Tris;
+    // - suona all'arrivo (più grave se c'è stata una cattura).
     const prev = board;
     board = next.slice();
     const vacated = [], appeared = [];
@@ -280,32 +367,56 @@
     for (const to of appeared) {
       let k = free.findIndex((f) => prev[f] === board[to]);
       if (k < 0 && free.length > 0) k = 0;
-      if (k >= 0) { pairs.push([free[k], to]); free.splice(k, 1); }
-      else if (moveType === "column") pairs.push([idx(0, to % cols), to]); // caduta
+      if (k >= 0) { pairs.push({ from: free[k], to: to, drop: false }); free.splice(k, 1); }
+      else if (moveType === "column") pairs.push({ from: idx(0, to % cols), to: to, drop: true });
       else pops.push(to);
     }
-    if (free.length > 0) captured = true;
+    const victims = free.slice();
+    if (victims.length > 0) captured = true;
 
     renderCells(new Set(pops));
-    const grid = document.getElementById("grid");
-    for (const [from, to] of pairs) {
-      const sym = board[to];
-      const a = cellRect(from), b = cellRect(to);
-      const cell = grid.children[to];
-      cell.style.color = "transparent"; // il pezzo resta invisibile finché il flyer vola
-      const pc = pieceClass(sym);
-      const fly = document.createElement("div");
-      fly.className = "flyer" + (pc ? " " + pc : "");
-      fly.textContent = sym;
-      fly.style.cssText = `left:${a.left}px;top:${a.top}px;width:${a.w}px;height:${a.h}px;` +
-        `font-size:${cellPx * 0.72}px;transition-duration:${ANIM_MS}ms;`;
-      grid.appendChild(fly);
-      void fly.offsetWidth; // forza il reflow: la transizione parte dall'origine
-      fly.style.transform = `translate(${b.left - a.left}px, ${b.top - a.top}px)`;
-      setTimeout(() => { cell.style.color = ""; fly.remove(); }, ANIM_MS + 30);
+
+    // Le vittime restano al loro posto finché non vengono davvero "mangiate".
+    for (const v of victims) showGhost(v, prev[v]);
+
+    let pending = pairs.length;
+    const finishOne = () => {
+      pending--;
+      if (pending === 0) {
+        victims.forEach((v) => syncCell(v, false)); // pulizia di eventuali residui
+        playSound(captured);
+      }
+    };
+
+    for (const p of pairs) {
+      const flySym = p.drop ? board[p.to] : prev[p.from]; // vola il pezzo ORIGINALE
+      let waypoints = [];
+      let victimOrder = [];
+      if (!p.drop && moveType === "chess" && "♘♞".includes(flySym)) {
+        waypoints = knightWaypoint(p.from, p.to); // la "L" del cavallo
+      } else if (!p.drop && moveType === "draughts" && victims.length > 0 && pairs.length === 1) {
+        const chain = draughtsChain(p.from, p.to, victims);
+        if (chain) { waypoints = chain.waypoints; victimOrder = chain.victimOrder; }
+      }
+      // Destinazione: il pezzo catturato resta visibile finché il flyer non atterra;
+      // se la casella era vuota, il nuovo pezzo resta invisibile durante il volo.
+      if (prev[p.to]) showGhost(p.to, prev[p.to]);
+      else document.getElementById("grid").children[p.to].style.color = "transparent";
+
+      flyPiece(
+        flySym,
+        [p.from, ...waypoints, p.to],
+        (seg) => { // a ogni salto completato la vittima scavalcata sparisce
+          if (victimOrder[seg - 1] !== undefined) syncCell(victimOrder[seg - 1], false);
+        },
+        () => { // atterraggio: la casella rivela lo stato reale; se il simbolo è
+          // cambiato (promozione a dama/donna) la trasformazione fa "pop"
+          syncCell(p.to, board[p.to] !== flySym);
+          finishOne();
+        }
+      );
     }
-    // Il suono accompagna l'arrivo del pezzo (subito se ci sono solo "pop").
-    setTimeout(() => playSound(captured), pairs.length ? ANIM_MS : 0);
+    if (pairs.length === 0) playSound(captured);
   }
 
   function applySession(session) {
