@@ -135,14 +135,16 @@ class MatchResult(BaseModel):
 
 # ----- Sessioni di gioco -----
 class PlayerSpec(BaseModel):
-    type: str  # "human" | "ai"
+    # Tipo di giocatore: "human" (umano), "ai" (IA via API: Qwen/Claude/…) oppure
+    # "stockfish" (motore Stockfish configurabile). Vedi backend/app/opponents/.
+    type: str
     user_id: Optional[int] = None
 
     @field_validator("type")
     @classmethod
     def valid_type(cls, v: str) -> str:
-        if v not in {"human", "ai"}:
-            raise ValueError("type deve essere 'human' o 'ai'")
+        if v not in {"human", "ai", "stockfish"}:
+            raise ValueError("type deve essere 'human', 'ai' o 'stockfish'")
         return v
 
 

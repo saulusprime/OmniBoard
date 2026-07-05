@@ -181,7 +181,9 @@ def play_setup(request):
             o_ai = form.cleaned_data["o_type"] == "ai"
             count = form.cleaned_data.get("games_count") or 1
 
-            # Entrambi IA + più partite → esegui un batch e mostra il riepilogo.
+            # Entrambi di tipo "IA via API" + più partite → batch di simulazione con
+            # riepilogo (l'endpoint batch non supporta Stockfish: con Stockfish si
+            # crea una normale sessione singola osservabile in diretta).
             if x_ai and o_ai and count > 1:
                 try:
                     result = api.run_batch({"game_code": game_code, "count": count})
@@ -191,9 +193,11 @@ def play_setup(request):
             else:
 
                 def spec(side):
-                    if form.cleaned_data[f"{side}_type"] == "ai":
-                        return {"type": "ai"}
-                    return {"type": "human", "user_id": int(form.cleaned_data[f"{side}_user"])}
+                    # Il tipo del form coincide con quello dell'API: human | ai | stockfish.
+                    kind = form.cleaned_data[f"{side}_type"]
+                    if kind == "human":
+                        return {"type": "human", "user_id": int(form.cleaned_data[f"{side}_user"])}
+                    return {"type": kind}
 
                 data = {"game_code": game_code, "x": spec("x"), "o": spec("o")}
                 try:

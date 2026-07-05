@@ -149,7 +149,13 @@ class GroupMembership(Base):
 
 
 class GameSession(Base):
-    """Partita giocabile con stato persistito. Ogni lato può essere umano o IA."""
+    """Partita giocabile con stato persistito.
+
+    Ogni lato è di uno di tre tipi: **umano** (``*_is_ai`` False), **IA via API**
+    (``*_is_ai`` True, ``*_ai_kind`` = "ai") o **Stockfish** (``*_ai_kind`` =
+    "stockfish"). ``*_ai_kind`` è None per gli umani; per righe storiche con
+    ``*_is_ai`` True e kind assente si assume "ai".
+    """
 
     __tablename__ = "game_sessions"
 
@@ -159,12 +165,14 @@ class GameSession(Base):
     o_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # None se IA
     x_is_ai = Column(Boolean, default=False, nullable=False)
     o_is_ai = Column(Boolean, default=False, nullable=False)
+    x_ai_kind = Column(String(16), nullable=True)  # "ai" | "stockfish" (None se umano)
+    o_ai_kind = Column(String(16), nullable=True)
     state_json = Column(String, nullable=False)  # stato serializzato dal motore
     moves_json = Column(String, default="[]", nullable=False)  # log delle mosse
     status = Column(String, default="in_progress", nullable=False)  # in_progress | finished
     winner = Column(String, nullable=True)  # x | o | draw
     last_ai_cell = Column(Integer, nullable=True)
-    last_ai_source = Column(String, nullable=True)  # qwen | local
+    last_ai_source = Column(String, nullable=True)  # book | stockfish | <provider> | engine | local
     created_at = Column(DateTime, default=utcnow)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 

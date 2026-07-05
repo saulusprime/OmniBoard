@@ -70,3 +70,14 @@ def test_opening_book_move_is_legal():
     game = Chess()
     move = game.opening_move(game.initial_state(), [])
     assert move in game.legal_moves(game.initial_state())
+
+
+def test_fen_round_trip():
+    """to_fen/from_fen sono inversi (il numero di mossa, non tracciato, e' fisso a 1)."""
+    game = Chess()
+    fen = "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3"
+    state = Chess.from_fen(fen)
+    assert Chess.to_fen(state) == fen.rsplit(" ", 1)[0] + " 1"
+    # E dallo stato iniziale:
+    initial = game.initial_state()
+    assert Chess.from_fen(Chess.to_fen(initial)) == initial

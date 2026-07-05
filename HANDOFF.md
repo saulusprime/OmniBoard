@@ -5,6 +5,53 @@
 
 ---
 
+## 2026-07-05 — Tre tipi di avversario + pacchetto opponents/ (API, Stockfish, locale)
+
+**Obiettivo:** l'avversario può essere di **tre tipi** — umano, **Stockfish (NNUE)
+configurabile**, **IA via API** (Qwen, Claude, Gemini, …) — con il codice delle chiamate IA
+e quello di Stockfish **separati in moduli dedicati** per leggibilità.
+
+**Realizzato:**
+- **Nuovo pacchetto `backend/app/opponents/`** (ex `ai.py`, spostato con `git mv`):
+  - `api_ai.py` — avversario **IA via API**: prompt, parsing tollerante della risposta
+    (`_match_move`), client OpenAI-compatible (httpx) e Anthropic (SDK), `ping` per la
+    verifica credenziali. Solo chiamate remote, nessuna logica di gioco.
+  - `stockfish.py` — avversario **Stockfish** via protocollo **UCI**: dialogo one-shot in
+    subprocess (opzioni → posizione → `go movetime` → `bestmove`, chiuso da `quit`),
+    thread-safe e senza stato; posizione come `startpos + moves` (dallo storico) o FEN
+    (nuovo `Chess.to_fen`, inverso di `from_fen`). Configurabile dal super admin
+    (categoria **Stockfish**): `stockfish.path` (o env `STOCKFISH_PATH`, o PATH),
+    `stockfish.move_ms`, `stockfish.elo` (UCI_LimitStrength+UCI_Elo 1320-3190),
+    `stockfish.skill_level` (0-20).
+  - `local.py` — **giocatore locale di ripiego** (non selezionabile): motore dedicato per
+    gli scacchi, minimax generico per gli altri giochi. Entra quando l'avversario scelto
+    non può muovere (binario mancante, provider assente, errore di rete).
+  - `__init__.py` — **dispatcher per tipo**: libro aperture per tutti → Stockfish o
+    provider API secondo il tipo → ripiego locale. La `sorgente` restituita dice chi ha
+    giocato davvero (book / stockfish / codice provider / engine / local).
+- **Cambio di comportamento (voluto):** con avversario «IA via API» il modello remoto
+  **gioca davvero** (prima, negli scacchi, il motore interno lo scavalcava sempre);
+  il motore interno resta il ripiego.
+- **Modello dati:** nuove colonne `game_sessions.x_ai_kind` / `o_ai_kind`
+  ("ai" | "stockfish", None per umano; righe storiche con kind assente ⇒ "ai").
+  **⚠️ Cambio schema senza migrazioni:** in sviluppo eliminare il DB
+  (`rm backend/scacchi.db`) prima di riavviare il backend.
+- **API/Frontend:** `PlayerSpec.type` ∈ {human, ai, stockfish}; la vista espone il tipo per
+  lato e `last_ai.source` anche per scacchi/dama (prima solo per i giochi a cella); setup
+  partita con tre scelte («Umano», «IA via API (Qwen, Claude, …)», «Stockfish (motore)»);
+  pagina di gioco con etichetta del tipo; batch invariato (solo tipo "ai").
+- **Test** (95 totali, +8): ponte UCI provato con un **finto motore** (script shell che
+  risponde `bestmove`), rifiuto di bestmove illegale, ripiego sul locale, end-to-end di una
+  sessione con lato "stockfish", round-trip `to_fen`/`from_fen`; test col vero Stockfish
+  marcato `skipif` (binario assente su questa macchina). Lint pulito.
+
+**Verifiche dal vivo:** sessione scacchi con O = Stockfish (finto binario via
+`STOCKFISH_PATH`): mossa fuori libro `a2a3` → risposta `e7e5` arrivata **dal ponte UCI**
+(tipo del lato "stockfish" esposto dalla vista); ripiego sul motore interno verificato con
+binario assente.
+
+---
+
 ## 2026-07-05 — Refactor del motore: una directory per gioco, common/, una classe per file
 
 **Obiettivo:** facilitare lettura e manutenzione raggruppando i file di ogni gioco in una

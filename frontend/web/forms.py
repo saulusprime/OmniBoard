@@ -54,9 +54,18 @@ class VoteForm(forms.Form):
 
 
 class GameSetupForm(forms.Form):
-    """Configurazione di una partita: gioco scelto e ogni lato umano o IA (Qwen)."""
+    """Configurazione di una partita: gioco scelto e tipo di ogni lato.
 
-    PLAYER_TYPES = [("human", "Umano"), ("ai", "IA (Qwen)")]
+    Tre tipi di giocatore: umano, IA via API (il provider attivo: Qwen/Claude/…)
+    e Stockfish (motore configurabile dal super admin). I tipi non umani ripiegano
+    sul giocatore locale se non configurati/raggiungibili.
+    """
+
+    PLAYER_TYPES = [
+        ("human", "Umano"),
+        ("ai", "IA via API (Qwen, Claude, …)"),
+        ("stockfish", "Stockfish (motore)"),
+    ]
 
     game = forms.ChoiceField(label="Gioco")
     x_type = forms.ChoiceField(label="Giocatore X (primo a muovere)", choices=PLAYER_TYPES)

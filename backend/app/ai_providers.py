@@ -12,7 +12,8 @@ import os
 
 from sqlalchemy.orm import Session
 
-from . import ai, models, settings_service
+from . import models, settings_service
+from .opponents import api_ai
 
 # Provider noti. base_url/model sono valori iniziali modificabili dal super admin.
 PROVIDER_DEFS = [
@@ -162,4 +163,4 @@ def test_provider(db: Session, code: str):
         "model": row.model or "",
         "api_key": row.api_key,
     }
-    return ai.ping(config)
+    return api_ai.ping(config)

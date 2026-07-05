@@ -51,9 +51,12 @@ prospettiva, anche quelli con **nodi del caso** (dadi) come backgammon e ludo.
 - 👤 **Anagrafica giocatori** e profili.
 - 📊 **Statistiche di gioco** per giocatore e per gioco (partite, vittorie, ranking).
 - 🧩 **Architettura a servizi**: presentazione (Django) separata dalla logica/API (FastAPI).
-- 🤖 **Avversario IA** multi-provider (**Qwen**, **Claude/Anthropic**, **OpenAI**): i token si
-  configurano da una pagina **«Provider IA»** del super admin (salvati lato server, non nel
-  `.env`), con fallback locale (minimax alpha-beta) e mossa mostrata con ritardo e animazione.
+- 🤖 **Tre tipi di avversario** per ogni lato della partita: **umano**, **Stockfish** (motore
+  NNUE via protocollo UCI, con forza configurabile: Skill Level, Elo simulato, tempo per
+  mossa) e **IA via API** multi-provider (**Qwen**, **Claude/Anthropic**, **OpenAI**, token
+  configurati dalla pagina «Provider IA» del super admin, salvati lato server). I tipi non
+  umani ripiegano sul **giocatore locale** se non configurati o irraggiungibili: la partita
+  non si blocca mai.
 - ♟️ **Scacchi completi** (arrocco, en passant, promozione, matto/stallo) con **libro di
   aperture** (Italiana, Siciliana, Scozzese, Spagnola…): l'apertura viene riconosciuta e l'IA
   la segue.
@@ -185,6 +188,10 @@ Scacchi/
 │       ├── models.py    # modelli SQLAlchemy (utenti, giochi, punteggi, gruppi)
 │       ├── schemas.py   # schemi Pydantic
 │       ├── gameplay.py  # svolgimento partite + worker IA in background
+│       ├── opponents/   # avversari non umani, un modulo per tipo:
+│       │   ├── api_ai.py     #   IA via API (Qwen, Claude, OpenAI, …)
+│       │   ├── stockfish.py  #   motore Stockfish via protocollo UCI
+│       │   └── local.py      #   giocatore locale di ripiego (sempre disponibile)
 │       └── routers/     # users, games, groups, matches, rankings, sessions, admin
 │
 └── frontend/            # progetto Django (presentazione, nessun DB proprio)
@@ -265,6 +272,7 @@ database. Configurazione tramite `.env` (vedi `.env.example`).
 - [x] **Login provider IA** (Qwen, Claude, OpenAI): token configurabili da super admin, salvati lato server
 - [x] **IA scacchi potenziata**: motore alpha-beta dedicato (quiescence, TT) + **modello dell'avversario** (schemi/debolezze dallo storico)
 - [x] **Mosse IA in background**: risposta immediata, l'IA pensa in un worker e il client si aggiorna via polling
+- [x] **Tre tipi di avversario** (umano / Stockfish UCI configurabile / IA via API) con codice separato per tipo (`opponents/`)
 - [ ] Autenticazione/login dei giocatori
 - [ ] Regole di gestione dei gruppi (ruoli, inviti, espulsioni)
 - [ ] Migrazioni del database (Alembic) e PostgreSQL in produzione
