@@ -18,6 +18,7 @@ import json
 import logging
 import os
 import threading
+import time
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
@@ -284,6 +285,20 @@ def clock_view(session: models.GameSession, game) -> dict | None:
 
 
 # ----- Avanzamento IA -----
+def _watch_pace_ms(db: Session) -> int:
+    """Ritmo minimo (ms) tra le mosse IA "osservate" dal client.
+
+    Le mosse di libro sono istantanee: senza un ritmo minimo una partita IA-vs-IA
+    giocherebbe mezza apertura prima ancora che il browser disegni la scacchiera, e il
+    polling mostrerebbe più mosse in un colpo solo. La variabile d'ambiente
+    ``AI_WATCH_PACE_MS`` ha la precedenza (nei test: 0 → nessuna attesa).
+    """
+    env = os.getenv("AI_WATCH_PACE_MS")
+    if env is not None:
+        return int(env)
+    return int(settings_service.get(db, "ai.watch_pace_ms"))
+
+
 def advance_ai(db: Session, game, session: models.GameSession) -> None:
     """Fa giocare i lati IA finché non tocca a un umano o la partita finisce.
 
@@ -292,6 +307,14 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
     """
     state = load_state(game, session)
     moves = json.loads(session.moves_json or "[]")
+    # Ritmo di visione: si applica tra le mosse quando ENTRAMBI i lati sono IA
+    # (partita "da guardare") e prima della PRIMA mossa della partita quando apre
+    # l'IA (dà al browser il tempo di disegnare la scacchiera: la mossa arriverà
+    # via polling, animata). Solo in modalità asincrona: in linea bloccherebbe la
+    # richiesta HTTP senza che nessuno stia guardando.
+    both_ai = session.x_is_ai and session.o_is_ai
+    pace_s = (_watch_pace_ms(db) / 1000.0) if async_enabled(db) else 0.0
+    last_move_at = time.monotonic()
     # Configurazioni lette una volta per turno IA: provider API attivo e Stockfish
     # (base globale: percorso binario + parametri del super admin).
     provider = ai_providers.get_active_config(db)
@@ -305,6 +328,14 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
         player = game.current_player(state)
         if not side_is_ai(session, player):
             break
+        if pace_s > 0 and (both_ai or not moves):
+            wait = pace_s - (time.monotonic() - last_move_at)
+            if wait > 0:
+                time.sleep(wait)
+                if session.tc_category:
+                    # La pausa è "dell'arbitro", non del giocatore: l'orologio
+                    # dell'IA riparte solo ora che inizia davvero a pensare.
+                    session.turn_started_at = _now()
         # Orologio: se il tempo dell'IA è già scaduto la partita si chiude qui; e il
         # budget di riflessione viene limitato a una frazione del residuo, così l'IA
         # non fa cadere la propria bandierina pensando troppo a lungo.
@@ -342,6 +373,7 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
         session.moves_json = json.dumps(moves)
         save_state(game, session, state)
         db.commit()
+        last_move_at = time.monotonic()
     finish_if_terminal(db, game, session, state)
 
 

@@ -86,6 +86,13 @@ Dal super admin (categoria **Aspetto**) si personalizzano: la **durata dell'anim
 suono** (`ui.sound_enabled`) e il **volume** (`ui.sound_volume`, 0-100). Le modifiche hanno
 effetto al ricaricamento della pagina di gioco.
 
+Le partite **IA contro IA** (e la prima mossa quando apre l'IA) rispettano un **ritmo
+minimo tra le mosse** (`ai.watch_pace_ms`, categoria IA, default 1200 ms): senza, le mosse
+di libro sarebbero istantanee e la partita finirebbe prima che la scacchiera venga
+disegnata. Così ogni mossa arriva singolarmente, animata e col suo suono, come guardare
+una partita vera. Con l'orologio attivo la pausa non consuma il tempo dei giocatori (è
+"dell'arbitro").
+
 ### Provider IA (login verso Qwen, Claude, OpenAI…)
 Dalla pagina **Provider IA** (pulsante in cima alla pagina Admin, oppure `/admin/ia/`) si
 configurano i servizi di intelligenza artificiale **senza toccare il file `.env`**. Per ogni

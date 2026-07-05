@@ -5,6 +5,36 @@
 
 ---
 
+## 2026-07-05 — Ritmo di visione: le mosse IA arrivano una alla volta (partite osservabili)
+
+**Sintomo (utente):** nelle partite IA-vs-IA le prime mosse non si vedono — troppo veloci;
+serve un ritardo tra una mossa e l'altra e la garanzia che la scacchiera sia disegnata
+prima della prima mossa.
+
+**Causa:** il worker IA parte alla creazione della sessione e le mosse di **libro** sono
+istantanee: quando il browser carica la pagina, mezza apertura è già giocata; e tra due
+polling potevano cadere più mosse (mostrate "a salti").
+
+**Fix (`gameplay.advance_ai`):** **ritmo minimo tra le mosse IA**, applicato con una
+`time.sleep` nel worker (mai nelle richieste HTTP: attivo solo in modalità asincrona):
+- tra le mosse quando **entrambi i lati sono IA** (partita "da guardare");
+- prima della **prima mossa della partita** quando apre l'IA (dà al browser il tempo di
+  disegnare la scacchiera: la mossa arriva poi via polling, animata e col suono).
+- Con l'**orologio** attivo la pausa non consuma il tempo del giocatore: è "dell'arbitro"
+  (`turn_started_at` riparte a fine pausa).
+
+**Configurazione:** parametro super admin `ai.watch_pace_ms` (categoria IA, default
+1200 ms; 0 = nessun ritmo); override d'ambiente `AI_WATCH_PACE_MS` (nei test: 0).
+
+**Test (+1, 107 verdi):** con ritmo attivo la risposta di creazione ha **0 mosse** (la
+scacchiera nasce vuota) e la prima mossa IA arriva dopo, singola.
+
+**Verifica dal vivo:** IA-vs-IA di scacchi (Stockfish Pan vs Pan): creazione con 0 mosse,
+poi `e4, e5, Cf3, Cc6, Ab5, a6` una alla volta a intervalli di ~1.0–1.3s — la partita si
+guarda come un video.
+
+---
+
 ## 2026-07-05 — Orologio di gioco per gli scacchi (Blitz/Rapid/Classical/FIDE + Fischer)
 
 **Obiettivo:** tempo permesso per le mosse, con categorie selezionabili dal giocatore e

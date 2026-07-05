@@ -86,6 +86,13 @@ SETTINGS_DEFS = [
         "label": "Mosse IA in background (il client si aggiorna da solo; no = calcolo in linea)",
     },
     {
+        "key": "ai.watch_pace_ms",
+        "type": "int",
+        "default": 1200,
+        "category": "IA",
+        "label": "Ritmo minimo tra le mosse IA osservate (IA-vs-IA e prima mossa; ms; 0 = nessuno)",
+    },
+    {
         "key": "stockfish.path",
         "type": "str",
         "default": "",

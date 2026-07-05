@@ -77,6 +77,30 @@ def test_schedule_is_idempotent_no_double_moves(monkeypatch):
         assert data["current"] == "o"
 
 
+def test_watch_pace_delays_first_ai_move(monkeypatch):
+    """Col ritmo di visione attivo, la prima mossa dell'IA NON è già sulla scacchiera
+    alla creazione: il client ha il tempo di disegnarla e vedrà la mossa animata."""
+    monkeypatch.setenv("AI_ASYNC", "1")
+    monkeypatch.setenv("AI_WATCH_PACE_MS", "1500")
+    with TestClient(app) as client:
+        user = _make_user(client, "pace_h")
+        session = client.post(
+            "/sessions",
+            json={
+                "game_code": "tictactoe",
+                "x": {"type": "ai"},
+                "o": {"type": "human", "user_id": user["id"]},
+            },
+        ).json()
+        sid = session["id"]
+        # Subito dopo la creazione: il worker sta ancora rispettando il ritmo.
+        just_created = client.get(f"/sessions/{sid}").json()
+        assert just_created["moves"] == []
+        # Poi la mossa arriva (il polling la vedrà singola, animata).
+        data = _wait_human_turn(client, sid)
+        assert len(data["moves"]) == 1
+
+
 def test_sync_mode_still_returns_ai_move_inline():
     # Con AI_ASYNC=0 (default della suite) la risposta contiene già la mossa dell'IA.
     with TestClient(app) as client:
