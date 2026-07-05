@@ -18,8 +18,9 @@
   con polling strutturato (mosse col token del giocatore al tratto), presenza online
   (heartbeat), area Community con sfide e badge punti. Raffinamento futuro: WebSocket al
   posto del polling (latenza percepita più bassa, meno richieste).
-- [ ] **Push GitHub** — configurare le credenziali (`gh auth login` o PAT) e pubblicare i
-  commit locali in attesa su `origin/main`.
+- [x] **Push GitHub** — `gh auth login` (SSH) configurato; remoto passato a
+  `git@github.com:saulusprime/Scacchi.git`, tutti i commit pubblicati. D'ora in poi il
+  push fa parte del workflow di ogni step.
 
 ## Motore scacchi
 
