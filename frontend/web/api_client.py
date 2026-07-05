@@ -97,6 +97,22 @@ def reject_user(user_id, token: str):
     return _request("DELETE", f"/users/{user_id}", headers={"X-Admin-Token": token})
 
 
+# ----- Community: presenza online e partite del giocatore -----
+def heartbeat(token: str):
+    """Rinnova la presenza online del giocatore autenticato."""
+    return _request("POST", "/auth/heartbeat", headers={"X-Auth-Token": token})
+
+
+def community_online():
+    """Giocatori online adesso, con il punteggio complessivo (badge)."""
+    return _request("GET", "/community/online")
+
+
+def my_games(token: str):
+    """Partite in corso del giocatore autenticato (sfide ricevute comprese)."""
+    return _request("GET", "/community/my-games", headers={"X-Auth-Token": token})
+
+
 # ----- Gruppi -----
 def list_groups():
     return _request("GET", "/groups")
@@ -128,8 +144,10 @@ def get_session(session_id):
     return _request("GET", f"/sessions/{session_id}")
 
 
-def session_move(session_id, data: dict):
-    return _request("POST", f"/sessions/{session_id}/move", json=data)
+def session_move(session_id, data: dict, token: str | None = None):
+    """Invia una mossa; nelle partite a distanza serve il token del giocatore."""
+    headers = {"X-Auth-Token": token} if token else {}
+    return _request("POST", f"/sessions/{session_id}/move", json=data, headers=headers)
 
 
 def run_batch(data: dict):

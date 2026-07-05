@@ -46,7 +46,7 @@ def _purge_expired(db: Session) -> None:
     db.query(models.AuthSession).filter(models.AuthSession.expires_at < now).delete()
 
 
-def _session_from_token(db: Session, token: str) -> models.AuthSession:
+def session_from_token(db: Session, token: str) -> models.AuthSession:
     """Risolve il token in una sessione valida, oppure 401 (mai dettagli sul perché)."""
     sess = (
         db.query(models.AuthSession).filter(models.AuthSession.token == token).first()
@@ -91,6 +91,7 @@ def login(payload: schemas.LoginRequest, db: Session = Depends(get_db)):
         expires_at=expires.replace(tzinfo=None),  # naive-UTC, coerente con la colonna
     )
     db.add(sess)
+    user.last_seen_at = _now().replace(tzinfo=None)  # appena loggato = online
     db.commit()
     return schemas.LoginOut(
         token=sess.token, expires_at=expires, user=schemas.UserOut.model_validate(user)
@@ -103,8 +104,23 @@ def me(
     db: Session = Depends(get_db),
 ):
     """Il giocatore riconosciuto dal token di sessione (o 401)."""
-    sess = _session_from_token(db, x_auth_token)
+    sess = session_from_token(db, x_auth_token)
     return sess.user
+
+
+@router.post("/heartbeat", status_code=204)
+def heartbeat(
+    x_auth_token: str = Header(default="", alias="X-Auth-Token"),
+    db: Session = Depends(get_db),
+):
+    """Segnala che il giocatore è ancora davanti al client (presenza online).
+
+    Il frontend lo chiama periodicamente; "online" = ultimo battito entro la
+    finestra ``community.online_window_s`` (vedi router community).
+    """
+    sess = session_from_token(db, x_auth_token)
+    sess.user.last_seen_at = _now().replace(tzinfo=None)
+    db.commit()
 
 
 @router.post("/logout", status_code=204)
@@ -113,6 +129,9 @@ def logout(
     db: Session = Depends(get_db),
 ):
     """Chiude la sessione. Idempotente: 204 anche se il token non esiste più."""
-    db.query(models.AuthSession).filter(models.AuthSession.token == x_auth_token).delete()
+    sess = db.query(models.AuthSession).filter(models.AuthSession.token == x_auth_token).first()
+    if sess:
+        sess.user.last_seen_at = None  # uscita esplicita = subito offline in community
+        db.delete(sess)
     _purge_expired(db)
     db.commit()

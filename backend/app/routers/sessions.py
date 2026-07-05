@@ -12,13 +12,14 @@ from __future__ import annotations
 import json
 import random
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
 from engine import get_game, is_playable
 
 from .. import ai_providers, gameplay, models, opponents, schemas, settings_service, user_prefs
 from ..database import get_db
+from .auth import session_from_token
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
@@ -54,6 +55,9 @@ def _view(session: models.GameSession) -> dict:
     return {
         "id": session.id,
         "game_code": session.game.code,
+        # Partita a distanza: il client abilita solo il PROPRIO lato e fa polling
+        # mentre aspetta la mossa dell'avversario (umano remoto o IA).
+        "remote": bool(session.remote),
         "game_name": game.name,
         "rows": game.rows,
         "cols": game.cols,
@@ -153,6 +157,7 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
         o_ai_kind=o_kind,
         x_ai_level=x_level,
         o_ai_level=o_level,
+        remote=payload.remote,
         state_json=json.dumps(game.serialize_state(state)),
         moves_json="[]",
         status="in_progress",
@@ -240,7 +245,12 @@ def get_session(session_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/{session_id}/move")
-def make_move(session_id: int, payload: schemas.MoveIn, db: Session = Depends(get_db)):
+def make_move(
+    session_id: int,
+    payload: schemas.MoveIn,
+    x_auth_token: str = Header(default="", alias="X-Auth-Token"),
+    db: Session = Depends(get_db),
+):
     session = db.get(models.GameSession, session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Sessione non trovata")
@@ -258,6 +268,16 @@ def make_move(session_id: int, payload: schemas.MoveIn, db: Session = Depends(ge
     player = game.current_player(state)
     if gameplay.side_is_ai(session, player):
         raise HTTPException(status_code=409, detail="È il turno dell'IA")
+    if session.remote:
+        # Partita a distanza: SOLO il giocatore al tratto può muovere, autenticato
+        # col proprio token di sessione (i client sono indipendenti e non fidati).
+        # L'hotseat (remote=False) resta com'era: nessun token richiesto.
+        mover = session_from_token(db, x_auth_token).user  # 401 se manca/scaduto
+        owner_id = session.x_user_id if player == 0 else session.o_user_id
+        if mover.id != owner_id:
+            raise HTTPException(
+                status_code=403, detail="Non sei il giocatore al tratto in questa partita"
+            )
     chosen = next((m for m in game.legal_moves(state) if game.move_id(m) == payload.move), None)
     if chosen is None:
         raise HTTPException(status_code=400, detail="Mossa non valida")

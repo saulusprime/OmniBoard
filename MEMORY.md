@@ -431,6 +431,13 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   errore chiaro se più vecchi. Test guardiano `compare_metadata` (modelli↔migrazioni).
   Workflow nuovo: modelli → `make migration m="..."` → riavvio. NIENTE più
   `rm backend/scacchi.db`. 132 test verdi.
+- **2026-07-05** — **Gioco a distanza + Community**: partite fra client diversi con
+  polling strutturato; nelle sessioni `remote` la mossa richiede il **token del giocatore
+  al tratto** (401/403 dal server; hotseat invariato); il client comanda solo `MY_SIDE`.
+  Presenza online via **heartbeat** (`/auth/heartbeat`, finestra
+  `community.online_window_s`), area **Community** (`/community/`: online + «⚔️ Sfida» +
+  «Le tue partite», auto-aggiornanti), badge navbar presenza + punti complessivi
+  (`UserOut.universal_points`). Migrazione **0002**. 136 test verdi + e2e dal vivo.
 
 ## Questioni aperte
 

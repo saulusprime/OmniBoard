@@ -129,6 +129,12 @@ class GameSetupForm(forms.Form):
     x_user = forms.ChoiceField(label="Utente per X", required=False)
     o_type = forms.ChoiceField(label="Giocatore O", choices=PLAYER_TYPES)
     o_user = forms.ChoiceField(label="Utente per O", required=False)
+    # Partita a distanza: ogni giocatore muove dal PROPRIO dispositivo, le mosse
+    # richiedono il suo accesso. Deselezionato = hotseat sullo stesso schermo.
+    remote = forms.BooleanField(
+        label="Partita a distanza (ogni giocatore dal proprio dispositivo, serve l'accesso)",
+        required=False,
+    )
     time_category = forms.ChoiceField(
         label="Orologio (solo scacchi)", choices=TIME_CATEGORIES, required=False
     )

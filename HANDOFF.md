@@ -5,6 +5,50 @@
 
 ---
 
+## 2026-07-05 — Gioco a distanza fra client diversi + Community (presenza e badge)
+
+**Richiesta (utente):** partite in tempo reale fra giocatori su client differenti, con
+client del tutto indipendenti (fra loro e contro IA); gamification: **badge di presenza
+online** e **badge del punteggio complessivo**; area **Community** con i giocatori
+connessi.
+
+**Backend:**
+
+- **Migrazione 0002** (prima revisione del nuovo workflow): `users.last_seen_at`
+  (presenza) e `game_sessions.remote` (partita a distanza). Applicata da sola al riavvio.
+- **`POST /auth/heartbeat`** (X-Auth-Token) rinnova la presenza; il login rende online,
+  il **logout esplicito mette subito offline**. "Online" = visto entro
+  `community.online_window_s` (nuovo parametro, default 120s, categoria Community).
+- Nuovo router **`community.py`**: `GET /community/online` (giocatori connessi +
+  `universal_points` per il badge) e `GET /community/my-games` (partite in corso del
+  giocatore autenticato, con `my_turn` — è così che lo sfidato SCOPRE la sfida).
+- **Partite remote**: `SessionCreate.remote`; in `make_move`, se la sessione è remota,
+  la mossa richiede il **token del giocatore al tratto** (401 senza token, 403 se di un
+  altro) — i client non sono fidati, l'autorità è il server. **Hotseat invariato**
+  (nessun token). `UserOut.universal_points` per i badge.
+
+**Frontend:**
+
+- **Community** (`/community/`): giocatori online (pallino verde + pill punti + «⚔️
+  Sfida») e «Le tue partite in corso» («Tocca a te!»); entrambe le liste si
+  auto-aggiornano (polling di `community.json`, che fa anche da heartbeat).
+- **Navbar**: badge presenza + badge punti accanto all'alias (aggiornati ogni 30s);
+  link Community.
+- **Setup partita**: casella «Partita a distanza»; «Sfida» precompila (io X, sfidato O,
+  remota). Le mosse dal frontend portano l'X-Auth-Token della sessione Django.
+- **`play.html`**: in partita remota il client comanda **solo il proprio lato**
+  (`MY_SIDE` da `players.*.user_id`, `canAct()` su input e pulsanti); il polling già
+  usato per l'IA ora copre anche l'**avversario umano remoto** («In attesa della mossa
+  dell'avversario…») e gli spettatori; hotseat identico a prima.
+
+**Test (+4, 136 verdi):** presenza (heartbeat/logout), enforcement remoto
+(401/403/200/200 sui due lati), hotseat senza token, my-games per entrambi. Test di
+adozione migrazioni rifatto fedele (DB portato a 0001 senza `alembic_version` → adozione
+→ 0002 applicata). **Verifica dal vivo** sul backend reale: 401/403/200, presenza e
+sfida visibili a entrambi i giocatori; `alembic current` → 0002.
+
+---
+
 ## 2026-07-05 — Migrazioni Alembic (fine dell'era create_all)
 
 **Richiesta (utente):** procedere con le migrazioni ad Alembic.

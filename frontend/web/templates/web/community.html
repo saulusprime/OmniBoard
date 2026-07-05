@@ -1,0 +1,101 @@
+{% extends "web/base.html" %}
+{% block title %}Community{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>🌐 Community</h1>
+  <p class="muted">Chi è connesso adesso, con il punteggio complessivo su tutti i giochi.
+  Con «Sfida» crei una <strong>partita a distanza</strong>: tu e lo sfidato giocate ognuno
+  dal proprio dispositivo (lo sfidato la troverà qui, fra «Le tue partite»).
+  L'elenco si aggiorna da solo.</p>
+
+  <h2>Giocatori online</h2>
+  <table>
+    <tr><th>Giocatore</th><th>Punti (tutti i giochi)</th><th></th></tr>
+    <tbody id="online-list">
+    {% for u in online %}
+    <tr>
+      <td><span class="dot on"></span> <a href="{% url 'user_detail' u.id %}">{{ u.alias }}</a></td>
+      <td><span class="pill">{{ u.universal_points }} pt</span></td>
+      <td>{% if auth_user and u.id != auth_user.id %}
+        <a class="btn secondary" href="{% url 'play_setup' %}?opponent={{ u.id }}">⚔️ Sfida</a>
+      {% elif auth_user %}<span class="muted">(tu)</span>{% endif %}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="3" class="muted">Nessun giocatore online in questo momento.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>🎮 Le tue partite in corso</h2>
+  {% if not auth_user %}
+  <p class="muted"><a href="{% url 'login' %}">Accedi</a> per vedere le tue partite e
+  ricevere le sfide.</p>
+  {% endif %}
+  <table {% if not auth_user %}style="display:none;"{% endif %}>
+    <tr><th>Gioco</th><th>Avversario</th><th>Turno</th><th></th></tr>
+    <tbody id="games-list">
+    {% for g in my_games %}
+    <tr>
+      <td>{{ g.game_name }}{% if g.remote %} <span class="muted">(a distanza)</span>{% endif %}</td>
+      <td>{{ g.opponent }}</td>
+      <td>{% if g.my_turn %}<span class="pill">Tocca a te!</span>{% else %}<span class="muted">avversario</span>{% endif %}</td>
+      <td><a class="btn" href="{% url 'play' g.session_id %}">Gioca</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4" class="muted">Nessuna partita in corso.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // Auto-aggiornamento dell'area community: stesso endpoint che fa da heartbeat.
+  // (I badge della navbar sono gestiti da base.html; qui si ridisegnano le liste.)
+  const ME_ID = {{ auth_user.id|default:"null" }};
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+  function renderOnline(list) {
+    const tb = document.getElementById("online-list");
+    if (!list.length) {
+      tb.innerHTML = '<tr><td colspan="3" class="muted">Nessun giocatore online in questo momento.</td></tr>';
+      return;
+    }
+    tb.innerHTML = list.map((u) => {
+      const action = ME_ID === null ? ""
+        : (u.id === ME_ID ? '<span class="muted">(tu)</span>'
+           : `<a class="btn secondary" href="/gioca/?opponent=${u.id}">⚔️ Sfida</a>`);
+      return `<tr><td><span class="dot on"></span> <a href="/giocatori/${u.id}/">${esc(u.alias)}</a></td>` +
+             `<td><span class="pill">${u.universal_points} pt</span></td><td>${action}</td></tr>`;
+    }).join("");
+  }
+
+  function renderGames(list) {
+    const tb = document.getElementById("games-list");
+    if (!tb) return;
+    if (!list.length) {
+      tb.innerHTML = '<tr><td colspan="4" class="muted">Nessuna partita in corso.</td></tr>';
+      return;
+    }
+    tb.innerHTML = list.map((g) =>
+      `<tr><td>${esc(g.game_name)}${g.remote ? ' <span class="muted">(a distanza)</span>' : ""}</td>` +
+      `<td>${esc(g.opponent)}</td>` +
+      `<td>${g.my_turn ? '<span class="pill">Tocca a te!</span>' : '<span class="muted">avversario</span>'}</td>` +
+      `<td><a class="btn" href="/partite/${g.session_id}/">Gioca</a></td></tr>`
+    ).join("");
+  }
+
+  async function refreshCommunity() {
+    try {
+      const res = await fetch("{% url 'community_json' %}");
+      if (!res.ok) return;
+      const data = await res.json();
+      renderOnline(data.online || []);
+      renderGames(data.my_games || []);
+    } catch (e) { /* backend momentaneamente giù: si riprova al giro dopo */ }
+  }
+  setInterval(refreshCommunity, 8000);
+</script>
+{% endblock %}

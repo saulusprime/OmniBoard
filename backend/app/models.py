@@ -40,6 +40,9 @@ class User(Base):
     # La registrazione è una RICHIESTA: solo il super admin la accetta. Finché
     # is_approved è False il giocatore non può autenticarsi (login negato).
     is_approved = Column(Boolean, default=False, nullable=False)
+    # Presenza online (community): aggiornata dal login e dall'heartbeat del client.
+    # "Online" = visto negli ultimi community.online_window_s secondi.
+    last_seen_at = Column(DateTime, nullable=True)
     # Preferenze estetiche del giocatore (JSON: tema scacchiera, segno del Tris, …).
     # Registro e validazione in user_prefs.py; esposte come proprietà ``prefs``.
     prefs_json = Column(String, default="{}", nullable=False)
@@ -197,6 +200,10 @@ class GameSession(Base):
 
     id = Column(Integer, primary_key=True)
     game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
+    # Partita A DISTANZA: i due giocatori usano client diversi; ogni mossa umana
+    # richiede il token di sessione (X-Auth-Token) del giocatore al tratto.
+    # False = hotseat sullo stesso schermo (comportamento storico, nessun token).
+    remote = Column(Boolean, nullable=False, default=False, server_default="0")
     x_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # None se IA
     o_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # None se IA
     x_is_ai = Column(Boolean, default=False, nullable=False)

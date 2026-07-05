@@ -141,6 +141,16 @@
   const O_AI = {% if s.players.o.type != 'human' %}true{% else %}false{% endif %};
 
   const rows = SESSION.rows, cols = SESSION.cols, moveType = SESSION.move_type;
+  // ----- Partita a distanza: questo client comanda SOLO il lato del giocatore
+  // loggato (MY_SIDE); chi non è dei due (spettatore) guarda e basta. Il server
+  // resta l'autorità: ogni mossa remota viaggia col token e viene verificata.
+  // In hotseat (REMOTE=false) tutto il comportamento storico è invariato.
+  const REMOTE = !!SESSION.remote;
+  const MY_ID = {{ my_user_id|default:"null" }};
+  const MY_SIDE = REMOTE && MY_ID !== null
+    ? (SESSION.players.x.user_id === MY_ID ? "x"
+       : SESSION.players.o.user_id === MY_ID ? "o" : null)
+    : null;
   // Estetica scelta dai giocatori (opzioni utente): tema della scacchiera (vale per
   // scacchi e dama; vince il tema del primo umano) e forma dei segni nel Tris.
   const THEME = SESSION.players.x.board_theme || SESSION.players.o.board_theme || "classico";
@@ -165,6 +175,9 @@
   const idx = (r, c) => r * cols + c;
   const symFor = (side) => (side === "x" ? "X" : "O");
   const sideIsAi = (side) => (side === "x" ? X_AI : O_AI);
+  // Posso agire adesso? Hotseat: sempre (chi è allo schermo muove il lato al
+  // tratto). A distanza: solo se il lato al tratto è il MIO.
+  const canAct = () => !REMOTE || MY_SIDE === current;
   const isDark = (i) => ((Math.floor(i / cols) + (i % cols)) % 2) === 1;
   const playableFrom = (i) => pmoves.filter((m) => m.from === i);
 
@@ -270,8 +283,8 @@
       el.classList.remove("x", "o", "sel", "dest", "pop");
       const pc = pieceClass(v);
       if (pc) el.classList.add(pc);
-      if (moveType === "cell") el.disabled = v !== null || status !== "in_progress";
-      if (isSelect && el.tagName === "BUTTON") el.disabled = status !== "in_progress";
+      if (moveType === "cell") el.disabled = v !== null || status !== "in_progress" || !canAct();
+      if (isSelect && el.tagName === "BUTTON") el.disabled = status !== "in_progress" || !canAct();
       if (isSelect) {
         if (i === selected) el.classList.add("sel");
         if (dests.has(i)) el.classList.add("dest");
@@ -530,8 +543,16 @@
   // ----- L'IA pensa in background sul server: il client fa polling dello stato -----
   let watching = false;
 
+  function waitingOpponent(session) {
+    if (session.status !== "in_progress") return false;
+    if (session.current_is_ai) return true;
+    return REMOTE && session.current !== MY_SIDE;  // umano remoto (o spettatore)
+  }
+
   function maybeWatch(session) {
-    if (session.status === "in_progress" && session.current_is_ai) {
+    if (waitingOpponent(session)) {
+      thinking.textContent = session.current_is_ai
+        ? "L'IA sta pensando…" : "In attesa della mossa dell'avversario…";
       thinking.style.display = "block";
       watchAi(AI_DELAY);
     } else {
@@ -550,7 +571,7 @@
         const session = await res.json();
         if (!res.ok) throw new Error(session.error || "Stato non disponibile");
         const changed = session.board.some((v, i) => v !== board[i]);
-        if (changed || session.status !== "in_progress" || !session.current_is_ai) {
+        if (changed || session.status !== "in_progress" || !waitingOpponent(session)) {
           pmoves = session.playable_moves || [];
           renderMoves(session.moves);
           transitionBoard(session.board); // la mossa dell'IA scivola (con suono)
@@ -638,7 +659,7 @@
   }
 
   async function doHuman(moveId, mutate) {
-    if (busy || status !== "in_progress") return;
+    if (busy || status !== "in_progress" || !canAct()) return;
     const mover = current;
     if (sideIsAi(mover)) return;
     busy = true;
@@ -685,6 +706,7 @@
   }
 
   function onColumn(c) {
+    if (!canAct()) return;
     const land = landingIndex(c);
     if (land < 0) return;
     doHuman(String(c), (mover) => { const b = board.slice(); b[land] = symFor(mover); return b; });
@@ -706,7 +728,7 @@
   }
 
   function onSelect(i) {
-    if (busy || status !== "in_progress" || sideIsAi(current)) return;
+    if (busy || status !== "in_progress" || sideIsAi(current) || !canAct()) return;
     if (selected !== null) {
       const opts = playableFrom(selected).filter((m) => m.to === i);
       if (opts.length === 1) { applyMove(opts[0]); return; }

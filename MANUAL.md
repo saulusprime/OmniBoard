@@ -25,10 +25,10 @@
 
 > ⚠️ L'applicazione è in sviluppo. Sono già disponibili: registrazione giocatori (con
 > approvazione del super admin) e **login/logout**, gruppi (fondazione tramite voto),
-> punteggi, classifiche e **cinque giochi** (Tris, Forza 4, Dama, Scacchi, Backgammon —
-> umano vs umano, umano vs IA/Stockfish, IA vs IA). NON è ancora disponibile il gioco a
-> distanza in tempo reale (le partite fra due umani sono per ora *hotseat*, sullo stesso
-> schermo) e l'identità loggata non vincola ancora mosse e registrazione delle partite.
+> punteggi, classifiche, **cinque giochi** (Tris, Forza 4, Dama, Scacchi, Backgammon —
+> umano vs umano, umano vs IA/Stockfish, IA vs IA) e il **gioco a distanza** fra client
+> diversi (sfide dalla Community, aggiornamento automatico via polling). Le partite fra
+> due umani senza la spunta «a distanza» restano *hotseat*, sullo stesso schermo.
 
 ## Cos'è Scacchi
 
@@ -51,6 +51,25 @@ nazionalità e regione (usate per le classifiche). La richiesta **non è subito 
 in attesa», con il token super admin) oppure la respinge, eliminandola. Fino
 all'approvazione il giocatore compare come «in attesa» e **non può accedere**. La password
 non viene mai salvata in chiaro: in anagrafica esiste solo il suo hash (PBKDF2).
+
+### Community, presenza online e partite a distanza
+La pagina **Community** mostra chi è **connesso adesso** (badge verde di presenza) con il
+**punteggio complessivo** su tutti i giochi (badge punti — la stessa coppia di badge
+compare in alto, accanto al proprio alias). La presenza si rinnova da sola mentre si
+naviga (heartbeat); chi esce o chiude il browser sparisce dalla lista entro la finestra
+configurabile dall'admin («Finestra di presenza online», default 120 secondi).
+
+Da Community, il pulsante **⚔️ Sfida** accanto a un giocatore online crea una **partita a
+distanza**: tu e lo sfidato giocate **ognuno dal proprio dispositivo**. Lo sfidato trova
+la partita nella sua Community, sezione «Le tue partite in corso» (con l'avviso «Tocca a
+te!»); le liste si aggiornano da sole. In una partita a distanza ogni client comanda
+**solo il proprio lato**: la scacchiera si sblocca quando è il tuo turno, e mentre
+l'avversario pensa compare «In attesa della mossa dell'avversario…» (l'aggiornamento è
+automatico, senza ricaricare la pagina). Il server verifica ogni mossa con l'identità del
+giocatore: non è possibile muovere per conto dell'avversario. Le partite a distanza si
+possono creare anche da **Gioca** spuntando «Partita a distanza»; senza quella spunta la
+partita fra due umani resta *hotseat* (a turni sullo stesso schermo), come sempre. Le
+partite contro IA o Stockfish di giocatori diversi sono del tutto indipendenti fra loro.
 
 ### Accesso (login e logout)
 Da **Accedi** (in alto a destra) si entra con **alias o email** e password. Il backend apre

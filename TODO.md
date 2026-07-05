@@ -14,8 +14,10 @@
 - [x] **Migrazioni Alembic** — lo schema vive in `backend/migrations/`; l'avvio applica le
   revisioni da solo (adozione automatica dei DB `create_all` a baseline). Resta da provare
   PostgreSQL in produzione.
-- [ ] ⭐ **Gioco a distanza in tempo reale** — WebSocket (o polling strutturato) per partite
-  umano-vs-umano su dispositivi diversi; presenza/turni; riconnessione.
+- [x] ⭐ **Gioco a distanza in tempo reale** — partite umano-vs-umano su dispositivi diversi
+  con polling strutturato (mosse col token del giocatore al tratto), presenza online
+  (heartbeat), area Community con sfide e badge punti. Raffinamento futuro: WebSocket al
+  posto del polling (latenza percepita più bassa, meno richieste).
 - [ ] **Push GitHub** — configurare le credenziali (`gh auth login` o PAT) e pubblicare i
   commit locali in attesa su `origin/main`.
 

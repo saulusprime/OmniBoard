@@ -41,6 +41,10 @@
     .muted { color:var(--muted); }
     .pill { background:var(--accent); color:#1a1a1a; border-radius:20px; padding:2px 10px;
             font-size:.8rem; font-weight:700; }
+    /* Badge di presenza online (community/navbar): pallino verde = connesso. */
+    .dot { display:inline-block; width:10px; height:10px; border-radius:50%;
+           background:#555; vertical-align:middle; }
+    .dot.on { background:#3fb950; box-shadow:0 0 4px #3fb950; }
     .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; }
   </style>
 </head>
@@ -53,9 +57,14 @@
     <a href="{% url 'groups' %}">Gruppi</a>
     <a href="{% url 'rankings' %}">Classifiche</a>
     <a href="{% url 'match_create' %}">Registra partita</a>
+    <a href="{% url 'community' %}">Community</a>
     <a href="{% url 'admin' %}">Admin</a>
     {% if auth_user %}
-      <a href="{% url 'user_detail' auth_user.id %}">👤 {{ auth_user.alias }}</a>
+      <a href="{% url 'user_detail' auth_user.id %}">
+        <span class="dot" id="nav-dot" title="Presenza online"></span>
+        👤 {{ auth_user.alias }}
+        <span class="pill" id="nav-points" title="Punteggio complessivo (tutti i giochi)">…</span>
+      </a>
       <form method="post" action="{% url 'logout' %}" style="margin:0;">{% csrf_token %}
         <button class="btn secondary" type="submit"
                 style="padding:4px 12px; font-size:.85rem;">Esci</button>
@@ -72,5 +81,24 @@
     {% endif %}
     {% block content %}{% endblock %}
   </div></main>
+  {% if auth_user %}
+  <script>
+    // Heartbeat di presenza: ogni chiamata rinnova il badge "online" del giocatore
+    // e aggiorna il badge del punteggio complessivo in navbar (gamification).
+    async function scacchiHeartbeat() {
+      try {
+        const res = await fetch("{% url 'community_json' %}");
+        if (!res.ok) return;
+        const data = await res.json();
+        const dot = document.getElementById("nav-dot");
+        const pts = document.getElementById("nav-points");
+        if (dot) dot.classList.toggle("on", !!data.me);
+        if (pts && data.me) pts.textContent = data.me.universal_points + " pt";
+      } catch (e) { /* backend momentaneamente giù: il badge resta com'è */ }
+    }
+    scacchiHeartbeat();
+    setInterval(scacchiHeartbeat, 30000);
+  </script>
+  {% endif %}
 </body>
 </html>

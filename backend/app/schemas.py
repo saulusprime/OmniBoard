@@ -48,6 +48,8 @@ class UserOut(BaseModel):
     region: Optional[str] = None
     # False = richiesta di registrazione in attesa del super admin (login negato).
     is_approved: bool = False
+    # Punteggio complessivo su tutti i giochi (badge di gamification).
+    universal_points: float = 0
     # Preferenze estetiche del giocatore (proprietà ``User.prefs``): tema scacchiera,
     # segno del Tris, … — vedi user_prefs.py.
     prefs: dict = {}
@@ -183,6 +185,9 @@ class SessionCreate(BaseModel):
     game_code: str = "tictactoe"
     x: PlayerSpec
     o: PlayerSpec
+    # Partita A DISTANZA: i giocatori usano client diversi e ogni mossa umana
+    # richiede l'X-Auth-Token del giocatore al tratto. False = hotseat storico.
+    remote: bool = False
     # Orologio di gioco (solo scacchi, opzionale). Categoria: "blitz" (<15′ a testa),
     # "rapid" (15-60′), "classical" (>60′), "fide" (90′ + 30″/mossa, +30′ dopo la 40ª
     # mossa: parametri fissi). time_base_min = minuti a testa (non per fide);

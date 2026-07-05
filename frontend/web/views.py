@@ -103,6 +103,51 @@ def logout_view(request):
     return redirect("home")
 
 
+# ----- Community: presenza online, badge e partite del giocatore -----
+def community(request):
+    """Area community: chi è online (badge presenza + punti) e le proprie partite.
+
+    È anche il posto dove lo SFIDATO scopre una partita a distanza creata da un
+    altro giocatore: la lista «Le tue partite» si aggiorna da sola via polling.
+    """
+    online = _safe(request, api.community_online, default={"online": []})
+    token = request.session.get("auth_token")
+    games = []
+    if token:
+        data = _safe(request, lambda: api.my_games(token), default={"games": []})
+        games = (data or {}).get("games", [])
+    return render(
+        request,
+        "web/community.html",
+        {"online": online.get("online", []), "my_games": games},
+    )
+
+
+def community_json(request):
+    """Snapshot JSON per i badge e l'area community (polling leggero dal client).
+
+    Se il visitatore è loggato fa anche da HEARTBEAT: chiamarlo periodicamente
+    mantiene il badge di presenza. Include i punti del giocatore (badge navbar).
+    """
+    token = request.session.get("auth_token")
+    me = None
+    games = []
+    if token:
+        try:
+            api.heartbeat(token)
+            games = api.my_games(token).get("games", [])
+        except api.ApiError:
+            token = None  # sessione backend scaduta: si continua da anonimi
+    try:
+        online = api.community_online().get("online", [])
+    except api.ApiError:
+        return JsonResponse({"error": "backend non raggiungibile"}, status=503)
+    auth_user = request.session.get("auth_user")
+    if auth_user:
+        me = next((u for u in online if u["id"] == auth_user["id"]), None)
+    return JsonResponse({"online": online, "my_games": games, "me": me})
+
+
 def user_detail(request, user_id):
     user = _safe(request, lambda: api.get_user(user_id))
     if user is None:
@@ -290,6 +335,10 @@ def play_setup(request):
                     return {"type": kind}
 
                 data = {"game_code": game_code, "x": spec("x"), "o": spec("o")}
+                # Partita a distanza: ogni client comanda solo il proprio lato,
+                # le mosse viaggiano col token del giocatore (enforcement backend).
+                if form.cleaned_data.get("remote"):
+                    data["remote"] = True
                 # Orologio (solo scacchi): incluso solo se una categoria è stata scelta;
                 # la validazione autorevole (range per categoria, FIDE fisso) è del backend.
                 if form.cleaned_data.get("time_category"):
@@ -303,7 +352,17 @@ def play_setup(request):
                 except api.ApiError as exc:
                     messages.error(request, str(exc))
     else:
-        form = GameSetupForm(users=users, games=games)
+        # Prefill dalla community («Sfida»): io con X, lo sfidato con O, remota.
+        initial = {}
+        me = request.session.get("auth_user")
+        opponent = request.GET.get("opponent")
+        if opponent and opponent.isdigit():
+            initial.update(o_type="human", o_user=opponent, remote=True)
+            if me:
+                initial.update(x_type="human", x_user=str(me["id"]))
+        if request.GET.get("game"):
+            initial["game"] = request.GET["game"]
+        form = GameSetupForm(users=users, games=games, initial=initial)
     return render(request, "web/play_setup.html", {"form": form})
 
 
@@ -317,6 +376,9 @@ def play(request, session_id):
         "web/play.html",
         {
             "s": session,
+            # Chi sta guardando: nelle partite a distanza il client abilita solo
+            # il lato di questo giocatore (None = visitatore anonimo/hotseat).
+            "my_user_id": (request.session.get("auth_user") or {}).get("id"),
             "ai_delay": config.get("ai_move_delay_ms", 700),
             # Aspetto (categoria super admin): animazione dei pezzi ed effetto sonoro.
             "anim_ms": config.get("anim_ms", 250),
@@ -331,7 +393,7 @@ def play_move(request, session_id):
         return redirect("play", session_id=session_id)
     move = request.POST.get("move", "")
     try:
-        api.session_move(session_id, {"move": move})
+        api.session_move(session_id, {"move": move}, token=request.session.get("auth_token"))
     except api.ApiError as exc:
         messages.error(request, str(exc))
     return redirect("play", session_id=session_id)
@@ -345,7 +407,8 @@ def play_move_json(request, session_id):
     if not move:
         return JsonResponse({"error": "Mossa non valida"}, status=400)
     try:
-        return JsonResponse(api.session_move(session_id, {"move": move}))
+        token = request.session.get("auth_token")  # necessario nelle partite a distanza
+        return JsonResponse(api.session_move(session_id, {"move": move}, token=token))
     except api.ApiError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
 

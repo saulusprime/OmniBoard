@@ -284,7 +284,7 @@ Configurazione tramite `.env` (vedi `.env.example`).
 - [x] Autenticazione/login dei giocatori (registrazione approvata dal super admin, sessioni a token)
 - [ ] Regole di gestione dei gruppi (ruoli, inviti, espulsioni)
 - [x] Migrazioni del database (Alembic); PostgreSQL in produzione resta da provare
-- [ ] Aggiornamento in tempo reale della partita (WebSocket / polling) per il gioco a distanza
+- [x] Gioco a distanza fra client diversi (polling strutturato; mosse autorizzate col token del giocatore) + area Community con presenza online e badge punti
 - [ ] Affinamento regole dama (priorità FID tra catture di pari numero, patte)
 - [ ] Scacchi: patta per ripetizione; ampliamento del libro aperture; apertura-bersaglio sul profilo avversario
 - [ ] Sistema di rating (es. Elo) al posto dello schema punti provvisorio

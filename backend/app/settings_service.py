@@ -37,6 +37,13 @@ SETTINGS_DEFS = [
         "label": "Durata della sessione di accesso (ore)",
     },
     {
+        "key": "community.online_window_s",
+        "type": "int",
+        "default": 120,
+        "category": "Community",
+        "label": "Finestra di presenza online (secondi dall'ultimo heartbeat)",
+    },
+    {
         "key": "scoring.points_win",
         "type": "float",
         "default": 3.0,
