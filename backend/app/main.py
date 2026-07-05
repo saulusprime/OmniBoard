@@ -1,4 +1,4 @@
-"""Applicazione FastAPI: crea le tabelle, popola i giochi e monta i router."""
+"""Applicazione FastAPI: applica le migrazioni, popola i giochi e monta i router."""
 
 from __future__ import annotations
 
@@ -7,7 +7,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from .ai_providers import seed_providers
-from .database import Base, SessionLocal, engine
+from .database import SessionLocal
+from .db_migrate import run_migrations
 from .routers import admin, auth, config, games, groups, matches, rankings, sessions, users
 from .seed import seed_games
 from .settings_service import seed_settings
@@ -15,8 +16,9 @@ from .settings_service import seed_settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Per lo scaffold creiamo le tabelle direttamente; in seguito si userà Alembic.
-    Base.metadata.create_all(bind=engine)
+    # Lo schema è governato dalle migrazioni Alembic (backend/migrations/):
+    # l'avvio porta il database alla revisione più recente.
+    run_migrations()
     db = SessionLocal()
     try:
         seed_games(db)

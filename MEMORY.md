@@ -424,6 +424,13 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   su cookie firmato (nessun DB), pagine Accedi/Esci, approvazioni in Admin. 129 test verdi.
   ⚠️ nuova colonna `users.is_approved` + tabella `auth_sessions` → ricreare
   `backend/scacchi.db`.
+- **2026-07-05** — **Migrazioni Alembic** (fine dell'era create_all): schema in
+  `backend/migrations/` (revisione 0001 = baseline, autogenerate), URL da `app.database`
+  (mai in alembic.ini), `render_as_batch` per SQLite. `app/db_migrate.py` nel lifespan:
+  upgrade automatico all'avvio, **adozione** dei DB create_all a baseline con `stamp`,
+  errore chiaro se più vecchi. Test guardiano `compare_metadata` (modelli↔migrazioni).
+  Workflow nuovo: modelli → `make migration m="..."` → riavvio. NIENTE più
+  `rm backend/scacchi.db`. 132 test verdi.
 
 ## Questioni aperte
 

@@ -11,8 +11,9 @@
 - [x] ⭐ **Autenticazione dei giocatori** — login/logout con sessione, password hashate in
   anagrafica; la registrazione è una richiesta che solo il super admin accetta. Prossimo
   passo: usare l'identità loggata per vincolare mosse e registrazione partite al giocatore.
-- [ ] **Migrazioni Alembic** — oggi `create_all`: ogni cambio schema richiede di ricreare il
-  DB di sviluppo. Necessario anche per PostgreSQL in produzione.
+- [x] **Migrazioni Alembic** — lo schema vive in `backend/migrations/`; l'avvio applica le
+  revisioni da solo (adozione automatica dei DB `create_all` a baseline). Resta da provare
+  PostgreSQL in produzione.
 - [ ] ⭐ **Gioco a distanza in tempo reale** — WebSocket (o polling strutturato) per partite
   umano-vs-umano su dispositivi diversi; presenza/turni; riconnessione.
 - [ ] **Push GitHub** — configurare le credenziali (`gh auth login` o PAT) e pubblicare i

@@ -5,12 +5,14 @@ VENV = .venv
 PY   = $(VENV)/bin/python
 PIP  = $(VENV)/bin/pip
 
-.PHONY: help install backend frontend
+.PHONY: help install backend frontend migrate migration
 
 help:
 	@echo "make install   - crea .venv e installa le dipendenze di backend e frontend"
 	@echo "make backend   - avvia il backend FastAPI su http://127.0.0.1:8000"
 	@echo "make frontend  - avvia il frontend Django su http://127.0.0.1:8001"
+	@echo "make migrate   - porta il database all'ultima revisione (alembic upgrade head)"
+	@echo 'make migration m="descrizione" - genera una migrazione dai modelli (autogenerate)'
 
 install:
 	git submodule update --init  # integrazioni/KittenTTS (dipendenza del backend)
@@ -23,3 +25,10 @@ backend:
 
 frontend:
 	$(PY) frontend/manage.py runserver 8001
+
+migrate:
+	cd backend && ../$(VENV)/bin/alembic upgrade head
+
+# Genera una revisione confrontando i modelli con il DB: make migration m="descrizione"
+migration:
+	cd backend && ../$(VENV)/bin/alembic revision --autogenerate -m "$(m)"
