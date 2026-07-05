@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from engine import get_game, is_playable
 
-from .. import ai_providers, gameplay, models, opponents, schemas, settings_service
+from .. import ai_providers, gameplay, models, opponents, schemas, settings_service, user_prefs
 from ..database import get_db
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
@@ -42,6 +42,15 @@ def _view(session: models.GameSession) -> dict:
         playable_moves = game.legal_moves_view(state)
 
     moves = json.loads(session.moves_json or "[]")
+    # Preferenze estetiche dei giocatori umani (tema scacchiera, segno del Tris);
+    # per i lati IA valgono i default. Se i due umani hanno scelto lo STESSO segno,
+    # il lato O ripiega sul default per mantenere i segni distinguibili.
+    x_prefs = user_prefs.get_prefs(session.x_user)
+    o_prefs = user_prefs.get_prefs(session.o_user)
+    x_mark = (x_prefs.get("tris_mark") or "X") if session.x_user else "X"
+    o_mark = (o_prefs.get("tris_mark") or "O") if session.o_user else "O"
+    if o_mark == x_mark:
+        o_mark = "O" if x_mark != "O" else "X"
     return {
         "id": session.id,
         "game_code": session.game.code,
@@ -73,6 +82,9 @@ def _view(session: models.GameSession) -> dict:
                 "alias": session.x_user.alias if session.x_user else None,
                 "level": session.x_ai_level,
                 "level_label": opponents.stockfish.preset_label(session.x_ai_level),
+                # Estetica scelta dal giocatore: tema scacchiera e segno del Tris.
+                "board_theme": x_prefs.get("board_theme") if session.x_user else None,
+                "mark": x_mark,
             },
             "o": {
                 "type": gameplay.side_kind(session, 1),
@@ -80,6 +92,8 @@ def _view(session: models.GameSession) -> dict:
                 "alias": session.o_user.alias if session.o_user else None,
                 "level": session.o_ai_level,
                 "level_label": opponents.stockfish.preset_label(session.o_ai_level),
+                "board_theme": o_prefs.get("board_theme") if session.o_user else None,
+                "mark": o_mark,
             },
         },
         # Ultima mossa IA: "source" dice chi ha giocato davvero (book / stockfish /

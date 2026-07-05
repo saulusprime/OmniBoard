@@ -7,7 +7,7 @@ import json
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import chess_profile, models, schemas, settings_service
+from .. import chess_profile, models, schemas, settings_service, user_prefs
 from ..database import get_db
 from ..security import hash_password
 
@@ -70,10 +70,30 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
         email=user.email,
         nationality=user.nationality,
         region=user.region,
+        prefs=user.prefs,
         created_at=user.created_at,
         universal_points=user.universal_points,
         scores=scores,
     )
+
+
+@router.put("/{user_id}/prefs")
+def update_user_prefs(
+    user_id: int, payload: schemas.UserPrefsUpdate, db: Session = Depends(get_db)
+):
+    """Aggiorna le preferenze estetiche del giocatore (tema scacchiera, segno Tris).
+
+    Sono opzioni personali, non parametri di programma: nessun token super admin.
+    Vengono aggiornate solo le chiavi presenti nel payload.
+    """
+    user = db.get(models.User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    values = payload.model_dump(exclude_none=True)
+    try:
+        return user_prefs.update_prefs(db, user, values)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/{user_id}/chess-profile")

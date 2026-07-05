@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 
 from sqlalchemy import (
@@ -36,7 +37,18 @@ class User(Base):
     nationality = Column(String, nullable=True)  # paese (per classifica nazionale)
     region = Column(String, nullable=True)  # regione (per classifica regionale)
     password_hash = Column(String, nullable=True)
+    # Preferenze estetiche del giocatore (JSON: tema scacchiera, segno del Tris, …).
+    # Registro e validazione in user_prefs.py; esposte come proprietà ``prefs``.
+    prefs_json = Column(String, default="{}", nullable=False)
     created_at = Column(DateTime, default=utcnow)
+
+    @property
+    def prefs(self) -> dict:
+        """Preferenze parse-ate (usata anche dagli schemi Pydantic via from_attributes)."""
+        try:
+            return json.loads(self.prefs_json or "{}")
+        except (TypeError, ValueError):
+            return {}
 
     scores = relationship("Score", back_populates="user", cascade="all, delete-orphan")
     memberships = relationship(

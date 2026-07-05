@@ -5,6 +5,44 @@
 
 ---
 
+## 2026-07-05 — Opzioni giocatore: temi scacchiera/pezzi, segno del Tris, tavolo backgammon
+
+**Richiesta (utente):** il giocatore sceglie l'estetica di scacchiera e pezzi; il tavolo
+del backgammon deve essere quello **originale**; nel Tris ognuno sceglie la **forma del
+proprio segno**. Tutto nelle **opzioni utente/giocatore**.
+
+**Backend:**
+- **`User.prefs_json`** (nuova colonna, default `{}`) + proprietà `User.prefs`;
+  **⚠️ cambio schema senza migrazioni** → ricreare `backend/scacchi.db`.
+- Nuovo registro **`user_prefs.py`** (distinto dai parametri di programma: preferenze
+  personali, nessun token): `board_theme` (classico/legno/smeraldo/ghiaccio) e
+  `tris_mark` (✕ ✖ ★ ☆ ♥ ◆ ▲ o X/O; vuoto = default). Endpoint
+  **`PUT /users/{id}/prefs`** con validazione (400 su valori non ammessi); prefs esposte
+  in `UserOut`/scheda giocatore.
+- Vista di sessione: per lato espone `board_theme` e `mark` (IA = default); **collisione
+  segni** risolta (stesso segno per entrambi → il lato O ripiega sul default).
+
+**Frontend:**
+- Scheda giocatore: sezione **«Opzioni giocatore»** (form tema + segno, salvataggio
+  senza token).
+- `play.html`: **temi CSS** `t-legno`/`t-smeraldo`/`t-ghiaccio` (case e colori dei pezzi,
+  flyer inclusi; vale per scacchi e dama; in partita fra umani vince il tema di X);
+  segni Tris via `displayOf()` (lo stato resta X/O del motore, la traduzione è solo al
+  momento del render: celle, flyer, ghost); `pieceClass` ora guarda l'**ultimo
+  carattere** (le celle del backgammon sono «2○»/«5●»).
+- **Tavolo classico del Backgammon** (non tematizzabile): 24 punte **triangolari
+  alternate** disegnate come SVG di sfondo (il testo delle pedine resta sopra), campo in
+  legno con cornice, barra centrale e vasche d'uscita dedicate; pedine chiare/scure ad
+  alto contrasto.
+
+**Test (+3, 124 verdi):** aggiornamento/lettura/reset prefs, validazione (tema o segno
+non ammesso → 400, utente inesistente → 404), esposizione nella vista di sessione con
+collisione risolta e default per l'IA. **Verifica dal vivo:** prefs salvate via API;
+pagina scacchi con `t-legno`; pagina Tris con segno «★»; pagina backgammon con
+`bg-board`/punte; form nella scheda giocatore.
+
+---
+
 ## 2026-07-05 — KittenTTS diventa submodule git + dipendenza del backend
 
 **Richiesta (utente):** aggiungere KittenTTS come submodulo/dipendenza.

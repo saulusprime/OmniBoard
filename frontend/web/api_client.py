@@ -65,6 +65,10 @@ def get_chess_profile(user_id):
     return _request("GET", f"/users/{user_id}/chess-profile")
 
 
+def update_user_prefs(user_id, values: dict):
+    return _request("PUT", f"/users/{user_id}/prefs", json=values)
+
+
 def create_user(data: dict):
     return _request("POST", "/users", json=data)
 

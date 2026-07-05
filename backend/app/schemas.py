@@ -46,7 +46,17 @@ class UserOut(BaseModel):
     email: str
     nationality: Optional[str] = None
     region: Optional[str] = None
+    # Preferenze estetiche del giocatore (proprietà ``User.prefs``): tema scacchiera,
+    # segno del Tris, … — vedi user_prefs.py.
+    prefs: dict = {}
     created_at: datetime
+
+
+class UserPrefsUpdate(BaseModel):
+    """Aggiornamento (parziale) delle preferenze estetiche del giocatore."""
+
+    board_theme: Optional[str] = None  # chiave di user_prefs.BOARD_THEMES
+    tris_mark: Optional[str] = None  # elemento di user_prefs.TRIS_MARKS ("" = default)
 
 
 class ScoreOut(BaseModel):

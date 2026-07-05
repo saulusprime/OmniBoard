@@ -9,6 +9,17 @@
 </div>
 
 <div class="card">
+  <h2>🎨 Opzioni giocatore</h2>
+  <p class="muted">Preferenze estetiche personali: il <strong>tema</strong> di scacchiera e
+  pezzi (usato in scacchi e dama) e la <strong>forma del tuo segno</strong> nel Tris.
+  Il tavolo del Backgammon non si personalizza: è quello classico con le punte.</p>
+  <form method="post" novalidate>{% csrf_token %}
+    {{ prefs_form.as_p }}
+    <button class="btn" type="submit" name="save_prefs" value="1">Salva opzioni</button>
+  </form>
+</div>
+
+<div class="card">
   <h2>Punteggi per gioco</h2>
   {% if u.scores %}
   <table>

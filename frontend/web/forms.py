@@ -53,6 +53,29 @@ class VoteForm(forms.Form):
         self.fields["user_id"].choices = _user_choices(users)
 
 
+class PlayerPrefsForm(forms.Form):
+    """Opzioni estetiche del giocatore (scheda giocatore, nessun token richiesto).
+
+    Le scelte ammesse rispecchiano il registro del backend (user_prefs.py), che
+    resta l'autorità in validazione.
+    """
+
+    BOARD_THEMES = [
+        ("classico", "Classico (scuro)"),
+        ("legno", "Legno (marrone/crema)"),
+        ("smeraldo", "Smeraldo (verde/avorio)"),
+        ("ghiaccio", "Ghiaccio (azzurro/grigio)"),
+    ]
+    TRIS_MARKS = [("", "Predefinito (X oppure O)")] + [
+        (m, m) for m in ["X", "O", "✕", "✖", "★", "☆", "♥", "◆", "▲"]
+    ]
+
+    board_theme = forms.ChoiceField(
+        label="Tema scacchiera e pezzi (scacchi e dama)", choices=BOARD_THEMES
+    )
+    tris_mark = forms.ChoiceField(label="Il tuo segno nel Tris", choices=TRIS_MARKS, required=False)
+
+
 class GameSetupForm(forms.Form):
     """Configurazione di una partita: gioco scelto e tipo di ogni lato.
 

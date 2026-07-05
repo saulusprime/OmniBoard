@@ -7,7 +7,14 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 
 from . import api_client as api
-from .forms import GameSetupForm, MatchForm, ProposalForm, UserForm, VoteForm
+from .forms import (
+    GameSetupForm,
+    MatchForm,
+    PlayerPrefsForm,
+    ProposalForm,
+    UserForm,
+    VoteForm,
+)
 
 
 def _safe(request, fn, default=None):
@@ -49,9 +56,38 @@ def user_detail(request, user_id):
     user = _safe(request, lambda: api.get_user(user_id))
     if user is None:
         return redirect("users_list")
+    # Opzioni estetiche del giocatore (tema scacchiera/pezzi, segno del Tris):
+    # personali, senza token — la validazione autorevole è del backend.
+    if request.method == "POST" and "save_prefs" in request.POST:
+        prefs_form = PlayerPrefsForm(request.POST)
+        if prefs_form.is_valid():
+            try:
+                api.update_user_prefs(
+                    user_id,
+                    {
+                        "board_theme": prefs_form.cleaned_data["board_theme"],
+                        "tris_mark": prefs_form.cleaned_data.get("tris_mark") or "",
+                    },
+                )
+                messages.success(request, "Opzioni del giocatore salvate.")
+                return redirect("user_detail", user_id=user_id)
+            except api.ApiError as exc:
+                messages.error(request, str(exc))
+    else:
+        prefs = user.get("prefs") or {}
+        prefs_form = PlayerPrefsForm(
+            initial={
+                "board_theme": prefs.get("board_theme", "classico"),
+                "tris_mark": prefs.get("tris_mark", ""),
+            }
+        )
     history = _safe(request, lambda: api.get_user_history(user_id), default=[])
     chess = _safe(request, lambda: api.get_chess_profile(user_id), default=None)
-    return render(request, "web/user_detail.html", {"u": user, "history": history, "chess": chess})
+    return render(
+        request,
+        "web/user_detail.html",
+        {"u": user, "history": history, "chess": chess, "prefs_form": prefs_form},
+    )
 
 
 def groups(request):

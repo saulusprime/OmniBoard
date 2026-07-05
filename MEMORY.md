@@ -406,6 +406,12 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   come path dep (`./integrazioni/KittenTTS`, installazione dalla root); `make install` fa
   `git submodule update --init`. Servirà per il TTS della sezione di istruzione guidata
   (piano in TODO.md; limite lingua: solo inglese — per l'italiano valutare Piper).
+- **2026-07-05** — **Opzioni giocatore (estetica)**: `User.prefs_json` + registro
+  `user_prefs.py` + `PUT /users/{id}/prefs` (personale, senza token); temi scacchiera/pezzi
+  (classico/legno/smeraldo/ghiaccio, valgono per scacchi e dama), segno del Tris a scelta
+  (✕ ✖ ★ ☆ ♥ ◆ ▲, collisione risolta lato server), **tavolo del Backgammon classico e non
+  tematizzabile** (punte SVG, legno, barra/vasche). Form nella scheda giocatore. 124 test
+  verdi. ⚠️ nuova colonna `users.prefs_json` → ricreare `backend/scacchi.db`.
 
 ## Questioni aperte
 

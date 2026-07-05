@@ -66,6 +66,21 @@ sconfitta +0). Il dettaglio dei punteggi è nella scheda del giocatore.
 - **Classifica per gioco**, con ambito **globale**, **nazionale** (per nazionalità) o
   **regionale** (per regione).
 
+### Opzioni giocatore (estetica personale)
+Dalla **scheda del giocatore** (Giocatori → nome), sezione «Opzioni giocatore», ciascuno
+personalizza il proprio aspetto di gioco — sono preferenze personali, distinte dai
+parametri di programma del super admin:
+
+- **Tema di scacchiera e pezzi** (vale per scacchi e dama): *Classico* (scuro), *Legno*
+  (marrone/crema), *Smeraldo* (verde/avorio), *Ghiaccio* (azzurro/grigio). In una partita
+  fra due umani vale il tema del giocatore X.
+- **Forma del proprio segno nel Tris**: al posto della X/O classica si può scegliere tra
+  ✕ ✖ ★ ☆ ♥ ◆ ▲ (o la lettera dell'altro lato). Se i due giocatori scelgono lo stesso
+  segno, il lato O torna automaticamente al default per mantenerli distinguibili.
+
+Il **tavolo del Backgammon non si personalizza**: è sempre quello originale, con le 24
+punte triangolari alternate su campo di legno, la barra centrale e le vasche di uscita.
+
 ### Super admin (parametri di programma)
 Dal menu **Admin** si accede all'interfaccia di amministrazione, dove **tutti i parametri**
 del programma sono modificabili: nome del sito, abilitazione delle registrazioni, punti per
