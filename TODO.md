@@ -79,6 +79,32 @@
   expectiminimax (oggi greedy dado per dado).
 - [ ] **Ludo** (nodi del caso, come il backgammon).
 
+## Istruzione guidata (tutorial) + voce sintetica
+
+- [ ] ⭐ **Sistema graduale di istruzione guidata** per imparare i giochi, con voce
+  sintetica. Architettura proposta:
+  - **Contenuti**: lezioni per gioco organizzate in **passi** (testo della spiegazione +
+    posizione preimpostata sulla scacchiera + caselle/mosse da evidenziare + eventuale
+    mossa richiesta all'allievo con verifica); progressione per gradi (es. scacchi: i
+    pezzi uno alla volta → catture → arrocco/en passant → matti elementari → aperture).
+  - **Progressi salvati** per utente (lezioni completate, da riprendere).
+  - **UI**: modalità "lezione" sulla pagina di gioco esistente (riusa scacchiera,
+    animazioni ed evidenziazioni), con pulsanti avanti/indietro e replay vocale.
+  - **Voce**: ogni passo viene letto ad alta voce dal servizio TTS (sotto).
+- [ ] **Servizio TTS nel backend** (`backend/app/tts.py` + endpoint `GET /tts`):
+  sintesi con **KittenTTS** (`integrazioni/KittenTTS`, Apache 2.0 — ONNX, solo CPU,
+  8 voci, modello 15–80M scaricato da HuggingFace al primo uso). Import **pigro**
+  (dipendenza opzionale: senza pacchetto → 503, il tutorial resta testuale), **cache su
+  disco** dei WAV per frase+voce+velocità (le lezioni sono testi fissi: si sintetizza
+  una volta sola), voce e velocità configurabili dal super admin. *Fattibilità già
+  verificata dal vivo: ~1–2s di sintesi per 5–7s di audio su CPU (nano, 15M).*
+- [ ] ⚠️ **Lingua**: KittenTTS è **solo inglese** (fonemizzatore `en-us` cablato,
+  normalizzazione del testo inglese) — verificato con sintesi di prova: l'italiano esce
+  con pronuncia anglicizzata, non usabile per un tutorial in italiano. Opzioni:
+  (a) affiancare **Piper TTS** per le voci italiane (stessa forma: ONNX/CPU, si integra
+  dietro la stessa astrazione del servizio TTS); (b) tutorial bilingue con voce inglese;
+  (c) seguire KittenML per l'eventuale supporto multilingue (roadmap "developer preview").
+
 ## Piattaforma e gamification
 
 - [ ] **Rating Elo/Glicko** al posto dello schema punti provvisorio (3/1/0); stagioni.

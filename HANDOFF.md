@@ -5,6 +5,37 @@
 
 ---
 
+## 2026-07-05 — Valutazione KittenTTS per la futura sezione di istruzione guidata
+
+**Contesto (utente):** in `integrazioni/KittenTTS/` c'è il progetto **KittenTTS** (TTS che
+sintetizza il parlato da testo), da integrare per la **sezione di istruzione**: un sistema
+graduale di istruzione guidata per insegnare i vari giochi, con voce.
+
+**Analisi del progetto:** libreria open source (Apache 2.0, compatibile con MIT) basata su
+**ONNX**, solo CPU, modelli 15–80M (25–80 MB) scaricati da HuggingFace al primo uso e poi
+in cache; 8 voci; API minima: `KittenTTS(modello).generate(text, voice, speed)` → audio
+numpy a 24 kHz. Dipendenze via pip (incluso `espeakng_loader` che porta con sé la libreria
+espeak: niente brew — utile con i Command Line Tools rotti).
+
+**Fattibilità verificata dal vivo** (installato nel venv, modello *nano* 15M): caricamento
+16s la prima volta (download HF) poi immediato; sintesi ~1–2s per 5–7s di audio su CPU.
+File di prova generati (inglese e italiano).
+
+**⚠️ Limite chiave — solo inglese:** il fonemizzatore è cablato `en-us`
+(`onnx_model.py:81`) e la normalizzazione del testo è tutta inglese; il testo italiano
+viene sintetizzato con pronuncia anglicizzata (verificato). Per un tutorial in italiano
+serviranno voci italiane: opzione principale **Piper TTS** (stessa forma: ONNX/CPU),
+dietro un'astrazione comune del servizio TTS. Dettagli e piano completo del sistema di
+istruzione guidata annotati in **TODO.md** (sezione «Istruzione guidata (tutorial) + voce
+sintetica»): contenuti a passi con posizioni preimpostate ed evidenziazioni, progressi per
+utente, endpoint `GET /tts` con cache su disco e import pigro (dipendenza opzionale).
+
+**Nota:** `integrazioni/` resta esclusa dal lint e **non versionata** (scelta da
+confermare con l'utente); `kittentts` è ora installato nel venv di sviluppo ma NON è
+ancora una dipendenza del backend (lo diventerà — opzionale — con il servizio TTS).
+
+---
+
 ## 2026-07-05 — Backgammon: primo gioco stocastico (i nodi del caso diventano realtà)
 
 **Obiettivo:** implementare il Backgammon rispettando l'architettura generale (una
