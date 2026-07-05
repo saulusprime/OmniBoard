@@ -73,7 +73,10 @@ parametri di programma del super admin:
 
 - **Tema di scacchiera e pezzi** (vale per scacchi e dama): *Classico* (scuro), *Legno*
   (marrone/crema), *Smeraldo* (verde/avorio), *Ghiaccio* (azzurro/grigio). In una partita
-  fra due umani vale il tema del giocatore X.
+  fra due umani vale il tema del giocatore X. I pezzi sono sempre a **tinta piena**
+  (glifi pieni per entrambi i lati); il lato chiaro porta un bordo scuro che garantisce
+  la leggibilità anche sulle case chiare — i contrasti pezzo/casa rispettano la soglia
+  WCAG 2.1 (≥3:1) in ogni tema.
 - **Forma del proprio segno nel Tris**: al posto della X/O classica si può scegliere tra
   ✕ ✖ ★ ☆ ♥ ◆ ▲ (o la lettera dell'altro lato). Se i due giocatori scelgono lo stesso
   segno, il lato O torna automaticamente al default per mantenerli distinguibili.

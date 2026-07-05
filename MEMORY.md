@@ -412,6 +412,10 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   (✕ ✖ ★ ☆ ♥ ◆ ▲, collisione risolta lato server), **tavolo del Backgammon classico e non
   tematizzabile** (punte SVG, legno, barra/vasche). Form nella scheda giocatore. 124 test
   verdi. ⚠️ nuova colonna `users.prefs_json` → ricreare `backend/scacchi.db`.
+- **2026-07-05** — **Pezzi a tinta piena + WCAG 2.1**: `displayOf` mostra sempre i glifi
+  pieni (♔→♚, ⛀→⛂, ○→●; il lato lo colora il CSS), lato chiaro bordato di scuro con
+  `-webkit-text-stroke`+`paint-order`; 26 coppie pezzo/casa verificate ≥3:1 (SC 1.4.11),
+  minimo 4.47:1. Riferimento: `temi/scacchi-posizione-iniziale-pezzi.jpg`.
 
 ## Questioni aperte
 

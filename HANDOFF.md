@@ -5,6 +5,30 @@
 
 ---
 
+## 2026-07-05 — Pezzi a tinta piena + contrasto WCAG 2.1 (correzione estetica)
+
+**Richiesta (utente):** pezzi in **tinta piena** e contrasto sufficiente fra i colori
+della scacchiera e quelli dei pezzi (WCAG 2.1); riferimento in
+`temi/scacchi-posizione-iniziale-pezzi.jpg` (bianchi pieni bordati di scuro, neri pieni).
+
+**Causa:** i glifi Unicode del lato bianco (♔♕… ⛀⛁ ○) sono *vuoti* per disegno, quindi
+non esiste "tinta" da riempire; inoltre i pezzi chiari sulle case chiare dei temi
+(es. bianco su crema del tema legno ≈ 1.3:1) erano quasi invisibili.
+
+**Soluzione (solo `play.html`):**
+
+- `displayOf()` mappa ogni glifo bianco sul **glifo pieno** equivalente
+  (♔→♚ … ♙→♟, ⛀→⛂, ⛁→⛃, ○→●): il colore del lato lo decide il CSS, `pieceClass`
+  continua a leggere il simbolo originale del motore (stato invariato).
+- CSS dei temi: via le ombre sfumate, il lato chiaro ha un **bordo scuro**
+  (`-webkit-text-stroke` 2px + `paint-order:stroke fill`), il lato scuro è pieno senza
+  bordo; nel backgammon entrambe le pedine hanno il bordo di tono opposto (1.5px).
+- **Contrasti verificati** (script luminanza relativa, soglia SC 1.4.11 ≥3:1): tutte le
+  26 coppie pezzo/casa passano; minimo 4.47:1 (bordo bianco su casa verde smeraldo),
+  il resto ≥4.5:1. Sintassi JS ricontrollata con `node --check`. 124 test verdi.
+
+---
+
 ## 2026-07-05 — Opzioni giocatore: temi scacchiera/pezzi, segno del Tris, tavolo backgammon
 
 **Richiesta (utente):** il giocatore sceglie l'estetica di scacchiera e pezzi; il tavolo

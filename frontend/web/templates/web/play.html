@@ -34,19 +34,26 @@
   .flyer.o { color:#d9a441; }
   /* ----- Temi di scacchiera e pezzi (opzione del giocatore, scacchi e dama) -----
      Ogni tema ridefinisce i colori delle case (csq-* per gli scacchi, dark/light per
-     la dama) e dei pezzi (x/o, flyer compresi). "classico" = i colori di default. */
+     la dama) e dei pezzi (x/o, flyer compresi). "classico" = i colori di default.
+     I pezzi sono a TINTA PIENA (displayOf usa sempre i glifi pieni): il lato chiaro
+     porta un bordo scuro (text-stroke) che garantisce il contrasto WCAG 2.1
+     (SC 1.4.11, >=3:1) anche sulla casa chiara; il lato scuro contrasta da solo
+     su entrambe le case (rapporti verificati, tutti >=4.5:1 salvo smeraldo 4.47:1). */
   .t-legno .csq-l, .t-legno .light { background:#f0d9b5; border-color:#f0d9b5; }
   .t-legno .csq-d, .t-legno .dark  { background:#b58863; border-color:#b58863; }
-  .t-legno .cell.x, .t-legno .flyer.x { color:#fbfbfb; text-shadow:0 1px 2px rgba(0,0,0,.6); }
-  .t-legno .cell.o, .t-legno .flyer.o { color:#33261a; }
+  .t-legno .cell.x, .t-legno .flyer.x { color:#f7f1e3;
+    -webkit-text-stroke:2px #2a1d10; paint-order:stroke fill; }
+  .t-legno .cell.o, .t-legno .flyer.o { color:#2b1f14; }
   .t-smeraldo .csq-l, .t-smeraldo .light { background:#eeeed2; border-color:#eeeed2; }
   .t-smeraldo .csq-d, .t-smeraldo .dark  { background:#769656; border-color:#769656; }
-  .t-smeraldo .cell.x, .t-smeraldo .flyer.x { color:#fdfdfd; text-shadow:0 1px 2px rgba(0,0,0,.55); }
-  .t-smeraldo .cell.o, .t-smeraldo .flyer.o { color:#2f2e2b; }
+  .t-smeraldo .cell.x, .t-smeraldo .flyer.x { color:#fdfdf6;
+    -webkit-text-stroke:2px #1f2a17; paint-order:stroke fill; }
+  .t-smeraldo .cell.o, .t-smeraldo .flyer.o { color:#26261c; }
   .t-ghiaccio .csq-l, .t-ghiaccio .light { background:#dee3e6; border-color:#dee3e6; }
   .t-ghiaccio .csq-d, .t-ghiaccio .dark  { background:#8ca2ad; border-color:#8ca2ad; }
-  .t-ghiaccio .cell.x, .t-ghiaccio .flyer.x { color:#ffffff; text-shadow:0 1px 2px rgba(0,0,0,.5); }
-  .t-ghiaccio .cell.o, .t-ghiaccio .flyer.o { color:#22333c; }
+  .t-ghiaccio .cell.x, .t-ghiaccio .flyer.x { color:#ffffff;
+    -webkit-text-stroke:2px #14222b; paint-order:stroke fill; }
+  .t-ghiaccio .cell.o, .t-ghiaccio .flyer.o { color:#1d2b33; }
   /* ----- Tavolo classico del Backgammon (non tematizzabile: è "quello originale") -----
      Punte triangolari alternate disegnate come SVG di sfondo (il testo delle pedine
      resta sempre sopra), campo in legno, barra e uscite dedicate. */
@@ -59,8 +66,12 @@
   .bgp-bot.bgp-b { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' preserveAspectRatio='none'%3E%3Cpolygon points='5,0.8 9.4,10 0.6,10' fill='%23913b28'/%3E%3C/svg%3E"); }
   .bg-board .bgbar { background:#3a2413; box-shadow:inset 0 0 0 2px #2a1a0d; }
   .bg-board .bgoff { background:#2c1c10; box-shadow:inset 0 0 0 1px #a97f52; }
-  .bg-board .cell.x, .bg-board .flyer.x { color:#f7f1e3; text-shadow:0 1px 2px rgba(0,0,0,.7); }
-  .bg-board .cell.o, .bg-board .flyer.o { color:#141210; text-shadow:0 1px 1px rgba(255,255,255,.25); }
+  /* Pedine a tinta piena: bordo di tono opposto per il contrasto (WCAG 2.1) sia
+     sulla punta chiara sia su quella scura/barra. */
+  .bg-board .cell.x, .bg-board .flyer.x { color:#f3ead9;
+    -webkit-text-stroke:1.5px #241708; paint-order:stroke fill; }
+  .bg-board .cell.o, .bg-board .flyer.o { color:#191512;
+    -webkit-text-stroke:1.5px #e8d9bd; paint-order:stroke fill; }
   .side { min-width:220px; flex:1; }
   .movelog { list-style:decimal inside; padding:0; margin:8px 0 0; max-height:360px; overflow:auto; }
   .movelog li { padding:4px 6px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
@@ -227,14 +238,24 @@
     return null;
   }
 
+  // I glifi Unicode del lato bianco (♔♕… ⛀⛁ ○) sono "vuoti" per disegno: per avere
+  // pezzi a TINTA PIENA si mostra sempre il glifo pieno equivalente e il colore del
+  // lato lo decide il CSS (pieceClass continua a leggere il simbolo del motore).
+  const SOLID_GLYPH = { "♔": "♚", "♕": "♛", "♖": "♜", "♗": "♝", "♘": "♞", "♙": "♟",
+                        "⛀": "⛂", "⛁": "⛃", "○": "●" };
+
   function displayOf(v) {
     // Traduzione da simbolo del motore a simbolo MOSTRATO: nel Tris ogni giocatore
-    // può aver scelto la forma del proprio segno (lo stato resta X/O).
+    // può aver scelto la forma del proprio segno (lo stato resta X/O); negli altri
+    // giochi ogni carattere passa dalla mappa dei glifi pieni.
     if (v && moveType === "cell") {
       if (v === "X") return X_MARK;
       if (v === "O") return O_MARK;
     }
-    return v;
+    if (!v) return v;
+    let out = "";
+    for (const ch of v) out += SOLID_GLYPH[ch] || ch;
+    return out;
   }
 
   function renderCells(animate) {
