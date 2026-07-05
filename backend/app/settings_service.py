@@ -88,9 +88,9 @@ SETTINGS_DEFS = [
     {
         "key": "ai.watch_pace_ms",
         "type": "int",
-        "default": 1200,
+        "default": 1000,
         "category": "IA",
-        "label": "Ritmo minimo tra le mosse IA osservate (IA-vs-IA e prima mossa; ms; 0 = nessuno)",
+        "label": "Ritardo minimo tra una mossa e l'altra dell'IA (millisecondi; 0 = nessuno)",
     },
     {
         "key": "stockfish.path",

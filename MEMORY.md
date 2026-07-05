@@ -370,10 +370,11 @@ mossa ma con stato condiviso tra thread; annotato in TODO.md come ottimizzazione
   +30′ alla 40ª). Server = arbitro (`consume_time`/`check_time` pigra, `_now` monkeypatch-abile);
   patta col re nudo alla bandierina; l'IA sotto orologio limita la pensata a ~1/10 del residuo.
   Due orologi live in pagina. 106 test verdi. ⚠️ nuove colonne orologio → ricreare il DB.
-- **2026-07-05** — **Ritmo di visione** (`ai.watch_pace_ms`, default 1200 ms; env
-  `AI_WATCH_PACE_MS`): pausa minima nel worker tra le mosse IA-vs-IA e prima della prima mossa
-  quando apre l'IA → la scacchiera è disegnata prima della prima mossa e ogni mossa arriva
-  singola, animata. Con l'orologio la pausa è "dell'arbitro" (non consuma tempo). 107 test verdi.
+- **2026-07-05** — **Ritmo di visione** (`ai.watch_pace_ms`, default 1000 ms; env
+  `AI_WATCH_PACE_MS`): ritardo minimo nel worker per **ogni** mossa dell'IA — risposta
+  all'umano inclusa (niente mosse "incollate"), IA-vs-IA una mossa alla volta, prima mossa
+  dopo che la scacchiera è disegnata. Con l'orologio la pausa è "dell'arbitro" (non consuma
+  tempo). 108 test verdi.
 
 ## Questioni aperte
 
