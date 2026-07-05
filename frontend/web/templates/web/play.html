@@ -24,6 +24,14 @@
   button.cell:disabled { cursor:default; }
   .pop { animation: pop .3s ease-out; }
   @keyframes pop { from { transform:scale(.3); opacity:0; } to { transform:scale(1); opacity:1; } }
+  /* Pezzo "volante": elemento assoluto sopra la griglia che scivola dalla casella di
+     origine a quella di destinazione (transform → accelerato dalla GPU). */
+  .board { position:relative; }
+  .flyer { position:absolute; display:flex; align-items:center; justify-content:center;
+           font-weight:700; line-height:1; pointer-events:none; z-index:5;
+           transition-property:transform; transition-timing-function:cubic-bezier(.2,.7,.35,1); }
+  .flyer.x { color:#e8eaed; }
+  .flyer.o { color:#d9a441; }
   .side { min-width:220px; flex:1; }
   .movelog { list-style:decimal inside; padding:0; margin:8px 0 0; max-height:360px; overflow:auto; }
   .movelog li { padding:4px 6px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
@@ -71,6 +79,11 @@
   const STATE_URL = "{% url 'play_state_json' s.id %}";
   const CSRF = "{{ csrf_token }}";
   const AI_DELAY = {{ ai_delay|default:700 }};
+  // Aspetto (personalizzabile dal super admin, categoria «Aspetto»): durata
+  // dell'animazione di spostamento (0 = nessuna) e suono delle mosse.
+  const ANIM_MS = {{ anim_ms|default:250 }};
+  const SOUND_ON = {{ sound_on|yesno:"true,false" }};
+  const SOUND_VOL = {{ sound_vol|default:40 }};
   // Un lato è "IA" per il client se non è umano (IA via API oppure Stockfish).
   const X_AI = {% if s.players.x.type != 'human' %}true{% else %}false{% endif %};
   const O_AI = {% if s.players.o.type != 'human' %}true{% else %}false{% endif %};
@@ -182,12 +195,112 @@
     });
   }
 
-  function applySession(session) {
-    board = session.board.slice();
-    pmoves = session.playable_moves || [];
+  // ----- Effetto sonoro delle mosse (sintetizzato via WebAudio: nessun file audio) -----
+  let audioCtx = null;
+  function ensureAudio() {
+    if (!SOUND_ON || SOUND_VOL <= 0) return null;
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    return audioCtx;
+  }
+  // I browser sbloccano l'audio solo dopo un gesto dell'utente: il primo click/tap
+  // sulla pagina attiva il contesto (le mosse successive suoneranno).
+  document.addEventListener("pointerdown", ensureAudio, { once: true });
+
+  function playSound(capture) {
+    const ctx = ensureAudio();
+    if (!ctx || ctx.state !== "running") return;
+    // "Toc" percussivo: onda triangolare con glissando verso il basso e decadimento
+    // esponenziale; la cattura è più grave e un po' più lunga.
+    const t = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(capture ? 170 : 260, t);
+    osc.frequency.exponentialRampToValueAtTime(capture ? 70 : 120, t + 0.09);
+    gain.gain.setValueAtTime(SOUND_VOL / 100, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + (capture ? 0.18 : 0.12));
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.22);
+  }
+
+  // ----- Transizione animata della scacchiera -----
+  function cellRect(i) {
+    // Posizione della casella i relativa alla griglia (dove vivono i "flyer").
+    const grid = document.getElementById("grid");
+    const g = grid.getBoundingClientRect();
+    const r = grid.children[i].getBoundingClientRect();
+    return { left: r.left - g.left, top: r.top - g.top, w: r.width, h: r.height };
+  }
+
+  function transitionBoard(next, animate = true) {
+    // Confronta la board attuale con la nuova e:
+    // - fa SCIVOLARE i pezzi mossi, accoppiando per simbolo le caselle svuotate con
+    //   quelle occupate (copre anche arrocco = 2 coppie, en passant e promozione);
+    // - fa "cadere" dall'alto le pedine del Forza 4 (comparsa senza origine);
+    // - fa comparire con il "pop" i simboli del Tris;
+    // - suona al termine del movimento (più grave se c'è stata una cattura).
+    const prev = board;
+    board = next.slice();
+    const vacated = [], appeared = [];
+    let captured = false;
+    for (let i = 0; i < board.length; i++) {
+      if (prev[i] === board[i]) continue;
+      if (board[i] === null) vacated.push(i);
+      else { appeared.push(i); if (prev[i] !== null) captured = true; }
+    }
     selected = null;
+    if (!animate || ANIM_MS <= 0 || appeared.length === 0) {
+      renderCells(new Set());
+      if (animate && appeared.length) playSound(captured);
+      return;
+    }
+
+    // Accoppiamento origine → destinazione: stesso simbolo tra le caselle svuotate;
+    // in mancanza (es. promozione) la prima origine libera. Le origini rimaste senza
+    // destinazione sono pezzi catturati (dama, en passant).
+    const pairs = [], pops = [];
+    const free = vacated.slice();
+    for (const to of appeared) {
+      let k = free.findIndex((f) => prev[f] === board[to]);
+      if (k < 0 && free.length > 0) k = 0;
+      if (k >= 0) { pairs.push([free[k], to]); free.splice(k, 1); }
+      else if (moveType === "column") pairs.push([idx(0, to % cols), to]); // caduta
+      else pops.push(to);
+    }
+    if (free.length > 0) captured = true;
+
+    renderCells(new Set(pops));
+    const grid = document.getElementById("grid");
+    for (const [from, to] of pairs) {
+      const sym = board[to];
+      const a = cellRect(from), b = cellRect(to);
+      const cell = grid.children[to];
+      cell.style.color = "transparent"; // il pezzo resta invisibile finché il flyer vola
+      const pc = pieceClass(sym);
+      const fly = document.createElement("div");
+      fly.className = "flyer" + (pc ? " " + pc : "");
+      fly.textContent = sym;
+      fly.style.cssText = `left:${a.left}px;top:${a.top}px;width:${a.w}px;height:${a.h}px;` +
+        `font-size:${cellPx * 0.72}px;transition-duration:${ANIM_MS}ms;`;
+      grid.appendChild(fly);
+      void fly.offsetWidth; // forza il reflow: la transizione parte dall'origine
+      fly.style.transform = `translate(${b.left - a.left}px, ${b.top - a.top}px)`;
+      setTimeout(() => { cell.style.color = ""; fly.remove(); }, ANIM_MS + 30);
+    }
+    // Il suono accompagna l'arrivo del pezzo (subito se ci sono solo "pop").
+    setTimeout(() => playSound(captured), pairs.length ? ANIM_MS : 0);
+  }
+
+  function applySession(session) {
+    pmoves = session.playable_moves || [];
     renderMoves(session.moves);
-    renderCells(new Set());
+    transitionBoard(session.board, false); // risincronizzazione: nessuna animazione
     setStatus(session);
   }
 
@@ -224,16 +337,11 @@
         const res = await fetch(STATE_URL, { headers: { "X-CSRFToken": CSRF } });
         const session = await res.json();
         if (!res.ok) throw new Error(session.error || "Stato non disponibile");
-        const changed = new Set();
-        for (let i = 0; i < session.board.length; i++) {
-          if (session.board[i] !== board[i]) changed.add(i);
-        }
-        if (changed.size || session.status !== "in_progress" || !session.current_is_ai) {
-          board = session.board.slice();
+        const changed = session.board.some((v, i) => v !== board[i]);
+        if (changed || session.status !== "in_progress" || !session.current_is_ai) {
           pmoves = session.playable_moves || [];
-          selected = null;
           renderMoves(session.moves);
-          renderCells(changed); // la mossa dell'IA appare con l'animazione
+          transitionBoard(session.board); // la mossa dell'IA scivola (con suono)
           setStatus(session);
         }
         maybeWatch(session); // continua finché tocca all'IA (anche IA-vs-IA)
@@ -270,9 +378,9 @@
     const mover = current;
     if (sideIsAi(mover)) return;
     busy = true;
-    const animated = mutate(mover);
-    selected = null;
-    renderCells(animated);
+    // La mossa dell'umano viene mostrata subito, animata (mutate ritorna la NUOVA
+    // board senza toccare quella corrente: la differenza guida l'animazione).
+    transitionBoard(mutate(mover));
     const next = mover === "x" ? "o" : "x";
     if (sideIsAi(next)) thinking.style.display = "block";
     try {
@@ -284,21 +392,17 @@
       const session = await res.json();
       if (!res.ok) throw new Error(session.error || "Mossa non valida");
       renderMoves(session.moves);
-      const aiCells = new Set();
-      for (let i = 0; i < session.board.length; i++) {
-        if (session.board[i] !== board[i]) aiCells.add(i);
-      }
+      const changed = session.board.some((v, i) => v !== board[i]);
       const finish = () => {
-        board = session.board.slice();
         pmoves = session.playable_moves || [];
-        renderCells(aiCells);
+        transitionBoard(session.board); // in modalità sincrona anima la risposta IA
         setStatus(session);
         busy = false;
         // Modalità asincrona: la risposta non contiene la mossa dell'IA (il server la
         // sta ancora calcolando) → si passa al polling; maybeWatch gestisce lo spinner.
         maybeWatch(session);
       };
-      if (aiCells.size > 0) setTimeout(finish, AI_DELAY); else finish();
+      if (changed) setTimeout(finish, AI_DELAY); else finish();
     } catch (err) {
       // La mossa potrebbe essere stata applicata dal server (risposta persa o IA
       // lenta): non si torna allo snapshot, ci si risincronizza con lo stato reale.
@@ -309,22 +413,24 @@
     }
   }
 
+  // I "mutate" ritornano una COPIA della board con la mossa applicata: la differenza
+  // rispetto alla board corrente guida l'animazione in transitionBoard.
   function onCell(i) {
     if (board[i] !== null) return;
-    doHuman(String(i), (mover) => { board[i] = symFor(mover); return new Set([i]); });
+    doHuman(String(i), (mover) => { const b = board.slice(); b[i] = symFor(mover); return b; });
   }
 
   function onColumn(c) {
     const land = landingIndex(c);
     if (land < 0) return;
-    doHuman(String(c), (mover) => { board[land] = symFor(mover); return new Set([land]); });
+    doHuman(String(c), (mover) => { const b = board.slice(); b[land] = symFor(mover); return b; });
   }
 
   function applyMove(mv) {
     doHuman(mv.id, () => {
-      const changed = new Set();
-      (mv.changes || []).forEach(([sq, sym]) => { board[sq] = sym; changed.add(sq); });
-      return changed;
+      const b = board.slice();
+      (mv.changes || []).forEach(([sq, sym]) => { b[sq] = sym; });
+      return b;
     });
   }
 

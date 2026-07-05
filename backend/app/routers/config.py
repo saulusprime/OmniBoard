@@ -16,4 +16,9 @@ def public_config(db: Session = Depends(get_db)):
     return {
         "site_name": settings_service.get(db, "general.site_name"),
         "ai_move_delay_ms": settings_service.get(db, "ai.move_delay_ms"),
+        # Aspetto della pagina di gioco: animazione dei pezzi ed effetto sonoro,
+        # personalizzabili dal super admin (categoria «Aspetto»).
+        "anim_ms": settings_service.get(db, "ui.anim_ms"),
+        "sound_enabled": settings_service.get(db, "ui.sound_enabled"),
+        "sound_volume": settings_service.get(db, "ui.sound_volume"),
     }

@@ -73,6 +73,19 @@ numero massimo di partite consecutive, ecc. I parametri sono raggruppati per cat
 salvare una modifica occorre inserire il **token super admin** (configurato sul server con la
 variabile `ADMIN_TOKEN`). Le modifiche hanno effetto immediato.
 
+### Aspetto: animazione delle mosse ed effetto sonoro
+Nella pagina di gioco i pezzi **scivolano** dalla casella di origine a quella di
+destinazione (negli scacchi anche arrocco e presa al varco sono animati; nel Forza 4 la
+pedina *cade* nella colonna; nel Tris il simbolo compare con un breve "pop"). Ogni mossa è
+accompagnata da un **effetto sonoro** discreto, più grave quando c'è una cattura — il suono
+è sintetizzato dal browser (WebAudio): non viene scaricato alcun file. Nota: i browser
+attivano l'audio solo dopo il primo click sulla pagina.
+
+Dal super admin (categoria **Aspetto**) si personalizzano: la **durata dell'animazione**
+(`ui.anim_ms`, millisecondi; 0 = pezzi che si spostano all'istante), l'**abilitazione del
+suono** (`ui.sound_enabled`) e il **volume** (`ui.sound_volume`, 0-100). Le modifiche hanno
+effetto al ricaricamento della pagina di gioco.
+
 ### Provider IA (login verso Qwen, Claude, OpenAI…)
 Dalla pagina **Provider IA** (pulsante in cima alla pagina Admin, oppure `/admin/ia/`) si
 configurano i servizi di intelligenza artificiale **senza toccare il file `.env`**. Per ogni

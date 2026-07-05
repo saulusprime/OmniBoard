@@ -5,6 +5,40 @@
 
 ---
 
+## 2026-07-05 — Animazione delle mosse + effetto sonoro (personalizzabili da super admin)
+
+**Obiettivo:** i pezzi si muovono con un'animazione e un effetto sonoro di base; velocità e
+suono personalizzabili dalla sezione admin.
+
+**Realizzato:**
+- **Animazione di scorrimento** (`play.html`): nuova `transitionBoard(next)` che confronta
+  la board attuale con la nuova e **fa scivolare i pezzi** con elementi «flyer» assoluti
+  sopra la griglia (transizione CSS su `transform`, accelerata dalla GPU). L'accoppiamento
+  origine→destinazione avviene **per simbolo** tra caselle svuotate e occupate: copre anche
+  **arrocco** (2 coppie), **en passant** e **promozione**; le origini rimaste senza
+  destinazione sono catture (dama). Forza 4: la pedina **cade dall'alto** della colonna;
+  Tris: comparsa con il "pop" esistente. Vale per mosse umane, risposte IA (polling e
+  modalità sincrona) e partite IA-vs-IA osservate; la risincronizzazione d'errore resta
+  istantanea (nessuna animazione).
+- **Effetto sonoro** sintetizzato via **WebAudio** (nessun file audio da scaricare): "toc"
+  percussivo a onda triangolare con glissando e decadimento esponenziale, **più grave sulle
+  catture**; suona all'arrivo del pezzo. I browser attivano l'audio dopo il primo gesto
+  dell'utente (listener `pointerdown` once).
+- **Personalizzazione** (nuova categoria super admin **«Aspetto»**): `ui.anim_ms` (durata
+  animazione, 0 = disattivata), `ui.sound_enabled`, `ui.sound_volume` (0-100). Esposti al
+  frontend da `GET /config` e iniettati nella pagina di gioco come costanti JS. Nessun
+  cambio di schema (i nuovi parametri si seedano da soli).
+- **Refactor coerente del client**: i callback `mutate` ritornano una **copia** della board
+  (niente mutazione in place); ogni aggiornamento passa da `transitionBoard`.
+- **Test**: `test_public_config` esteso ai tre parametri. **101 test** verdi; lint pulito.
+
+**Verifiche dal vivo:** `/config` espone i parametri; il super admin li elenca in
+«Aspetto»; personalizzazione applicata (600ms / volume 80 → la pagina riceve
+`ANIM_MS = 600`, `SOUND_VOL = 80`); nuovo JS (`transitionBoard`, `playSound`, `.flyer`)
+presente nella pagina resa.
+
+---
+
 ## 2026-07-05 — Fix forza Stockfish (bug del "quit") + sei livelli con divinità greche
 
 **Sintomo (utente):** l'avversario Stockfish «continua ad essere debole».

@@ -360,6 +360,11 @@ mossa ma con stato condiviso tra thread; annotato in TODO.md come ottimizzazione
   **Sei livelli** con divinità greche: Zeus (Extreme, piena forza/4s) → Atena 2700 → Apollo 2350
   → Ares 2000 → Hermes 1700 → Pan (Learner, 1400/0.5s), selezionabili al setup per lato.
   101 test verdi. ⚠️ nuove colonne `x/o_ai_level` → ricreare il DB di sviluppo.
+- **2026-07-05** — **Animazione delle mosse + suono**: i pezzi scivolano (flyer assoluti con
+  transizione CSS; accoppiamento origine→destinazione per simbolo: copre arrocco/en passant/
+  promozione; Forza 4 con caduta, Tris con pop) e ogni mossa ha un "toc" WebAudio sintetizzato
+  (più grave sulle catture). Personalizzabili dal super admin (categoria «Aspetto»: `ui.anim_ms`,
+  `ui.sound_enabled`, `ui.sound_volume`) via `GET /config`. 101 test verdi.
 
 ## Questioni aperte
 

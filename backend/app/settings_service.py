@@ -120,6 +120,28 @@ SETTINGS_DEFS = [
         "category": "Giochi",
         "label": "Numero massimo di partite consecutive (batch IA-vs-IA)",
     },
+    # Aspetto: letti dal frontend via GET /config (pubblico) a ogni pagina di gioco.
+    {
+        "key": "ui.anim_ms",
+        "type": "int",
+        "default": 250,
+        "category": "Aspetto",
+        "label": "Durata dell'animazione di spostamento dei pezzi (millisecondi; 0 = nessuna)",
+    },
+    {
+        "key": "ui.sound_enabled",
+        "type": "bool",
+        "default": True,
+        "category": "Aspetto",
+        "label": "Effetto sonoro delle mosse",
+    },
+    {
+        "key": "ui.sound_volume",
+        "type": "int",
+        "default": 40,
+        "category": "Aspetto",
+        "label": "Volume dell'effetto sonoro (0-100)",
+    },
 ]
 
 SETTINGS_BY_KEY = {d["key"]: d for d in SETTINGS_DEFS}

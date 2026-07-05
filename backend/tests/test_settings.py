@@ -27,6 +27,10 @@ def test_public_config():
         cfg = client.get("/config").json()
         assert "ai_move_delay_ms" in cfg
         assert cfg["site_name"]
+        # Aspetto: animazione dei pezzi ed effetto sonoro (per la pagina di gioco).
+        assert cfg["anim_ms"] == 250
+        assert cfg["sound_enabled"] is True
+        assert 0 <= cfg["sound_volume"] <= 100
 
 
 def test_update_requires_token():

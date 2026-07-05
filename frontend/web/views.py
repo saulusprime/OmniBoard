@@ -221,7 +221,14 @@ def play(request, session_id):
     return render(
         request,
         "web/play.html",
-        {"s": session, "ai_delay": config.get("ai_move_delay_ms", 700)},
+        {
+            "s": session,
+            "ai_delay": config.get("ai_move_delay_ms", 700),
+            # Aspetto (categoria super admin): animazione dei pezzi ed effetto sonoro.
+            "anim_ms": config.get("anim_ms", 250),
+            "sound_on": config.get("sound_enabled", True),
+            "sound_vol": config.get("sound_volume", 40),
+        },
     )
 
 
