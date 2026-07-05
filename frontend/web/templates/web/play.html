@@ -37,10 +37,10 @@
   <h1>{{ s.game_name }}</h1>
   <p class="muted">
     <strong>X</strong>: {{ s.players.x.alias|default:"IA" }}
-    ({% if s.players.x.type == 'ai' %}IA{% else %}umano{% endif %})
+    ({% if s.players.x.type == 'stockfish' %}Stockfish{% elif s.players.x.type == 'ai' %}IA via API{% else %}umano{% endif %})
     &nbsp;·&nbsp;
     <strong>O</strong>: {{ s.players.o.alias|default:"IA" }}
-    ({% if s.players.o.type == 'ai' %}IA{% else %}umano{% endif %})
+    ({% if s.players.o.type == 'stockfish' %}Stockfish{% elif s.players.o.type == 'ai' %}IA via API{% else %}umano{% endif %})
   </p>
 
   <div class="play">
@@ -70,8 +70,9 @@
   const STATE_URL = "{% url 'play_state_json' s.id %}";
   const CSRF = "{{ csrf_token }}";
   const AI_DELAY = {{ ai_delay|default:700 }};
-  const X_AI = {% if s.players.x.type == 'ai' %}true{% else %}false{% endif %};
-  const O_AI = {% if s.players.o.type == 'ai' %}true{% else %}false{% endif %};
+  // Un lato è "IA" per il client se non è umano (IA via API oppure Stockfish).
+  const X_AI = {% if s.players.x.type != 'human' %}true{% else %}false{% endif %};
+  const O_AI = {% if s.players.o.type != 'human' %}true{% else %}false{% endif %};
 
   const rows = SESSION.rows, cols = SESSION.cols, moveType = SESSION.move_type;
   const isSelect = moveType === "draughts" || moveType === "chess";

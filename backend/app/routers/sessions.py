@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from engine import get_game, is_playable
 
-from .. import ai, ai_providers, gameplay, models, schemas, settings_service
+from .. import ai_providers, gameplay, models, opponents, schemas, settings_service
 from ..database import get_db
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
@@ -59,20 +59,24 @@ def _view(session: models.GameSession) -> dict:
         "opening": game.opening_name(gameplay.history_ids(moves)),
         "moves": moves,
         "players": {
+            # type ∈ {"human", "ai" (IA via API), "stockfish"} — vedi gameplay.side_kind.
             "x": {
-                "type": "ai" if session.x_is_ai else "human",
+                "type": gameplay.side_kind(session, 0),
                 "user_id": session.x_user_id,
                 "alias": session.x_user.alias if session.x_user else None,
             },
             "o": {
-                "type": "ai" if session.o_is_ai else "human",
+                "type": gameplay.side_kind(session, 1),
                 "user_id": session.o_user_id,
                 "alias": session.o_user.alias if session.o_user else None,
             },
         },
+        # Ultima mossa IA: "source" dice chi ha giocato davvero (book / stockfish /
+        # <provider> / engine / local); "cell" è valorizzata solo per i giochi a
+        # indice (Tris/Forza 4), per scacchi/dama la mossa è un percorso.
         "last_ai": (
             {"cell": session.last_ai_cell, "source": session.last_ai_source}
-            if session.last_ai_cell is not None
+            if session.last_ai_source is not None
             else None
         ),
     }
@@ -88,16 +92,17 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
     game = get_game(payload.game_code)
 
     def resolve(spec: schemas.PlayerSpec):
-        if spec.type == "ai":
-            return None, True
+        """(user_id, is_ai, ai_kind) per un lato: umano, IA via API o Stockfish."""
+        if spec.type in ("ai", "stockfish"):
+            return None, True, spec.type
         if not spec.user_id:
             raise HTTPException(status_code=400, detail="Manca l'utente per un giocatore umano")
         if not db.get(models.User, spec.user_id):
             raise HTTPException(status_code=404, detail="Utente non trovato")
-        return spec.user_id, False
+        return spec.user_id, False, None
 
-    x_uid, x_ai = resolve(payload.x)
-    o_uid, o_ai = resolve(payload.o)
+    x_uid, x_ai, x_kind = resolve(payload.x)
+    o_uid, o_ai, o_kind = resolve(payload.o)
 
     state = game.initial_state()
     session = models.GameSession(
@@ -106,6 +111,8 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
         o_user_id=o_uid,
         x_is_ai=x_ai,
         o_is_ai=o_ai,
+        x_ai_kind=x_kind,
+        o_ai_kind=o_kind,
         state_json=json.dumps(game.serialize_state(state)),
         moves_json="[]",
         status="in_progress",
@@ -139,14 +146,15 @@ def run_batch(payload: schemas.BatchCreate, db: Session = Depends(get_db)):
     provider = ai_providers.get_active_config(db)
     # Nel batch il motore scacchi usa un tempo ridotto (tante partite × tante mosse) e un
     # po' di jitter per non ripetere identica la stessa partita (motore deterministico).
+    # Entrambi i lati sono IA di tipo "ai" (API con ripiego sul giocatore locale).
     batch_ms = min(120, int(settings_service.get(db, "ai.engine_ms")))
     tally = {"x": 0, "o": 0, "draw": 0}
     for _ in range(payload.count):
         state = game.initial_state()
         history: list[str] = []
         while not game.is_terminal(state):
-            move, _source = ai.choose_move(
-                game, state, history, provider, think_ms=batch_ms, jitter=20
+            move, _source = opponents.choose_move(
+                game, state, history, kind="ai", provider=provider, think_ms=batch_ms, jitter=20
             )
             history.append(game.move_id(move))
             state = game.apply(state, move)

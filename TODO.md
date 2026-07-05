@@ -19,14 +19,15 @@
 
 ## Motore scacchi
 
-- [ ] ⭐ **Avversario Stockfish (NNUE) configurabile** — integrare il vero motore Stockfish
-  come avversario tramite protocollo **UCI** (binario esterno in subprocess; percorso da
-  parametro super admin o `.env`, es. `STOCKFISH_PATH`). Forza regolabile: *Skill Level*
-  0–20, `UCI_LimitStrength`/`UCI_Elo`, tempo o profondità per mossa — selezionabile al setup
-  della partita (livelli di difficoltà "veri"). NNUE è la valutazione neurale integrata di
-  Stockfish. Fallback automatico al motore interno se il binario non è disponibile; utile
-  anche come **sparring/riferimento** per misurare la forza del motore interno e per
-  l'analisi post-partita.
+- [x] ⭐ **Avversario Stockfish (NNUE) configurabile** — integrato via protocollo **UCI**
+  (`backend/app/opponents/stockfish.py`): tipo di giocatore «Stockfish» al setup partita;
+  percorso binario da super admin (`stockfish.path`) o `STOCKFISH_PATH`; forza regolabile
+  (*Skill Level* 0–20, `UCI_Elo` 1320–3190, tempo per mossa); ripiego automatico sul motore
+  interno se il binario manca.
+- [ ] Stockfish: **processo persistente** con lock al posto dell'avvio one-shot per mossa
+  (risparmia ~100ms/mossa); selezione della forza **al setup della partita** (oggi è un
+  parametro globale del super admin); usarlo come sparring per misurare l'Elo del motore
+  interno e per l'analisi post-partita.
 - [ ] **Patta per triplice ripetizione** dichiarata dalle regole del gioco (il motore la
   evita in ricerca, ma la partita non termina mai per ripetizione).
 - [ ] **Apertura-bersaglio dal profilo avversario** — scegliere dal libro le linee in cui

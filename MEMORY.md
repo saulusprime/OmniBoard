@@ -285,6 +285,26 @@ supporto alla ricerca sono comunque in file dedicati (`context.py`, `errors.py`)
 **Alternativa scartata:** mantenere `games/` piatto con moduli monolitici (non scala con
 motori dedicati, libri di aperture e futuri giochi stocastici).
 
+### ADR-020 — Tre tipi di avversario, un modulo per tipo (opponents/) — 2026-07-05
+**Contesto:** l'avversario deve poter essere umano, **Stockfish (NNUE)** configurabile o
+**IA via API** (Qwen/Claude/…); il vecchio `ai.py` mescolava chiamate remote e giocatore
+locale in un unico modulo.
+**Decisione:** pacchetto `backend/app/opponents/` con un modulo per responsabilità:
+`api_ai.py` (solo chiamate ai provider remoti + ping), `stockfish.py` (ponte **UCI
+one-shot** in subprocess: senza stato, thread-safe coi worker; posizione via
+`startpos+moves` o FEN con il nuovo `Chess.to_fen`; forza via Skill Level / UCI_Elo /
+movetime dal super admin), `local.py` (ripiego sempre disponibile: motore dedicato scacchi
+o minimax generico), `__init__.py` (dispatcher per tipo, libro aperture comune, sorgente
+della mossa tracciata). Tipo per lato persistito in `game_sessions.x/o_ai_kind`
+("ai"|"stockfish", None=umano; righe storiche ⇒ "ai").
+**Cambio voluto:** con tipo "ai" il provider remoto **gioca davvero** anche a scacchi
+(prima il motore interno lo scavalcava); il motore interno resta il ripiego di tutti.
+**Conseguenze:** codice per-avversario leggibile e testabile in isolamento (ponte UCI
+provato con un finto binario); la partita non si blocca mai (ripiego garantito).
+⚠️ Schema DB cambiato senza migrazioni: in sviluppo ricreare `backend/scacchi.db`.
+**Alternativa scartata:** processo Stockfish persistente con lock (più veloce di ~100ms a
+mossa ma con stato condiviso tra thread; annotato in TODO.md come ottimizzazione).
+
 ## Traguardi
 
 - **2026-06-28** — Definita l'architettura, scelti licenza e modello del motore; creata la
@@ -331,6 +351,10 @@ motori dedicati, libri di aperture e futuri giochi stocastici).
   `engine/common/`, una classe per file (`game.py`/`state.py`; scacchi anche `board.py`,
   `engine.py`, `context.py`, `errors.py`, `openings.py`). API stabile ri-esportata da
   `engine`. 87 test verdi, nessun cambiamento funzionale.
+- **2026-07-05** — **Tre tipi di avversario** (ADR-020): umano / **Stockfish UCI** configurabile
+  (path, Skill Level, Elo, movetime) / **IA via API**, con pacchetto `opponents/` (un modulo per
+  tipo + ripiego locale garantito) e ponte UCI testato con un finto binario. 94 test verdi
+  (+1 skip col vero Stockfish). ⚠️ nuove colonne `x/o_ai_kind` → ricreare il DB di sviluppo.
 
 ## Questioni aperte
 

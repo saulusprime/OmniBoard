@@ -82,6 +82,37 @@ class Chess(Game):
             board=tuple(board), current=current, castling=castling, ep=ep, halfmove=halfmove
         )
 
+    @staticmethod
+    def to_fen(state) -> str:
+        """Stringa FEN dello stato (inverso di ``from_fen``; usata dal ponte UCI).
+
+        Il numero di mossa non è tracciato nello stato: si emette ``1``, sufficiente
+        per i motori UCI (usano il contatore solo per informazione).
+        """
+        rows = []
+        for r in range(8):
+            row = ""
+            empty = 0
+            for c in range(8):
+                piece = state.board[r * 8 + c]
+                if piece is None:
+                    empty += 1
+                else:
+                    if empty:
+                        row += str(empty)
+                        empty = 0
+                    row += piece
+            if empty:
+                row += str(empty)
+            rows.append(row)
+        wk, wq, bk, bq = state.castling
+        rights = (
+            ("K" if wk else "") + ("Q" if wq else "") + ("k" if bk else "") + ("q" if bq else "")
+        )
+        ep = coord(state.ep) if state.ep is not None else "-"
+        side = "w" if state.current == WHITE else "b"
+        return f"{'/'.join(rows)} {side} {rights or '-'} {ep} {state.halfmove} 1"
+
     def current_player(self, state):
         return state.current
 

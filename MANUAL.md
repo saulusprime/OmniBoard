@@ -159,6 +159,23 @@ Il tempo di analisi per mossa è regolabile dal super admin (parametro *Tempo di
 motore scacchi*, default 2 secondi): più tempo = gioco più forte. Per gli scacchi il motore locale
 è preferito a un eventuale provider IA remoto perché più forte.
 
+### I tre tipi di avversario
+Al setup della partita ogni lato (X e O) può essere di **tre tipi**:
+
+- **Umano** — un giocatore registrato (si gioca a turni sullo stesso schermo).
+- **IA via API** — la mossa viene chiesta al **provider IA attivo** (Qwen, Claude, … —
+  configurato in *Provider IA*). Se nessun provider è attivo o la chiamata fallisce,
+  gioca il **giocatore locale** (per gli scacchi il motore interno).
+- **Stockfish (motore)** — il celebre motore open source con valutazione neurale (NNUE),
+  se installato sul server (`brew install stockfish` / `apt install stockfish`). Percorso e
+  forza si regolano dal super admin (categoria *Stockfish*): *Skill Level* 0–20, **Elo
+  simulato** (1320–3190, il modo più realistico di giocare contro un "umano" di quella
+  forza) e tempo di riflessione per mossa. Se il binario non c'è, ripiega sul motore
+  interno.
+
+In partita, sotto il nome dei giocatori è indicato il tipo di ciascun lato; la partita non
+si blocca mai: qualunque problema dell'avversario scelto fa subentrare il giocatore locale.
+
 ### Modello dell'avversario
 Quando l'IA affronta un giocatore umano, analizza lo **storico delle sue partite di scacchi** per
 individuarne **schemi e debolezze**: aperture giocate e relativo rendimento, fragilità tattica

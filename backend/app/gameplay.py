@@ -23,8 +23,9 @@ from sqlalchemy.orm import Session
 
 from engine import get_game
 
-from . import ai, ai_providers, chess_profile, models, services, settings_service
+from . import ai_providers, chess_profile, models, opponents, services, settings_service
 from .database import SessionLocal
+from .opponents import stockfish
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +44,17 @@ def save_state(game, session: models.GameSession, state) -> None:
 
 def side_is_ai(session: models.GameSession, player: int) -> bool:
     return session.x_is_ai if player == 0 else session.o_is_ai
+
+
+def side_kind(session: models.GameSession, player: int) -> str:
+    """Tipo del lato: "human", "ai" (IA via API) o "stockfish".
+
+    Le righe storiche (create prima dell'introduzione dei tipi) hanno ``*_ai_kind``
+    None con ``*_is_ai`` True: si assume "ai", il comportamento di allora.
+    """
+    if player == 0:
+        return (session.x_ai_kind or "ai") if session.x_is_ai else "human"
+    return (session.o_ai_kind or "ai") if session.o_is_ai else "human"
 
 
 def record_move(game, state_before, move, player: int, moves: list) -> None:
@@ -97,7 +109,9 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
     """
     state = load_state(game, session)
     moves = json.loads(session.moves_json or "[]")
+    # Configurazioni lette una volta per turno IA: provider API attivo e Stockfish.
     provider = ai_providers.get_active_config(db)
+    stockfish_cfg = stockfish.get_config(db)
     think_ms = settings_service.get(db, "ai.engine_ms")
     if session.x_is_ai and session.o_is_ai:
         # IA-vs-IA: tante mosse consecutive; un budget ridotto tiene la partita fluida.
@@ -107,8 +121,16 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
         player = game.current_player(state)
         if not side_is_ai(session, player):
             break
-        move, source = ai.choose_move(
-            game, state, history_ids(moves), provider, think_ms=think_ms, jitter=15, style=style
+        move, source = opponents.choose_move(
+            game,
+            state,
+            history_ids(moves),
+            kind=side_kind(session, player),
+            provider=provider,
+            stockfish_cfg=stockfish_cfg,
+            think_ms=think_ms,
+            jitter=15,
+            style=style,
         )
         record_move(game, state, move, player, moves)
         state = game.apply(state, move)
