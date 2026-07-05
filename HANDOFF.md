@@ -5,6 +5,54 @@
 
 ---
 
+## 2026-07-05 — Orologio di gioco per gli scacchi (Blitz/Rapid/Classical/FIDE + Fischer)
+
+**Obiettivo:** tempo permesso per le mosse, con categorie selezionabili dal giocatore e
+incremento Fischer opzionale.
+
+**Categorie** (validate dal backend, `gameplay.build_time_control`):
+- **Blitz/Lampo**: <15′ a testa (minuti 1–14, default 5); **Rapid**: 15–60′ (default 25);
+  **Classical**: >60′ (61–600, default 90) — per questi tre l'**incremento Fischer**
+  è opzionale (0–60″ riaccreditati a ogni mossa completata, es. 3′+2″).
+- **FIDE ufficiale**: parametri **fissi** — 90′ + 30″ a mossa fin dall'inizio, **+30′**
+  quando il giocatore completa la sua **40ª mossa**; minuti/incremento personalizzati
+  vengono rifiutati (400).
+
+**Meccanica (server = arbitro, `gameplay.py`):**
+- Colonne nuove su `game_sessions`: `tc_category/tc_base_s/tc_inc_s`, residui
+  `x/o_clock_ms` (millisecondi), `turn_started_at` (l'orologio del giocatore al tratto
+  scorre da qui), `finish_reason` ("time" = decisa dall'orologio).
+  **⚠️ Cambio schema senza migrazioni:** ricreare `backend/scacchi.db`.
+- `consume_time` alla mossa: scala il tempo pensato, accredita il bonus
+  (`_bonus_ms`: Fischer o FIDE con il +30′ alla 40ª), fa ripartire l'orologio
+  dell'avversario; se il residuo è esaurito → mossa rifiutata (409 «Tempo scaduto»).
+- **Bandierina pigra** (`check_time`): la lettura di stato (il polling del client)
+  constata la caduta anche se nessuno muove più. Esito: vince l'avversario, **patta se
+  gli resta il re nudo** (semplificazione della regola FIDE, documentata).
+- **IA sotto orologio**: il suo tempo scorre mentre pensa; il budget di riflessione
+  (motore interno e Stockfish) è limitato a ~1/10 del residuo così non perde per tempo;
+  se la bandierina cade durante la pensata, la mossa non viene registrata.
+- Il tempo (`_now`) è centralizzato e monkeypatch-abile: i test simulano il passare dei
+  minuti senza attese reali.
+
+**API/Frontend:** `SessionCreate.time_category/time_base_min/time_inc_s`; la vista espone
+`clock` (residui *vivi*, lato in corsa) e `finish_reason`. Setup con menù «Orologio (solo
+scacchi)» + minuti + incremento; in partita **due orologi** sopra la scacchiera (ticchettio
+client-side risincronizzato a ogni stato; al tratto evidenziato, rosso sotto i 30″; a 0 il
+client chiede la constatazione al server); esito «Ha vinto X (tempo scaduto)». Testo del
+setup aggiornato (era rimasto all'era-Tris).
+
+**Test (+5, 106 verdi):** validazioni per categoria e FIDE fisso; orologio nella vista
+(blitz 3′+2″ e FIDE 5400s/30″); consumo+incremento con tempo simulato (60000−10000+3000);
+bandierina sulla mossa (409) e pigra sulla lettura; unit su `_bonus_ms` (FIDE 40ª) e
+`_winner_on_time` (re nudo → patta).
+
+**Verifica dal vivo:** partita Blitz 3′+2″ contro Stockfish (Pan): X pensa ~3s reali →
+`x_ms` scala e riaccredita +2″; l'IA muove e riceve il suo incremento; `running` passa di
+mano; orologi resi in pagina; campi orologio nel form di setup.
+
+---
+
 ## 2026-07-05 — Animazione delle mosse + effetto sonoro (personalizzabili da super admin)
 
 **Obiettivo:** i pezzi si muovono con un'animazione e un effetto sonoro di base; velocità e

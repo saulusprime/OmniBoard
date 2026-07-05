@@ -74,11 +74,38 @@ class GameSetupForm(forms.Form):
         ("stockfish:pan", "Stockfish — Pan (Learner)"),
     ]
 
+    # Orologio di gioco (solo scacchi): categoria + minuti a testa + incremento
+    # Fischer. Il formato FIDE ha parametri fissi (90′ + 30″/mossa, +30′ dopo la
+    # 40ª mossa): minuti e incremento vengono ignorati/rifiutati dal backend.
+    TIME_CATEGORIES = [
+        ("", "Nessun orologio"),
+        ("blitz", "Blitz / Lampo (< 15′ a testa, es. 3′+2″)"),
+        ("rapid", "Rapid / Rapido (15–60′ a testa)"),
+        ("classical", "Classical / Classico (> 60′ a testa)"),
+        ("fide", "FIDE ufficiale (90′ + 30″/mossa, +30′ dopo la 40ª)"),
+    ]
+
     game = forms.ChoiceField(label="Gioco")
     x_type = forms.ChoiceField(label="Giocatore X (primo a muovere)", choices=PLAYER_TYPES)
     x_user = forms.ChoiceField(label="Utente per X", required=False)
     o_type = forms.ChoiceField(label="Giocatore O", choices=PLAYER_TYPES)
     o_user = forms.ChoiceField(label="Utente per O", required=False)
+    time_category = forms.ChoiceField(
+        label="Orologio (solo scacchi)", choices=TIME_CATEGORIES, required=False
+    )
+    time_base_min = forms.IntegerField(
+        label="Minuti a testa (vuoto = default della categoria)",
+        min_value=1,
+        max_value=600,
+        required=False,
+    )
+    time_inc_s = forms.IntegerField(
+        label="Incremento Fischer (secondi a mossa; non per FIDE)",
+        min_value=0,
+        max_value=60,
+        initial=0,
+        required=False,
+    )
     games_count = forms.IntegerField(
         label="Partite consecutive (solo se entrambi IA)",
         min_value=1,

@@ -93,6 +93,8 @@
 
 ## Sicurezza / DevOps
 
+- [ ] **Tipizzazione SQLAlchemy 2.0** (`Mapped[]`/`mapped_column`) nei modelli: zittisce i
+  falsi positivi di mypy sugli attributi `Column[...]` (il progetto linta con ruff).
 - [ ] **Rate limiting** sulle API pubbliche; configurazione **CORS** esplicita.
 - [ ] **Audit log** delle operazioni super admin.
 - [ ] **CI GitHub Actions**: verificare che il workflow esegua davvero ruff+pytest sul

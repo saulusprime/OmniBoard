@@ -203,6 +203,13 @@ def play_setup(request):
                     return {"type": kind}
 
                 data = {"game_code": game_code, "x": spec("x"), "o": spec("o")}
+                # Orologio (solo scacchi): incluso solo se una categoria è stata scelta;
+                # la validazione autorevole (range per categoria, FIDE fisso) è del backend.
+                if form.cleaned_data.get("time_category"):
+                    data["time_category"] = form.cleaned_data["time_category"]
+                    if form.cleaned_data.get("time_base_min"):
+                        data["time_base_min"] = form.cleaned_data["time_base_min"]
+                    data["time_inc_s"] = form.cleaned_data.get("time_inc_s") or 0
                 try:
                     session = api.create_session(data)
                     return redirect("play", session_id=session["id"])

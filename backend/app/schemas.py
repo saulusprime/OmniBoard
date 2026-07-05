@@ -155,6 +155,14 @@ class SessionCreate(BaseModel):
     game_code: str = "tictactoe"
     x: PlayerSpec
     o: PlayerSpec
+    # Orologio di gioco (solo scacchi, opzionale). Categoria: "blitz" (<15′ a testa),
+    # "rapid" (15-60′), "classical" (>60′), "fide" (90′ + 30″/mossa, +30′ dopo la 40ª
+    # mossa: parametri fissi). time_base_min = minuti a testa (non per fide);
+    # time_inc_s = incremento Fischer in secondi/mossa (solo blitz/rapid/classical).
+    # Validazione in gameplay.build_time_control.
+    time_category: Optional[str] = None
+    time_base_min: Optional[int] = None
+    time_inc_s: int = 0
 
 
 class MoveIn(BaseModel):

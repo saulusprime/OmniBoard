@@ -365,6 +365,11 @@ mossa ma con stato condiviso tra thread; annotato in TODO.md come ottimizzazione
   promozione; Forza 4 con caduta, Tris con pop) e ogni mossa ha un "toc" WebAudio sintetizzato
   (più grave sulle catture). Personalizzabili dal super admin (categoria «Aspetto»: `ui.anim_ms`,
   `ui.sound_enabled`, `ui.sound_volume`) via `GET /config`. 101 test verdi.
+- **2026-07-05** — **Orologio di gioco scacchi**: categorie Blitz (<15′), Rapid (15–60′),
+  Classical (>60′) con incremento Fischer opzionale, e FIDE ufficiale fisso (90′+30″/mossa,
+  +30′ alla 40ª). Server = arbitro (`consume_time`/`check_time` pigra, `_now` monkeypatch-abile);
+  patta col re nudo alla bandierina; l'IA sotto orologio limita la pensata a ~1/10 del residuo.
+  Due orologi live in pagina. 106 test verdi. ⚠️ nuove colonne orologio → ricreare il DB.
 
 ## Questioni aperte
 

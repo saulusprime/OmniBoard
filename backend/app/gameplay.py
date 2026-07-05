@@ -18,6 +18,7 @@ import json
 import logging
 import os
 import threading
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -105,6 +106,183 @@ def opponent_style(db: Session, game, session: models.GameSession):
     return profile["style"] if profile else None
 
 
+# ----- Orologio di gioco (solo scacchi) -----
+# Categorie e vincoli (minuti a testa): blitz <15, rapid 15-60, classical >60.
+# Il formato FIDE ufficiale ha parametri fissi: 90 minuti + 30 secondi a mossa fin
+# dall'inizio, e ulteriori 30 minuti dopo la 40ª mossa del giocatore.
+_TIME_CATEGORIES = {
+    "blitz": {"min": 1, "max": 14, "default": 5},
+    "rapid": {"min": 15, "max": 60, "default": 25},
+    "classical": {"min": 61, "max": 600, "default": 90},
+}
+_FIDE_BASE_S = 90 * 60
+_FIDE_INC_S = 30
+_FIDE_EXTRA_MS = 30 * 60 * 1000  # bonus dopo la 40ª mossa del giocatore
+_FIDE_EXTRA_AT_MOVE = 40
+
+
+def _now() -> datetime:
+    """Orologio del server in UTC naive (coerente con i DateTime persistiti).
+
+    Centralizzato così i test possono simulare il passare del tempo con monkeypatch.
+    """
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+def build_time_control(game_code: str, category, base_min, inc_s: int):
+    """Valida la richiesta di orologio e la normalizza in ``{category, base_s, inc_s}``.
+
+    Ritorna ``None`` se non è richiesto alcun orologio; solleva ``ValueError`` (con
+    messaggio per l'utente) se i parametri non rispettano le regole delle categorie.
+    """
+    if not category:
+        return None
+    if game_code != "chess":
+        raise ValueError("L'orologio di gioco è disponibile solo per gli scacchi")
+    if category == "fide":
+        # Formato ufficiale: parametri fissi, niente personalizzazioni.
+        if base_min is not None:
+            raise ValueError("Il formato FIDE ha un tempo fisso (90′): non impostare i minuti")
+        if inc_s:
+            raise ValueError("Il formato FIDE ha già il suo incremento (30″): non impostarlo")
+        return {"category": "fide", "base_s": _FIDE_BASE_S, "inc_s": _FIDE_INC_S}
+    rules = _TIME_CATEGORIES.get(category)
+    if not rules:
+        raise ValueError("Categoria di tempo sconosciuta (blitz, rapid, classical, fide)")
+    base = rules["default"] if base_min is None else int(base_min)
+    if not rules["min"] <= base <= rules["max"]:
+        raise ValueError(
+            f"Per la categoria {category} i minuti a testa devono essere tra "
+            f"{rules['min']} e {rules['max']}"
+        )
+    if not 0 <= int(inc_s) <= 60:
+        raise ValueError("L'incremento Fischer deve essere tra 0 e 60 secondi")
+    return {"category": category, "base_s": base * 60, "inc_s": int(inc_s)}
+
+
+def init_clock(session: models.GameSession, tc) -> None:
+    """Imposta l'orologio su una sessione appena creata (l'orologio di X parte)."""
+    if not tc:
+        return
+    session.tc_category = tc["category"]
+    session.tc_base_s = tc["base_s"]
+    session.tc_inc_s = tc["inc_s"]
+    session.x_clock_ms = tc["base_s"] * 1000
+    session.o_clock_ms = tc["base_s"] * 1000
+    session.turn_started_at = _now()
+
+
+def _bonus_ms(category: str, inc_s: int, move_number: int) -> int:
+    """Millisecondi accreditati DOPO una mossa completata.
+
+    Fischer: ``inc_s`` fissi a mossa. FIDE: 30″ a mossa fin dall'inizio, più i 30
+    minuti aggiuntivi quando il giocatore completa la sua 40ª mossa.
+    """
+    bonus = inc_s * 1000
+    if category == "fide" and move_number == _FIDE_EXTRA_AT_MOVE:
+        bonus += _FIDE_EXTRA_MS
+    return bonus
+
+
+def _remaining_ms(session: models.GameSession, player: int) -> int:
+    """Tempo residuo *vivo* del giocatore (scala mentre è il suo turno)."""
+    stored = session.x_clock_ms if player == 0 else session.o_clock_ms
+    if session.turn_started_at is None:
+        return stored
+    elapsed = int((_now() - session.turn_started_at).total_seconds() * 1000)
+    return stored - elapsed
+
+
+def _winner_on_time(game, state, flagged_player: int) -> str:
+    """Esito alla caduta della bandierina: vince l'avversario, MA è patta se questi
+    non ha più materiale per dare matto. Semplificazione (regola FIDE completa: "non
+    può dare matto con alcuna serie di mosse legali"): patta solo con il re nudo."""
+    opponent_pieces = [
+        p
+        for p in state.board
+        if p and (p.isupper() if flagged_player == 1 else p.islower()) and p.upper() != "K"
+    ]
+    if not opponent_pieces:
+        return "draw"
+    return "o" if flagged_player == 0 else "x"
+
+
+def _finish_on_time(db: Session, game, session: models.GameSession, flagged_player: int) -> None:
+    """Chiude la partita per tempo scaduto e aggiorna i punteggi."""
+    state = load_state(game, session)
+    side = "x" if flagged_player == 0 else "o"
+    session.winner = _winner_on_time(game, state, flagged_player)
+    session.status = "finished"
+    session.finish_reason = "time"
+    if flagged_player == 0:
+        session.x_clock_ms = 0
+    else:
+        session.o_clock_ms = 0
+    services.finalize_session(db, session)
+    db.commit()
+    logger.info("Sessione %s conclusa per tempo: bandierina di %s", session.id, side)
+
+
+def check_time(db: Session, game, session: models.GameSession) -> None:
+    """Controllo pigro della bandierina: chiude la partita se il tempo del giocatore
+    al tratto è esaurito. Chiamato dalle letture di stato (polling) e prima delle
+    mosse: l'orologio è autorevole anche se nessuno muove più."""
+    if session.status != "in_progress" or not session.tc_category:
+        return
+    state = load_state(game, session)
+    player = game.current_player(state)
+    if _remaining_ms(session, player) <= 0:
+        _finish_on_time(db, game, session, player)
+
+
+def consume_time(db: Session, game, session: models.GameSession, player: int, moves: list):
+    """Scala il tempo pensato dal giocatore che ha appena mosso e accredita il bonus.
+
+    ``moves`` è il log PRIMA della mossa (serve per il numero di mossa del giocatore,
+    usato dal bonus FIDE della 40ª). Ritorna False — chiudendo la partita per tempo —
+    se il giocatore ha superato il residuo mentre pensava; True altrimenti.
+    """
+    if not session.tc_category:
+        return True
+    remaining = _remaining_ms(session, player)
+    if remaining <= 0:
+        _finish_on_time(db, game, session, player)
+        return False
+    move_number = len(moves) // 2 + 1  # la mossa n° del giocatore che sta muovendo
+    remaining += _bonus_ms(session.tc_category, session.tc_inc_s or 0, move_number)
+    if player == 0:
+        session.x_clock_ms = remaining
+    else:
+        session.o_clock_ms = remaining
+    session.turn_started_at = _now()  # parte l'orologio dell'avversario
+    return True
+
+
+def clock_view(session: models.GameSession, game) -> dict | None:
+    """Stato dell'orologio per il client: residui *vivi* e lato in movimento."""
+    if not session.tc_category:
+        return None
+    running = None
+    x_ms, o_ms = session.x_clock_ms, session.o_clock_ms
+    if session.status == "in_progress":
+        state = load_state(game, session)
+        player = game.current_player(state)
+        running = "x" if player == 0 else "o"
+        live = max(0, _remaining_ms(session, player))
+        if player == 0:
+            x_ms = live
+        else:
+            o_ms = live
+    return {
+        "category": session.tc_category,
+        "base_s": session.tc_base_s,
+        "inc_s": session.tc_inc_s,
+        "x_ms": max(0, x_ms),
+        "o_ms": max(0, o_ms),
+        "running": running,
+    }
+
+
 # ----- Avanzamento IA -----
 def advance_ai(db: Session, game, session: models.GameSession) -> None:
     """Fa giocare i lati IA finché non tocca a un umano o la partita finisce.
@@ -127,6 +305,18 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
         player = game.current_player(state)
         if not side_is_ai(session, player):
             break
+        # Orologio: se il tempo dell'IA è già scaduto la partita si chiude qui; e il
+        # budget di riflessione viene limitato a una frazione del residuo, così l'IA
+        # non fa cadere la propria bandierina pensando troppo a lungo.
+        check_time(db, game, session)
+        if session.status != "in_progress":
+            return
+        move_think_ms = think_ms
+        sf_cfg = stockfish.config_for_level(stockfish_base, side_level(session, player))
+        if session.tc_category:
+            budget = max(50, _remaining_ms(session, player) // 10)
+            move_think_ms = min(int(think_ms), budget)
+            sf_cfg = dict(sf_cfg, move_ms=min(int(sf_cfg["move_ms"]), budget))
         move, source = opponents.choose_move(
             game,
             state,
@@ -135,11 +325,15 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
             provider=provider,
             # Il preset del livello (Zeus/Atena/…) si applica sopra la base globale,
             # per lato: in IA-vs-IA i due lati possono avere livelli diversi.
-            stockfish_cfg=stockfish.config_for_level(stockfish_base, side_level(session, player)),
-            think_ms=think_ms,
+            stockfish_cfg=sf_cfg,
+            think_ms=move_think_ms,
             jitter=15,
             style=style,
         )
+        # Il tempo pensato (reale) viene scalato dall'orologio dell'IA: se nel
+        # frattempo la bandierina è caduta, la mossa non viene registrata.
+        if not consume_time(db, game, session, player, moves):
+            return
         record_move(game, state, move, player, moves)
         state = game.apply(state, move)
         # last_ai_cell è un intero (cella/colonna); per la dama la mossa è un percorso → None.

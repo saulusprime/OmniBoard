@@ -56,6 +56,8 @@ def _view(session: models.GameSession) -> dict:
         "legal_moves": legal,
         "playable_moves": playable_moves,
         "winner": session.winner,
+        "finish_reason": session.finish_reason,  # "time" = decisa dall'orologio
+        "clock": gameplay.clock_view(session, game),  # None se partita senza orologio
         "opening": game.opening_name(gameplay.history_ids(moves)),
         "moves": moves,
         "players": {
@@ -114,6 +116,14 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
     x_uid, x_ai, x_kind, x_level = resolve(payload.x)
     o_uid, o_ai, o_kind, o_level = resolve(payload.o)
 
+    # Orologio di gioco (solo scacchi): valida categoria/minuti/incremento Fischer.
+    try:
+        time_control = gameplay.build_time_control(
+            payload.game_code, payload.time_category, payload.time_base_min, payload.time_inc_s
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     state = game.initial_state()
     session = models.GameSession(
         game_id=game_model.id,
@@ -129,6 +139,7 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
         moves_json="[]",
         status="in_progress",
     )
+    gameplay.init_clock(session, time_control)  # l'orologio di X parte da subito
     db.add(session)
     db.commit()
     db.refresh(session)
@@ -188,6 +199,9 @@ def get_session(session_id: int, db: Session = Depends(get_db)):
     session = db.get(models.GameSession, session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Sessione non trovata")
+    # Bandierina pigra: l'orologio è autorevole anche se nessuno muove più — la
+    # lettura di stato (il polling del client) chiude la partita a tempo scaduto.
+    gameplay.check_time(db, get_game(session.game.code), session)
     # Auto-ripristino: se è il turno dell'IA e nessun worker è attivo (es. server
     # riavviato a metà pensata), il polling stesso riprogramma il calcolo.
     gameplay.schedule_ai(db, session, sync_fallback=False)
@@ -199,10 +213,14 @@ def make_move(session_id: int, payload: schemas.MoveIn, db: Session = Depends(ge
     session = db.get(models.GameSession, session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Sessione non trovata")
+
+    game = get_game(session.game.code)
+    # L'orologio decide prima della mossa: se il tempo del giocatore è già scaduto,
+    # la partita viene chiusa e la mossa rifiutata.
+    gameplay.check_time(db, game, session)
     if session.status == "finished":
         raise HTTPException(status_code=409, detail="Partita già conclusa")
 
-    game = get_game(session.game.code)
     state = gameplay.load_state(game, session)
     player = game.current_player(state)
     if gameplay.side_is_ai(session, player):
@@ -212,6 +230,10 @@ def make_move(session_id: int, payload: schemas.MoveIn, db: Session = Depends(ge
         raise HTTPException(status_code=400, detail="Mossa non valida")
 
     moves = json.loads(session.moves_json or "[]")
+    # Scala il tempo pensato dall'orologio del giocatore (con incremento a mossa
+    # completata); se la bandierina è caduta nel frattempo, la mossa arriva tardi.
+    if not gameplay.consume_time(db, game, session, player, moves):
+        raise HTTPException(status_code=409, detail="Tempo scaduto: partita conclusa")
     gameplay.record_move(game, state, chosen, player, moves)
     state = game.apply(state, chosen)
     session.moves_json = json.dumps(moves)

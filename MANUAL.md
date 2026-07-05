@@ -163,6 +163,29 @@ toccare il codice**: imposta `CHESS_BOOK_FILE` nel `.env` con il percorso di un 
 (una linea per riga, `Nome apertura: e2e4 e7e5 …`). *Nota:* non è ancora gestita la patta per
 **triplice ripetizione**.
 
+### L'orologio di gioco (cadenze di torneo)
+Per gli scacchi, al setup della partita puoi attivare l'**orologio**: ogni giocatore ha un
+tempo totale che scorre solo durante il proprio turno; chi lo esaurisce **perde per tempo**
+(«caduta della bandierina») — è patta se all'avversario resta il re nudo. Le categorie:
+
+| Categoria | Tempo a testa | Note |
+|---|---|---|
+| **Blitz / Lampo** | meno di 15′ (es. 3′+2″) | minuti configurabili 1–14 |
+| **Rapid / Rapido** | 15–60′ | minuti configurabili |
+| **Classical / Classico** | oltre 60′ | minuti configurabili 61–600 |
+| **FIDE ufficiale** | 90′ + 30″ a mossa | +30′ dopo la 40ª mossa; parametri fissi |
+
+Per Blitz, Rapid e Classical puoi attivare l'**incremento Fischer** (o *bonus*): a ogni
+mossa completata l'orologio riaccredita un numero fisso di secondi (es. 3″ o 5″,
+configurabile 0–60). La notazione `3′+2″` significa «3 minuti a testa più 2 secondi a
+mossa». Il formato FIDE ha già il suo incremento di 30″ e non è personalizzabile.
+
+In partita i due orologi compaiono sopra la scacchiera: quello del giocatore al tratto è
+evidenziato e sotto i 30 secondi diventa rosso. L'arbitro è il **server**: il tempo viene
+scalato a ogni mossa e la bandierina viene constatata anche se nessuno muove più. Contro
+l'IA anche il suo orologio scorre mentre pensa (il tempo di riflessione viene limitato
+automaticamente perché non perda per tempo).
+
 ### L'IA degli scacchi (motore)
 Finita l'apertura, l'IA usa un **motore di ricerca dedicato** (alpha-beta con *iterative
 deepening*, *transposition table* e *quiescence search*) che **analizza la scacchiera in

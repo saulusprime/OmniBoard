@@ -37,6 +37,13 @@
   .movelog li { padding:4px 6px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
   #thinking { display:none; color:var(--accent); font-weight:600; margin-top:8px; }
   #opening { margin-top:4px; }
+  /* Orologi di gioco: due riquadri X/O; quello del giocatore al tratto è evidenziato,
+     sotto i 30 secondi diventa rosso. */
+  #clocks { display:none; gap:10px; margin:6px 0 2px; }
+  .clock { border:1px solid var(--line); border-radius:8px; padding:4px 12px;
+           font-variant-numeric:tabular-nums; font-weight:700; opacity:.55; }
+  .clock.running { opacity:1; border-color:var(--accent); }
+  .clock.low { color:#e05a4e; }
 </style>
 
 {{ s|json_script:"session-data" }}
@@ -54,6 +61,10 @@
   <div class="play">
     <div>
       <div id="turninfo"></div>
+      <div id="clocks">
+        <span class="clock" id="clock-x">X --:--</span>
+        <span class="clock" id="clock-o">O --:--</span>
+      </div>
       <div id="opening" class="muted"></div>
       <div id="boardarea"></div>
       <div id="thinking">L'IA sta pensando…</div>
@@ -351,14 +362,64 @@
     }, delay);
   }
 
+  // ----- Orologi di gioco (fonte di verità: il server; qui solo il ticchettio) -----
+  let clock = SESSION.clock || null;
+  let clockSyncAt = Date.now();   // istante dell'ultima sincronizzazione col server
+  let flagRequested = false;      // evita resync ripetuti quando un orologio arriva a 0
+
+  function liveMs(side) {
+    // Residuo mostrato: quello del server meno il tempo passato dall'ultima sync
+    // (solo per il lato il cui orologio sta correndo).
+    const stored = side === "x" ? clock.x_ms : clock.o_ms;
+    if (status === "in_progress" && clock.running === side) {
+      return stored - (Date.now() - clockSyncAt);
+    }
+    return stored;
+  }
+
+  function fmtClock(ms) {
+    const total = Math.max(0, Math.ceil(ms / 1000));
+    const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), s = total % 60;
+    const mm = String(m).padStart(2, "0"), ss = String(s).padStart(2, "0");
+    return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+  }
+
+  function renderClocks() {
+    const box = document.getElementById("clocks");
+    if (!clock) { box.style.display = "none"; return; }
+    box.style.display = "flex";
+    for (const side of ["x", "o"]) {
+      const el = document.getElementById("clock-" + side);
+      const ms = liveMs(side);
+      el.textContent = side.toUpperCase() + " " + fmtClock(ms);
+      el.classList.toggle("running", status === "in_progress" && clock.running === side);
+      el.classList.toggle("low", ms < 30000);
+    }
+    // Bandierina lato client: si chiede al server (autorevole) di constatarla.
+    if (status === "in_progress" && clock.running && liveMs(clock.running) <= 0 && !flagRequested) {
+      flagRequested = true;
+      resync();
+    }
+  }
+
+  function updateClock(session) {
+    clock = session.clock || null;
+    clockSyncAt = Date.now();
+    flagRequested = false;
+    renderClocks();
+  }
+  setInterval(() => { if (clock && status === "in_progress") renderClocks(); }, 250);
+
   function setStatus(session) {
     status = session.status;
     current = session.current || "";
+    updateClock(session);
     const el = document.getElementById("turninfo");
     if (session.status === "finished") {
+      const perTempo = session.finish_reason === "time" ? " (tempo scaduto)" : "";
       el.innerHTML = session.winner === "draw"
-        ? '<span class="pill">Patta</span>'
-        : '<span class="pill">Ha vinto ' + session.winner.toUpperCase() + "</span>";
+        ? '<span class="pill">Patta' + perTempo + "</span>"
+        : '<span class="pill">Ha vinto ' + session.winner.toUpperCase() + perTempo + "</span>";
     } else {
       el.innerHTML = "Tocca a: <strong>" + current.toUpperCase() + "</strong>" +
         (session.current_is_ai ? " (IA)" : "");

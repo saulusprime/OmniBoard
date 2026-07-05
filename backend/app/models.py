@@ -171,6 +171,17 @@ class GameSession(Base):
     # "zeus"); None = parametri globali del super admin.
     x_ai_level = Column(String(16), nullable=True)
     o_ai_level = Column(String(16), nullable=True)
+    # Orologio di gioco (solo scacchi, opzionale). Categoria: blitz | rapid |
+    # classical | fide (None = senza orologio); tempo base e incremento in secondi;
+    # tempi residui dei due lati in MILLISECONDI; istante d'inizio del turno corrente
+    # (l'orologio del giocatore al tratto scorre da qui). La logica è in gameplay.py.
+    tc_category = Column(String(16), nullable=True)
+    tc_base_s = Column(Integer, nullable=True)
+    tc_inc_s = Column(Integer, nullable=True)
+    x_clock_ms = Column(Integer, nullable=True)
+    o_clock_ms = Column(Integer, nullable=True)
+    turn_started_at = Column(DateTime, nullable=True)
+    finish_reason = Column(String(16), nullable=True)  # "time" = decisa dall'orologio
     state_json = Column(String, nullable=False)  # stato serializzato dal motore
     moves_json = Column(String, default="[]", nullable=False)  # log delle mosse
     status = Column(String, default="in_progress", nullable=False)  # in_progress | finished
