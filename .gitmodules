@@ -1,0 +1,3 @@
+[submodule "integrazioni/KittenTTS"]
+	path = integrazioni/KittenTTS
+	url = https://github.com/KittenML/KittenTTS.git

@@ -92,12 +92,14 @@
     animazioni ed evidenziazioni), con pulsanti avanti/indietro e replay vocale.
   - **Voce**: ogni passo viene letto ad alta voce dal servizio TTS (sotto).
 - [ ] **Servizio TTS nel backend** (`backend/app/tts.py` + endpoint `GET /tts`):
-  sintesi con **KittenTTS** (`integrazioni/KittenTTS`, Apache 2.0 — ONNX, solo CPU,
-  8 voci, modello 15–80M scaricato da HuggingFace al primo uso). Import **pigro**
-  (dipendenza opzionale: senza pacchetto → 503, il tutorial resta testuale), **cache su
-  disco** dei WAV per frase+voce+velocità (le lezioni sono testi fissi: si sintetizza
-  una volta sola), voce e velocità configurabili dal super admin. *Fattibilità già
-  verificata dal vivo: ~1–2s di sintesi per 5–7s di audio su CPU (nano, 15M).*
+  sintesi con **KittenTTS** — ora **submodule git** (`integrazioni/KittenTTS`, pinnato
+  a v0.8.1) e **dipendenza del backend** (`./integrazioni/KittenTTS` in
+  requirements, installata da `make install`). Apache 2.0 — ONNX, solo CPU, 8 voci,
+  modello 15–80M scaricato da HuggingFace al primo uso. Da fare: import pigro nel
+  servizio (senza modello → 503, il tutorial resta testuale), **cache su disco** dei
+  WAV per frase+voce+velocità (le lezioni sono testi fissi: si sintetizza una volta
+  sola), voce e velocità configurabili dal super admin. *Fattibilità già verificata
+  dal vivo: ~1–2s di sintesi per 5–7s di audio su CPU (nano, 15M).*
 - [ ] ⚠️ **Lingua**: KittenTTS è **solo inglese** (fonemizzatore `en-us` cablato,
   normalizzazione del testo inglese) — verificato con sintesi di prova: l'italiano esce
   con pronuncia anglicizzata, non usabile per un tutorial in italiano. Opzioni:

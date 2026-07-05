@@ -5,6 +5,29 @@
 
 ---
 
+## 2026-07-05 — KittenTTS diventa submodule git + dipendenza del backend
+
+**Richiesta (utente):** aggiungere KittenTTS come submodulo/dipendenza.
+
+**Realizzato:**
+- La copia in `integrazioni/KittenTTS` era già un **clone git** di
+  `github.com/KittenML/KittenTTS`: registrata come **submodule** (`.gitmodules`),
+  pinnata al commit upstream `9f3e0d8` (v0.8.1). Prima della registrazione il clone è
+  stato **ripristinato allo stato upstream**: le uniche modifiche locali erano la
+  riformattazione accidentale di un mio `ruff format .` girato prima di escludere
+  `integrazioni/` dal lint (nessuna modifica funzionale — verificato dal diff).
+- **Dipendenza del backend**: `./integrazioni/KittenTTS` in `backend/requirements.txt`
+  (path relativo alla root: come installa `make install`); `make install` ora esegue
+  prima `git submodule update --init`. Verificato: `pip install -r
+  backend/requirements.txt` dalla root installa e `from kittentts import KittenTTS`
+  funziona.
+- README (Avvio rapido): nota sul clone `--recursive` / `git submodule update --init`.
+
+**Nota per chi clona:** senza inizializzare il submodule l'installazione dei
+requirements fallisce sul path — è il comportamento voluto (dipendenza esplicita).
+
+---
+
 ## 2026-07-05 — Valutazione KittenTTS per la futura sezione di istruzione guidata
 
 **Contesto (utente):** in `integrazioni/KittenTTS/` c'è il progetto **KittenTTS** (TTS che

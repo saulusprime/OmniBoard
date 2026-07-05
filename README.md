@@ -229,8 +229,11 @@ Il database è pensato per raccogliere, nel rispetto della normativa (vedi nota 
 
 ## Avvio rapido
 
-Servono Python 3.12+. I due servizi (backend e frontend) si avviano in due terminali.
-Con il `Makefile` di comodo:
+Servono Python 3.12+. Il repository usa un **submodule git**
+(`integrazioni/KittenTTS`: sintesi vocale locale per la futura istruzione guidata):
+clona con `git clone --recursive …` oppure esegui `git submodule update --init`
+dopo il clone (`make install` lo fa da solo). I due servizi (backend e frontend)
+si avviano in due terminali. Con il `Makefile` di comodo:
 
 ```bash
 make install        # crea .venv e installa le dipendenze di backend e frontend

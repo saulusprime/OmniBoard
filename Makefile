@@ -13,6 +13,7 @@ help:
 	@echo "make frontend  - avvia il frontend Django su http://127.0.0.1:8001"
 
 install:
+	git submodule update --init  # integrazioni/KittenTTS (dipendenza del backend)
 	python3 -m venv $(VENV)
 	$(PIP) install -U pip
 	$(PIP) install -r backend/requirements.txt -r frontend/requirements.txt

@@ -4,3 +4,7 @@ SQLAlchemy>=2.0
 python-dotenv>=1.0
 httpx>=0.27
 anthropic>=0.40
+# KittenTTS: sintesi vocale locale (ONNX, solo CPU) per la sezione di istruzione
+# guidata. E' il submodule git in integrazioni/KittenTTS: installare dalla ROOT del
+# repository (come fa `make install`) dopo `git submodule update --init`.
+./integrazioni/KittenTTS

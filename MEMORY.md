@@ -401,6 +401,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   del caso funzionano (il **server tira i dadi**, `resolve_chance`, tiri nel log «🎲 5-3»);
   un dado = una mossa, colpi/barra/uscita, vista 2×14 sul frontend generico, IA greedy.
   121 test verdi. `integrazioni/` (codice esterno utente) esclusa dal lint, non committata.
+- **2026-07-05** — **KittenTTS submodule + dipendenza**: `integrazioni/KittenTTS` registrato
+  come submodule git (pinnato a v0.8.1, `9f3e0d8`) e aggiunto a `backend/requirements.txt`
+  come path dep (`./integrazioni/KittenTTS`, installazione dalla root); `make install` fa
+  `git submodule update --init`. Servirà per il TTS della sezione di istruzione guidata
+  (piano in TODO.md; limite lingua: solo inglese — per l'italiano valutare Piper).
 
 ## Questioni aperte
 
