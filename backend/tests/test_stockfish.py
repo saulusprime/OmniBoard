@@ -80,6 +80,46 @@ def test_session_with_stockfish_side_plays_via_fallback():
         assert after["current"] == "x"
 
 
+def test_verify_reports_missing_binary():
+    ok, detail = stockfish.verify(_cfg(path=""))
+    assert ok is False and "Nessun binario" in detail
+    ok, detail = stockfish.verify(_cfg(path="/percorso/inesistente"))
+    assert ok is False and "non trovato" in detail
+
+
+def test_verify_with_fake_engine(tmp_path):
+    fake = tmp_path / "fakefish"
+    fake.write_text("#!/bin/sh\necho 'id name Fakefish 1.0'\necho 'uciok'\necho 'bestmove e2e4'\n")
+    fake.chmod(0o755)
+    ok, detail = stockfish.verify(_cfg(path=str(fake)))
+    assert ok is True
+    assert "Fakefish 1.0" in detail and "e2e4" in detail
+
+
+def test_admin_stockfish_test_endpoint(tmp_path, monkeypatch):
+    """L'endpoint di verifica richiede il token e riporta esito + percorso risolto."""
+    with TestClient(app) as client:
+        # Senza token super admin → 401.
+        assert client.post("/admin/stockfish/test").status_code == 401
+        # Con token ma binario inesistente: ok=false con spiegazione. (Si forza un
+        # percorso non valido: sul PATH della macchina potrebbe esserci uno stockfish vero.)
+        monkeypatch.setenv("STOCKFISH_PATH", "/percorso/inesistente")
+        result = client.post(
+            "/admin/stockfish/test", headers={"X-Admin-Token": "test-admin"}
+        ).json()
+        assert result["ok"] is False
+        # Con un finto binario (via STOCKFISH_PATH): ok=true e percorso riportato.
+        fake = tmp_path / "fakefish"
+        fake.write_text("#!/bin/sh\necho 'id name Fakefish'\necho 'bestmove e2e4'\n")
+        fake.chmod(0o755)
+        monkeypatch.setenv("STOCKFISH_PATH", str(fake))
+        result = client.post(
+            "/admin/stockfish/test", headers={"X-Admin-Token": "test-admin"}
+        ).json()
+        assert result["ok"] is True
+        assert result["path"] == str(fake)
+
+
 @pytest.mark.skipif(shutil.which("stockfish") is None, reason="binario stockfish assente")
 def test_real_stockfish_plays_a_legal_move():
     """Se Stockfish è installato davvero, deve produrre una mossa legale."""

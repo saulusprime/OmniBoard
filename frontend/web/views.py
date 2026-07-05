@@ -260,6 +260,17 @@ def admin(request):
     settings = _safe(request, api.get_settings, default=[])
     if request.method == "POST":
         token = request.POST.get("admin_token", "")
+        # Pulsante «Verifica Stockfish»: diagnostica del binario UCI configurato.
+        if "test_stockfish" in request.POST:
+            try:
+                result = api.test_stockfish(token)
+                text = f"{result['detail']} (percorso: {result['path'] or 'non risolto'})"
+                (messages.success if result["ok"] else messages.error)(
+                    request, f"Stockfish: {text}"
+                )
+            except api.ApiError as exc:
+                messages.error(request, str(exc))
+            return redirect("admin")
         values = {
             s["key"]: request.POST.get(s["key"], "") for s in settings if s["key"] in request.POST
         }
