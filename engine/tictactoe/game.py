@@ -1,14 +1,14 @@
-"""Tris (tic-tac-toe): primo gioco concreto del motore.
+"""Tris (tic-tac-toe): regole del gioco.
 
 Due giocatori, 0 = X (muove per primo) e 1 = O. La griglia 3x3 è rappresentata da
-una tupla di 9 celle (0, 1 o None). Lo stato è immutabile.
+una tupla di 9 celle (0, 1 o None). Lo stato (immutabile) è in ``state.py``.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
-from ..core import Game, Outcome
+from ..common.game import Game
+from ..common.outcome import Outcome
+from .state import TicTacToeState
 
 # Le otto linee vincenti (indici di cella).
 LINES = [
@@ -24,12 +24,6 @@ LINES = [
 
 _SYMBOLS = {0: "X", 1: "O", None: "."}
 _COLS = ("a", "b", "c")
-
-
-@dataclass(frozen=True)
-class TicTacToeState:
-    board: tuple  # 9 celle: 0 (X), 1 (O) o None
-    current: int  # giocatore di turno: 0 o 1
 
 
 def _winner(board: tuple):

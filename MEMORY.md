@@ -267,6 +267,24 @@ per lo scaffold — annotata in TODO.md); WebSocket (arriverà col tempo reale).
 **Conseguenze:** nessuna risposta bloccante; le partite IA-vs-IA si guardano in diretta; il
 limite è lo scheduling in-process (un solo worker uvicorn).
 
+### ADR-019 — Struttura del motore: una directory per gioco, common/, una classe per file — 2026-07-05
+**Contesto:** i giochi erano moduli singoli in `engine/games/` (regole, stato, helper e — per
+gli scacchi — anche il motore di ricerca nello stesso file o in file affiancati): file lunghi,
+difficile orientarsi.
+**Decisione:** ogni gioco ha una **directory dedicata** (`engine/tictactoe/`, `connect4/`,
+`draughts/`, `chess/`); le parti condivise stanno in **`engine/common/`** (`game.py`,
+`outcome.py`, `registry.py`); **una classe per file** (regole in `game.py`, stato in
+`state.py`; per gli scacchi anche `board.py` per le funzioni di scacchiera condivise,
+`engine.py` per la ricerca, `context.py` per `SearchContext`, `errors.py` per `TimeUp`,
+`openings.py` per il libro). Il pacchetto `engine` ri-esporta l'**API stabile**
+(`Game`, `Outcome`, `get_game`, `is_playable`, …): i consumatori importano da `engine` o da
+`engine.<gioco>`, mai dai moduli interni. Spostamenti fatti con `git mv` (storia preservata).
+**Conseguenze:** aggiungere un gioco = nuova directory + registrazione in `common/registry.py`;
+i moduli restano corti e a responsabilità unica. Eccezione consapevole: le classi private di
+supporto alla ricerca sono comunque in file dedicati (`context.py`, `errors.py`).
+**Alternativa scartata:** mantenere `games/` piatto con moduli monolitici (non scala con
+motori dedicati, libri di aperture e futuri giochi stocastici).
+
 ## Traguardi
 
 - **2026-06-28** — Definita l'architettura, scelti licenza e modello del motore; creata la
@@ -309,6 +327,10 @@ limite è lo scheduling in-process (un solo worker uvicorn).
   rigiocandole col motore), indicizzato **per posizione** (gioca da libro anche nelle
   trasposizioni), estendibile via `CHESS_BOOK_FILE`; nomi da generico a specifico
   (*Siciliana* → *Siciliana Najdorf*). 87 test verdi.
+- **2026-07-05** — **Refactor del motore** (ADR-019): una directory per gioco, parti comuni in
+  `engine/common/`, una classe per file (`game.py`/`state.py`; scacchi anche `board.py`,
+  `engine.py`, `context.py`, `errors.py`, `openings.py`). API stabile ri-esportata da
+  `engine`. 87 test verdi, nessun cambiamento funzionale.
 
 ## Questioni aperte
 

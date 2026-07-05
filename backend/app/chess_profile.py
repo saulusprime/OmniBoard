@@ -18,7 +18,7 @@ import json
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from engine.games import openings
+from engine.chess import openings
 
 from . import models
 

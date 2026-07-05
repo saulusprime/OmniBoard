@@ -1,7 +1,6 @@
 """Test del motore degli scacchi (perft + casi speciali) e del libro aperture."""
 
-from engine.games import openings
-from engine.games.chess import Chess, ChessState
+from engine.chess import Chess, ChessState, openings
 
 
 def _perft(game, state, depth):

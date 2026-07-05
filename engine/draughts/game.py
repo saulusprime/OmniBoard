@@ -18,9 +18,9 @@ non è gestita la patta per ripetizione. Verranno affinate in seguito.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
-from ..core import Game, Outcome
+from ..common.game import Game
+from ..common.outcome import Outcome
+from .state import DraughtsState
 
 SIZE = 8
 
@@ -43,12 +43,6 @@ def _dark(r: int, c: int) -> bool:
 def _coord(sq: int) -> str:
     r, c = divmod(sq, SIZE)
     return f"{chr(97 + c)}{SIZE - r}"
-
-
-@dataclass(frozen=True)
-class DraughtsState:
-    board: tuple  # 64 celle: None oppure (player, king)
-    current: int
 
 
 def _initial_board() -> tuple:

@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from .core import Game
-from .games.chess import Chess
-from .games.connect4 import Connect4
-from .games.draughts import Draughts
-from .games.tictactoe import TicTacToe
+from ..chess.game import Chess
+from ..connect4.game import Connect4
+from ..draughts.game import Draughts
+from ..tictactoe.game import TicTacToe
+from .game import Game
 
 _GAMES: dict[str, Game] = {
     game.code: game for game in [TicTacToe(), Connect4(), Draughts(), Chess()]

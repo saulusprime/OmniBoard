@@ -1,1 +1,0 @@
-"""Implementazioni concrete dei giochi."""

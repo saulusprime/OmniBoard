@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from engine.registry import is_playable
+from engine import is_playable
 
 from .. import models, schemas
 from ..database import get_db

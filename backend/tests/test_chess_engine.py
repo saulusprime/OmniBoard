@@ -2,7 +2,7 @@
 
 import time
 
-from engine.games.chess import Chess
+from engine.chess import Chess
 
 GAME = Chess()
 

@@ -1,6 +1,6 @@
 """Motore di ricerca per gli scacchi: molto più forte del minimax generico.
 
-Tecniche implementate (tutte in puro Python, sopra il modello di ``chess.py``):
+Tecniche implementate (tutte in puro Python, sopra le regole di ``game.py``):
 
 - **Iterative deepening** con limite di tempo: il motore approfondisce la ricerca finché
   c'è tempo e restituisce sempre la miglior mossa dell'ultima profondità completata.
@@ -24,9 +24,11 @@ from __future__ import annotations
 
 import random
 import time
-from dataclasses import dataclass, field
 
-from .chess import WHITE, ChessState
+from .board import WHITE
+from .context import SearchContext
+from .errors import TimeUp
+from .state import ChessState
 
 # Valori dei pezzi (centipedoni).
 _VAL = {"P": 100, "N": 320, "B": 330, "R": 500, "Q": 900, "K": 20000}
@@ -130,41 +132,6 @@ _TK = {
     },
 }
 _VAL_C = {c: _VAL[c.upper()] for c in "PNBRQKpnbrqk"}
-
-
-class TimeUp(Exception):
-    """Sollevata internamente quando scade il budget di tempo della ricerca."""
-
-
-@dataclass
-class _Ctx:
-    game: object
-    deadline: float
-    tt: dict = field(default_factory=dict)
-    killers: dict = field(default_factory=dict)
-    history: dict = field(default_factory=dict)
-    nodes: int = 0
-    allow_timeout: bool = False
-    contempt: int = 0
-    aggression: float = 1.0
-    jitter: int = 0
-    root_side: int = 0
-    past_keys: frozenset = frozenset()  # posizioni già occorse nella partita (anti-ripetizione)
-
-    def tick(self):
-        self.nodes += 1
-        if self.allow_timeout and (self.nodes & 1023) == 0 and time.monotonic() > self.deadline:
-            raise TimeUp
-
-
-def style_from_profile(profile):
-    """Converte un profilo avversario in parametri di stile (riempito allo step 2)."""
-    if not profile:
-        return None
-    return {
-        "contempt": int(profile.get("contempt", 0)),
-        "aggression": float(profile.get("aggression", 1.0)),
-    }
 
 
 # ----- Valutazione -----
@@ -583,7 +550,9 @@ def best_move(game, state, history=None, time_limit=2.0, max_depth=64, style=Non
     if len(legal) == 1:
         return legal[0]
 
-    ctx = _Ctx(game=game, deadline=time.monotonic() + time_limit, jitter=max(0, int(jitter)))
+    ctx = SearchContext(
+        game=game, deadline=time.monotonic() + time_limit, jitter=max(0, int(jitter))
+    )
     ctx.root_side = state.current
     ctx.past_keys = _past_position_keys(game, state, history)
     if style:

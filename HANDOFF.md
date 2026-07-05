@@ -5,6 +5,38 @@
 
 ---
 
+## 2026-07-05 — Refactor del motore: una directory per gioco, common/, una classe per file
+
+**Obiettivo:** facilitare lettura e manutenzione raggruppando i file di ogni gioco in una
+directory dedicata, con le parti comuni in ``common/`` e **ogni classe in un file separato**.
+
+**Nuova struttura di `engine/`** (i file sono stati spostati con `git mv`, storia preservata):
+- `common/` — `game.py` (interfaccia astratta **Game**), `outcome.py` (**Outcome**),
+  `registry.py` (registro dei giochi). Prima erano in `core.py` + `registry.py`.
+- `tictactoe/`, `connect4/`, `draughts/` — per ciascuno `game.py` (classe delle regole) e
+  `state.py` (classe di stato, prima nello stesso file).
+- `chess/` — `game.py` (**Chess**), `state.py` (**ChessState**), `board.py` (costanti e
+  funzioni di scacchiera condivise da regole e motore: `is_attacked`, `king_square`, …,
+  rinominate senza underscore perché ora inter-modulo), `engine.py` (ricerca, ex
+  `chess_engine.py`), `context.py` (**SearchContext**, ex `_Ctx`), `errors.py` (**TimeUp**),
+  `openings.py` (libro, invariato).
+- Rimossi `engine/core.py`, `engine/registry.py`, `engine/games/`.
+
+**Import aggiornati:** il pacchetto `engine` ri-esporta l'API stabile
+(`from engine import Game, get_game, is_playable, …`); il backend ora importa da lì
+(`gameplay`, router `sessions`/`games`) e da `engine.chess` (`openings`, `Chess`);
+test del motore e del backend allineati ai nuovi percorsi. Rimossa la funzione morta
+`style_from_profile` (superata da `chess_profile._style`).
+
+**Convenzione documentata nel README:** aggiungere un gioco = nuova directory
+`engine/<gioco>/` con `game.py`/`state.py` + registrazione in `common/registry.py`.
+
+**Verifiche:** lint pulito; **87 test** verdi (invariati); backend avviato dal vivo con la
+nuova struttura → `/games` risponde col catalogo corretto. Aggiornato l'albero della
+struttura nel README.
+
+---
+
 ## 2026-06-28 — Libro di aperture ampliato (per posizione, con trasposizioni e file esterno)
 
 **Obiettivo (da TODO.md):** libro di aperture più ampio.

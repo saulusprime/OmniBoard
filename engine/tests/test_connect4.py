@@ -2,7 +2,8 @@
 
 import pytest
 
-from engine.games.connect4 import COLS, ROWS, Connect4, _index
+from engine.connect4 import COLS, ROWS, Connect4
+from engine.connect4.game import _index
 
 
 def test_initial_state():

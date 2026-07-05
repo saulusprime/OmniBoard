@@ -10,7 +10,7 @@ Il libro è estendibile senza toccare il codice: la variabile d'ambiente
 ``Nome apertura: e2e4 e7e5 g1f3 ...`` (``#`` per i commenti). Le mosse non valide
 troncano la linea al primo errore quando il libro viene indicizzato.
 
-Nota: il motore (``chess.py``) indicizza queste linee **per posizione**, quindi le
+Nota: il motore (``game.py``) indicizza queste linee **per posizione**, quindi le
 continuazioni da libro valgono anche quando la posizione è raggiunta per trasposizione
 (ordine di mosse diverso). Le linee duplicate o con prefissi comuni pesano la scelta:
 più linee passano per una mossa, più spesso l'IA la gioca.

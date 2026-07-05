@@ -1,6 +1,6 @@
 """Test del gioco Dama italiana."""
 
-from engine.games.draughts import SIZE, Draughts, DraughtsState
+from engine.draughts import SIZE, Draughts, DraughtsState
 
 
 def idx(r, c):

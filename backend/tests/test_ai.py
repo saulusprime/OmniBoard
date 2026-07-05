@@ -2,7 +2,7 @@
 
 from app import ai
 
-from engine.registry import get_game
+from engine import get_game
 
 
 def test_match_move_chess_by_uci():

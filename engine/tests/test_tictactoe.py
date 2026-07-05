@@ -2,7 +2,7 @@
 
 import pytest
 
-from engine.games.tictactoe import TicTacToe
+from engine.tictactoe import TicTacToe
 
 
 def test_initial_state():

@@ -21,7 +21,7 @@ import threading
 
 from sqlalchemy.orm import Session
 
-from engine.registry import get_game
+from engine import get_game
 
 from . import ai, ai_providers, chess_profile, models, services, settings_service
 from .database import SessionLocal

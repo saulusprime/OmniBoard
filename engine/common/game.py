@@ -1,30 +1,20 @@
-"""Modello astratto di un gioco a turni per due giocatori.
+"""Interfaccia astratta di un gioco a turni per due giocatori.
 
-Definisce l'interfaccia che ogni gioco concreto (scacchi, dama, tris, forza 4)
-implementerà. È previsto un *hook* per i nodi del caso (dadi), non ancora usato,
-così da poter aggiungere in futuro giochi stocastici come il backgammon.
-
-Questo è lo scheletro del motore: le implementazioni dei singoli giochi verranno
-aggiunte in moduli dedicati (es. ``engine/games/tictactoe.py``).
+Definisce il contratto che ogni gioco concreto implementa nella propria directory
+(es. ``engine/tictactoe/``, ``engine/chess/``). È previsto un *hook* per i nodi del
+caso (dadi), non ancora usato, così da poter aggiungere in futuro giochi stocastici
+come il backgammon.
 """
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Generic, Optional, Sequence, TypeVar
+from typing import Generic, Sequence, TypeVar
 
-Player = int  # due giocatori: 0 e 1
+from .outcome import Outcome, Player
 
 S = TypeVar("S")  # tipo dello stato di gioco
 M = TypeVar("M")  # tipo della mossa
-
-
-@dataclass(frozen=True)
-class Outcome:
-    """Esito di una partita terminata. ``winner`` None indica una patta."""
-
-    winner: Optional[Player]
 
 
 class Game(ABC, Generic[S, M]):

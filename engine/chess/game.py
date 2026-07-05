@@ -1,10 +1,9 @@
 """Scacchi: regole complete (mosse legali, scacco/matto/stallo, arrocco, en passant,
 promozione, regola delle 50 mosse, materiale insufficiente).
 
-Rappresentazione: board = tupla di 64 celle (riga 0 in alto = traversa 8). I pezzi sono
-caratteri: maiuscolo = Bianco (0), minuscolo = Nero (1); ``KQRBNP`` / ``kqrbnp``.
 Una mossa è ``(from, to, promo)`` con ``promo`` None oppure in 'QRBN'. L'id è in stile UCI
-(es. ``e2e4``, ``e7e8q``).
+(es. ``e2e4``, ``e7e8q``). La rappresentazione della scacchiera e le funzioni di base sono
+in ``board.py``; lo stato immutabile in ``state.py``; il motore di ricerca in ``engine.py``.
 
 Semplificazione nota: non è gestita la patta per ripetizione (richiederebbe lo storico nello
 stato). Sono gestite stallo, scacco matto, 50 mosse e materiale insufficiente.
@@ -13,118 +12,31 @@ stato). Sono gestite stallo, scacco matto, 50 mosse e materiale insufficiente.
 from __future__ import annotations
 
 import random
-from typing import NamedTuple
 
-from ..core import Game, Outcome
+from ..common.game import Game
+from ..common.outcome import Outcome
 from . import openings
-
-WHITE, BLACK = 0, 1
-
-_ROOK_D = ((-1, 0), (1, 0), (0, -1), (0, 1))
-_BISHOP_D = ((-1, -1), (-1, 1), (1, -1), (1, 1))
-_KING_D = _ROOK_D + _BISHOP_D
-_KNIGHT_D = ((-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1))
-
-_UNICODE = {
-    "K": "♔",
-    "Q": "♕",
-    "R": "♖",
-    "B": "♗",
-    "N": "♘",
-    "P": "♙",
-    "k": "♚",
-    "q": "♛",
-    "r": "♜",
-    "b": "♝",
-    "n": "♞",
-    "p": "♟",
-}
-_VALUE = {"P": 100, "N": 320, "B": 330, "R": 500, "Q": 900, "K": 0}
-
-# Indici delle case d'angolo (torri) per i diritti di arrocco.
-_A1, _H1, _A8, _H8 = 56, 63, 0, 7
-
-
-def _on(r, c):
-    return 0 <= r < 8 and 0 <= c < 8
-
-
-def _coord(sq):
-    r, c = divmod(sq, 8)
-    return f"{chr(97 + c)}{8 - r}"
-
-
-def _color(piece):
-    return WHITE if piece.isupper() else BLACK
-
-
-class ChessState(NamedTuple):
-    # NamedTuple (non dataclass frozen): l'istanziazione è molto più veloce e `apply`
-    # ne crea una per ogni nodo di ricerca del motore.
-    board: tuple
-    current: int
-    castling: tuple  # (wK, wQ, bK, bQ)
-    ep: int | None  # casa bersaglio dell'en passant
-    halfmove: int  # contatore per la regola delle 50 mosse
-
-
-def _initial_board() -> tuple:
-    back = "RNBQKBNR"
-    board: list[str | None] = [None] * 64
-    for c in range(8):
-        board[0 * 8 + c] = back[c].lower()  # Nero in alto
-        board[1 * 8 + c] = "p"
-        board[6 * 8 + c] = "P"
-        board[7 * 8 + c] = back[c]  # Bianco in basso
-    return tuple(board)
-
-
-def _king_square(board, color):
-    try:
-        return board.index("K" if color == WHITE else "k")
-    except ValueError:
-        return None
-
-
-def _is_attacked(board, sq, by_color):
-    r, c = divmod(sq, 8)
-    # Pedoni
-    if by_color == WHITE:
-        for dc in (-1, 1):
-            rr, cc = r + 1, c + dc
-            if _on(rr, cc) and board[rr * 8 + cc] == "P":
-                return True
-    else:
-        for dc in (-1, 1):
-            rr, cc = r - 1, c + dc
-            if _on(rr, cc) and board[rr * 8 + cc] == "p":
-                return True
-    # Cavalli
-    knight = "N" if by_color == WHITE else "n"
-    for dr, dc in _KNIGHT_D:
-        rr, cc = r + dr, c + dc
-        if _on(rr, cc) and board[rr * 8 + cc] == knight:
-            return True
-    # Re
-    king = "K" if by_color == WHITE else "k"
-    for dr, dc in _KING_D:
-        rr, cc = r + dr, c + dc
-        if _on(rr, cc) and board[rr * 8 + cc] == king:
-            return True
-    # Pezzi che scorrono
-    for dirs, kinds in ((_BISHOP_D, "BQ"), (_ROOK_D, "RQ")):
-        pieces = kinds if by_color == WHITE else kinds.lower()
-        for dr, dc in dirs:
-            rr, cc = r + dr, c + dc
-            while _on(rr, cc):
-                p = board[rr * 8 + cc]
-                if p is not None:
-                    if p in pieces:
-                        return True
-                    break
-                rr += dr
-                cc += dc
-    return False
+from .board import (
+    A1,
+    A8,
+    BISHOP_DIRS,
+    BLACK,
+    H1,
+    H8,
+    KING_DIRS,
+    KNIGHT_DIRS,
+    PIECE_VALUES,
+    ROOK_DIRS,
+    UNICODE_PIECES,
+    WHITE,
+    color_of,
+    coord,
+    initial_board,
+    is_attacked,
+    king_square,
+    on,
+)
+from .state import ChessState
 
 
 class Chess(Game):
@@ -138,7 +50,7 @@ class Chess(Game):
 
     def initial_state(self) -> ChessState:
         return ChessState(
-            board=_initial_board(),
+            board=initial_board(),
             current=WHITE,
             castling=(True, True, True, True),
             ep=None,
@@ -179,29 +91,29 @@ class Chess(Game):
         color = state.current
         moves = []
         for sq, piece in enumerate(board):
-            if piece is None or _color(piece) != color:
+            if piece is None or color_of(piece) != color:
                 continue
             r, c = divmod(sq, 8)
             kind = piece.upper()
             if kind == "P":
                 self._pawn_moves(state, sq, r, c, color, moves)
             elif kind == "N":
-                for dr, dc in _KNIGHT_D:
+                for dr, dc in KNIGHT_DIRS:
                     self._step(board, sq, r + dr, c + dc, color, moves)
             elif kind == "K":
-                for dr, dc in _KING_D:
+                for dr, dc in KING_DIRS:
                     self._step(board, sq, r + dr, c + dc, color, moves)
                 self._castling_moves(state, sq, r, c, color, moves)
             else:
-                dirs = _BISHOP_D if kind == "B" else _ROOK_D if kind == "R" else _KING_D
+                dirs = BISHOP_DIRS if kind == "B" else ROOK_DIRS if kind == "R" else KING_DIRS
                 for dr, dc in dirs:
                     rr, cc = r + dr, c + dc
-                    while _on(rr, cc):
+                    while on(rr, cc):
                         dest = board[rr * 8 + cc]
                         if dest is None:
                             moves.append((sq, rr * 8 + cc, None))
                         else:
-                            if _color(dest) != color:
+                            if color_of(dest) != color:
                                 moves.append((sq, rr * 8 + cc, None))
                             break
                         rr += dr
@@ -209,10 +121,10 @@ class Chess(Game):
         return moves
 
     def _step(self, board, frm, rr, cc, color, moves):
-        if not _on(rr, cc):
+        if not on(rr, cc):
             return
         dest = board[rr * 8 + cc]
-        if dest is None or _color(dest) != color:
+        if dest is None or color_of(dest) != color:
             moves.append((frm, rr * 8 + cc, None))
 
     def _capture_moves(self, state):
@@ -225,7 +137,7 @@ class Chess(Game):
         color = state.current
         moves = []
         for sq, piece in enumerate(board):
-            if piece is None or _color(piece) != color:
+            if piece is None or color_of(piece) != color:
                 continue
             r, c = divmod(sq, 8)
             kind = piece.upper()
@@ -244,7 +156,7 @@ class Chess(Game):
                         continue
                     to = nr * 8 + cc
                     dest = board[to]
-                    if dest is not None and _color(dest) != color:
+                    if dest is not None and color_of(dest) != color:
                         if nr == last_row:
                             for promo in ("Q", "R", "B", "N"):
                                 moves.append((sq, to, promo))
@@ -253,20 +165,20 @@ class Chess(Game):
                     elif to == state.ep:
                         moves.append((sq, to, None))
             elif kind in ("N", "K"):
-                for dr, dc in _KNIGHT_D if kind == "N" else _KING_D:
+                for dr, dc in KNIGHT_DIRS if kind == "N" else KING_DIRS:
                     rr, cc = r + dr, c + dc
                     if 0 <= rr < 8 and 0 <= cc < 8:
                         dest = board[rr * 8 + cc]
-                        if dest is not None and _color(dest) != color:
+                        if dest is not None and color_of(dest) != color:
                             moves.append((sq, rr * 8 + cc, None))
             else:
-                dirs = _BISHOP_D if kind == "B" else _ROOK_D if kind == "R" else _KING_D
+                dirs = BISHOP_DIRS if kind == "B" else ROOK_DIRS if kind == "R" else KING_DIRS
                 for dr, dc in dirs:
                     rr, cc = r + dr, c + dc
                     while 0 <= rr < 8 and 0 <= cc < 8:
                         dest = board[rr * 8 + cc]
                         if dest is not None:
-                            if _color(dest) != color:
+                            if color_of(dest) != color:
                                 moves.append((sq, rr * 8 + cc, None))
                             break
                         rr += dr
@@ -287,17 +199,17 @@ class Chess(Game):
                 moves.append((frm, to, None))
 
         nr = r + direction
-        if _on(nr, c) and board[nr * 8 + c] is None:
+        if on(nr, c) and board[nr * 8 + c] is None:
             add(sq, nr * 8 + c)
             if r == start_row and board[(r + 2 * direction) * 8 + c] is None:
                 moves.append((sq, (r + 2 * direction) * 8 + c, None))
         for dc in (-1, 1):
             cc = c + dc
-            if not _on(nr, cc):
+            if not on(nr, cc):
                 continue
             to = nr * 8 + cc
             dest = board[to]
-            if dest is not None and _color(dest) != color:
+            if dest is not None and color_of(dest) != color:
                 add(sq, to)
             elif to == state.ep:
                 moves.append((sq, to, None))  # en passant
@@ -305,11 +217,11 @@ class Chess(Game):
     def _castling_moves(self, state, sq, r, c, color, moves):
         board = state.board
         wK, wQ, bK, bQ = state.castling
-        if _is_attacked(board, sq, 1 - color):
+        if is_attacked(board, sq, 1 - color):
             return  # non si arrocca sotto scacco
         if color == WHITE and r == 7 and c == 4:
             if wK and board[61] is None and board[62] is None and board[63] == "R":
-                if not _is_attacked(board, 61, BLACK) and not _is_attacked(board, 62, BLACK):
+                if not is_attacked(board, 61, BLACK) and not is_attacked(board, 62, BLACK):
                     moves.append((sq, 62, None))
             if (
                 wQ
@@ -318,11 +230,11 @@ class Chess(Game):
                 and board[57] is None
                 and board[56] == "R"
             ):
-                if not _is_attacked(board, 59, BLACK) and not _is_attacked(board, 58, BLACK):
+                if not is_attacked(board, 59, BLACK) and not is_attacked(board, 58, BLACK):
                     moves.append((sq, 58, None))
         elif color == BLACK and r == 0 and c == 4:
             if bK and board[5] is None and board[6] is None and board[7] == "r":
-                if not _is_attacked(board, 5, WHITE) and not _is_attacked(board, 6, WHITE):
+                if not is_attacked(board, 5, WHITE) and not is_attacked(board, 6, WHITE):
                     moves.append((sq, 6, None))
             if (
                 bQ
@@ -331,7 +243,7 @@ class Chess(Game):
                 and board[1] is None
                 and board[0] == "r"
             ):
-                if not _is_attacked(board, 3, WHITE) and not _is_attacked(board, 2, WHITE):
+                if not is_attacked(board, 3, WHITE) and not is_attacked(board, 2, WHITE):
                     moves.append((sq, 2, None))
 
     def legal_moves(self, state):
@@ -339,8 +251,8 @@ class Chess(Game):
         legal = []
         for move in self._pseudo_moves(state):
             after = self.apply(state, move)
-            ksq = _king_square(after.board, color)
-            if ksq is not None and not _is_attacked(after.board, ksq, 1 - color):
+            ksq = king_square(after.board, color)
+            if ksq is not None and not is_attacked(after.board, ksq, 1 - color):
                 legal.append(move)
         return legal
 
@@ -377,13 +289,13 @@ class Chess(Game):
             else:
                 castling[2] = castling[3] = False
         for square in (frm, to):  # torre mossa o catturata nella sua casa
-            if square == _H1:
+            if square == H1:
                 castling[0] = False
-            elif square == _A1:
+            elif square == A1:
                 castling[1] = False
-            elif square == _H8:
+            elif square == H8:
                 castling[2] = False
-            elif square == _A8:
+            elif square == A8:
                 castling[3] = False
 
         ep = (fr + tr) // 2 * 8 + fc if kind == "P" and abs(tr - fr) == 2 else None
@@ -397,8 +309,8 @@ class Chess(Game):
         )
 
     def _in_check(self, state, color):
-        ksq = _king_square(state.board, color)
-        return ksq is not None and _is_attacked(state.board, ksq, 1 - color)
+        ksq = king_square(state.board, color)
+        return ksq is not None and is_attacked(state.board, ksq, 1 - color)
 
     @staticmethod
     def _insufficient(board):
@@ -441,7 +353,7 @@ class Chess(Game):
         )
 
     def view_board(self, state):
-        return [_UNICODE[p] if p else None for p in state.board]
+        return [UNICODE_PIECES[p] if p else None for p in state.board]
 
     def render_text(self, state):
         rows = []
@@ -451,7 +363,7 @@ class Chess(Game):
 
     def move_id(self, move):
         frm, to, promo = move
-        return _coord(frm) + _coord(to) + (promo.lower() if promo else "")
+        return coord(frm) + coord(to) + (promo.lower() if promo else "")
 
     def describe_move(self, state, move):
         frm, to, promo = move
@@ -463,7 +375,7 @@ class Chess(Game):
         else:
             capture = state.board[to] is not None or (kind == "P" and to == state.ep)
             letter = "" if kind == "P" else kind
-            text = f"{letter}{_coord(frm)}{'x' if capture else '-'}{_coord(to)}"
+            text = f"{letter}{coord(frm)}{'x' if capture else '-'}{coord(to)}"
             if promo:
                 text += f"={promo}"
         after = self.apply(state, move)
@@ -491,9 +403,9 @@ class Chess(Game):
         mossa dopo mossa, entro un budget di tempo. ``style`` modula il gioco in base al
         profilo dell'avversario (schemi/debolezze); ``jitter`` varia tra partite.
         """
-        from . import chess_engine
+        from . import engine
 
-        return chess_engine.best_move(
+        return engine.best_move(
             self,
             state,
             history=history,
@@ -550,9 +462,9 @@ class Chess(Game):
         for sq, piece in enumerate(state.board):
             if piece is None:
                 continue
-            value = _VALUE[piece.upper()]
+            value = PIECE_VALUES[piece.upper()]
             r, c = divmod(sq, 8)
             # Bonus posizionale leggero: centralità.
             value += (3 - abs(3.5 - c) - abs(3.5 - r)) * 2
-            score += value if _color(piece) == player else -value
+            score += value if color_of(piece) == player else -value
         return score

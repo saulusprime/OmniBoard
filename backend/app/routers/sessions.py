@@ -14,7 +14,7 @@ import json
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from engine.registry import get_game, is_playable
+from engine import get_game, is_playable
 
 from .. import ai, ai_providers, gameplay, models, schemas, settings_service
 from ..database import get_db

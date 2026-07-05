@@ -1,14 +1,15 @@
-"""Forza 4 (Connect Four): griglia 7 colonne x 6 righe, allineare quattro.
+"""Forza 4 (Connect Four): regole del gioco.
 
 Due giocatori, 0 = X e 1 = O. Una mossa è una **colonna** (0-6): la pedina cade nella
-posizione libera più in basso. La griglia è una tupla di 42 celle (riga 0 in alto).
+posizione libera più in basso. La griglia è una tupla di 42 celle (riga 0 in alto);
+lo stato (immutabile) è in ``state.py``.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
-from ..core import Game, Outcome
+from ..common.game import Game
+from ..common.outcome import Outcome
+from .state import Connect4State
 
 ROWS = 6
 COLS = 7
@@ -36,12 +37,6 @@ def _winning_lines() -> list[tuple[int, int, int, int]]:
 
 
 _LINES = _winning_lines()
-
-
-@dataclass(frozen=True)
-class Connect4State:
-    board: tuple  # 42 celle: 0, 1 o None (riga 0 in alto)
-    current: int
 
 
 def _winner(board: tuple):

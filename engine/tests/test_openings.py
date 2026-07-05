@@ -1,8 +1,7 @@
 """Test del libro di aperture ampliato: validità delle linee, nomi, trasposizioni,
 file esterno."""
 
-from engine.games import openings
-from engine.games.chess import Chess
+from engine.chess import Chess, openings
 
 GAME = Chess()
 

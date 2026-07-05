@@ -161,20 +161,41 @@ Scacchi/
 ├── .github/             # configurazione GitHub (CI, template issue/PR, dependabot)
 ├── .env.example         # variabili d'ambiente di esempio
 │
-├── engine/              # motore di gioco astratto (pacchetto Python puro)
-│   └── core.py          # interfaccia astratta Game (con hook per nodi del caso)
+├── engine/              # motore di gioco (pacchetto Python puro, una directory per gioco)
+│   ├── common/          # parti condivise: una classe per file
+│   │   ├── game.py      #   interfaccia astratta Game (con hook per nodi del caso)
+│   │   ├── outcome.py   #   esito di una partita (Outcome)
+│   │   └── registry.py  #   registro dei giochi disponibili
+│   ├── tictactoe/       # Tris: game.py (regole) + state.py (stato)
+│   ├── connect4/        # Forza 4: game.py + state.py
+│   ├── draughts/        # Dama italiana: game.py + state.py
+│   ├── chess/           # Scacchi:
+│   │   ├── game.py      #   regole (classe Chess)
+│   │   ├── state.py     #   stato immutabile (ChessState)
+│   │   ├── board.py     #   scacchiera: costanti e funzioni di base
+│   │   ├── engine.py    #   motore di ricerca (alpha-beta, quiescence, TT)
+│   │   ├── context.py   #   contesto di ricerca (SearchContext)
+│   │   ├── errors.py    #   eccezioni del motore (TimeUp)
+│   │   └── openings.py  #   libro delle aperture
+│   └── tests/           # test del motore e dei giochi
 │
 ├── backend/             # servizio FastAPI + accesso al database
 │   └── app/
 │       ├── main.py      # app FastAPI (create_all + seed + router)
 │       ├── models.py    # modelli SQLAlchemy (utenti, giochi, punteggi, gruppi)
 │       ├── schemas.py   # schemi Pydantic
-│       └── routers/     # users, games, groups, matches, rankings
+│       ├── gameplay.py  # svolgimento partite + worker IA in background
+│       └── routers/     # users, games, groups, matches, rankings, sessions, admin
 │
 └── frontend/            # progetto Django (presentazione, nessun DB proprio)
     ├── scacchi_web/     # settings, urls, wsgi/asgi
     └── web/             # views, forms, api_client (HTTP→backend), templates
 ```
+
+Convenzione del motore: **una directory per gioco** (`engine/<gioco>/`), le parti comuni in
+`engine/common/`, **una classe per file** (regole in `game.py`, stato in `state.py`).
+Aggiungere un gioco = creare una nuova directory con `game.py`/`state.py` e registrarlo in
+`engine/common/registry.py`.
 
 ## Dati raccolti
 
@@ -235,7 +256,7 @@ database. Configurazione tramite `.env` (vedi `.env.example`).
 - [x] Gruppi: fondazione tramite proposta + voto (soglia ≥ 2)
 - [x] Punteggi per gioco + classifica universale + classifiche per gioco (globale/nazionale/regionale)
 - [x] Interfaccia **super admin**: parametri di programma configurabili (punteggi, regole, IA, limiti)
-- [x] Scheletro del motore astratto (`engine/core.py`)
+- [x] Scheletro del motore astratto (`engine/common/game.py`)
 - [x] Primo gioco giocabile: **Tris** (motore + sessioni di gioco persistite)
 - [x] Avversario **IA (Qwen)** con fallback locale (minimax completo per Tris, a profondità + euristica per Forza 4)
 - [x] Secondo gioco giocabile: **Forza 4** (scacchiera generica nel frontend)
