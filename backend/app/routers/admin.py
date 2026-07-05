@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from .. import ai_providers, schemas, settings_service
 from ..database import get_db
+from ..opponents import stockfish
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -64,3 +65,16 @@ def update_ai_providers(payload: schemas.AiProvidersUpdate, db: Session = Depend
 def test_ai_provider(code: str, db: Session = Depends(get_db)):
     ok, detail = ai_providers.test_provider(db, code)
     return {"ok": ok, "detail": detail}
+
+
+# ----- Avversario Stockfish -----
+@router.post("/stockfish/test", dependencies=[Depends(require_admin)])
+def test_stockfish(db: Session = Depends(get_db)):
+    """Verifica che il binario di Stockfish configurato risponda al protocollo UCI.
+
+    Riporta anche il percorso effettivamente risolto (parametro, STOCKFISH_PATH o
+    ricerca nel PATH), così l'esito è interpretabile.
+    """
+    cfg = stockfish.get_config(db)
+    ok, detail = stockfish.verify(cfg)
+    return {"ok": ok, "detail": detail, "path": cfg["path"]}

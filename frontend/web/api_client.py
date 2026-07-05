@@ -140,6 +140,10 @@ def test_ai_provider(code: str, token: str):
     return _request("POST", f"/admin/ai-providers/{code}/test", headers={"X-Admin-Token": token})
 
 
+def test_stockfish(token: str):
+    return _request("POST", "/admin/stockfish/test", headers={"X-Admin-Token": token})
+
+
 # ----- Classifiche -----
 def universal_ranking():
     return _request("GET", "/rankings/universal")

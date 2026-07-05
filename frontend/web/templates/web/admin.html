@@ -41,7 +41,12 @@
       <input type="password" id="admin_token" name="admin_token"
              placeholder="ADMIN_TOKEN del server" autocomplete="off">
     </div>
-    <p style="margin-top:14px;"><button class="btn" type="submit">Salva parametri</button></p>
+    <p style="margin-top:14px;">
+      <button class="btn" type="submit">Salva parametri</button>
+      <button class="btn secondary" type="submit" name="test_stockfish" value="1">
+        Verifica Stockfish
+      </button>
+    </p>
   </form>
   {% else %}
   <p class="muted">Impossibile caricare i parametri (backend non raggiungibile?).</p>

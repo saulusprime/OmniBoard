@@ -5,6 +5,34 @@
 
 ---
 
+## 2026-07-05 — Verifica di Stockfish dall'interfaccia (+ conferma col vero Stockfish 18)
+
+**Domanda dell'utente:** come essere sicuri che Stockfish sia installato correttamente e
+davvero usato dal programma. Prima la risposta richiedeva di leggere JSON a mano; ora è
+visibile dall'interfaccia.
+
+**Realizzato:**
+- **`stockfish.verify(cfg)`** (`opponents/stockfish.py`): diagnostica senza eccezioni —
+  esegue il binario con un dialogo UCI minimo e riporta nome/versione dichiarati dal
+  motore e la mossa di prova, oppure il motivo del fallimento (non configurato, non
+  trovato, non-UCI).
+- **`POST /admin/stockfish/test`** (token super admin): esito + **percorso risolto**
+  (parametro `stockfish.path` → env `STOCKFISH_PATH` → PATH).
+- **Pulsante «Verifica Stockfish»** nella pagina Admin (accanto a «Salva parametri»).
+- **In partita**: nuova riga **«Ultima mossa IA: …»** sotto la scacchiera (libro aperture /
+  Stockfish / motore interno / minimax locale / provider) — la vista espone `last_ai.source`
+  per tutti i giochi; è la prova immediata di *chi* sta giocando.
+- **Test** (+3, 98 verdi senza skip): `verify` con binario mancante e con finto motore;
+  endpoint con 401 senza token, `ok=false` su percorso inesistente (forzato: sul PATH può
+  esserci uno Stockfish vero), `ok=true` con finto binario.
+
+**Verifiche dal vivo (l'utente ha installato Stockfish 18 in `/usr/local/bin`):**
+endpoint di verifica → «Stockfish 18 — mossa di prova: a2a3», percorso risolto; partita
+reale con O = Stockfish, mossa fuori libro `a2a3` → risposta `a7-a6` con
+`last_ai.source = "stockfish"`. Il test `skipif` col vero binario ora gira e passa.
+
+---
+
 ## 2026-07-05 — Tre tipi di avversario + pacchetto opponents/ (API, Stockfish, locale)
 
 **Obiettivo:** l'avversario può essere di **tre tipi** — umano, **Stockfish (NNUE)

@@ -176,6 +176,18 @@ Al setup della partita ogni lato (X e O) può essere di **tre tipi**:
 In partita, sotto il nome dei giocatori è indicato il tipo di ciascun lato; la partita non
 si blocca mai: qualunque problema dell'avversario scelto fa subentrare il giocatore locale.
 
+#### Come verificare che Stockfish sia installato e usato davvero
+1. **Installazione**: `brew install stockfish` (o binario ufficiale da stockfishchess.org
+   reso eseguibile). Prova rapida da terminale: `echo uci | stockfish` deve stampare
+   `uciok`.
+2. **Verifica dall'app**: pagina **Admin** → pulsante **«Verifica Stockfish»** (col token
+   super admin): riporta nome e versione del motore, la mossa di prova e il **percorso
+   risolto** (parametro `stockfish.path` → variabile `STOCKFISH_PATH` → ricerca nel PATH).
+3. **In partita**: sotto la scacchiera compare **«Ultima mossa IA: …»** — se dice
+   *Stockfish* ha giocato il motore; *libro aperture* è normale nelle prime mosse; se dice
+   *motore interno* o *minimax locale* è scattato il ripiego (binario non trovato o in
+   errore: ricontrolla il punto 2).
+
 ### Modello dell'avversario
 Quando l'IA affronta un giocatore umano, analizza lo **storico delle sue partite di scacchi** per
 individuarne **schemi e debolezze**: aperture giocate e relativo rendimento, fragilità tattica

@@ -49,6 +49,7 @@
       <div id="opening" class="muted"></div>
       <div id="boardarea"></div>
       <div id="thinking">L'IA sta pensando…</div>
+      <div id="aisource" class="muted" style="font-size:.85rem;"></div>
       <noscript><p class="muted">Questa pagina richiede JavaScript per giocare.</p></noscript>
     </div>
     <div class="side">
@@ -255,6 +256,13 @@
         (session.current_is_ai ? " (IA)" : "");
     }
     document.getElementById("opening").textContent = session.opening ? "Apertura: " + session.opening : "";
+    // Trasparenza: chi ha giocato davvero l'ultima mossa IA (utile per verificare che
+    // Stockfish o il provider API siano attivi; "libro"/"motore interno" = ripiego locale).
+    const SOURCES = { book: "libro aperture", stockfish: "Stockfish",
+                      engine: "motore interno", local: "minimax locale" };
+    const src = session.last_ai && session.last_ai.source;
+    document.getElementById("aisource").textContent =
+      src ? "Ultima mossa IA: " + (SOURCES[src] || "provider " + src) : "";
   }
 
   async function doHuman(moveId, mutate) {

@@ -80,6 +80,45 @@ def best_move(game, state, history, cfg):
     return None
 
 
+def verify(cfg: dict):
+    """Diagnostica per il super admin: il binario risponde al protocollo UCI?
+
+    Ritorna ``(ok, dettaglio)``: in caso di successo il dettaglio riporta il nome che
+    il motore dichiara (es. «Stockfish 17») e la mossa proposta dalla posizione
+    iniziale; altrimenti il motivo del fallimento. Nessuna eccezione esce da qui.
+    """
+    path = (cfg or {}).get("path") or ""
+    if not path:
+        return False, (
+            "Nessun binario configurato: imposta stockfish.path, la variabile "
+            "STOCKFISH_PATH, oppure installa 'stockfish' nel PATH."
+        )
+    if not is_available(cfg):
+        return False, f"Binario non trovato o non eseguibile: {path}"
+    try:
+        result = subprocess.run(
+            [path],
+            input="uci\nucinewgame\nposition startpos\ngo movetime 100\nquit\n",
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        return False, f"Esecuzione fallita: {exc}"
+
+    name = None
+    bestmove = None
+    for line in result.stdout.splitlines():
+        if line.startswith("id name "):
+            name = line[len("id name ") :].strip()
+        elif line.startswith("bestmove"):
+            parts = line.split()
+            bestmove = parts[1] if len(parts) >= 2 else None
+    if not bestmove:
+        return False, "Il binario non risponde al protocollo UCI (nessun bestmove)"
+    return True, f"{name or 'motore UCI'} — mossa di prova dalla posizione iniziale: {bestmove}"
+
+
 def _ask_bestmove(cfg: dict, position: str) -> str | None:
     """Dialogo UCI one-shot: opzioni → posizione → ``go movetime`` → ``bestmove``."""
     move_ms = max(50, int(cfg.get("move_ms") or 1000))
