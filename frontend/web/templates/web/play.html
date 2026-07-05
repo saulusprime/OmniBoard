@@ -149,6 +149,8 @@
   const isSelect =
     moveType === "draughts" || moveType === "chess" || moveType === "backgammon";
   const cellPx = cols <= 3 ? 88 : (cols <= 7 ? 56 : 46);
+  // Dimensione dei pezzi rispetto alla casella (celle e flyer condividono il valore).
+  const PIECE_SCALE = 0.83;
   const WHITE_SET = "X⛀⛁♔♕♖♗♘♙○", BLACK_SET = "O⛂⛃♚♛♜♝♞♟●";
   let board = SESSION.board.slice();
   let pmoves = SESSION.playable_moves || [];
@@ -222,7 +224,7 @@
           el.classList.add("bgoff");
         }
       }
-      el.style.fontSize = (cellPx * 0.72) + "px";
+      el.style.fontSize = (cellPx * PIECE_SCALE) + "px";
       grid.appendChild(el);
     }
     area.appendChild(grid);
@@ -409,7 +411,7 @@
     fly.className = "flyer" + (pc ? " " + pc : "");
     fly.textContent = displayOf(sym);
     fly.style.cssText = `left:${a.left}px;top:${a.top}px;width:${a.w}px;height:${a.h}px;` +
-      `font-size:${cellPx * 0.72}px;transition-duration:${ANIM_MS}ms;`;
+      `font-size:${cellPx * PIECE_SCALE}px;transition-duration:${ANIM_MS}ms;`;
     grid.appendChild(fly);
     let k = 0;
     const step = () => {

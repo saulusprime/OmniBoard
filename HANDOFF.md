@@ -26,6 +26,8 @@ non esiste "tinta" da riempire; inoltre i pezzi chiari sulle case chiare dei tem
 - **Contrasti verificati** (script luminanza relativa, soglia SC 1.4.11 ≥3:1): tutte le
   26 coppie pezzo/casa passano; minimo 4.47:1 (bordo bianco su casa verde smeraldo),
   il resto ≥4.5:1. Sintassi JS ricontrollata con `node --check`. 124 test verdi.
+- **Ritocco successivo (stessa giornata):** pezzi il **15% più grandi** — nuova costante
+  `PIECE_SCALE = 0.83` (era 0.72 duplicato fra celle e flyer).
 
 ---
 
