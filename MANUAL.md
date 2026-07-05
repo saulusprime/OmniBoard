@@ -74,12 +74,17 @@ salvare una modifica occorre inserire il **token super admin** (configurato sul 
 variabile `ADMIN_TOKEN`). Le modifiche hanno effetto immediato.
 
 ### Aspetto: animazione delle mosse ed effetto sonoro
-Nella pagina di gioco i pezzi **scivolano** dalla casella di origine a quella di
-destinazione (negli scacchi anche arrocco e presa al varco sono animati; nel Forza 4 la
-pedina *cade* nella colonna; nel Tris il simbolo compare con un breve "pop"). Ogni mossa è
-accompagnata da un **effetto sonoro** discreto, più grave quando c'è una cattura — il suono
-è sintetizzato dal browser (WebAudio): non viene scaricato alcun file. Nota: i browser
-attivano l'audio solo dopo il primo click sulla pagina.
+Nella pagina di gioco ogni mossa è **visualizzata per intero**, lungo il suo percorso
+reale: il **cavallo** percorre la sua "L" (prima il lato lungo, poi quello corto); nella
+dama le **prese multiple** avvengono salto per salto, e ogni pedina catturata sparisce
+nel momento in cui viene scavalcata; nelle **promozioni** (dama e scacchi) prima si muove
+il pezzo originale, poi — all'arrivo — si trasforma in dama/donna con un piccolo "pop";
+il pezzo catturato resta sulla casella finché chi cattura non ci atterra sopra. L'arrocco
+anima re e torre insieme; nel Forza 4 la pedina *cade* nella colonna; nel Tris il simbolo
+compare con un "pop". Ogni mossa è accompagnata da un **effetto sonoro** discreto, più
+grave quando c'è una cattura — il suono è sintetizzato dal browser (WebAudio): non viene
+scaricato alcun file. Nota: i browser attivano l'audio solo dopo il primo click sulla
+pagina. La durata configurata (`ui.anim_ms`) vale **per segmento** di percorso.
 
 Dal super admin (categoria **Aspetto**) si personalizzano: la **durata dell'animazione**
 (`ui.anim_ms`, millisecondi; 0 = pezzi che si spostano all'istante), l'**abilitazione del

@@ -375,6 +375,11 @@ mossa ma con stato condiviso tra thread; annotato in TODO.md come ottimizzazione
   all'umano inclusa (niente mosse "incollate"), IA-vs-IA una mossa alla volta, prima mossa
   dopo che la scacchiera è disegnata. Con l'orologio la pausa è "dell'arbitro" (non consuma
   tempo). 108 test verdi.
+- **2026-07-05** — **Animazioni per intero** (`play.html`): percorsi a tappe con `flyPiece`
+  (`ui.anim_ms` per segmento) — cavallo a "L", prese multiple della dama salto per salto
+  (catena ricostruita dal diff, vittime che spariscono quando scavalcate), promozioni con
+  pezzo originale in volo e trasformazione all'arrivo, catturati visibili fino
+  all'atterraggio. Sintassi JS validata con `node --check`. 108 test verdi.
 
 ## Questioni aperte
 

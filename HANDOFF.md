@@ -5,6 +5,35 @@
 
 ---
 
+## 2026-07-05 — Animazioni per intero: percorsi a tappe (cavallo a "L", prese multiple, promozioni)
+
+**Richiesta (utente):** ogni mossa va visualizzata per intero — il cavallo deve fare tutto
+il suo percorso (non comparire sulla casella d'arrivo), la doppia presa della dama va
+mostrata salto per salto, e nella promozione prima si muove il pezzo e poi si crea la dama.
+
+**Realizzato (solo `play.html`, nessuna modifica al backend):**
+- **`flyPiece`**: il pezzo vola lungo una **sequenza di caselle**, un segmento alla volta
+  (`ui.anim_ms` per segmento), con callback a ogni tappa e all'atterraggio.
+- **Cavallo a "L"** (`knightWaypoint`): waypoint intermedio — prima il lato lungo, poi
+  quello corto.
+- **Catena di prese della dama** (`draughtsChain`): ricostruita dal diff (ogni salto
+  scavalca una vittima adiacente in diagonale e atterra due caselle oltre); ogni vittima
+  **sparisce nel momento in cui viene scavalcata**. Se la ricostruzione fallisce → volo
+  diretto (fallback sicuro).
+- **Vittime e pezzi catturati visibili** finché il pezzo in volo non li raggiunge
+  (`showGhost`): la "mangiata" si vede accadere; negli scacchi il pezzo catturato resta
+  sulla casella finché chi cattura non ci atterra sopra (en passant incluso).
+- **Promozioni**: vola il **pezzo originale** (`prev[from]`), che all'atterraggio si
+  trasforma in dama/donna con un "pop" — prima il movimento, poi la creazione.
+- `syncCell` riallinea la singola casella allo stato reale a fine volo; suono all'ultimo
+  atterraggio (più grave con cattura).
+
+**Verifiche:** sintassi JS validata con `node --check` (script estratto con i tag Django
+sostituiti); pagina resa con tutte le nuove funzioni; **108 test** verdi (nessun tocco al
+backend); lint pulito.
+
+---
+
 ## 2026-07-05 — Il ritardo minimo vale per OGNI mossa dell'IA (niente risposte "incollate")
 
 **Richiesta (utente):** evitare le mosse consecutive — tra una mossa e l'altra deve esserci
