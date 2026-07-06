@@ -5,6 +5,37 @@
 
 ---
 
+## 2026-07-06 — Import del libro da PGN (parser SAN)
+
+**Richiesta (utente):** import del libro da PGN o formato Polyglot.
+
+**Scelta di scope (dichiarata):** implementato il **PGN** (è il formato che gli utenti
+hanno: repertori e partite; si sposa col libro a linee); il **Polyglot .bin** resta in
+TODO come voce separata (richiede la tabella Zobrist standard da 781 costanti).
+
+**Implementazione (`engine/chess/pgn.py`):**
+
+- `san_to_uci(game, state, token)` — SAN → UCI **rigiocando col motore**: si filtrano le
+  mosse legali per destinazione, promozione (`=Q`), pezzo (lettera SAN dalla casa di
+  partenza; stato interno a lettere P/N/…) e disambiguazione (`Nbd7`, `R1e2`); arrocchi
+  `O-O`/`O-O-O` (anche `0-0`); il match deve essere UNICO, altrimenti None. Suffissi
+  `+ # ! ?` ed `e.p.` ripuliti. Nessuna tabella esterna: il motore è l'autorità.
+- `parse_pgn(game, text, max_plies=16)` — spezza sulle intestazioni `[Event`, pulisce
+  commenti `{…}`, varianti `(…)` (annidate), NAG `$n`, numeri di mossa e risultati; una
+  linea di libro per partita (prefisso valido; SAN ignota → troncamento), nome da
+  `Opening`/`ECO` o `Bianco–Nero`.
+- **`CHESS_BOOK_FILE` accetta ora anche un .pgn**: auto-riconoscimento per estensione o
+  contenuto (`[Event`); il formato testo resta invariato. Le linee importate entrano
+  nell'indice per posizione: valgono nelle trasposizioni e come aperture-bersaglio.
+
+**Test (+3, 169 verdi):** PGN a due partite (tag, commenti, varianti, NAG, arrocco,
+cattura di pedone) → linee UCI esatte con nomi `C50 Partita Italiana` e `Verdi–Neri`;
+disambiguazione `Nbd2`/`Nfd2` con `Nd2` ambigua → None e spazzatura → None; libro da
+.pgn seguito con `prefer` (integrazione con le aperture-bersaglio). Un bug reale
+trovato dai test: il matcher usava i glifi della vista invece delle lettere dello stato.
+
+---
+
 ## 2026-07-06 — Patta per triplice ripetizione
 
 **Richiesta (utente):** implementare la patta per triplice ripetizione (voce TODO: il
