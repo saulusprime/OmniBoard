@@ -287,7 +287,10 @@ toccare il codice**: imposta `CHESS_BOOK_FILE` nel `.env` con il percorso di un 
 ### L'orologio di gioco (cadenze di torneo)
 Per gli scacchi, al setup della partita puoi attivare l'**orologio**: ogni giocatore ha un
 tempo totale che scorre solo durante il proprio turno; chi lo esaurisce **perde per tempo**
-(«caduta della bandierina») — è patta se all'avversario resta il re nudo. Le categorie:
+(«caduta della bandierina») — è patta se all'avversario resta il re nudo. La partita
+termina inoltre **patta per triplice ripetizione**: alla terza occorrenza della stessa
+posizione (stesso tratto e stessi diritti di arrocco/en passant) il server la dichiara
+d'ufficio, mostrando «Patta (triplice ripetizione)». Le categorie:
 
 | Categoria | Tempo a testa | Note |
 |---|---|---|

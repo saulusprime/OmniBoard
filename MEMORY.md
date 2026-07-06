@@ -495,6 +495,10 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   (motore locale, `hints.engine_ms`); negato oltre `hints.max_wins` vittorie nel
   gioco, nel formato FIDE (e nei futuri tornei/campionati), fuori turno; token nei
   remote; pulsante 💡 con evidenziazione. 164 test verdi.
+- **2026-07-06** — **Triplice ripetizione**: `Chess.is_repetition_draw(history)`
+  (chiave FIDE, storico rigiocato O(n)); dichiarata d'ufficio in `finish_if_terminal`
+  (`finish_reason="repetition"`), automatica (non su richiesta) per evitare partite
+  infinite. 166 test verdi; dal vivo `finished draw repetition`.
 
 ## Questioni aperte
 

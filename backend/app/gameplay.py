@@ -86,10 +86,19 @@ def history_ids(moves: list) -> list:
 
 
 def finish_if_terminal(db: Session, game, session: models.GameSession, state) -> None:
-    if session.status == "finished" or not game.is_terminal(state):
+    if session.status == "finished":
         return
-    winner = game.outcome(state).winner
-    session.winner = "draw" if winner is None else ("x" if winner == 0 else "o")
+    if game.is_terminal(state):
+        winner = game.outcome(state).winner
+        session.winner = "draw" if winner is None else ("x" if winner == 0 else "o")
+    elif game.is_repetition_draw(history_ids(json.loads(session.moves_json or "[]"))):
+        # Patta per TRIPLICE RIPETIZIONE, dichiarata d'ufficio dall'arbitro (il
+        # server) alla terza occorrenza della stessa posizione: negli scacchi da
+        # regolamento è su richiesta, ma qui evita le partite infinite.
+        session.winner = "draw"
+        session.finish_reason = "repetition"
+    else:
+        return
     session.status = "finished"
     services.finalize_session(db, session)
     db.commit()

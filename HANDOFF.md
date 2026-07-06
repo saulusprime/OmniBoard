@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-07-06 — Patta per triplice ripetizione
+
+**Richiesta (utente):** implementare la patta per triplice ripetizione (voce TODO: il
+motore la evitava in ricerca, ma la partita non terminava mai per ripetizione).
+
+**Implementazione:** `Chess.is_repetition_draw(history)` — rigioca lo storico dalla
+posizione iniziale contando le occorrenze della chiave FIDE (scacchiera, tratto, diritti
+di arrocco, casa en passant: le stesse componenti dell'indice del libro); True se la
+posizione CORRENTE è alla terza occorrenza. Storico non ricostruibile → nessuna
+dichiarazione. Base comune: default False (giochi senza la regola).
+`finish_if_terminal` ora consulta anche la ripetizione: patta d'ufficio con
+`finish_reason="repetition"` (da regolamento sarebbe su richiesta; qui è automatica per
+evitare partite infinite — documentato). Client: «Patta (triplice ripetizione)».
+
+**Test (+2, 166 verdi):** giro di cavalli ×2 (2 occorrenze → False, 3 → True; base
+comune sempre False); partita API che si chiude `draw/repetition` all'ottava semimossa
+con 409 sulla mossa successiva. **Dal vivo:** `finished draw repetition`.
+
+---
+
 ## 2026-07-06 — Suggerimento mossa (hint) riservato ai principianti
 
 **Richiesta (utente):** hint per il giocatore umano; NON utilizzabile in tornei,

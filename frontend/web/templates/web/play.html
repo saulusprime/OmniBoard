@@ -635,7 +635,8 @@
     updateClock(session);
     const el = document.getElementById("turninfo");
     if (session.status === "finished") {
-      const perTempo = session.finish_reason === "time" ? " (tempo scaduto)" : "";
+      const perTempo = session.finish_reason === "time" ? " (tempo scaduto)"
+        : session.finish_reason === "repetition" ? " (triplice ripetizione)" : "";
       el.innerHTML = session.winner === "draw"
         ? '<span class="pill">Patta' + perTempo + "</span>"
         : '<span class="pill">Ha vinto ' + session.winner.toUpperCase() + perTempo + "</span>";

@@ -503,6 +503,30 @@ class Chess(Game):
                 return move
         return None
 
+    def is_repetition_draw(self, history) -> bool:
+        """Patta per TRIPLICE RIPETIZIONE: la posizione corrente (dopo l'ultima
+        mossa dello storico) si è già presentata almeno tre volte.
+
+        La chiave di posizione è (scacchiera, tratto, diritti di arrocco, casa
+        en passant) — le stesse componenti del libro: due posizioni contano come
+        "uguali" solo se anche i diritti speciali coincidono, come da regolamento
+        FIDE. Si rigioca lo storico dalla posizione iniziale (puro, O(n) a chiamata).
+        """
+        if not history or len(history) < 8:  # servono almeno 4 mosse per parte
+            return False
+        counts: dict[tuple, int] = {}
+        state = self.initial_state()
+        key = (state.board, state.current, state.castling, state.ep)
+        counts[key] = 1
+        for uci in history:
+            move = next((m for m in self._pseudo_moves(state) if self.move_id(m) == uci), None)
+            if move is None:
+                return False  # storico non ricostruibile: nessuna dichiarazione
+            state = self.apply(state, move)
+            key = (state.board, state.current, state.castling, state.ep)
+            counts[key] = counts.get(key, 0) + 1
+        return counts[key] >= 3
+
     def opening_name(self, history):
         return openings.detect_opening(history or [])
 

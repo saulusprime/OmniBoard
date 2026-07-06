@@ -45,8 +45,11 @@
   **note per mossa** salvate nello storico (`moves_json`, visibili anche nella scheda
   giocatore); **export GIF animata** dell'intera partita (Pillow, scacchi/dama/tris/
   forza4; glifi con font di sistema e ripiego a lettere).
-- [ ] **Patta per triplice ripetizione** dichiarata dalle regole del gioco (il motore la
-  evita in ricerca, ma la partita non termina mai per ripetizione).
+- [x] **Patta per triplice ripetizione** — `Chess.is_repetition_draw(history)` (chiave
+  FIDE: scacchiera+tratto+arrocco+en passant, storico rigiocato); dichiarata d'ufficio da
+  `finish_if_terminal` alla terza occorrenza (`finish_reason="repetition"`), mostrata in
+  partita come «(triplice ripetizione)». Da regolamento sarebbe su richiesta: qui è
+  automatica per evitare partite infinite.
 - [x] **Apertura-bersaglio dal profilo avversario** — l'indice del libro ricorda il nome
   della linea; `opening_move(prefer=…)` filtra le continuazioni sulle `weakest_openings`
   del profilo (aggancio per sottostringa, varianti comprese; nessun aggancio → scelta
