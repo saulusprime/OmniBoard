@@ -35,6 +35,34 @@
   </table>
   {% endif %}
 
+  {% if tts %}
+  <h2>🔊 Voce sintetica (TTS)</h2>
+  <p class="muted">Sintesi locale su CPU, una voce per lingua (parametri nella categoria
+  «Voce» qui sotto): <strong>italiano con Piper</strong>, <strong>inglese con
+  KittenTTS</strong>. I WAV finiscono in cache su disco: ogni frase si sintetizza una
+  volta sola. Servirà alla sezione di istruzione guidata.</p>
+  <table>
+    <tr><th>Lingua</th><th>Motore</th><th>Voce</th><th>Stato</th><th>Anteprima</th></tr>
+    {% for lang, info in tts.langs.items %}
+    <tr>
+      <td><strong>{{ lang|upper }}</strong></td>
+      <td>{{ info.engine|default:"?" }}</td>
+      <td>{{ info.voice }}</td>
+      <td>{% if info.available %}<span class="pill">pronto</span>
+          <span class="muted" style="font-size:.8rem;">{{ info.detail }}</span>
+          {% else %}<span class="muted">✗ {{ info.detail }}</span>{% endif %}</td>
+      <td>{% if info.available and tts.enabled %}
+        <audio controls preload="none" style="height:30px; max-width:220px;"
+               src="{{ backend_url }}/tts?text={% if lang == 'it' %}Benvenuto%20nella%20lezione%20di%20scacchi.{% else %}Welcome%20to%20the%20chess%20lesson.{% endif %}&lang={{ lang }}"></audio>
+      {% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="muted" style="font-size:.8rem;">Cache: {{ tts.cache.files }} file
+  ({{ tts.cache.bytes|filesizeformat }}). La prima riproduzione può richiedere qualche
+  secondo (eventuale download della voce + sintesi); le successive arrivano dalla cache.</p>
+  {% endif %}
+
   {% if settings %}
   <form method="post" novalidate>{% csrf_token %}
     {% regroup settings by category as gruppi %}

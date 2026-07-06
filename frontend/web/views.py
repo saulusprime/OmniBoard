@@ -472,7 +472,14 @@ def admin(request):
     # Richieste di registrazione in attesa di approvazione, mostrate in cima.
     users = _safe(request, api.list_users, default=[])
     pending = [u for u in users if not u.get("is_approved")]
-    return render(request, "web/admin.html", {"settings": settings, "pending": pending})
+    # Voce sintetica: stato per lingua + URL del backend per le anteprime audio
+    # (il tag <audio> del browser chiama direttamente GET /tts del backend).
+    tts = _safe(request, api.tts_status, default=None)
+    return render(
+        request,
+        "web/admin.html",
+        {"settings": settings, "pending": pending, "tts": tts, "backend_url": api.BASE},
+    )
 
 
 def admin_ai(request):

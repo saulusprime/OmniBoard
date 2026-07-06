@@ -11,6 +11,9 @@ from pathlib import Path
 _tmp_dir = tempfile.mkdtemp(prefix="scacchi-test-")
 os.environ["DATABASE_URL"] = f"sqlite:///{Path(_tmp_dir) / 'test.db'}"
 os.environ["ADMIN_TOKEN"] = "test-admin"
+# Cache TTS isolata: i test non toccano (e non riusano) la cache di sviluppo.
+os.environ["TTS_CACHE_DIR"] = str(Path(_tmp_dir) / "tts_cache")
+os.environ["TTS_VOICES_DIR"] = str(Path(_tmp_dir) / "tts_voices")
 # I test devono essere ermetici: neutralizza eventuali credenziali IA da un .env
 # reale (il backend carica .env all'import). Con valori vuoti il seed non migra né
 # attiva alcun provider, e nessun test effettua chiamate di rete.

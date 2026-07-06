@@ -66,3 +66,7 @@ node_modules/
 
 # ----- macOS -----
 .DS_Store
+
+# Voce sintetica: cache WAV e voci Piper scaricate (rigenerabili)
+backend/tts_cache/
+backend/tts_voices/

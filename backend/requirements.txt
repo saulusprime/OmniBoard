@@ -9,3 +9,7 @@ anthropic>=0.40
 # guidata. E' il submodule git in integrazioni/KittenTTS: installare dalla ROOT del
 # repository (come fa `make install`) dopo `git submodule update --init`.
 ./integrazioni/KittenTTS
+# Piper TTS (voci ITALIANE del servizio /tts) e' una dipendenza OPZIONALE e non
+# viene installata di default: licenza GPL-3 (il progetto e' MIT), l'abilitazione
+# e' una scelta esplicita dell'operatore:  pip install piper-tts
+# Senza, /tts risponde 503 per l'italiano e l'inglese (KittenTTS) resta attivo.

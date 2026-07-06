@@ -5,7 +5,7 @@ VENV = .venv
 PY   = $(VENV)/bin/python
 PIP  = $(VENV)/bin/pip
 
-.PHONY: help install backend frontend migrate migration
+.PHONY: help install backend frontend migrate migration piper
 
 help:
 	@echo "make install   - crea .venv e installa le dipendenze di backend e frontend"
@@ -13,6 +13,7 @@ help:
 	@echo "make frontend  - avvia il frontend Django su http://127.0.0.1:8001"
 	@echo "make migrate   - porta il database all'ultima revisione (alembic upgrade head)"
 	@echo 'make migration m="descrizione" - genera una migrazione dai modelli (autogenerate)'
+	@echo "make piper     - abilita le voci italiane del TTS (piper-tts, GPL-3: scelta esplicita)"
 
 install:
 	git submodule update --init  # integrazioni/KittenTTS (dipendenza del backend)
@@ -32,3 +33,8 @@ migrate:
 # Genera una revisione confrontando i modelli con il DB: make migration m="descrizione"
 migration:
 	cd backend && ../$(VENV)/bin/alembic revision --autogenerate -m "$(m)"
+
+# Voci italiane del servizio /tts: piper-tts e' opzionale (GPL-3, progetto MIT).
+piper:
+	$(PIP) install piper-tts
+	@echo "Fatto. La voce italiana (it_IT-paola-medium) si scarica al primo uso di /tts?lang=it"

@@ -163,6 +163,50 @@ SETTINGS_DEFS = [
         "category": "Aspetto",
         "label": "Volume dell'effetto sonoro (0-100)",
     },
+    # ----- Voce sintetica (TTS) per il tutorial: gestione delle lingue -----
+    # Ogni lingua ha la sua voce nel formato "motore:voce" (motori: piper, kitten).
+    {
+        "key": "tts.enabled",
+        "type": "bool",
+        "default": True,
+        "category": "Voce",
+        "label": "Sintesi vocale attiva (endpoint /tts)",
+    },
+    {
+        "key": "tts.default_lang",
+        "type": "str",
+        "default": "it",
+        "category": "Voce",
+        "label": "Lingua predefinita della voce (it, en)",
+    },
+    {
+        "key": "tts.voice_it",
+        "type": "str",
+        "default": "piper:it_IT-paola-medium",
+        "category": "Voce",
+        "label": "Voce per l'italiano (motore:voce — es. piper:it_IT-paola-medium)",
+    },
+    {
+        "key": "tts.voice_en",
+        "type": "str",
+        "default": "kitten:expr-voice-2-f",
+        "category": "Voce",
+        "label": "Voce per l'inglese (motore:voce — es. kitten:expr-voice-2-f)",
+    },
+    {
+        "key": "tts.speed",
+        "type": "float",
+        "default": 1.0,
+        "category": "Voce",
+        "label": "Velocità di lettura (1.0 = normale)",
+    },
+    {
+        "key": "tts.max_chars",
+        "type": "int",
+        "default": 300,
+        "category": "Voce",
+        "label": "Lunghezza massima del testo per richiesta (caratteri)",
+    },
 ]
 
 SETTINGS_BY_KEY = {d["key"]: d for d in SETTINGS_DEFS}

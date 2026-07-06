@@ -5,6 +5,49 @@
 
 ---
 
+## 2026-07-06 — Servizio TTS multi-motore con gestione delle lingue (Piper + KittenTTS)
+
+**Richiesta (utente):** gestione delle lingue + integrazione di **Piper TTS**, risolvendo
+la voce «Servizio TTS nel backend» del TODO: un servizio che integri **sia** KittenTTS
+**sia** Piper.
+
+**Servizio (`backend/app/tts.py`):**
+
+- Astrazione multi-motore: registro `ENGINES = {"kitten", "piper"}` (funzioni
+  `(testo, voce, velocità, percorso)` — monkeypatch-abile nei test). **La lingua decide
+  il motore** tramite i parametri `tts.voice_it` / `tts.voice_en` in formato
+  **`motore:voce`**: default `piper:it_IT-paola-medium` (italiano) e
+  `kitten:expr-voice-2-f` (inglese). Nuova lingua = voce in `LANG_SETTINGS` + parametro.
+- **Import pigri** e modelli in RAM dopo il primo uso; motore assente → **503 spiegato**
+  (il tutorial resterà testuale). Voce Piper **scaricata da HuggingFace al primo uso**
+  in `backend/tts_voices/` (subprocess `piper.download_voices`; fix macOS: bundle
+  `certifi` in `SSL_CERT_FILE`, il Python di python.org non vede i certificati).
+- **Cache su disco** (`backend/tts_cache/`, gitignored): chiave
+  sha256(motore|voce|velocità|testo normalizzato), pubblicazione **atomica**
+  (tmp+rename), un solo thread di sintesi (lock). Frasi fisse del tutorial → una
+  sintesi sola, poi ~0,1s.
+- Parametri categoria **«Voce»**: `tts.enabled`, `tts.default_lang` (it),
+  `tts.voice_it`, `tts.voice_en`, `tts.speed`, `tts.max_chars` (300).
+
+**Endpoint (`routers/tts.py`):** `GET /tts?text&lang&speed` → WAV (FileResponse);
+`GET /tts/status` → motori/voci per lingua, disponibilità (senza effetti collaterali),
+statistiche cache. **Admin**: card «🔊 Voce sintetica» con stato per lingua e
+**anteprime `<audio>`** che chiamano direttamente il backend.
+
+**Licenza (decisione):** `piper-tts` 1.4.2 è **GPL-3** → dipendenza **opzionale**, NON
+in requirements (il progetto è MIT): si abilita con **`make piper`** (scelta esplicita
+dell'operatore, documentata anche in requirements.txt). KittenTTS (Apache 2.0) resta
+dipendenza normale. Senza Piper: 503 sull'italiano, inglese funzionante.
+
+**Test (+4, 144 verdi):** motori finti iniettati in `ENGINES` (nessun download): routing
+it→piper / en→kitten, cache (2ª richiesta senza sintesi, spazi normalizzati), 400
+(vuoto/troppo lungo/lingua ignota), 503 (disattivato; motore rotto, senza file sporchi),
+`/tts/status`. Cache dei test isolata via `TTS_CACHE_DIR`/`TTS_VOICES_DIR` (conftest).
+**Dal vivo:** italiano 8,3s alla prima frase (incluso download voce ~60 MB) poi ~1s;
+inglese 4,2s; cache 0,09s con file identico; anteprime funzionanti nella pagina Admin.
+
+---
+
 ## 2026-07-05 — Concorrenti IA multipli (un provider per lato) + Gemini e Grok
 
 **Richiesta (utente):** «Concorrenti IA multipli» (voce ⭐ del TODO): avversari IA

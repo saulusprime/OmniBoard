@@ -98,21 +98,21 @@
   - **UI**: modalità "lezione" sulla pagina di gioco esistente (riusa scacchiera,
     animazioni ed evidenziazioni), con pulsanti avanti/indietro e replay vocale.
   - **Voce**: ogni passo viene letto ad alta voce dal servizio TTS (sotto).
-- [ ] **Servizio TTS nel backend** (`backend/app/tts.py` + endpoint `GET /tts`):
-  sintesi con **KittenTTS** — ora **submodule git** (`integrazioni/KittenTTS`, pinnato
-  a v0.8.1) e **dipendenza del backend** (`./integrazioni/KittenTTS` in
-  requirements, installata da `make install`). Apache 2.0 — ONNX, solo CPU, 8 voci,
-  modello 15–80M scaricato da HuggingFace al primo uso. Da fare: import pigro nel
-  servizio (senza modello → 503, il tutorial resta testuale), **cache su disco** dei
-  WAV per frase+voce+velocità (le lezioni sono testi fissi: si sintetizza una volta
-  sola), voce e velocità configurabili dal super admin. *Fattibilità già verificata
-  dal vivo: ~1–2s di sintesi per 5–7s di audio su CPU (nano, 15M).*
-- [ ] ⚠️ **Lingua**: KittenTTS è **solo inglese** (fonemizzatore `en-us` cablato,
-  normalizzazione del testo inglese) — verificato con sintesi di prova: l'italiano esce
-  con pronuncia anglicizzata, non usabile per un tutorial in italiano. Opzioni:
-  (a) affiancare **Piper TTS** per le voci italiane (stessa forma: ONNX/CPU, si integra
-  dietro la stessa astrazione del servizio TTS); (b) tutorial bilingue con voce inglese;
-  (c) seguire KittenML per l'eventuale supporto multilingue (roadmap "developer preview").
+- [x] **Servizio TTS nel backend** (`backend/app/tts.py` + `GET /tts` e `GET /tts/status`):
+  astrazione multi-motore con import pigri (motore assente → 503 spiegato, il tutorial
+  resta testuale), **cache su disco** dei WAV per motore+voce+velocità+frase
+  (`backend/tts_cache/`, pubblicazione atomica), un solo thread di sintesi, parametri
+  del super admin nella categoria **Voce** (attivazione, lingua di default, voce per
+  lingua, velocità, lunghezza massima). Card di stato con anteprime audio nella pagina
+  Admin. *Verificato dal vivo: italiano ~1s/frase, cache a ~0,1s.*
+- [x] ⚠️ **Lingua — gestione delle lingue del TTS**: scelta l'opzione (a) — **Piper TTS**
+  per l'**italiano** (`piper:it_IT-paola-medium`, voce scaricata da HuggingFace al primo
+  uso in `backend/tts_voices/`), **KittenTTS** per l'**inglese**
+  (`kitten:expr-voice-2-f`). La lingua instrada al motore tramite i parametri
+  `tts.voice_it` / `tts.voice_en` (formato `motore:voce`: si può passare l'inglese a
+  Piper senza toccare codice; nuova lingua = nuova voce in `LANG_SETTINGS` + parametro).
+  ⚖️ Piper (`piper-tts` 1.4.2) è **GPL-3** → dipendenza **opzionale** non inclusa in
+  requirements (progetto MIT): si abilita con `make piper` (scelta dell'operatore).
 
 ## Piattaforma e gamification
 

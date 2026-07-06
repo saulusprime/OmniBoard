@@ -19,6 +19,7 @@ from .routers import (
     matches,
     rankings,
     sessions,
+    tts,
     users,
 )
 from .seed import seed_games
@@ -57,6 +58,7 @@ app.include_router(sessions.router)
 app.include_router(rankings.router)
 app.include_router(admin.router)
 app.include_router(config.router)
+app.include_router(tts.router)
 
 
 @app.get("/health", tags=["meta"])

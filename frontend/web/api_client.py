@@ -155,6 +155,11 @@ def run_batch(data: dict):
 
 
 # ----- Configurazione / super admin -----
+def tts_status():
+    """Stato della voce sintetica: motori e voci per lingua, cache."""
+    return _request("GET", "/tts/status")
+
+
 def get_config():
     return _request("GET", "/config")
 

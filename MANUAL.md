@@ -116,6 +116,22 @@ parametri di programma del super admin:
 Il **tavolo del Backgammon non si personalizza**: è sempre quello originale, con le 24
 punte triangolari alternate su campo di legno, la barra centrale e le vasche di uscita.
 
+### Voce sintetica (TTS) e gestione delle lingue
+Il backend espone un servizio di **sintesi vocale locale** (`GET /tts?text=…&lang=it|en`),
+pensato per la futura sezione di istruzione guidata: nessun cloud, tutto su CPU. Ogni
+**lingua ha la sua voce**, configurabile dal super admin (categoria «Voce», formato
+`motore:voce`): **italiano con Piper** (`piper:it_IT-paola-medium`, la voce si scarica da
+HuggingFace al primo uso) e **inglese con KittenTTS** (`kitten:expr-voice-2-f`). Ogni
+frase viene sintetizzata **una volta sola**: i WAV restano in cache su disco e le
+richieste successive sono immediate. Nella pagina **Admin** una card mostra lo stato per
+lingua con un'**anteprima audio** riproducibile.
+
+Se un motore non è disponibile il servizio risponde con un errore chiaro e il resto
+dell'applicazione non ne risente. Nota di licenza: Piper (`piper-tts`) è **GPL-3** e per
+questo è una dipendenza **opzionale** — si abilita esplicitamente con `make piper`
+(oppure `pip install piper-tts` nel venv); senza, l'italiano risponde 503 e l'inglese
+continua a funzionare.
+
 ### Super admin (parametri di programma)
 Dal menu **Admin** si accede all'interfaccia di amministrazione, dove **tutti i parametri**
 del programma sono modificabili: nome del sito, abilitazione delle registrazioni, punti per

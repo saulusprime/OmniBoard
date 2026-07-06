@@ -445,6 +445,14 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   `ai_providers.get_config(db, code)`, risoluzione per lato in `advance_ai`
   (Claude-vs-Gemini possibile), etichetta del concorrente in partita. Ripiego locale
   invariato. 140 test verdi. In TODO: classifica delle IA e tornei fra provider.
+- **2026-07-06** — **Servizio TTS multi-motore + gestione lingue** (`app/tts.py`,
+  `GET /tts` e `/tts/status`): la lingua instrada al motore via `tts.voice_it|en`
+  (formato `motore:voce`) — **italiano = Piper** (`it_IT-paola-medium`, voce scaricata
+  al primo uso in `tts_voices/`; fix macOS `SSL_CERT_FILE`→certifi), **inglese =
+  KittenTTS**. Cache WAV su disco (atomica, `tts_cache/`), import pigri (503 spiegato),
+  categoria admin «Voce», card Admin con anteprime audio. ⚖️ `piper-tts` è **GPL-3** →
+  opzionale, MAI in requirements (progetto MIT): si abilita con `make piper`.
+  144 test verdi (motori finti); dal vivo: it ~1s/frase, cache 0,09s.
 
 ## Questioni aperte
 
