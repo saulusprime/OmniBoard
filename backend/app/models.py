@@ -88,6 +88,28 @@ class AuthSession(Base):
     user = relationship("User")
 
 
+class LessonProgress(Base):
+    """Progresso di un giocatore in una lezione del tutorial (istruzione guidata).
+
+    Una riga per (utente, lezione): ``last_step`` è l'ultimo passo raggiunto
+    (0-based, per riprendere da dove si era rimasti), ``completed`` scatta
+    quando l'allievo supera l'ultimo passo. Il contenuto delle lezioni NON
+    vive nel DB (è codice: ``app/lessons/``), qui solo lo stato personale.
+    """
+
+    __tablename__ = "lesson_progress"
+    __table_args__ = (UniqueConstraint("user_id", "lesson_code"),)
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    lesson_code = Column(String, nullable=False, index=True)
+    last_step = Column(Integer, nullable=False, default=0)
+    completed = Column(Boolean, nullable=False, default=False)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+
+    user = relationship("User")
+
+
 class Game(Base):
     """Catalogo dei tipi di gioco."""
 

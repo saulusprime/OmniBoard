@@ -5,6 +5,48 @@
 
 ---
 
+## 2026-07-06 — Sistema graduale di istruzione guidata (tutorial con voce)
+
+**Richiesta (utente):** realizzare il «Sistema graduale di istruzione guidata» (voce ⭐
+del TODO): lezioni a passi con posizioni preimpostate, evidenziazioni, mossa richiesta
+con verifica, progressi per utente e lettura vocale di ogni passo.
+
+**Contenuti (`backend/app/lessons/`, un modulo per gioco):**
+
+- Helper di authoring: `sq("e2")` (coordinate scacchistiche → indice, bianco in basso,
+  vale anche per la dama), `pos8({...})`, `pos_grid`, `path_task`/`cell_task`, `step`.
+- **Corso di scacchi in 7 lezioni** (scacchiera/obiettivo → pedone → torre e alfiere →
+  cavallo → donna e re → arrocco + en passant → matto del corridoio), **dama** (passo,
+  presa obbligatoria, presa multipla, promozione), **Tris** (centro, chiudere, bloccare).
+- `validate_lesson` = guardiano nei test: griglia della misura giusta, task dentro la
+  scacchiera, pezzo presente sull'origine, testi non vuoti, codici unici.
+
+**Backend:** tabella `lesson_progress` (**migrazione 0004**; unica per utente+lezione,
+`last_step` che non regredisce, `completed` definitivo); router `/lessons`: indice con
+progresso personale (X-Auth-Token opzionale), lezione completa (rows/cols/move_type per
+il renderer), `POST /lessons/{code}/progress` autenticato (anonimi: fruizione senza
+salvataggio). Passo clampato alla lunghezza della lezione.
+
+**Frontend:**
+
+- CSS della scacchiera **estratto in `board_css.html`** (case, pezzi a tinta piena,
+  temi, tavolo backgammon) e incluso da play.html E dalla pagina lezione: un solo posto
+  da mantenere (verificato che la pagina di gioco conservi i temi).
+- **«Impara»** in navbar → indice per gioco (badge «✓ completata», «riprendi dal passo
+  N», pulsanti Inizia/Riprendi/Ripassa) e pagina lezione: scacchiera con evidenziazioni
+  (`.hl`), task verificato dal client (clic origine→destinazione, o casella nel Tris;
+  a mossa giusta il pezzo si sposta con feedback, a mossa sbagliata suggerimento),
+  passi avanti/indietro, ripresa automatica dall'ultimo passo raggiunto.
+- **Voce**: 🔊 legge il passo via `GET /tts` (italiano/Piper); «voce automatica» ricordata
+  in localStorage. TTS assente → la lezione resta testuale (nessun errore visibile).
+
+**Test (+4, 148 verdi):** integrità di TUTTE le lezioni, helper coordinate, endpoint
+(anonimo/404), flusso progressi (401 anonimo, non-regressione, completed definitivo,
+clamp). **Dal vivo:** migrazione 0004 auto-applicata; `/impara/` e `/impara/chess-pawn/`
+renderizzati; progresso salvato via API e visibile nell'indice; pagina di gioco intatta.
+
+---
+
 ## 2026-07-06 — Servizio TTS multi-motore con gestione delle lingue (Piper + KittenTTS)
 
 **Richiesta (utente):** gestione delle lingue + integrazione di **Piper TTS**, risolvendo

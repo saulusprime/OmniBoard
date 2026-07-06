@@ -116,6 +116,18 @@ parametri di programma del super admin:
 Il **tavolo del Backgammon non si personalizza**: è sempre quello originale, con le 24
 punte triangolari alternate su campo di legno, la barra centrale e le vasche di uscita.
 
+### Impara: l'istruzione guidata
+La sezione **Impara** (in alto) contiene lezioni guidate passo per passo: un corso di
+scacchi in sette lezioni (la scacchiera, il pedone, torre e alfiere, il cavallo, donna e
+re, le mosse speciali, il primo scacco matto), le basi della dama e del Tris. Ogni passo
+mostra una **posizione preimpostata** sulla stessa scacchiera delle partite, evidenzia le
+caselle importanti e — quando c'è una **mossa da provare** — la verifica subito: clicca il
+pezzo e poi la destinazione (nel Tris basta la casella). Il pulsante **🔊** legge la
+spiegazione ad alta voce (voce italiana del servizio TTS); con «voce automatica» ogni
+passo viene letto da solo. Se hai effettuato l'accesso i **progressi si salvano**: dalla
+pagina Impara riprendi dal passo raggiunto e le lezioni completate restano spuntate.
+Le lezioni sono consultabili anche senza account (senza salvataggio).
+
 ### Voce sintetica (TTS) e gestione delle lingue
 Il backend espone un servizio di **sintesi vocale locale** (`GET /tts?text=…&lang=it|en`),
 pensato per la futura sezione di istruzione guidata: nessun cloud, tutto su CPU. Ogni

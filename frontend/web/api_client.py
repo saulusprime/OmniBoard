@@ -154,6 +154,27 @@ def run_batch(data: dict):
     return _request("POST", "/sessions/batch", json=data)
 
 
+# ----- Tutorial (istruzione guidata) -----
+def list_lessons(token: str | None = None):
+    """Indice delle lezioni; col token include i progressi personali."""
+    headers = {"X-Auth-Token": token} if token else {}
+    return _request("GET", "/lessons", headers=headers)
+
+
+def get_lesson(code: str, token: str | None = None):
+    headers = {"X-Auth-Token": token} if token else {}
+    return _request("GET", f"/lessons/{code}", headers=headers)
+
+
+def save_lesson_progress(code: str, step: int, completed: bool, token: str):
+    return _request(
+        "POST",
+        f"/lessons/{code}/progress",
+        json={"step": step, "completed": completed},
+        headers={"X-Auth-Token": token},
+    )
+
+
 # ----- Configurazione / super admin -----
 def tts_status():
     """Stato della voce sintetica: motori e voci per lingua, cache."""

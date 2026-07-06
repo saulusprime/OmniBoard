@@ -1,0 +1,35 @@
+{% extends "web/base.html" %}
+{% block title %}Impara{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>🎓 Impara a giocare</h1>
+  <p class="muted">Lezioni guidate passo per passo: posizioni preimpostate sulla
+  scacchiera, mosse da provare con verifica immediata e spiegazioni lette ad alta voce.
+  {% if not auth_user %}<a href="{% url 'login' %}">Accedi</a> per salvare i tuoi
+  progressi e riprendere da dove eri rimasto.{% endif %}</p>
+
+  {% for game_name, lessons in by_game.items %}
+  <h2>{{ game_name }}</h2>
+  <table>
+    <tr><th>Lezione</th><th>Passi</th><th>Progresso</th><th></th></tr>
+    {% for le in lessons %}
+    <tr>
+      <td><strong>{{ le.title }}</strong></td>
+      <td>{{ le.steps_count }}</td>
+      <td>
+        {% if le.progress.completed %}<span class="pill">✓ completata</span>
+        {% elif le.progress %}<span class="muted">passo {{ le.progress.last_step|add:"1" }} di {{ le.steps_count }}</span>
+        {% else %}<span class="muted">—</span>{% endif %}
+      </td>
+      <td><a class="btn{% if le.progress.completed %} secondary{% endif %}"
+             href="{% url 'learn_lesson' le.code %}">
+        {% if le.progress.completed %}Ripassa{% elif le.progress %}Riprendi{% else %}Inizia{% endif %}
+      </a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% empty %}
+  <p class="muted">Nessuna lezione disponibile (backend non raggiungibile?).</p>
+  {% endfor %}
+</div>
+{% endblock %}
