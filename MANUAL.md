@@ -274,7 +274,10 @@ Due formati, riconosciuti automaticamente: **testo semplice** (una riga per line
 partita del PGN diventa una linea di libro — le prime 16 semimosse, tradotte dalla
 notazione abbreviata (SAN) rigiocandole col motore; il nome viene dai tag Opening/ECO
 o da Bianco–Nero. Puoi quindi importare il tuo repertorio o partite di maestri e l'IA
-le giocherà in apertura (anche come aperture-bersaglio).
+le giocherà in apertura (anche come aperture-bersaglio). In più `CHESS_POLYGLOT_BOOK`
+può puntare a un libro **Polyglot (.bin)** — il formato standard dei libri scaricabili
+in rete: viene interrogato per chiave Zobrist quando il libro interno non copre la
+posizione, con scelta proporzionale ai pesi delle mosse.
 
 ### Tecniche di apertura
 L'app riconosce le aperture dal **libro integrato** — oltre 70 linee con le varianti

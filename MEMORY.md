@@ -503,6 +503,10 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   col motore, match unico; pulizia commenti/varianti/NAG; una linea per partita,
   16 semimosse, nomi da Opening/ECO); `CHESS_BOOK_FILE` auto-riconosce il .pgn.
   Polyglot .bin rimandato (tabella Zobrist standard). 169 test verdi.
+- **2026-07-06** — **Polyglot (.bin)**: `polyglot.py` + tabella RANDOM64 validata
+  sui 9 vettori ufficiali; probing bisect, scelta pesata, arrocchi tradotti;
+  `CHESS_POLYGLOT_BOOK` con priorità al libro interno (nomi/bersagli).
+  172 test verdi.
 
 ## Questioni aperte
 

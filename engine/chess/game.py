@@ -453,8 +453,12 @@ class Chess(Game):
 
     @classmethod
     def reset_book_cache(cls) -> None:
-        """Invalida l'indice del libro (es. dopo aver cambiato ``CHESS_BOOK_FILE``)."""
+        """Invalida gli indici dei libri (dopo aver cambiato ``CHESS_BOOK_FILE``
+        o ``CHESS_POLYGLOT_BOOK``)."""
         cls._book = None
+        from . import polyglot
+
+        polyglot.reset_cache()
 
     def _position_book(self) -> dict:
         if Chess._book is None:
@@ -492,6 +496,15 @@ class Chess(Game):
             (state.board, state.current, state.castling, state.ep)
         )
         if not candidates:
+            # Libro Polyglot (.bin, CHESS_POLYGLOT_BOOK): probing per chiave
+            # Zobrist, scelta pesata. Non ha nomi di linee: niente bersagli.
+            from . import polyglot
+
+            uci = polyglot.weighted_choice(polyglot.probe(state))
+            if uci:
+                for move in self.legal_moves(state):
+                    if self.move_id(move) == uci:
+                        return move
             return None
         if prefer:
             targeted = [c for c in candidates if self._matches_target(c[1], prefer)]

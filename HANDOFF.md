@@ -5,6 +5,28 @@
 
 ---
 
+## 2026-07-06 — Libro Polyglot (.bin) con hash Zobrist
+
+**Richiesta (utente):** supporto al formato Polyglot.
+
+**Implementazione (`engine/chess/polyglot.py` + `polyglot_data.py`):** tabella
+**RANDOM64** (781 costanti della specifica, prese dalla documentazione del formato e
+**validate contro i 9 vettori ufficiali** — arrocchi, en passant condizionale «solo se
+un pedone può davvero catturare», tratto). Un vettore che fallisce ha smascherato un
+errore di MEMORIA nel test (a1a2 vs a1a3 della specifica), non nel codice: i termini
+differenti (torre a2/a3) individuati via XOR sulla tabella. `zobrist_key(state)` dalla
+nostra ChessState (riga 0 = ottava traversa → conversione), `probe` con bisect sul file
+ordinato (voci 16 byte big-endian, coda spuria tollerata, cache per percorso),
+`weighted_choice` proporzionale ai pesi, arrocchi «re cattura torre» → UCI.
+**Priorità**: `opening_move` consulta prima il libro interno (ha i NOMI: bersagli),
+poi il Polyglot via `CHESS_POLYGLOT_BOOK`. `reset_book_cache` svuota entrambi.
+
+**Test (+3, 172 verdi):** vettori ufficiali, probing su .bin costruito nel test
+(pesi, arrocco e1h1→e1g1 giocabile via opening_move su posizione fuori dal libro
+interno, posizione assente → vuoto senza errori), scelta pesata (pesi nulli inclusi).
+
+---
+
 ## 2026-07-06 — Import del libro da PGN (parser SAN)
 
 **Richiesta (utente):** import del libro da PGN o formato Polyglot.

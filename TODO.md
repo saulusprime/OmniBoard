@@ -66,8 +66,12 @@
   motore (arrocco, catture, disambiguazioni, promozioni; commenti/varianti/NAG puliti);
   `CHESS_BOOK_FILE` accetta ora anche un .pgn (auto-riconosciuto): una linea di libro
   per partita (prefisso di 16 semimosse, nome da Opening/ECO o Bianco–Nero).
-- [ ] **Formato Polyglot (.bin)** — richiede l'hash Zobrist con la tabella standard
-  (781 costanti) e il probing per posizione: rimandato.
+- [x] **Formato Polyglot (.bin)** — `engine/chess/polyglot.py`: hash Zobrist con la
+  tabella standard (781 costanti, VALIDATE sui 9 vettori ufficiali della specifica:
+  arrocchi, en passant condizionale, tratto), probing binario del .bin ordinato,
+  scelta pesata, arrocchi «re cattura torre» tradotti in UCI; `CHESS_POLYGLOT_BOOK`
+  interrogato quando il libro interno non ha la posizione (il libro con nomi ha
+  priorità: mantiene le aperture-bersaglio).
 - [ ] **Potenziamenti di ricerca**: SEE (potare le catture perdenti in quiescence),
   aspiration windows alla radice, PVS, futility pruning ai nodi frontier.
 - [ ] **Finali**: euristica "mop-up" (spingere il re avversario al bordo con materiale di
