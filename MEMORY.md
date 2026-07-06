@@ -507,6 +507,10 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   sui 9 vettori ufficiali; probing bisect, scelta pesata, arrocchi tradotti;
   `CHESS_POLYGLOT_BOOK` con priorità al libro interno (nomi/bersagli).
   172 test verdi.
+- **2026-07-06** — **Badge qualità + commentatore LLM**: `commentary.py` dopo ogni
+  mossa di scacchi (eval memoizzata per sessione, 1 ricerca/mossa) — 🌟👍⚔️🐔🤔😬🤡
+  in `moves_json.quality`, battuta del provider attivo in `comment` (widget «🎙️»);
+  badge sul pezzo mosso (.qbadge), interruttori commentary.enabled/llm. 174 verdi.
 
 ## Questioni aperte
 

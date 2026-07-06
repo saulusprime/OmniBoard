@@ -5,6 +5,34 @@
 
 ---
 
+## 2026-07-06 — Badge di qualità delle mosse + commentatore LLM (widget)
+
+**Richiesta (utente):** un LLM come commentatore in un widget + simbolini in alto a
+destra del pezzo mosso quando la mossa è da maestro / brava / codarda / stupida, ecc.
+
+**Backend (`app/commentary.py`):** dopo OGNI mossa di scacchi (endpoint umano e worker
+IA) un lavoro best-effort in background: Stockfish (piena forza, `analysis_ms`) valuta
+prima/dopo — la valutazione precedente è **memoizzata per sessione** (una ricerca nuova
+per mossa) — e classifica: 🤡 blunder ≥200 cp, 😬 errore ≥100, 🐔 **codarda** (ritirata
+verso la propria traversa CHE perde ≥50), 🤔 imprecisa ≥50, 🌟 **da maestro** (proprio
+la mossa suggerita dal motore, perdita ≤5), ⚔️ aggressiva (cattura/scacco, <30),
+👍 buona. Il badge vive in `moves_json` (`quality`). Se `commentary.llm` è acceso e un
+provider IA è attivo, il modello aggiunge UNA battuta in italiano (`comment`, ≤280
+caratteri) riusando `api_ai._complete`. Interruttori: `commentary.enabled`/`llm`
+(categoria IA). Niente Stockfish → niente badge; niente provider → niente commento;
+nessun errore raggiunge la partita.
+
+**Client (`play.html`):** `.qbadge` assoluto in alto a destra della casella di
+destinazione (ultime due semimosse, una per lato), simbolo+tooltip nel log, widget
+«🎙️ Commento» (ultime 4 battute) sopra il log; dopo la propria mossa un resync
+ritardato (2,5 s) raccoglie badge e commento appena pronti.
+
+**Test (+2, 174 verdi):** tabella di classificazione completa; partita con finto
+motore → badge presente e sincrono, nessun `comment` senza provider, interruttore
+spento → mossa senza badge. **Dal vivo:** e2e4 → `👍 buona` (Stockfish 18).
+
+---
+
 ## 2026-07-06 — Libro Polyglot (.bin) con hash Zobrist
 
 **Richiesta (utente):** supporto al formato Polyglot.

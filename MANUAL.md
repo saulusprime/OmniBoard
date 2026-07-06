@@ -125,6 +125,15 @@ trova negato — quindi in una partita fra esperti nessuno dei due può usarlo. 
 vietato nel **formato FIDE ufficiale** (e lo sarà nei tornei e campionati), e nelle
 partite a distanza può chiederlo solo il giocatore al tratto.
 
+### Badge di qualità e commentatore della partita
+Negli scacchi, dopo ogni mossa (tua o dell'IA) Stockfish la giudica in background e sul
+pezzo mosso compare un **simbolino in alto a destra**: 🌟 da maestro (la mossa del
+motore), 👍 buona, ⚔️ aggressiva, 🐔 codarda (ritirata che perde terreno), 🤔 imprecisa,
+😬 errore, 🤡 blunder. Il simbolo compare anche nel log delle mosse (col dettaglio al
+passaggio del mouse). Se un **provider IA è attivo**, il widget «🎙️ Commento» aggiunge
+una battuta in italiano sulle ultime mosse — il modello COMMENTA, non gioca. Interruttori
+nella categoria IA («Badge di qualità sulle mosse», «Commentatore LLM»).
+
 ### Moviola, note, analisi post-partita ed export GIF
 A partita conclusa, sotto il log delle mosse compare la **Moviola**: con ⏮ ◀ ▶ ⏭ (o
 cliccando una mossa nel log) ti muovi avanti e indietro nel tempo di gioco, posizione per

@@ -22,6 +22,7 @@ from engine import get_game, is_playable
 from .. import (
     ai_providers,
     analysis,
+    commentary,
     gameplay,
     gifexport,
     models,
@@ -322,6 +323,8 @@ def make_move(
     db.commit()
 
     gameplay.finish_if_terminal(db, game, session, state)
+    # Badge di qualità + commento LLM sull'ultima mossa (best effort, in background).
+    commentary.schedule(session.id)
     if session.status != "finished":
         # Se il turno è passato a un nodo del caso (backgammon: dadi del prossimo
         # giocatore), la risposta include già il tiro: chi gioca in locale in due

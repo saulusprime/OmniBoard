@@ -101,8 +101,11 @@
 - [ ] **Cifratura dei token provider** nel DB (oggi in chiaro, scaffold di sviluppo) o
   spostamento in un secret manager.
 - [ ] **Cache del profilo avversario** con TTL (oggi ricostruito a ogni mossa umana).
-- [ ] **LLM come commentatore** — usare Qwen/Claude per commentare le partite in linguaggio
-  naturale (dove i LLM rendono bene), non per scegliere le mosse.
+- [x] **LLM come commentatore + badge di qualità** — `app/commentary.py`: dopo ogni mossa
+  di scacchi Stockfish classifica (🌟 da maestro, 👍 buona, ⚔️ aggressiva, 🐔 codarda,
+  🤔 imprecisa, 😬 errore, 🤡 blunder; simbolino in alto a destra del pezzo mosso) e il
+  provider IA attivo aggiunge una battuta nel widget «🎙️ Commento». Best effort in
+  background; interruttori `commentary.enabled` / `commentary.llm`.
 
 ## Giochi
 

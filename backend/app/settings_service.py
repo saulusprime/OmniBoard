@@ -107,6 +107,20 @@ SETTINGS_DEFS = [
         "label": "Ritardo minimo tra una mossa e l'altra dell'IA (millisecondi; 0 = nessuno)",
     },
     {
+        "key": "commentary.enabled",
+        "type": "bool",
+        "default": True,
+        "category": "IA",
+        "label": "Badge di qualità sulle mosse (scacchi, valutati da Stockfish)",
+    },
+    {
+        "key": "commentary.llm",
+        "type": "bool",
+        "default": True,
+        "category": "IA",
+        "label": "Commentatore LLM della partita (usa il provider IA attivo)",
+    },
+    {
         "key": "stockfish.path",
         "type": "str",
         "default": "",

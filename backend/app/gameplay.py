@@ -458,6 +458,10 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
         session.moves_json = json.dumps(moves)
         save_state(game, session, state)
         db.commit()
+        # Badge di qualità + commento anche sulle mosse dell'IA (best effort).
+        from . import commentary
+
+        commentary.schedule(session.id)
         last_move_at = time.monotonic()
     finish_if_terminal(db, game, session, state)
 
