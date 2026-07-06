@@ -51,8 +51,11 @@
   della linea; `opening_move(prefer=…)` filtra le continuazioni sulle `weakest_openings`
   del profilo (aggancio per sottostringa, varianti comprese; nessun aggancio → scelta
   normale). Le porta `opponent_style` → `style["target_openings"]` → dispatcher.
-- [ ] **Stima delle blunder** — rianalizzare col motore un campione di posizioni dello
-  storico dell'avversario per quantificare gli errori (profilo più ricco e affidabile).
+- [x] **Stima delle blunder** — `profile["accuracy"]` aggrega le analisi motore in cache
+  (ACPL con tetto 1000 cp/mossa, blunder/errori/imprecisioni del SOLO lato del giocatore);
+  `POST /users/{id}/analyze-history` analizza in background le partite non ancora
+  analizzate (pulsante nella scheda giocatore). Sotto 20 mosse analizzate la stima non
+  tocca debolezze/stile; sopra: blunder frequenti → +aggressività, ACPL alto → debolezza.
 - [x] **Libro di aperture più ampio** — 75+ linee con le varianti principali, indicizzato
   **per posizione** (vale anche nelle trasposizioni), estendibile via `CHESS_BOOK_FILE`
   (file di testo `Nome: e2e4 e7e5 …`).

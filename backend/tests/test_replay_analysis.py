@@ -162,3 +162,49 @@ def test_sparring_estimates_elo(tmp_path):
             headers={"X-Admin-Token": TOKEN},
         )
         stockfish.shutdown()
+
+
+def test_blunder_estimate_enriches_profile(tmp_path):
+    """Stima delle blunder: analyze-history riempie la cache, il profilo la aggrega."""
+    fake = _fake_analyser(tmp_path)
+    with TestClient(app) as client:
+        client.put(
+            "/admin/settings",
+            json={"values": {"stockfish.path": fake, "stockfish.analysis_ms": "60"}},
+            headers={"X-Admin-Token": TOKEN},
+        )
+        sid = _fools_mate(client)
+        white_id = client.get(f"/sessions/{sid}").json()["players"]["x"]["user_id"]
+
+        # Prima dell'analisi il profilo non ha la stima (nessuna cache).
+        before = client.get(f"/users/{white_id}/chess-profile").json()
+        assert before["accuracy"] is None
+
+        out = client.post(f"/users/{white_id}/analyze-history").json()
+        assert out["queued"] == 1  # sincrono nei test: cache già pronta
+        again = client.post(f"/users/{white_id}/analyze-history").json()
+        assert again["queued"] == 0  # già analizzata: nessun doppio lavoro
+
+        after = client.get(f"/users/{white_id}/chess-profile").json()
+        acc = after["accuracy"]
+        # Il bianco ha giocato 2 mosse: col finto motore (cp fisso ±42) la
+        # perdita è 42 e 84 → ACPL 63.0 e una imprecisione (?!).
+        assert acc["games_analyzed"] == 1 and acc["moves"] == 2
+        assert acc["acpl"] == 63.0
+        assert acc["inaccuracies"] == 1 and acc["blunders"] == 0
+
+        # Binario inesistente (il PATH di sviluppo ha uno Stockfish vero: serve
+        # un percorso esplicito e rotto): l'endpoint spiega perché non lavora.
+        client.put(
+            "/admin/settings",
+            json={"values": {"stockfish.path": "/percorso/inesistente"}},
+            headers={"X-Admin-Token": TOKEN},
+        )
+        assert client.post(f"/users/{white_id}/analyze-history").status_code == 503
+        assert client.post("/users/999999/analyze-history").status_code == 404
+        client.put(
+            "/admin/settings",
+            json={"values": {"stockfish.path": "", "stockfish.analysis_ms": "200"}},
+            headers={"X-Admin-Token": TOKEN},
+        )
+        stockfish.shutdown()

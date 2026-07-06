@@ -114,6 +114,34 @@ def _run(session_id: int) -> None:
             _running.discard(session_id)
 
 
+def analyze_history(db, user_id: int, limit: int = 5) -> int:
+    """Accoda l'analisi delle ultime partite di scacchi dell'utente NON ancora analizzate.
+
+    Arricchisce la stima delle blunder del profilo (che legge solo la cache).
+    I job condividono il processo Stockfish persistente (si serializzano sul suo
+    lock). Ritorna quante partite sono state accodate.
+    """
+    from sqlalchemy import or_  # import locale: evita dipendenze in cima al modulo
+
+    sessions = (
+        db.query(models.GameSession)
+        .join(models.Game)
+        .filter(
+            models.Game.code == "chess",
+            models.GameSession.status == "finished",
+            models.GameSession.analysis_json.is_(None),
+            or_(
+                models.GameSession.x_user_id == user_id,
+                models.GameSession.o_user_id == user_id,
+            ),
+        )
+        .order_by(models.GameSession.id.desc())
+        .limit(max(1, min(int(limit), 10)))
+        .all()
+    )
+    return sum(1 for s in sessions if start(s.id))
+
+
 def is_running(session_id: int) -> bool:
     with _lock:
         return session_id in _running

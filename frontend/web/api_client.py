@@ -65,6 +65,11 @@ def get_chess_profile(user_id):
     return _request("GET", f"/users/{user_id}/chess-profile")
 
 
+def analyze_user_history(user_id):
+    """Accoda l'analisi motore delle partite non ancora analizzate (stima blunder)."""
+    return _request("POST", f"/users/{user_id}/analyze-history")
+
+
 def update_user_prefs(user_id, values: dict):
     return _request("PUT", f"/users/{user_id}/prefs", json=values)
 

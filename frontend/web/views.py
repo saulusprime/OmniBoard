@@ -193,6 +193,22 @@ def user_detail(request, user_id):
     user = _safe(request, lambda: api.get_user(user_id))
     if user is None:
         return redirect("users_list")
+    # Stima delle blunder: analizza (in background) le partite non ancora
+    # analizzate; il profilo si arricchisce alle letture successive.
+    if request.method == "POST" and "analyze_history" in request.POST:
+        try:
+            out = api.analyze_user_history(user_id)
+            if out["queued"]:
+                messages.success(
+                    request,
+                    f"Analisi avviata su {out['queued']} partite: ricarica tra qualche "
+                    "istante per vedere la precisione aggiornata.",
+                )
+            else:
+                messages.success(request, "Tutte le partite recenti sono già analizzate.")
+        except api.ApiError as exc:
+            messages.error(request, str(exc))
+        return redirect("user_detail", user_id=user_id)
     # Opzioni estetiche del giocatore (tema scacchiera/pezzi, segno del Tris):
     # personali, senza token — la validazione autorevole è del backend.
     if request.method == "POST" and "save_prefs" in request.POST:

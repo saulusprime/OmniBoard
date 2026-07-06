@@ -362,9 +362,13 @@ stile**: più **aggressiva** contro chi crolla presto, più **anti-patta** (evit
 contro chi pareggia spesso. In apertura fa anche **apertura-bersaglio**: tra le linee del
 proprio libro preferisce quelle che portano nelle **aperture in cui l'avversario rende
 peggio** (le «debolezze» del profilo, calcolate sul suo storico); se la posizione non lo
-consente, la scelta torna normale su tutto il libro. Il profilo è consultabile nella scheda
-del giocatore (pannello «Profilo scacchistico») ed è ciò che l'IA usa per prepararsi
-all'avversario.
+consente, la scelta torna normale su tutto il libro. C'è anche la **stima delle blunder**:
+il pulsante «🔬 Analizza lo storico» nella scheda del giocatore fa rianalizzare al motore le
+sue partite non ancora analizzate; il profilo aggrega i risultati in una sezione
+«Precisione» (perdita media in centipedoni per mossa, blunder/errori/imprecisioni) e — con
+un campione sufficiente (≥ 20 mosse analizzate) — chi commette molti blunder affronta un'IA
+ancora più aggressiva. Il profilo è consultabile nella scheda del giocatore (pannello
+«Profilo scacchistico») ed è ciò che l'IA usa per prepararsi all'avversario.
 
 ---
 
