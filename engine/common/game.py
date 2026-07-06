@@ -104,7 +104,7 @@ class Game(ABC, Generic[S, M]):
         return [[i, after[i]] for i in range(len(before)) if before[i] != after[i]]
 
     # ----- Aperture (per i giochi che ne hanno, es. scacchi) -----
-    def opening_move(self, state: S, history: list[str]):
+    def opening_move(self, state: S, history: list[str], prefer: list[str] | None = None):
         """Mossa da 'libro' se la posizione segue una linea nota; altrimenti None."""
         return None
 

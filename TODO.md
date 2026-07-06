@@ -47,8 +47,10 @@
   forza4; glifi con font di sistema e ripiego a lettere).
 - [ ] **Patta per triplice ripetizione** dichiarata dalle regole del gioco (il motore la
   evita in ricerca, ma la partita non termina mai per ripetizione).
-- [ ] **Apertura-bersaglio dal profilo avversario** — scegliere dal libro le linee in cui
-  l'avversario storicamente rende peggio (`weakest_openings` già calcolate).
+- [x] **Apertura-bersaglio dal profilo avversario** — l'indice del libro ricorda il nome
+  della linea; `opening_move(prefer=…)` filtra le continuazioni sulle `weakest_openings`
+  del profilo (aggancio per sottostringa, varianti comprese; nessun aggancio → scelta
+  normale). Le porta `opponent_style` → `style["target_openings"]` → dispatcher.
 - [ ] **Stima delle blunder** — rianalizzare col motore un campione di posizioni dello
   storico dell'avversario per quantificare gli errori (profilo più ricco e affidabile).
 - [x] **Libro di aperture più ampio** — 75+ linee con le varianti principali, indicizzato

@@ -46,8 +46,11 @@ def choose_move(
 
     # Libro delle aperture per ogni tipo di IA: risposte istantanee e varie in apertura
     # (per gli scacchi è indicizzato per posizione, quindi copre anche le trasposizioni).
+    # APERTURA-BERSAGLIO: se lo stile porta le aperture più deboli del profilo
+    # avversario, il libro preferisce le linee che ci finiscono dentro.
     if history is not None:
-        book = game.opening_move(state, history)
+        prefer = (style or {}).get("target_openings") or None
+        book = game.opening_move(state, history, prefer=prefer)
         if book is not None and book in legal:
             return book, "book"
 

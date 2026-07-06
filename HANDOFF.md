@@ -5,6 +5,31 @@
 
 ---
 
+## 2026-07-06 — Apertura-bersaglio dal profilo avversario
+
+**Richiesta (utente):** implementare le aperture-bersaglio (voce TODO): scegliere dal
+libro le linee in cui l'avversario storicamente rende peggio.
+
+**Implementazione:**
+
+- L'indice del libro (`Chess._position_book`) ora conserva **(mossa, nome della linea)**;
+  `opening_move(state, history, prefer=None)` con `prefer` filtra le continuazioni che
+  appartengono alle aperture indicate — confronto per **sottostringa nei due sensi**
+  («Difesa Siciliana» aggancia anche le varianti nominate). Nessun aggancio → scelta
+  normale su tutto il libro (nessuna rinuncia al libro). Firma aggiornata anche nella
+  base comune (`engine/common/game.py`), gli altri giochi la ignorano.
+- `gameplay.opponent_style` aggiunge allo stile **`target_openings` =
+  `profile["weakest_openings"]`** (le aperture con rendimento < 0,5 su ≥ N partite);
+  il dispatcher (`opponents.choose_move`) le passa al libro a ogni consultazione.
+  Vale per qualunque IA (motore locale, Stockfish, provider): il libro è comune.
+
+**Test (+4, 160 verdi):** libro-mini via `CHESS_BOOK_FILE` (bersaglio deterministico,
+aggancio di varianti per sottostringa, ripiego su bersaglio inesistente — il file utente
+si SOMMA al libro incorporato), dispatcher con `style.target_openings`, `opponent_style`
+con profilo simulato (lo stile esistente resta intatto).
+
+---
+
 ## 2026-07-06 — Sparring, analisi post-partita, moviola con note, export GIF
 
 **Richiesta (utente):** Stockfish come sparring; analisi post-partita; possibilità di

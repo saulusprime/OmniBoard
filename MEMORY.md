@@ -480,6 +480,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   (⏮◀▶⏭, clic sul log, note, grafico SVG, GIF), card Sparring in Admin, note nello
   storico del giocatore. 156 test verdi; dal vivo l'analisi marca ?! su 1.f3 e ?? su
   3.g4 (matto dell'imbecille), GIF 464×464 valida.
+- **2026-07-06** — **Apertura-bersaglio**: il libro indicizza (mossa, nome linea);
+  `opening_move(prefer=…)` preferisce le linee delle `weakest_openings` del profilo
+  avversario (sottostringa nei due sensi, ripiego su tutto il libro);
+  `opponent_style` → `style["target_openings"]` → dispatcher (vale per ogni tipo di
+  IA). 160 test verdi.
 
 ## Questioni aperte
 
