@@ -27,6 +27,10 @@ destinazione (ultime due semimosse, una per lato), simbolo+tooltip nel log, widg
 «🎙️ Commento» (ultime 4 battute) sopra il log; dopo la propria mossa un resync
 ritardato (2,5 s) raccoglie badge e commento appena pronti.
 
+**Ritocco (feedback utente):** il badge compare SOLO sull'ultima mossa, nell'angolo
+alto-destro della casa di arrivo, per ~2,5 secondi (pop di comparsa, timer di
+rimozione, `badgeShownPly` evita che i ridisegni lo riportino in vita).
+
 **Test (+2, 174 verdi):** tabella di classificazione completa; partita con finto
 motore → badge presente e sincrono, nessun `comment` senza provider, interruttore
 spento → mossa senza badge. **Dal vivo:** e2e4 → `👍 buona` (Stockfish 18).
