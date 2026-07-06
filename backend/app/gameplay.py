@@ -98,7 +98,8 @@ def finish_if_terminal(db: Session, game, session: models.GameSession, state) ->
 def opponent_style(db: Session, game, session: models.GameSession):
     """Stile di gioco dell'IA derivato dal profilo dell'avversario umano (solo scacchi).
 
-    Restituisce ``{'aggression':, 'contempt':}`` o ``None`` (gioco neutro) se non c'è un
+    Restituisce ``{'aggression':, 'contempt':, 'target_openings': [...]}`` o ``None``
+    (gioco neutro) se non c'è un
     avversario umano identificabile o il gioco non ha un profilo dedicato.
     """
     if game.code != chess_profile.CHESS_CODE:
@@ -110,7 +111,13 @@ def opponent_style(db: Session, game, session: models.GameSession):
     else:
         return None
     profile = chess_profile.build_profile(db, opponent_id)
-    return profile["style"] if profile else None
+    if not profile:
+        return None
+    style = dict(profile["style"])
+    # Aperture-bersaglio: le linee in cui l'avversario storicamente rende peggio.
+    # Il libro le preferirà quando la posizione lo consente (vedi opponents/__init__).
+    style["target_openings"] = profile.get("weakest_openings") or []
+    return style
 
 
 # ----- Orologio di gioco (solo scacchi) -----

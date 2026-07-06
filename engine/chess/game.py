@@ -458,8 +458,10 @@ class Chess(Game):
 
     def _position_book(self) -> dict:
         if Chess._book is None:
-            book: dict[tuple, list[str]] = {}
-            for _name, line in openings.all_lines():
+            # Ogni continuazione ricorda il NOME della sua linea: serve alle
+            # aperture-bersaglio (preferire le linee in cui l'avversario rende male).
+            book: dict[tuple, list[tuple[str, str]]] = {}
+            for name, line in openings.all_lines():
                 state = self.initial_state()
                 for uci in line:
                     move = next(
@@ -468,18 +470,34 @@ class Chess(Game):
                     if move is None:
                         break  # mossa non valida (file utente): si tiene il prefisso valido
                     key = (state.board, state.current, state.castling, state.ep)
-                    book.setdefault(key, []).append(uci)
+                    book.setdefault(key, []).append((uci, name))
                     state = self.apply(state, move)
             Chess._book = book
         return Chess._book
 
-    def opening_move(self, state, history):
+    @staticmethod
+    def _matches_target(line_name: str, targets) -> bool:
+        """La linea appartiene a un'apertura bersaglio? (confronto per sottostringa,
+        nei due sensi: «Difesa Siciliana» aggancia anche le sue varianti nominate)."""
+        name = line_name.lower()
+        return any(t.lower() in name or name in t.lower() for t in targets if t)
+
+    def opening_move(self, state, history, prefer=None):
+        """Mossa dal libro; con ``prefer`` (nomi di aperture) si fa APERTURA-BERSAGLIO:
+        tra le continuazioni disponibili si scelgono solo quelle che portano nelle
+        linee indicate (tipicamente le più deboli nel profilo dell'avversario);
+        se nessuna corrisponde si torna alla scelta normale su tutto il libro.
+        """
         candidates = self._position_book().get(
             (state.board, state.current, state.castling, state.ep)
         )
         if not candidates:
             return None
-        uci = random.choice(candidates)
+        if prefer:
+            targeted = [c for c in candidates if self._matches_target(c[1], prefer)]
+            if targeted:
+                candidates = targeted
+        uci = random.choice(candidates)[0]
         for move in self.legal_moves(state):
             if self.move_id(move) == uci:
                 return move

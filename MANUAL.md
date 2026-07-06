@@ -359,8 +359,12 @@ Quando l'IA affronta un giocatore umano, analizza lo **storico delle sue partite
 individuarne **schemi e debolezze**: aperture giocate e relativo rendimento, fragilità tattica
 (sconfitte rapide), tendenza alla patta, tenuta nei finali. In base al profilo **adatta il proprio
 stile**: più **aggressiva** contro chi crolla presto, più **anti-patta** (evita le semplificazioni)
-contro chi pareggia spesso. Il profilo è consultabile nella scheda del giocatore (pannello
-«Profilo scacchistico») ed è ciò che l'IA usa per prepararsi all'avversario.
+contro chi pareggia spesso. In apertura fa anche **apertura-bersaglio**: tra le linee del
+proprio libro preferisce quelle che portano nelle **aperture in cui l'avversario rende
+peggio** (le «debolezze» del profilo, calcolate sul suo storico); se la posizione non lo
+consente, la scelta torna normale su tutto il libro. Il profilo è consultabile nella scheda
+del giocatore (pannello «Profilo scacchistico») ed è ciò che l'IA usa per prepararsi
+all'avversario.
 
 ---
 
