@@ -25,9 +25,11 @@
   .movenote { color:var(--accent); font-size:.85em; margin:2px 0 0 18px; }
   .pg-nav { display:flex; gap:6px; align-items:center; }
   .pg-nav .btn { padding:4px 10px; }
-  /* Badge di qualità della mossa: simbolino in alto a destra del pezzo mosso. */
+  /* Badge di qualità della mossa: simbolino in alto a destra del pezzo mosso,
+     visibile per un paio di secondi (comparsa con "pop"). */
   .qbadge { position:absolute; top:0; right:1px; font-size:.42em; line-height:1;
-            pointer-events:none; filter:drop-shadow(0 1px 1px rgba(0,0,0,.7)); }
+            pointer-events:none; filter:drop-shadow(0 1px 1px rgba(0,0,0,.7));
+            animation: pop .3s ease-out; }
   #commentary { max-height:150px; overflow:auto; margin:0 0 12px; padding:0;
                 list-style:none; font-size:.85rem; }
   #commentary li { padding:4px 6px; border-bottom:1px solid var(--line); }
@@ -341,24 +343,29 @@
     ul.scrollTop = ul.scrollHeight;
   }
 
+  let badgeShownPly = 0;  // semimosse il cui badge è già stato mostrato (non riappare)
+  let badgeTimer = null;
+
   function placeBadges() {
-    // Simbolini di qualità in alto a destra del PEZZO MOSSO: una mossa per lato
-    // (le ultime due semimosse), sulla casella di destinazione della mossa.
+    // Simbolino di qualità SOLO sull'ULTIMA mossa, in alto a destra della casa
+    // di arrivo del pezzo mosso: compare quando il giudizio è pronto e sparisce
+    // da solo dopo un paio di secondi (i ridisegni successivi non lo riportano).
     const grid = document.getElementById("grid");
-    if (!grid || moveType !== "chess") return;
+    if (!grid || moveType !== "chess" || !lastMoves.length) return;
+    const m = lastMoves[lastMoves.length - 1];
+    if (!m.quality || !m.id || m.id.length < 4 || m.ply <= badgeShownPly) return;
+    badgeShownPly = m.ply;
     grid.querySelectorAll(".qbadge").forEach((b) => b.remove());
-    lastMoves.slice(-2).forEach((m) => {
-      if (!m.quality || !m.id || m.id.length < 4) return;
-      const file = m.id.charCodeAt(2) - 97, rank = Number(m.id[3]);
-      const idx = (8 - rank) * 8 + file;
-      const cell = grid.children[idx];
-      if (!cell || !cell.textContent) return;
-      const b = document.createElement("span");
-      b.className = "qbadge";
-      b.textContent = m.quality.symbol;
-      b.title = m.quality.label;
-      cell.appendChild(b);
-    });
+    const file = m.id.charCodeAt(2) - 97, rank = Number(m.id[3]);
+    const cell = grid.children[(8 - rank) * 8 + file];
+    if (!cell || !cell.textContent) return;
+    const b = document.createElement("span");
+    b.className = "qbadge";
+    b.textContent = m.quality.symbol;
+    b.title = m.quality.label;
+    cell.appendChild(b);
+    clearTimeout(badgeTimer);
+    badgeTimer = setTimeout(() => b.remove(), 2500);
   }
 
   // ----- Effetto sonoro delle mosse (sintetizzato via WebAudio: nessun file audio) -----
