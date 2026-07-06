@@ -278,6 +278,48 @@ class _PersistentEngine:
                 return None
             return None
 
+    def evaluate(self, cfg: dict, position: str) -> dict | None:
+        """Valutazione della posizione: {cp | mate (dal punto di vista di chi muove), best}.
+
+        Riusa il flusso di ricerca del processo persistente ma conserva le righe
+        ``info … score …`` (l'ultima è quella alla profondità massima raggiunta).
+        Usata dall'analisi post-partita; ``None`` in caso di errore.
+        """
+        with self._lock:
+            for _attempt in range(2):
+                if not self._alive() or self._path != cfg["path"]:
+                    if not self._spawn(cfg["path"]):
+                        return None
+                move_ms = max(50, int(cfg.get("move_ms") or 200))
+                try:
+                    self._apply_strength(cfg)
+                    if not (self._last_position and position.startswith(self._last_position)):
+                        self._send("ucinewgame")
+                    self._send(position)
+                    self._send(f"go movetime {move_ms}")
+                except (OSError, ValueError):
+                    self._close()
+                    continue
+                lines = self._read_until("bestmove", move_ms / 1000.0 + _STARTUP_GRACE)
+                if lines is None:
+                    self._close()
+                    return None
+                self._last_position = position
+                self._searches += 1
+                cp = mate = None
+                for line in lines:  # l'ultima "score" vince (profondità maggiore)
+                    if line.startswith("info ") and " score " in line:
+                        parts = line.split()
+                        i = parts.index("score")
+                        if parts[i + 1] == "cp":
+                            cp, mate = int(parts[i + 2]), None
+                        elif parts[i + 1] == "mate":
+                            cp, mate = None, int(parts[i + 2])
+                best = lines[-1].split()
+                best_uci = best[1] if len(best) >= 2 and best[1] not in ("(none)", "0000") else None
+                return {"cp": cp, "mate": mate, "best": best_uci}
+            return None
+
     def stats(self) -> dict | None:
         """PID e ricerche servite dal processo corrente (per la diagnostica admin)."""
         if not self._alive():

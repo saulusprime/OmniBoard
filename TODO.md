@@ -35,8 +35,16 @@
   **respawn automatico** su crash/cambio percorso; `quit` solo alla chiusura. La
   selezione della forza al setup c'era già (preset Zeus…Pan). Verificato dal vivo:
   un solo PID per tutta la partita, stats nella diagnostica admin.
-- [ ] Stockfish come **sparring**: misurare l'Elo del motore interno giocandoci contro;
-  usarlo per l'**analisi post-partita** (valutazioni mossa per mossa).
+- [x] Stockfish come **sparring** (`app/sparring.py` + card admin): match a colori
+  alternati contro un preset a Elo noto, stima con modello logistico
+  (`diff = 400·log10(p/(1−p))`) e margine; un match alla volta, in background.
+- [x] **Analisi post-partita** (`app/analysis.py` + pulsante in partita): Stockfish valuta
+  ogni posizione (`stockfish.analysis_ms`), errori marcati ??/?/?! con suggerimento del
+  motore, grafico dell'andamento; risultato salvato in `analysis_json` (una volta sola).
+- [x] **Moviola** (rewind/step-by-step) sulle partite concluse: ⏮◀▶⏭ + clic sul log,
+  **note per mossa** salvate nello storico (`moves_json`, visibili anche nella scheda
+  giocatore); **export GIF animata** dell'intera partita (Pillow, scacchi/dama/tris/
+  forza4; glifi con font di sistema e ripiego a lettere).
 - [ ] **Patta per triplice ripetizione** dichiarata dalle regole del gioco (il motore la
   evita in ricerca, ma la partita non termina mai per ripetizione).
 - [ ] **Apertura-bersaglio dal profilo avversario** — scegliere dal libro le linee in cui
@@ -54,8 +62,6 @@
 - [ ] **Pondering** — pensare durante il tempo dell'avversario (richiede la mossa async).
 - [ ] **Livelli di difficoltà** selezionabili in partita (tempo/profondità/jitter più alto
   per i principianti), oltre al parametro globale `ai.engine_ms`.
-- [ ] **Analisi post-partita** — valutazione del motore mossa per mossa, grafico
-  dell'andamento, evidenziazione degli errori (?!, ??) nello storico.
 - [ ] **Suggerimento mossa (hint)** per il giocatore umano, col motore a budget ridotto.
 - [ ] **Export PGN / import FEN** dall'interfaccia.
 

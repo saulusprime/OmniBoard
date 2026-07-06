@@ -116,6 +116,27 @@ parametri di programma del super admin:
 Il **tavolo del Backgammon non si personalizza**: è sempre quello originale, con le 24
 punte triangolari alternate su campo di legno, la barra centrale e le vasche di uscita.
 
+### Moviola, note, analisi post-partita ed export GIF
+A partita conclusa, sotto il log delle mosse compare la **Moviola**: con ⏮ ◀ ▶ ⏭ (o
+cliccando una mossa nel log) ti muovi avanti e indietro nel tempo di gioco, posizione per
+posizione. Su ogni mossa puoi scrivere una **nota** («💾 Salva nota»): le note vengono
+salvate **dentro lo storico della partita** e ricompaiono nella moviola e nella scheda
+del giocatore. Con «🎞️ Esporta GIF» scarichi l'**intera partita come GIF animata** (un
+fotogramma per posizione; scacchi, dama, Tris e Forza 4).
+
+Negli scacchi c'è anche «🔬 **Analizza la partita**»: Stockfish valuta ogni posizione e
+marca gli errori nel log — **??** blunder (≥ 2 pedoni persi), **?** errore (≥ 1),
+**?!** imprecisione (≥ 0,5) — con la mossa che il motore preferiva e un grafico
+dell'andamento (valutazione dal punto di vista del Bianco). L'analisi si calcola una
+volta sola e resta salvata con la partita; il tempo per posizione è un parametro admin
+(«Analisi post-partita: tempo per posizione»).
+
+### Sparring: quanto è forte il motore interno?
+Nella pagina **Admin**, la sezione «🥊 Sparring» fa giocare il **motore interno contro
+Stockfish a Elo simulato noto** (Atena 2700 … Pan 1400), a colori alternati. Dal
+punteggio si stima l'**Elo del motore interno** (con margine: poche partite = stima
+grossolana). Il match gira in background: ricarica la pagina per seguire lo stato.
+
 ### Impara: l'istruzione guidata
 La sezione **Impara** (in alto) contiene lezioni guidate passo per passo: un corso di
 scacchi in sette lezioni (la scacchiera, il pedone, torre e alfiere, il cavallo, donna e

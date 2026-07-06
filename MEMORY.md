@@ -469,6 +469,17 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   test). `_uci_dialogue` one-shot resta SOLO per `verify()` (che ora riporta PID e
   ricerche servite). Finti motori dei test ora interattivi con log comandi. 151 test
   verdi; dal vivo: 6 mosse contro Pan, un solo PID.
+- **2026-07-06** — **Sparring + analisi + moviola + GIF**: `evaluate()` sul motore
+  persistente; `analysis.py` (job, errori ??/?/?! a 200/100/50 cp, cp lato bianco,
+  cache in `analysis_json`, migrazione **0005**, param `stockfish.analysis_ms`);
+  `sparring.py` (match a colori alternati vs preset a Elo noto, stima logistica ±
+  margine, `POST/GET /admin/sparring`); moviola `GET /sessions/{id}/replay` +
+  **note per mossa** dentro `moves_json` (`POST .../note`, solo partecipanti nei
+  remote); GIF `GET /sessions/{id}/gif` (`gifexport.py`, **Pillow**, glifi da font di
+  sistema + ripiego lettere, no backgammon). UI: pannello Moviola in play.html
+  (⏮◀▶⏭, clic sul log, note, grafico SVG, GIF), card Sparring in Admin, note nello
+  storico del giocatore. 156 test verdi; dal vivo l'analisi marca ?! su 1.f3 e ?? su
+  3.g4 (matto dell'imbecille), GIF 464×464 valida.
 
 ## Questioni aperte
 

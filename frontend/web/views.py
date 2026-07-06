@@ -427,6 +427,7 @@ def play(request, session_id):
             # Chi sta guardando: nelle partite a distanza il client abilita solo
             # il lato di questo giocatore (None = visitatore anonimo/hotseat).
             "my_user_id": (request.session.get("auth_user") or {}).get("id"),
+            "backend_url": api.BASE,  # per il download diretto della GIF
             "ai_delay": config.get("ai_move_delay_ms", 700),
             # Aspetto (categoria super admin): animazione dei pezzi ed effetto sonoro.
             "anim_ms": config.get("anim_ms", 250),
@@ -461,6 +462,41 @@ def play_move_json(request, session_id):
         return JsonResponse({"error": str(exc)}, status=400)
 
 
+def play_replay_json(request, session_id):
+    """Moviola: le posizioni della partita, per il rewind lato client."""
+    try:
+        return JsonResponse(api.session_replay(session_id))
+    except api.ApiError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
+
+
+def play_note_json(request, session_id):
+    """Salva una nota su una semimossa (col token del giocatore, se loggato)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Metodo non consentito"}, status=405)
+    try:
+        ply = int(request.POST.get("ply", "0"))
+        out = api.session_note(
+            session_id,
+            ply,
+            request.POST.get("text", ""),
+            token=request.session.get("auth_token"),
+        )
+        return JsonResponse(out)
+    except (ValueError, api.ApiError) as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
+
+
+def play_analysis_json(request, session_id):
+    """Avvia (POST) o legge (GET) l'analisi post-partita."""
+    try:
+        if request.method == "POST":
+            return JsonResponse(api.start_analysis(session_id))
+        return JsonResponse(api.get_analysis(session_id))
+    except api.ApiError as exc:
+        return JsonResponse({"error": str(exc)}, status=exc.status or 400)
+
+
 def play_state_json(request, session_id):
     """Stato corrente della partita in JSON: usato dal client per risincronizzarsi
     quando una mossa fallisce (evita disallineamenti client/server)."""
@@ -490,6 +526,19 @@ def admin(request):
             except api.ApiError as exc:
                 messages.error(request, str(exc))
             return redirect("admin")
+        # Sparring: motore interno vs Stockfish per stimare l'Elo (in background).
+        if "start_sparring" in request.POST:
+            try:
+                api.start_sparring(
+                    request.POST.get("sparring_level", "hermes"),
+                    int(request.POST.get("sparring_games", "4") or 4),
+                    int(request.POST.get("sparring_ms", "300") or 300),
+                    token,
+                )
+                messages.success(request, "Sparring avviato: il risultato comparirà qui sotto.")
+            except (ValueError, api.ApiError) as exc:
+                messages.error(request, str(exc))
+            return redirect("admin")
         # Pulsante «Verifica Stockfish»: diagnostica del binario UCI configurato.
         if "test_stockfish" in request.POST:
             try:
@@ -516,10 +565,17 @@ def admin(request):
     # Voce sintetica: stato per lingua + URL del backend per le anteprime audio
     # (il tag <audio> del browser chiama direttamente GET /tts del backend).
     tts = _safe(request, api.tts_status, default=None)
+    sparring = _safe(request, api.sparring_state, default=None)
     return render(
         request,
         "web/admin.html",
-        {"settings": settings, "pending": pending, "tts": tts, "backend_url": api.BASE},
+        {
+            "settings": settings,
+            "pending": pending,
+            "tts": tts,
+            "sparring": sparring,
+            "backend_url": api.BASE,
+        },
     )
 
 

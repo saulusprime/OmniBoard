@@ -12,7 +12,7 @@ import secrets
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import ai_providers, schemas, settings_service
+from .. import ai_providers, schemas, settings_service, sparring
 from ..database import get_db
 from ..opponents import stockfish
 
@@ -78,3 +78,20 @@ def test_stockfish(db: Session = Depends(get_db)):
     cfg = stockfish.get_config(db)
     ok, detail = stockfish.verify(cfg)
     return {"ok": ok, "detail": detail, "path": cfg["path"]}
+
+
+# ----- Sparring: il motore interno contro Stockfish, per misurarne l'Elo -----
+@router.post("/sparring", dependencies=[Depends(require_admin)])
+def start_sparring(payload: schemas.SparringIn, db: Session = Depends(get_db)):
+    """Avvia un match motore-interno vs Stockfish (preset con Elo noto)."""
+    cfg = stockfish.get_config(db)
+    ok, detail = sparring.start(cfg, payload.level, payload.games, payload.engine_ms)
+    if not ok:
+        raise HTTPException(status_code=409, detail=detail)
+    return {"started": True, "detail": detail}
+
+
+@router.get("/sparring")
+def sparring_state():
+    """Stato del match (il client fa polling: running → done con la stima Elo)."""
+    return sparring.state()

@@ -114,6 +114,13 @@ SETTINGS_DEFS = [
         "label": "Percorso del binario Stockfish (vuoto = STOCKFISH_PATH o ricerca nel PATH)",
     },
     {
+        "key": "stockfish.analysis_ms",
+        "type": "int",
+        "default": 200,
+        "category": "Stockfish",
+        "label": "Analisi post-partita: tempo per posizione (millisecondi)",
+    },
+    {
         "key": "stockfish.move_ms",
         "type": "int",
         "default": 1000,

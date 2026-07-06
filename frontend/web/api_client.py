@@ -150,6 +150,39 @@ def session_move(session_id, data: dict, token: str | None = None):
     return _request("POST", f"/sessions/{session_id}/move", json=data, headers=headers)
 
 
+def session_replay(session_id):
+    """Moviola: tutte le posizioni della partita (per rewind e step-by-step)."""
+    return _request("GET", f"/sessions/{session_id}/replay")
+
+
+def session_note(session_id, ply: int, text: str, token: str | None = None):
+    headers = {"X-Auth-Token": token} if token else {}
+    return _request(
+        "POST", f"/sessions/{session_id}/note", json={"ply": ply, "text": text}, headers=headers
+    )
+
+
+def start_analysis(session_id):
+    return _request("POST", f"/sessions/{session_id}/analysis")
+
+
+def get_analysis(session_id):
+    return _request("GET", f"/sessions/{session_id}/analysis")
+
+
+def start_sparring(level: str, games: int, engine_ms: int, token: str):
+    return _request(
+        "POST",
+        "/admin/sparring",
+        json={"level": level, "games": games, "engine_ms": engine_ms},
+        headers={"X-Admin-Token": token},
+    )
+
+
+def sparring_state():
+    return _request("GET", "/admin/sparring")
+
+
 def run_batch(data: dict):
     return _request("POST", "/sessions/batch", json=data)
 

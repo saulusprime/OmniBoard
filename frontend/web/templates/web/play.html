@@ -17,6 +17,14 @@
            font-variant-numeric:tabular-nums; font-weight:700; opacity:.55; }
   .clock.running { opacity:1; border-color:var(--accent); }
   .clock.low { color:#e05a4e; }
+  /* Moviola e analisi post-partita */
+  .movelog li { cursor:pointer; }
+  .movelog li.cur { background:#233042; border-radius:4px; }
+  .evaltag { color:var(--muted); font-size:.85em; margin-left:6px; }
+  .evaltag.bad { color:#e05a4e; font-weight:700; }
+  .movenote { color:var(--accent); font-size:.85em; margin:2px 0 0 18px; }
+  .pg-nav { display:flex; gap:6px; align-items:center; }
+  .pg-nav .btn { padding:4px 10px; }
 </style>
 
 {{ s|json_script:"session-data" }}
@@ -48,6 +56,38 @@
     <div class="side">
       <h2>Mosse</h2>
       <ol class="movelog" id="movelog"></ol>
+      <div id="postgame" style="display:none; margin-top:14px;">
+        <h2>🎬 Moviola</h2>
+        <p class="muted" style="font-size:.85rem;">Muoviti nel tempo di gioco
+        (o clicca una mossa nel log) e annota le posizioni: le note restano
+        nello storico della partita.</p>
+        <div class="pg-nav">
+          <button class="btn secondary" id="pg-first" type="button" title="Inizio">⏮</button>
+          <button class="btn secondary" id="pg-prev" type="button" title="Indietro">◀</button>
+          <span id="plypos" class="muted"></span>
+          <button class="btn secondary" id="pg-next" type="button" title="Avanti">▶</button>
+          <button class="btn secondary" id="pg-last" type="button" title="Fine">⏭</button>
+        </div>
+        <div style="margin-top:8px;">
+          <textarea id="noteinput" rows="2" placeholder="Nota su questa mossa…"
+                    style="width:100%;"></textarea>
+          <button class="btn secondary" id="notesave" type="button"
+                  style="margin-top:4px;">💾 Salva nota</button>
+        </div>
+        <p style="margin-top:10px;">
+          {% if s.game_code == 'chess' %}
+          <button class="btn" id="btn-analyze" type="button">🔬 Analizza la partita</button>
+          {% endif %}
+          {% if s.move_type != 'backgammon' %}
+          <a class="btn secondary" id="gif-link"
+             href="{{ backend_url }}/sessions/{{ s.id }}/gif" download>🎞️ Esporta GIF</a>
+          {% endif %}
+        </p>
+        <div id="an-status" class="muted" style="font-size:.85rem;"></div>
+        <svg id="evalchart" width="260" height="70"
+             style="display:none; background:#0f1419; border:1px solid var(--line);
+                    border-radius:6px; margin-top:6px;"></svg>
+      </div>
     </div>
   </div>
 
@@ -232,12 +272,31 @@
     }
   }
 
+  let lastMoves = SESSION.moves || [];
+
   function renderMoves(moves) {
+    lastMoves = moves || [];
     const ol = document.getElementById("movelog");
     ol.innerHTML = "";
-    (moves || []).forEach((m) => {
+    lastMoves.forEach((m, i) => {
       const li = document.createElement("li");
       li.textContent = m.player + " → " + m.notation;
+      // Analisi post-partita: valutazione (punto di vista del bianco) ed errori.
+      const ev = analysisData && analysisData.evals && analysisData.evals[i];
+      if (ev) {
+        const s = document.createElement("span");
+        s.textContent = (ev.tag ? ev.tag + " " : "") + (ev.cp / 100).toFixed(1);
+        s.className = "evaltag" + (ev.tag ? " bad" : "");
+        s.title = ev.best ? "Il motore preferiva " + ev.best : "";
+        li.appendChild(s);
+      }
+      if (m.note) {
+        const n = document.createElement("div");
+        n.className = "movenote";
+        n.textContent = "📝 " + m.note;
+        li.appendChild(n);
+      }
+      li.addEventListener("click", () => gotoPly(i + 1));  // moviola: salta qui
       ol.appendChild(li);
     });
   }
@@ -670,6 +729,113 @@
     selected = playableFrom(i).length > 0 ? i : null;
     renderCells(new Set());
   }
+
+  // ----- Dopo la partita: moviola (rewind/step-by-step), note, analisi e GIF -----
+  const REPLAY_URL = "{% url 'play_replay_json' s.id %}";
+  const NOTE_URL = "{% url 'play_note_json' s.id %}";
+  const ANALYSIS_URL = "{% url 'play_analysis_json' s.id %}";
+  let replayBoards = null;   // tutte le posizioni (0 = iniziale), dal server
+  let replayAt = 0;          // dove siamo nel tempo di gioco
+  let analysisData = null;   // risultato dell'analisi (se calcolata)
+  let pgReady = false;
+
+  function maybePostGame() {
+    if (status === "in_progress" || pgReady) return;
+    pgReady = true;
+    document.getElementById("postgame").style.display = "block";
+    fetch(REPLAY_URL).then((r) => r.json()).then((d) => {
+      if (d.boards) { replayBoards = d.boards; replayAt = d.boards.length - 1; replayUi(); }
+    }).catch(() => {});
+    // Un'analisi già calcolata in passato si ricarica da sola.
+    fetch(ANALYSIS_URL).then((r) => r.json()).then((d) => {
+      if (d.status === "done") { analysisData = d; applyAnalysis(); }
+    }).catch(() => {});
+  }
+
+  function gotoPly(n) {
+    if (!replayBoards) return;
+    replayAt = Math.max(0, Math.min(replayBoards.length - 1, n));
+    board = replayBoards[replayAt].slice();
+    renderCells(new Set());
+    replayUi();
+  }
+
+  function replayUi() {
+    document.getElementById("plypos").textContent =
+      replayAt + " / " + (replayBoards.length - 1);
+    const note = replayAt > 0 ? (lastMoves[replayAt - 1] || {}).note || "" : "";
+    document.getElementById("noteinput").value = note;
+    document.getElementById("notesave").disabled = replayAt === 0;
+    const ol = document.getElementById("movelog");
+    [...ol.children].forEach((li, i) => li.classList.toggle("cur", i === replayAt - 1));
+  }
+
+  document.getElementById("pg-first").addEventListener("click", () => gotoPly(0));
+  document.getElementById("pg-prev").addEventListener("click", () => gotoPly(replayAt - 1));
+  document.getElementById("pg-next").addEventListener("click", () => gotoPly(replayAt + 1));
+  document.getElementById("pg-last").addEventListener("click", () => gotoPly(1e9));
+
+  document.getElementById("notesave").addEventListener("click", async () => {
+    // La nota viene salvata DENTRO lo storico della partita (moves_json).
+    const text = document.getElementById("noteinput").value;
+    const res = await fetch(NOTE_URL, {
+      method: "POST",
+      headers: { "X-CSRFToken": CSRF, "Content-Type": "application/x-www-form-urlencoded" },
+      body: `ply=${replayAt}&text=${encodeURIComponent(text)}`,
+    });
+    const d = await res.json();
+    if (!d.error) {
+      if (d.note) lastMoves[replayAt - 1].note = d.note;
+      else delete lastMoves[replayAt - 1].note;
+      renderMoves(lastMoves);
+      replayUi();
+    }
+  });
+
+  function applyAnalysis() {
+    renderMoves(lastMoves);  // ridisegna il log con etichette ed errori
+    replayUi();
+    // Grafico dell'andamento: valutazione (bianco) mossa per mossa, ±5 pedoni.
+    const svg = document.getElementById("evalchart");
+    const evals = analysisData.evals;
+    if (!evals.length) return;
+    const W = 260, H = 70, mid = H / 2;
+    const pts = evals.map((e, i) => {
+      const x = (i + 1) / evals.length * (W - 10) + 5;
+      const y = mid - Math.max(-500, Math.min(500, e.cp)) / 500 * (mid - 6);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    svg.innerHTML =
+      `<line x1="0" y1="${mid}" x2="${W}" y2="${mid}" stroke="#2c3742"/>` +
+      `<polyline points="5,${mid} ${pts.join(" ")}" fill="none" stroke="#d9a441" stroke-width="2"/>`;
+    svg.style.display = "block";
+  }
+
+  const analyzeBtn = document.getElementById("btn-analyze");
+  if (analyzeBtn) analyzeBtn.addEventListener("click", async () => {
+    const el = document.getElementById("an-status");
+    el.textContent = "Analisi in corso… (Stockfish valuta ogni posizione)";
+    analyzeBtn.disabled = true;
+    const started = await fetch(ANALYSIS_URL, { method: "POST", headers: { "X-CSRFToken": CSRF } });
+    const sd = await started.json();
+    if (sd.error) { el.textContent = sd.error; analyzeBtn.disabled = false; return; }
+    const poll = setInterval(async () => {
+      const d = await (await fetch(ANALYSIS_URL)).json();
+      if (d.status === "done") {
+        clearInterval(poll);
+        analysisData = d;
+        el.textContent = "Analisi completata: ?? = blunder, ? = errore, ?! = imprecisione.";
+        applyAnalysis();
+      } else if (d.status === "failed" || d.error) {
+        clearInterval(poll);
+        el.textContent = d.detail || d.error || "Analisi non disponibile";
+        analyzeBtn.disabled = false;
+      }
+    }, 2000);
+  });
+
+  const _setStatus = setStatus;  // la fine della partita (anche live) apre la moviola
+  setStatus = (session) => { _setStatus(session); maybePostGame(); };
 
   buildBoard();
   renderCells(new Set());
