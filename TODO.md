@@ -191,3 +191,82 @@
 - [x] Provider IA configurabili da super admin (token in DB, mai esposti dall'API).
 - [x] Parametri di programma centralizzati + interfaccia super admin.
 - [x] Confronto `ADMIN_TOKEN` in tempo costante; budget IA-vs-IA limitato.
+
+
+## Visione — coaching, community e creator (idee del 2026-07-06, con valutazione)
+
+> Sei proposte analizzate e ordinate per rapporto valore/sforzo. Prima le **primitive
+> trasversali** che le sbloccano quasi tutte: costruite quelle, il resto è assemblaggio.
+
+### Primitive mancanti (prerequisiti condivisi)
+
+- [ ] ⭐ **Sistema PUZZLE** (posizione + soluzione + verifica col motore, tag per
+  apertura/tema, generazione anche automatica dai blunder delle partite analizzate) —
+  sblocca: tilt-breaker (coach), Gatekeeper (repertoire), Puzzle Story (UGC).
+  Nota: il PLAYER esiste già — il motore del tutorial (`lessons/`) è di fatto un
+  lettore di puzzle a passi; manca la primitiva dati + l'esecuzione libera.
+- [ ] **Valuta virtuale** (guadagnata con puzzle/partite/lezioni; mai convertibile in
+  denaro) — serve a: pronostici watch party, ricompense creator, mentorship.
+- [ ] **Presenza spettatori per partita** (chi sta guardando la sessione N; riusa
+  l'infrastruttura heartbeat della community) — serve a: watch party, heatmap, OBS.
+- [ ] **Rating Elo** (già in backlog) — prerequisito di «partita classificata»
+  (Gatekeeper) e del matchmaking (blocco/suggerimento tilt).
+
+### 1. AI Coach «umano» e psicologico ⭐ (il più vicino a ciò che abbiamo)
+
+- [ ] **«Spiegami questa mossa»**: pulsante in moviola/analisi → LLM spiega in parole
+  semplici usando dati GIÀ prodotti (valutazione, mossa migliore, apertura, badge).
+  Basso sforzo: prompt su `api_ai._complete`, il modello spiega e non gioca.
+- [ ] **Riconoscimento del tilt**: N sconfitte rapide consecutive + ACPL sopra la
+  propria media (dati del profilo già esistenti) → avviso + esercizio consigliato.
+  ⚠️ Design: blocco SOFT di default (l'obbligo fa scappare i giocatori); versione
+  forzata solo come opzione admin.
+- [ ] **Bias cognitivi** (attacchi prematuri, ecc.): richiede classificazione di
+  pattern sullo storico e un database di partite di GM che NON abbiamo → fase di
+  ricerca, non feature immediata.
+
+### 2. Repertoire dinamico e «Gatekeeper»
+
+- [ ] Statistiche per variante già nel profilo (rendimento per apertura): esporre il
+  «tracciatore di debolezze» con soglie e trend.
+- [ ] **Gatekeeper**: puzzle mirati sulla linea debole come prerequisito per usarla in
+  partita classificata. Dipende da: sistema puzzle + Elo. ⚠️ Design: **opt-in**
+  («modalità allenatore severo»), mai default — lo studio come punizione allontana
+  proprio i principianti.
+
+### 3. Social & Community 2.0
+
+- [ ] **Guerre tra clan / mappa dei territori**: punti influenza da vittorie/puzzle,
+  territori in tempo reale. ⚠️ Richiede massa critica (con pochi utenti = territori
+  vuoti percepiti come piattaforma morta) + ruoli/inviti nei gruppi (già in backlog).
+  Rimandare finché la community non è viva.
+- [ ] **Mentorship marketplace** (sessioni 15′ con lavagna e voce): il pezzo più
+  costoso della lista — WebRTC, scheduling, valuta. Ultimo della fila.
+
+### 4. Watch party e spettatori
+
+- [ ] **Heatmap dei clic** degli spettatori + sondaggio «che mossa giocherà?» (riusa
+  polling + presenza per partita).
+- [ ] **Pronostici in valuta virtuale** («patta», «sacrificio entro 10 mosse», …) con
+  classifica dei pronosticatori. ⚠️ Lessico: «pronostici», MAI «scommesse»; nessuna
+  conversione in denaro.
+
+### 5. User-Generated Content ⭐ (miglior rapporto valore/sforzo dopo il coach)
+
+- [ ] **Editor di Puzzle Story no-code**: composizione di posizioni + mosse richieste
+  con verifica; il PLAYER è il motore del tutorial esistente. Servono: persistenza su
+  DB (le lezioni oggi sono codice), validazione (`validate_lesson` c'è già),
+  pubblicazione + moderazione.
+- [ ] **Ricompense creator**: badge speciale, visibilità in home, valuta virtuale
+  (niente ad-revenue: non abbiamo pubblicità).
+
+### 6. Integrazione streaming (Twitch/OBS)
+
+- [ ] Primo passo riusabile: **API pubblica documentata** (serve comunque a widget e
+  overlay).
+- [ ] Overlay OBS con statistiche live; **modalità streamer-vs-chat** (voto della chat
+  ogni N mosse). ⚠️ Dipende da API di terzi (Twitch OAuth/chat) e ha valore solo con
+  streamer reali interessati: in fondo alla coda.
+
+**Ordine consigliato:** Puzzle → AI Coach (spiegami + tilt soft) → Editor Puzzle Story
+→ Valuta virtuale → Watch party → Clan wars → OBS.
