@@ -267,6 +267,15 @@ di due case), en passant e promozione sono gestiti automaticamente; in caso di p
 chiede quale pezzo (Donna/Torre/Alfiere/Cavallo). Durante la partita viene mostrato il **nome
 dell'apertura** riconosciuta (es. *Partita Italiana*, *Difesa Siciliana*, *Partita Scozzese*).
 
+### Libro di aperture personalizzato (testo o PGN)
+La variabile `CHESS_BOOK_FILE` può puntare a un file che ESTENDE il libro incorporato.
+Due formati, riconosciuti automaticamente: **testo semplice** (una riga per linea:
+`Nome apertura: e2e4 e7e5 …`) oppure **PGN** (estensione .pgn o tag `[Event …]`): ogni
+partita del PGN diventa una linea di libro — le prime 16 semimosse, tradotte dalla
+notazione abbreviata (SAN) rigiocandole col motore; il nome viene dai tag Opening/ECO
+o da Bianco–Nero. Puoi quindi importare il tuo repertorio o partite di maestri e l'IA
+le giocherà in apertura (anche come aperture-bersaglio).
+
 ### Tecniche di apertura
 L'app riconosce le aperture dal **libro integrato** — oltre 70 linee con le varianti
 principali: Italiana (Giuoco Piano, Evans), Spagnola (chiusa, aperta, Berlinese, di cambio),

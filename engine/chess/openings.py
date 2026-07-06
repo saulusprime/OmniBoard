@@ -796,9 +796,17 @@ OPENINGS: list[tuple[str, list[str]]] = [
 def _load_extra_lines() -> list[tuple[str, list[str]]]:
     """Linee aggiuntive da un file utente (``CHESS_BOOK_FILE``), se configurato.
 
-    Formato: una linea per riga, ``Nome apertura: e2e4 e7e5 ...``; ``#`` commenta.
-    Le righe malformate vengono ignorate; le mosse non valide vengono troncate al
-    momento dell'indicizzazione per posizione (in ``chess.py``).
+    Due formati, riconosciuti dal contenuto:
+
+    - **testo semplice**: una linea per riga, ``Nome apertura: e2e4 e7e5 ...``
+      (``#`` commenta; righe malformate ignorate);
+    - **PGN**: se il file contiene tag ``[Event ...]`` (o l'estensione è .pgn)
+      ogni partita diventa una linea di libro — prefisso di apertura tradotto
+      dalla SAN col motore (vedi ``pgn.py``), nome dai tag Opening/ECO o
+      Bianco–Nero.
+
+    Le mosse non valide vengono troncate al momento dell'indicizzazione per
+    posizione (in ``chess.py``).
     """
     path = os.getenv("CHESS_BOOK_FILE")
     if not path:
@@ -808,6 +816,11 @@ def _load_extra_lines() -> list[tuple[str, list[str]]]:
             raw = f.read()
     except OSError:
         return []
+    if path.lower().endswith(".pgn") or raw.lstrip().startswith("[Event"):
+        from . import pgn
+        from .game import Chess
+
+        return pgn.parse_pgn(Chess(), raw)
     extra = []
     for row in raw.splitlines():
         row = row.strip()

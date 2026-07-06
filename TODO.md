@@ -62,7 +62,12 @@
 - [x] **Libro di aperture più ampio** — 75+ linee con le varianti principali, indicizzato
   **per posizione** (vale anche nelle trasposizioni), estendibile via `CHESS_BOOK_FILE`
   (file di testo `Nome: e2e4 e7e5 …`).
-- [ ] **Import libro da PGN o formato Polyglot** (richiede parser SAN / hash Zobrist).
+- [x] **Import libro da PGN** — `engine/chess/pgn.py`: parser SAN che rigioca col
+  motore (arrocco, catture, disambiguazioni, promozioni; commenti/varianti/NAG puliti);
+  `CHESS_BOOK_FILE` accetta ora anche un .pgn (auto-riconosciuto): una linea di libro
+  per partita (prefisso di 16 semimosse, nome da Opening/ECO o Bianco–Nero).
+- [ ] **Formato Polyglot (.bin)** — richiede l'hash Zobrist con la tabella standard
+  (781 costanti) e il probing per posizione: rimandato.
 - [ ] **Potenziamenti di ricerca**: SEE (potare le catture perdenti in quiescence),
   aspiration windows alla radice, PVS, futility pruning ai nodi frontier.
 - [ ] **Finali**: euristica "mop-up" (spingere il re avversario al bordo con materiale di

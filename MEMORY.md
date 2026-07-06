@@ -499,6 +499,10 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   (chiave FIDE, storico rigiocato O(n)); dichiarata d'ufficio in `finish_if_terminal`
   (`finish_reason="repetition"`), automatica (non su richiesta) per evitare partite
   infinite. 166 test verdi; dal vivo `finished draw repetition`.
+- **2026-07-06** — **Import libro da PGN**: `engine/chess/pgn.py` (SAN→UCI rigiocando
+  col motore, match unico; pulizia commenti/varianti/NAG; una linea per partita,
+  16 semimosse, nomi da Opening/ECO); `CHESS_BOOK_FILE` auto-riconosce il .pgn.
+  Polyglot .bin rimandato (tabella Zobrist standard). 169 test verdi.
 
 ## Questioni aperte
 
