@@ -231,6 +231,9 @@ class GameSession(Base):
     # ai_providers). None = si usa il provider attivo globale (storico).
     x_ai_provider = Column(String, nullable=True)
     o_ai_provider = Column(String, nullable=True)
+    # Analisi post-partita (Stockfish): JSON con le valutazioni mossa per mossa
+    # e gli errori marcati — calcolata una volta e riletta da qui (vedi analysis.py).
+    analysis_json = Column(String, nullable=True)
     x_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # None se IA
     o_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # None se IA
     x_is_ai = Column(Boolean, default=False, nullable=False)

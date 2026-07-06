@@ -63,6 +63,46 @@
   secondo (eventuale download della voce + sintesi); le successive arrivano dalla cache.</p>
   {% endif %}
 
+  {% if sparring %}
+  <h2>🥊 Sparring — quanto è forte il motore interno?</h2>
+  <p class="muted">Il motore interno gioca contro <strong>Stockfish a Elo simulato
+  noto</strong> (colori alternati); dal punteggio si stima l'Elo del motore. Poche
+  partite = margine ampio. Il match gira in background: ricarica la pagina per
+  aggiornare lo stato.</p>
+  {% if sparring.status == 'running' %}
+  <p><span class="pill">in corso</span> partita {{ sparring.games|length|add:"1" }}
+  di {{ sparring.games_total }} contro {{ sparring.level }}…</p>
+  {% elif sparring.status == 'done' %}
+  <p><strong>Risultato:</strong> {{ sparring.score }} contro {{ sparring.level }}
+  ({{ sparring.base_elo }} Elo) — {{ sparring.wins }}V {{ sparring.draws }}P
+  {{ sparring.losses }}S →
+  <span class="pill">Elo stimato ≈ {{ sparring.elo_estimate }} ± {{ sparring.elo_margin }}</span></p>
+  <p class="muted" style="font-size:.8rem;">
+    {% for g in sparring.games %}#{{ g.n }} ({{ g.engine_color }}): {{ g.result }}{% if not forloop.last %} · {% endif %}{% endfor %}
+  </p>
+  {% endif %}
+  {% if sparring.status != 'running' %}
+  <form method="post" style="display:flex; gap:10px; align-items:end; flex-wrap:wrap;">
+    {% csrf_token %}
+    <div><label>Avversario</label>
+      <select name="sparring_level">
+        <option value="atena">Atena (2700)</option>
+        <option value="apollo">Apollo (2350)</option>
+        <option value="ares">Ares (2000)</option>
+        <option value="hermes" selected>Hermes (1700)</option>
+        <option value="pan">Pan (1400)</option>
+      </select></div>
+    <div style="max-width:110px;"><label>Partite</label>
+      <input type="number" name="sparring_games" value="4" min="1" max="20"></div>
+    <div style="max-width:130px;"><label>Motore ms/mossa</label>
+      <input type="number" name="sparring_ms" value="300" min="50" max="5000"></div>
+    <div style="max-width:200px;"><label>Token super admin</label>
+      <input type="password" name="admin_token" autocomplete="off"></div>
+    <button class="btn" type="submit" name="start_sparring" value="1">Avvia sparring</button>
+  </form>
+  {% endif %}
+  {% endif %}
+
   {% if settings %}
   <form method="post" novalidate>{% csrf_token %}
     {% regroup settings by category as gruppi %}

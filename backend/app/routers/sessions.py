@@ -13,11 +13,23 @@ import json
 import random
 
 from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi.responses import Response
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from engine import get_game, is_playable
 
-from .. import ai_providers, gameplay, models, opponents, schemas, settings_service, user_prefs
+from .. import (
+    ai_providers,
+    analysis,
+    gameplay,
+    gifexport,
+    models,
+    opponents,
+    schemas,
+    settings_service,
+    user_prefs,
+)
 from ..database import get_db
 from .auth import session_from_token
 
@@ -317,3 +329,118 @@ def make_move(
         gameplay.resolve_chance(db, game, session)
         gameplay.schedule_ai(db, session)  # la risposta parte subito, l'IA pensa in background
     return _view(session)
+
+
+# ----- Moviola, note, analisi post-partita ed export GIF -----
+def _replay_boards(session: models.GameSession):
+    """Le posizioni della partita, dalla iniziale a quella dopo l'ultima semimossa.
+
+    Ricostruite col motore (apply su ogni id del log): sono la base della moviola
+    (rewind/step-by-step) e dei fotogrammi della GIF.
+    """
+    game = get_game(session.game.code)
+    state = game.initial_state()
+    boards = [game.view_board(state)]
+    moves = json.loads(session.moves_json or "[]")
+    for uci in gameplay.history_ids(moves):
+        move = next((m for m in game.legal_moves(state) if game.move_id(m) == uci), None)
+        if move is None:  # log corrotto o gioco stocastico non ricostruibile: stop
+            break
+        state = game.apply(state, move)
+        boards.append(game.view_board(state))
+    return game, boards
+
+
+@router.get("/{session_id}/replay")
+def replay(session_id: int, db: Session = Depends(get_db)):
+    """Moviola: tutte le posizioni della partita (indice 0 = posizione iniziale)."""
+    session = db.get(models.GameSession, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessione non trovata")
+    game, boards = _replay_boards(session)
+    return {"rows": game.rows, "cols": game.cols, "boards": boards}
+
+
+class NoteIn(BaseModel):
+    ply: int  # 1-based: la semimossa a cui la nota si riferisce
+    text: str  # vuoto = cancella la nota
+
+
+@router.post("/{session_id}/note")
+def save_note(
+    session_id: int,
+    payload: NoteIn,
+    x_auth_token: str = Header(default="", alias="X-Auth-Token"),
+    db: Session = Depends(get_db),
+):
+    """Salva una nota su una semimossa, DENTRO lo storico della partita.
+
+    La nota vive nel log delle mosse (``moves_json``): compare nella moviola e
+    nello storico del giocatore. Nelle partite a distanza può scrivere solo chi
+    vi ha giocato (token); in hotseat resta aperto, come le mosse.
+    """
+    session = db.get(models.GameSession, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessione non trovata")
+    if session.remote:
+        writer = session_from_token(db, x_auth_token).user
+        if writer.id not in (session.x_user_id, session.o_user_id):
+            raise HTTPException(status_code=403, detail="Solo i giocatori possono annotare")
+    moves = json.loads(session.moves_json or "[]")
+    if not (1 <= payload.ply <= len(moves)):
+        raise HTTPException(status_code=400, detail="Semimossa inesistente")
+    text = payload.text.strip()[:500]
+    if text:
+        moves[payload.ply - 1]["note"] = text
+    else:
+        moves[payload.ply - 1].pop("note", None)  # nota vuota = cancellazione
+    session.moves_json = json.dumps(moves)
+    db.commit()
+    return {"ply": payload.ply, "note": text or None}
+
+
+@router.post("/{session_id}/analysis", status_code=202)
+def start_analysis(session_id: int, db: Session = Depends(get_db)):
+    """Avvia l'analisi post-partita (solo scacchi, partita conclusa)."""
+    session = db.get(models.GameSession, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessione non trovata")
+    if session.game.code != "chess":
+        raise HTTPException(status_code=400, detail="L'analisi è disponibile solo per gli scacchi")
+    if session.status != "finished":
+        raise HTTPException(status_code=409, detail="La partita non è ancora conclusa")
+    if not opponents.stockfish.is_available(opponents.stockfish.get_config(db)):
+        raise HTTPException(status_code=503, detail="Stockfish non disponibile per l'analisi")
+    if session.analysis_json:  # già calcolata: si rilegge, niente doppio lavoro
+        return {"started": False, "already_done": True}
+    return {"started": analysis.start(session_id), "already_done": False}
+
+
+@router.get("/{session_id}/analysis")
+def get_analysis(session_id: int, db: Session = Depends(get_db)):
+    """Stato/risultato dell'analisi (il client fa polling finché ``running``)."""
+    session = db.get(models.GameSession, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessione non trovata")
+    if analysis.is_running(session_id):
+        return {"status": "running"}
+    if not session.analysis_json:
+        return {"status": "none"}
+    return json.loads(session.analysis_json)
+
+
+@router.get("/{session_id}/gif")
+def export_gif(session_id: int, db: Session = Depends(get_db)):
+    """L'intera partita come GIF animata (un fotogramma per posizione)."""
+    session = db.get(models.GameSession, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessione non trovata")
+    game, boards = _replay_boards(session)
+    if not gifexport.supported(game.move_type):
+        raise HTTPException(status_code=400, detail="Export GIF non supportato per questo gioco")
+    data = gifexport.render(boards, game.rows, game.cols, game.move_type)
+    return Response(
+        content=data,
+        media_type="image/gif",
+        headers={"Content-Disposition": f'attachment; filename="partita-{session_id}.gif"'},
+    )

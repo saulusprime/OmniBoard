@@ -223,6 +223,14 @@ class BatchCreate(BaseModel):
         return v
 
 
+class SparringIn(BaseModel):
+    """Match di sparring: motore interno vs Stockfish (per la stima dell'Elo)."""
+
+    level: str = "hermes"  # preset con Elo simulato noto (atena…pan)
+    games: int = 4
+    engine_ms: int = 300  # budget del motore interno per mossa
+
+
 class SettingsUpdate(BaseModel):
     """Aggiornamento di uno o più parametri (valori come stringhe dal form)."""
 

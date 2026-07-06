@@ -32,6 +32,13 @@ urlpatterns = [
     path("partite/<int:session_id>/mossa/", views.play_move, name="play_move"),
     path("partite/<int:session_id>/mossa.json", views.play_move_json, name="play_move_json"),
     path("partite/<int:session_id>/stato.json", views.play_state_json, name="play_state_json"),
+    path("partite/<int:session_id>/replay.json", views.play_replay_json, name="play_replay_json"),
+    path("partite/<int:session_id>/nota.json", views.play_note_json, name="play_note_json"),
+    path(
+        "partite/<int:session_id>/analisi.json",
+        views.play_analysis_json,
+        name="play_analysis_json",
+    ),
     path("admin/", views.admin, name="admin"),
     path("admin/ia/", views.admin_ai, name="admin_ai"),
 ]

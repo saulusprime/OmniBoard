@@ -5,6 +5,53 @@
 
 ---
 
+## 2026-07-06 — Sparring, analisi post-partita, moviola con note, export GIF
+
+**Richiesta (utente):** Stockfish come sparring; analisi post-partita; possibilità di
+muoversi nel tempo di gioco (rewind/step-by-step) con note salvate nello storico;
+export dell'intera partita come GIF animata.
+
+**Backend:**
+
+- `_PersistentEngine.evaluate()` — valutazione UCI (``score cp/mate`` + bestmove) sul
+  processo persistente: la base dell'analisi.
+- **`app/analysis.py`**: job in thread (sincrono con AI_ASYNC=0 nei test) che valuta
+  ogni posizione (`stockfish.analysis_ms`, nuovo parametro, default 200 ms, piena
+  forza) e marca gli errori — ??/?/?! a soglie 200/100/50 cp persi — con il
+  suggerimento del motore (bestmove della posizione precedente); cp dal punto di
+  vista del bianco, matti → ±(10000−N). Risultato in **`analysis_json`
+  (migrazione 0006? no: 0005)** — calcolato una volta sola.
+- **`app/sparring.py`**: match motore interno vs Stockfish a preset con Elo noto
+  (colori alternati, tetto 240 semimosse); stima `diff = 400·log10(p/(1−p))` con
+  clamp e margine (errore standard propagato). Un match alla volta, in background;
+  `POST/GET /admin/sparring` (token admin per avviare). Zeus rifiutato (senza Elo
+  simulato non c'è riferimento).
+- **Moviola**: `GET /sessions/{id}/replay` — tutte le posizioni ricostruite col motore
+  (apply degli id del log). **Note**: `POST /sessions/{id}/note` {ply, text} — salvate
+  DENTRO `moves_json` (compaiono nello storico del giocatore); nelle partite remote
+  solo i partecipanti (token), vuoto = cancella, max 500 caratteri.
+- **GIF**: `GET /sessions/{id}/gif` (`app/gifexport.py`, **Pillow** nuova dipendenza) —
+  un fotogramma per posizione (700 ms, ultimo 3 s, loop), scacchi con glifi Unicode da
+  font di sistema (lista candidati + env `GIF_FONT`, ripiego a lettere), dama/Forza4 a
+  dischi, Tris testuale. Backgammon non supportato (400).
+
+**Frontend (`play.html` a partita conclusa + admin):** pannello «🎬 Moviola» (⏮◀▶⏭,
+clic sul log per saltare, textarea nota con salvataggio), «🔬 Analizza la partita»
+(polling; etichette ?? ? ?! nel log con tooltip della mossa migliore + grafico SVG
+dell'andamento ±5 pedoni), «🎞️ Esporta GIF» (link diretto al backend). Card «🥊
+Sparring» in Admin (form + risultato con stima ± margine). Note visibili nello storico
+della scheda giocatore.
+
+**Test (+5, 156 verdi):** partita-cavia = matto dell'imbecille; replay (5 posizioni),
+note nello storico (cancellazione, 400 fuori range), analisi con finto Stockfish
+interattivo (4 evals, cache `analysis_json`), GIF reale (magic bytes), sparring (401
+senza token, 409 per zeus, patte col finto motore → stima = Elo del preset).
+**Dal vivo (Stockfish 18 vero):** analisi corretta — 1.f3 marcata ?!, 3.g4 marcata ??
+con suggerimento b1c3, matto a −10000; GIF 464×464 valida; nota persistita; 0005
+auto-applicata.
+
+---
+
 ## 2026-07-06 — Stockfish come processo persistente
 
 **Richiesta (utente):** implementare Stockfish come processo persistente (voce TODO:

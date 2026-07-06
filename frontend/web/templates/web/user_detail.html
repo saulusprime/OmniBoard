@@ -81,7 +81,7 @@
       <details style="margin-top:8px;">
         <summary class="muted">Log mosse ({{ h.moves|length }})</summary>
         <ol style="margin:8px 0 0;">
-          {% for m in h.moves %}<li>{{ m.player }} → {{ m.notation }}</li>{% endfor %}
+          {% for m in h.moves %}<li>{{ m.player }} → {{ m.notation }}{% if m.note %} <span style="color:var(--accent);">📝 {{ m.note }}</span>{% endif %}</li>{% endfor %}
         </ol>
       </details>
     </div>
