@@ -116,6 +116,15 @@ parametri di programma del super admin:
 Il **tavolo del Backgammon non si personalizza**: è sempre quello originale, con le 24
 punte triangolari alternate su campo di legno, la barra centrale e le vasche di uscita.
 
+### Suggerimento mossa (hint)
+In partita il pulsante «💡 Suggerimento» chiede al motore (a budget ridotto) una mossa per
+il giocatore al tratto: la notazione compare accanto al pulsante e la mossa viene
+evidenziata sulla scacchiera. È un aiuto **riservato ai principianti**: chi supera la
+soglia di vittorie nel gioco (parametro «Hint riservato ai principianti», default 10) lo
+trova negato — quindi in una partita fra esperti nessuno dei due può usarlo. È sempre
+vietato nel **formato FIDE ufficiale** (e lo sarà nei tornei e campionati), e nelle
+partite a distanza può chiederlo solo il giocatore al tratto.
+
 ### Moviola, note, analisi post-partita ed export GIF
 A partita conclusa, sotto il log delle mosse compare la **Moviola**: con ⏮ ◀ ▶ ⏭ (o
 cliccando una mossa nel log) ti muovi avanti e indietro nel tempo di gioco, posizione per

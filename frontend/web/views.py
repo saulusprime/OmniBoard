@@ -513,6 +513,16 @@ def play_analysis_json(request, session_id):
         return JsonResponse({"error": str(exc)}, status=exc.status or 400)
 
 
+def play_hint_json(request, session_id):
+    """Suggerimento di mossa (motore a budget ridotto), col token se loggati."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Metodo non consentito"}, status=405)
+    try:
+        return JsonResponse(api.session_hint(session_id, token=request.session.get("auth_token")))
+    except api.ApiError as exc:
+        return JsonResponse({"error": str(exc)}, status=exc.status or 400)
+
+
 def play_state_json(request, session_id):
     """Stato corrente della partita in JSON: usato dal client per risincronizzarsi
     quando una mossa fallisce (evita disallineamenti client/server)."""

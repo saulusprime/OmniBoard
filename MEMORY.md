@@ -491,6 +491,10 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   riempie la cache in background (pulsante nella scheda). ≥20 mosse analizzate →
   debolezze («blunder frequenti», «precisione bassa») e aggressività +0,15·bpg
   (tetto 1,9). 161 test verdi; dal vivo acpl 539,5 su remoto_a.
+- **2026-07-06** — **Hint riservato ai principianti**: `POST /sessions/{id}/hint`
+  (motore locale, `hints.engine_ms`); negato oltre `hints.max_wins` vittorie nel
+  gioco, nel formato FIDE (e nei futuri tornei/campionati), fuori turno; token nei
+  remote; pulsante 💡 con evidenziazione. 164 test verdi.
 
 ## Questioni aperte
 
