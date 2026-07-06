@@ -29,10 +29,14 @@
   percorso binario da super admin (`stockfish.path`) o `STOCKFISH_PATH`; forza regolabile
   (*Skill Level* 0–20, `UCI_Elo` 1320–3190, tempo per mossa); ripiego automatico sul motore
   interno se il binario manca.
-- [ ] Stockfish: **processo persistente** con lock al posto dell'avvio one-shot per mossa
-  (risparmia ~100ms/mossa); selezione della forza **al setup della partita** (oggi è un
-  parametro globale del super admin); usarlo come sparring per misurare l'Elo del motore
-  interno e per l'analisi post-partita.
+- [x] Stockfish: **processo persistente** con lock (`_PersistentEngine`) al posto
+  dell'avvio one-shot per mossa: handshake una volta, opzioni inviate solo al cambio,
+  `ucinewgame` solo a partita nuova (hash calde nelle continuazioni), watchdog +
+  **respawn automatico** su crash/cambio percorso; `quit` solo alla chiusura. La
+  selezione della forza al setup c'era già (preset Zeus…Pan). Verificato dal vivo:
+  un solo PID per tutta la partita, stats nella diagnostica admin.
+- [ ] Stockfish come **sparring**: misurare l'Elo del motore interno giocandoci contro;
+  usarlo per l'**analisi post-partita** (valutazioni mossa per mossa).
 - [ ] **Patta per triplice ripetizione** dichiarata dalle regole del gioco (il motore la
   evita in ricerca, ma la partita non termina mai per ripetizione).
 - [ ] **Apertura-bersaglio dal profilo avversario** — scegliere dal libro le linee in cui

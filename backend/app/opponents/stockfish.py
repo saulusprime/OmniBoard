@@ -12,14 +12,26 @@ Forza regolabile dal super admin:
   (Stockfish accetta circa 1320-3190) — il modo più fedele di simulare un umano;
 - ``stockfish.move_ms``: tempo di riflessione per mossa (``go movetime``).
 
-Implementazione: per ogni mossa si avvia un processo dedicato (senza stato e
-thread-safe: le mosse IA girano su worker in thread separati), si inviano i comandi
-UCI e si **attende** la riga ``bestmove`` prima di chiudere con ``quit``.
+Implementazione: un **processo PERSISTENTE** (singleton di modulo, protetto da lock:
+le mosse IA girano su worker in thread separati e le ricerche vengono serializzate).
+Rispetto all'avvio one-shot per mossa si risparmiano ~100 ms di avvio + caricamento
+della rete NNUE a ogni mossa, e le hash table restano calde lungo la partita:
+
+- l'handshake ``uci``/``uciok`` avviene una volta sola, allo spawn;
+- le opzioni di forza vengono inviate solo quando CAMBIANO (in IA-vs-IA i due lati
+  possono avere preset diversi: il diff le riallinea a ogni alternanza);
+- ``ucinewgame`` parte solo quando la posizione NON è la continuazione della
+  precedente (partita nuova): nelle continuazioni il motore riusa le hash;
+- un watchdog per ricerca uccide il processo se non risponde; alla richiesta
+  successiva il motore viene **rilanciato da solo** (respawn), e una pipe rotta
+  prima della ricerca viene ritentata una volta. In ogni caso di errore si ritorna
+  ``None`` e chi chiama ripiega sul giocatore locale.
 
 ⚠️ Attenzione a non accodare ``quit`` insieme a ``go``: Stockfish legge stdin anche
 durante la ricerca e un ``quit`` ricevuto mentre pensa la **interrompe subito**
 (bestmove a profondità ~1 → gioco debolissimo qualunque sia il movetime). È stato un
-bug reale di questa integrazione. Un watchdog uccide il processo se non risponde.
+bug reale di questa integrazione. Il ``quit`` ora si manda solo alla chiusura del
+processo persistente (shutdown/respawn), mai durante il gioco.
 
 I **livelli preconfigurati** (``PRESETS``) mappano nomi di divinità greche su
 combinazioni di Elo simulato e tempo per mossa, selezionabili al setup della partita;
@@ -28,6 +40,7 @@ il percorso del binario resta quello globale (``stockfish.path``/env/PATH).
 
 from __future__ import annotations
 
+import atexit
 import os
 import shutil
 import subprocess
@@ -111,7 +124,9 @@ def best_move(game, state, history, cfg):
     else:
         position = f"position fen {game.to_fen(state)}"
 
-    uci = _ask_bestmove(cfg, position)
+    # Le opzioni di forza (preset per lato) e il movetime viaggiano nella cfg:
+    # il processo persistente riallinea solo ciò che è cambiato.
+    uci = _ENGINE.bestmove(cfg, position)
     if not uci:
         return None
     # Traduzione dell'uci in una mossa del motore interno, validata tra le legali.
@@ -121,8 +136,174 @@ def best_move(game, state, history, cfg):
     return None
 
 
+class _PersistentEngine:
+    """Il processo Stockfish persistente: uno per tutto il backend, con lock.
+
+    Il lock serializza le ricerche (una alla volta: la CPU è comunque il collo
+    di bottiglia e il protocollo UCI non è concorrente); lo stato ricordato tra
+    una mossa e l'altra — opzioni correnti e ultima posizione — permette di
+    inviare solo i comandi davvero necessari.
+    """
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._proc: subprocess.Popen | None = None
+        self._path: str | None = None
+        self._name: str | None = None
+        self._opts: dict[str, str] = {}  # opzioni UCI già impostate sul processo
+        self._last_position: str | None = None
+        self._searches = 0  # ricerche servite dal processo corrente (diagnostica)
+
+    # ----- gestione del processo -----
+    def _alive(self) -> bool:
+        return self._proc is not None and self._proc.poll() is None
+
+    def _close(self) -> None:
+        """Chiude il processo (quit gentile, kill se non collabora) e azzera lo stato."""
+        proc, self._proc = self._proc, None
+        self._opts = {}
+        self._last_position = None
+        self._searches = 0
+        if proc is None:
+            return
+        try:
+            if proc.poll() is None:
+                proc.stdin.write("quit\n")
+                proc.stdin.flush()
+                proc.wait(timeout=2)
+        except (OSError, ValueError, subprocess.TimeoutExpired):
+            proc.kill()
+
+    def _spawn(self, path: str) -> bool:
+        """Avvia il binario e completa l'handshake ``uci`` → ``uciok``."""
+        self._close()
+        try:
+            self._proc = subprocess.Popen(
+                [path],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                text=True,
+            )
+            self._path = path
+            self._send("uci")
+        except OSError:
+            self._proc = None
+            return False
+        lines = self._read_until("uciok", timeout_s=_STARTUP_GRACE)
+        if lines is None:
+            self._close()
+            return False
+        self._name = next(
+            (ln[len("id name ") :].strip() for ln in lines if ln.startswith("id name ")), None
+        )
+        return True
+
+    def _send(self, command: str) -> None:
+        self._proc.stdin.write(command + "\n")
+        self._proc.stdin.flush()
+
+    def _read_until(self, prefix: str, timeout_s: float):
+        """Legge righe fino a quella che inizia con ``prefix`` (watchdog sul totale).
+
+        Ritorna le righe lette, oppure ``None`` su timeout/EOF (il watchdog uccide
+        il processo: la richiesta successiva farà il respawn).
+        """
+        watchdog = threading.Timer(timeout_s, self._proc.kill)
+        watchdog.start()
+        lines: list[str] = []
+        try:
+            while True:
+                line = self._proc.stdout.readline()
+                if not line:
+                    return None  # EOF: processo morto o ucciso dal watchdog
+                line = line.rstrip()
+                lines.append(line)
+                if line.startswith(prefix):
+                    return lines
+        except (OSError, ValueError):
+            return None
+        finally:
+            watchdog.cancel()
+
+    # ----- protocollo di gioco -----
+    def _apply_strength(self, cfg: dict) -> None:
+        """Allinea le opzioni di forza, inviando SOLO quelle diverse dallo stato attuale.
+
+        A differenza del vecchio one-shot, il processo vive tra una mossa e l'altra:
+        i valori vanno anche RIPRISTINATI (es. da Pan/1400 Elo a Zeus/piena forza),
+        per questo LimitStrength viene sempre dichiarato esplicitamente.
+        """
+        desired = {"Skill Level": str(max(0, min(20, int(cfg.get("skill_level", 20)))))}
+        elo = int(cfg.get("elo") or 0)
+        if elo > 0:
+            desired["UCI_LimitStrength"] = "true"
+            desired["UCI_Elo"] = str(max(1320, min(3190, elo)))
+        else:
+            desired["UCI_LimitStrength"] = "false"
+        for name, value in desired.items():
+            if self._opts.get(name) != value:
+                self._send(f"setoption name {name} value {value}")
+                self._opts[name] = value
+
+    def bestmove(self, cfg: dict, position: str) -> str | None:
+        """Mossa migliore per la posizione, riusando il processo persistente."""
+        with self._lock:
+            for _attempt in range(2):  # un solo respawn di recupero su pipe rotta
+                if not self._alive() or self._path != cfg["path"]:
+                    if not self._spawn(cfg["path"]):
+                        return None
+                move_ms = max(50, int(cfg.get("move_ms") or 1000))
+                try:
+                    self._apply_strength(cfg)
+                    if not (self._last_position and position.startswith(self._last_position)):
+                        # Partita nuova (non è la continuazione della precedente):
+                        # si azzerano le hash; nelle continuazioni restano calde.
+                        self._send("ucinewgame")
+                        self._last_position = None
+                    self._send(position)
+                    self._send(f"go movetime {move_ms}")
+                except (OSError, ValueError):
+                    self._close()
+                    continue  # pipe rotta PRIMA della ricerca: respawn e riprova
+                lines = self._read_until("bestmove", move_ms / 1000.0 + _STARTUP_GRACE)
+                if lines is None:
+                    self._close()  # timeout in ricerca: niente retry (budget già speso)
+                    return None
+                self._last_position = position
+                self._searches += 1
+                parts = lines[-1].split()
+                if len(parts) >= 2 and parts[1] not in ("(none)", "0000"):
+                    return parts[1]
+                return None
+            return None
+
+    def stats(self) -> dict | None:
+        """PID e ricerche servite dal processo corrente (per la diagnostica admin)."""
+        if not self._alive():
+            return None
+        return {"pid": self._proc.pid, "name": self._name, "searches": self._searches}
+
+    def shutdown(self) -> None:
+        with self._lock:
+            self._close()
+
+
+_ENGINE = _PersistentEngine()
+atexit.register(_ENGINE.shutdown)  # quit gentile alla chiusura del backend
+
+
+def shutdown() -> None:
+    """Chiude il processo persistente (riavvii puliti e isolamento nei test)."""
+    _ENGINE.shutdown()
+
+
 def _uci_dialogue(path: str, commands: list[str], timeout_s: float):
-    """Esegue un dialogo UCI e ritorna le righe di output **fino a** ``bestmove``.
+    """Esegue un dialogo UCI **one-shot** e ritorna le righe fino a ``bestmove``.
+
+    Usato SOLO dalla diagnostica :func:`verify` (il gioco passa dal processo
+    persistente): un processo dedicato isola il test del binario dallo stato
+    del motore in servizio.
 
     I comandi (che devono terminare con un ``go …``) vengono inviati subito; poi si
     LEGGE l'output riga per riga finché arriva ``bestmove`` — solo a quel punto si
@@ -169,19 +350,6 @@ def _uci_dialogue(path: str, commands: list[str], timeout_s: float):
     return lines
 
 
-def _strength_commands(cfg: dict) -> list[str]:
-    """Comandi ``setoption`` per la forza richiesta (Skill Level / Elo simulato)."""
-    commands = []
-    skill = int(cfg.get("skill_level", 20))
-    if 0 <= skill < 20:  # 20 è il default del motore: si imposta solo se ridotto
-        commands.append(f"setoption name Skill Level value {skill}")
-    elo = int(cfg.get("elo") or 0)
-    if elo > 0:
-        commands.append("setoption name UCI_LimitStrength value true")
-        commands.append(f"setoption name UCI_Elo value {max(1320, min(3190, elo))}")
-    return commands
-
-
 def verify(cfg: dict):
     """Diagnostica per il super admin: il binario risponde al protocollo UCI?
 
@@ -213,20 +381,11 @@ def verify(cfg: dict):
             bestmove = parts[1] if len(parts) >= 2 else None
     if not bestmove:
         return False, "Il binario non risponde al protocollo UCI (nessun bestmove)"
-    return True, f"{name or 'motore UCI'} — mossa di prova dalla posizione iniziale: {bestmove}"
-
-
-def _ask_bestmove(cfg: dict, position: str) -> str | None:
-    """Mossa per la posizione data: opzioni di forza → posizione → ``go movetime``."""
-    move_ms = max(50, int(cfg.get("move_ms") or 1000))
-    commands = ["uci", *_strength_commands(cfg), "ucinewgame", position, f"go movetime {move_ms}"]
-    lines = _uci_dialogue(cfg["path"], commands, timeout_s=move_ms / 1000.0 + _STARTUP_GRACE)
-    if not lines:
-        return None
-    for line in reversed(lines):
-        if line.startswith("bestmove"):
-            parts = line.split()
-            if len(parts) >= 2 and parts[1] not in ("(none)", "0000"):
-                return parts[1]
-            return None
-    return None
+    detail = f"{name or 'motore UCI'} — mossa di prova dalla posizione iniziale: {bestmove}"
+    stats = _ENGINE.stats()
+    if stats:
+        detail += (
+            f" · processo persistente attivo (PID {stats['pid']}, "
+            f"{stats['searches']} ricerche servite)"
+        )
+    return True, detail

@@ -461,6 +461,14 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   stessa scacchiera di gioco (CSS estratto in `board_css.html`, condiviso con
   play.html), evidenziazioni, verifica dei task, voce 🔊 via `/tts` + «voce
   automatica». 148 test verdi; verifica dal vivo completa.
+- **2026-07-06** — **Stockfish processo persistente** (`_PersistentEngine`, singleton +
+  lock): handshake `uci` una volta, opzioni di forza a diff (LimitStrength sempre
+  esplicito: coi preset per lato vanno anche ripristinate), `ucinewgame` solo a partita
+  nuova (hash calde nelle continuazioni), watchdog + respawn automatico su
+  crash/timeout/cambio percorso, `quit` solo a shutdown (atexit; `shutdown()` per i
+  test). `_uci_dialogue` one-shot resta SOLO per `verify()` (che ora riporta PID e
+  ricerche servite). Finti motori dei test ora interattivi con log comandi. 151 test
+  verdi; dal vivo: 6 mosse contro Pan, un solo PID.
 
 ## Questioni aperte
 

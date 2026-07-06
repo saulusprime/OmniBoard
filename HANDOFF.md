@@ -5,6 +5,40 @@
 
 ---
 
+## 2026-07-06 — Stockfish come processo persistente
+
+**Richiesta (utente):** implementare Stockfish come processo persistente (voce TODO:
+lock al posto dell'avvio one-shot per mossa, ~100 ms risparmiati a mossa).
+
+**Implementazione (`opponents/stockfish.py`):**
+
+- **`_PersistentEngine`** (singleton di modulo + `threading.Lock`: le ricerche dei
+  worker sono serializzate — la CPU è comunque il collo di bottiglia e UCI non è
+  concorrente). Stato ricordato fra le mosse: opzioni correnti e ultima posizione.
+- Handshake `uci`/`uciok` **una volta sola** allo spawn; opzioni di forza inviate
+  **solo quando cambiano** (diff), con LimitStrength sempre dichiarato esplicitamente
+  — col processo vivo i valori vanno anche RIPRISTINATI (Pan→Zeus in IA-vs-IA);
+- **`ucinewgame` solo a partita nuova** (la posizione non è la continuazione della
+  precedente): nelle continuazioni le hash table restano calde;
+- watchdog per ricerca (movetime + margine): su timeout il processo viene ucciso e la
+  richiesta successiva fa il **respawn automatico**; pipe rotta PRIMA della ricerca →
+  un retry con respawn; cambio `stockfish.path` → nuovo processo. In ogni errore →
+  `None` → ripiego sul giocatore locale (invariato);
+- `quit` SOLO alla chiusura (shutdown/atexit/respawn), mai durante il gioco (il vecchio
+  bug del quit-durante-go resta documentato); `shutdown()` pubblico per test/riavvii.
+- `verify()` (diagnostica admin) resta one-shot per isolare il test del binario, ma
+  riporta anche lo stato del persistente: «PID …, N ricerche servite».
+
+**Test (16 nel file, 151 totali):** finti motori ora **interattivi** (ciclo su stdin,
+log dei comandi ricevuti): stesso PID su più mosse, `uci` e `ucinewgame` una volta sola
+nella continuazione, diff delle opzioni (Elo inviato una volta; cambio preset →
+riallineo), respawn dopo crash (deterministico con `wait`) e su cambio percorso;
+fixture autouse `shutdown()` per l'isolamento. **Dal vivo:** partita contro Pan — 6
+risposte «stockfish» tutte dallo **stesso PID**; diagnostica admin: «Stockfish 18 …
+processo persistente attivo (PID 26734, 6 ricerche servite)».
+
+---
+
 ## 2026-07-06 — Sistema graduale di istruzione guidata (tutorial con voce)
 
 **Richiesta (utente):** realizzare il «Sistema graduale di istruzione guidata» (voce ⭐
