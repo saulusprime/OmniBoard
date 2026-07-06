@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-07-06 — Suggerimento mossa (hint) riservato ai principianti
+
+**Richiesta (utente):** hint per il giocatore umano; NON utilizzabile in tornei,
+campionati e nelle partite tra esperti (criterio: vittorie a scacchi).
+
+**Implementazione:** `POST /sessions/{id}/hint` — motore LOCALE a budget ridotto
+(`hints.engine_ms`, default 500 ms), per tutti i giochi. Regole: 403 se disattivato
+(`hints.enabled`), 403 nel **formato FIDE** (l'equivalente attuale di tornei/campionati:
+erediteranno il blocco), 403 oltre `hints.max_wins` vittorie **nel gioco in corso**
+(default 10 — fra due esperti nessuno può chiederlo), 409 fuori turno/partita finita,
+token del giocatore al tratto nei remote. UI: pulsante «💡 Suggerimento» con notazione
+e mossa evidenziata 3 s (origine/destinazione o cella). Test +3 (164 verdi: mossa
+legale al principiante, 403 esperto/FIDE, interruttore admin); dal vivo: Nb1-c3.
+
+---
+
 ## 2026-07-06 — Stima delle blunder nel profilo avversario
 
 **Richiesta (utente):** implementare la stima delle blunder (voce TODO): quantificare

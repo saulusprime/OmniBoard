@@ -444,3 +444,62 @@ def export_gif(session_id: int, db: Session = Depends(get_db)):
         media_type="image/gif",
         headers={"Content-Disposition": f'attachment; filename="partita-{session_id}.gif"'},
     )
+
+
+@router.post("/{session_id}/hint")
+def move_hint(
+    session_id: int,
+    x_auth_token: str = Header(default="", alias="X-Auth-Token"),
+    db: Session = Depends(get_db),
+):
+    """Suggerimento di mossa per il giocatore umano al tratto (motore a budget ridotto).
+
+    Riservato ai PRINCIPIANTI: negato a chi supera ``hints.max_wins`` vittorie nel
+    gioco in corso (per gli scacchi = partite di scacchi vinte). Negato anche nel
+    formato FIDE ufficiale — e lo sarà nei tornei/campionati quando esisteranno.
+    Nelle partite a distanza serve il token del giocatore al tratto.
+    """
+    session = db.get(models.GameSession, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessione non trovata")
+    if not settings_service.get(db, "hints.enabled"):
+        raise HTTPException(status_code=403, detail="Suggerimenti disattivati dal super admin")
+    if session.tc_category == "fide":
+        raise HTTPException(
+            status_code=403, detail="Formato ufficiale FIDE: suggerimenti non ammessi"
+        )
+    if session.status != "in_progress":
+        raise HTTPException(status_code=409, detail="La partita non è in corso")
+
+    game = get_game(session.game.code)
+    gameplay.resolve_chance(db, game, session)
+    state = gameplay.load_state(game, session)
+    player = game.current_player(state)
+    if gameplay.side_is_ai(session, player):
+        raise HTTPException(status_code=409, detail="È il turno dell'IA")
+    user_id = session.x_user_id if player == 0 else session.o_user_id
+    if session.remote:
+        mover = session_from_token(db, x_auth_token).user
+        if mover.id != user_id:
+            raise HTTPException(status_code=403, detail="Il suggerimento è del giocatore al tratto")
+    # Riservato ai principianti: chi ha già troppe vittorie in QUESTO gioco non lo usa
+    # (e in una partita fra esperti nessuno dei due può chiederlo).
+    if user_id:
+        score = db.query(models.Score).filter_by(user_id=user_id, game_id=session.game_id).first()
+        max_wins = int(settings_service.get(db, "hints.max_wins"))
+        if score and score.wins > max_wins:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Suggerimenti riservati ai principianti (max {max_wins} vittorie)",
+            )
+
+    legal = list(game.legal_moves(state))
+    moves_log = json.loads(session.moves_json or "[]")
+    move, _source = opponents.local.best_move(
+        game,
+        state,
+        legal,
+        history=gameplay.history_ids(moves_log),
+        think_ms=int(settings_service.get(db, "hints.engine_ms")),
+    )
+    return {"move": game.move_id(move), "notation": game.describe_move(state, move)}

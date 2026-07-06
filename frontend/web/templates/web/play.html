@@ -50,6 +50,11 @@
       <div id="statusline" class="muted"></div>
       <div id="boardarea"></div>
       <div id="thinking">L'IA sta pensando…</div>
+      <p style="margin:8px 0 0;">
+        <button class="btn secondary" id="btn-hint" type="button"
+                style="padding:4px 12px; font-size:.85rem;">💡 Suggerimento</button>
+        <span id="hint-text" class="muted" style="font-size:.85rem;"></span>
+      </p>
       <div id="aisource" class="muted" style="font-size:.85rem;"></div>
       <noscript><p class="muted">Questa pagina richiede JavaScript per giocare.</p></noscript>
     </div>
@@ -729,6 +734,24 @@
     selected = playableFrom(i).length > 0 ? i : null;
     renderCells(new Set());
   }
+
+  // ----- Suggerimento mossa (hint): motore a budget ridotto, solo principianti -----
+  const HINT_URL = "{% url 'play_hint_json' s.id %}";
+  document.getElementById("btn-hint").addEventListener("click", async () => {
+    const label = document.getElementById("hint-text");
+    label.textContent = "…";
+    const res = await fetch(HINT_URL, { method: "POST", headers: { "X-CSRFToken": CSRF } });
+    const d = await res.json();
+    if (d.error) { label.textContent = d.error; return; }
+    label.textContent = "Suggerimento: " + d.notation;
+    // Evidenzia la mossa suggerita sulla scacchiera (origine/destinazione o cella).
+    const grid = document.getElementById("grid");
+    const pm = pmoves.find((m) => m.id === d.move);
+    const cells = pm ? [pm.from, pm.to] : (/^\d+$/.test(d.move) ? [Number(d.move)] : []);
+    cells.forEach((i) => grid.children[i] && grid.children[i].classList.add("dest"));
+    setTimeout(() => cells.forEach(
+      (i) => grid.children[i] && grid.children[i].classList.remove("dest")), 3000);
+  });
 
   // ----- Dopo la partita: moviola (rewind/step-by-step), note, analisi e GIF -----
   const REPLAY_URL = "{% url 'play_replay_json' s.id %}";

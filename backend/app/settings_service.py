@@ -142,6 +142,27 @@ SETTINGS_DEFS = [
         "label": "Skill Level di Stockfish (0-20, 20 = piena forza)",
     },
     {
+        "key": "hints.enabled",
+        "type": "bool",
+        "default": True,
+        "category": "Giochi",
+        "label": "Suggerimento mossa (hint) attivo",
+    },
+    {
+        "key": "hints.max_wins",
+        "type": "int",
+        "default": 10,
+        "category": "Giochi",
+        "label": "Hint riservato ai principianti: vittorie massime nel gioco per usarlo",
+    },
+    {
+        "key": "hints.engine_ms",
+        "type": "int",
+        "default": 500,
+        "category": "Giochi",
+        "label": "Budget del motore per il suggerimento (millisecondi)",
+    },
+    {
         "key": "games.batch_max",
         "type": "int",
         "default": 1000,

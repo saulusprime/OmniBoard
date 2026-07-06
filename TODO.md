@@ -67,7 +67,11 @@
 - [ ] **Pondering** — pensare durante il tempo dell'avversario (richiede la mossa async).
 - [ ] **Livelli di difficoltà** selezionabili in partita (tempo/profondità/jitter più alto
   per i principianti), oltre al parametro globale `ai.engine_ms`.
-- [ ] **Suggerimento mossa (hint)** per il giocatore umano, col motore a budget ridotto.
+- [x] **Suggerimento mossa (hint)** — `POST /sessions/{id}/hint` col motore locale a
+  budget ridotto (`hints.engine_ms`), per tutti i giochi; **riservato ai principianti**
+  (negato oltre `hints.max_wins` vittorie nel gioco), mai nel **formato FIDE** (e nei
+  futuri tornei/campionati), col token del giocatore al tratto nei remote; pulsante 💡
+  in partita con mossa evidenziata.
 - [ ] **Export PGN / import FEN** dall'interfaccia.
 
 ## IA e provider remoti
