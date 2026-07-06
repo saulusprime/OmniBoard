@@ -5,6 +5,34 @@
 
 ---
 
+## 2026-07-06 — Stima delle blunder nel profilo avversario
+
+**Richiesta (utente):** implementare la stima delle blunder (voce TODO): quantificare
+gli errori dell'avversario rianalizzando col motore il suo storico.
+
+**Design (niente motore nel build del profilo):** `build_profile` gira a ogni mossa
+dell'umano → la stima AGGREGA solo le analisi **già in cache** (`analysis_json`, le
+stesse dell'analisi post-partita). Il lavoro pesante sta in
+**`POST /users/{id}/analyze-history`** (`analysis.analyze_history`): accoda l'analisi
+delle ultime partite non ancora analizzate (max 10, job condivisi sul lock del motore
+persistente; 503 senza binario, sincrono nei test).
+
+**Profilo:** `profile["accuracy"]` = {games_analyzed, moves, **acpl** (perdita media,
+tetto 1000 cp/mossa perché i tracolli da matto non dominino), blunders, errors,
+inaccuracies, blunders_per_game} calcolati sul SOLO lato del giocatore. Sotto
+**20 mosse analizzate** la stima non fa testo; sopra: blunder ≥1/partita → debolezza
+dichiarata + **aggressività aumentata** (+0,15·bpg, tetto 1,9), ACPL ≥120 → debolezza
+«precisione bassa». Scheda giocatore: sezione «Precisione» + pulsante «🔬 Analizza lo
+storico» (messaggio con le partite accodate).
+
+**Test (+1, 161 verdi):** prima dell'analisi `accuracy` è None; analyze-history → 1
+accodata (poi 0: cache), profilo con acpl 63.0 e 1 imprecisione (finto motore a cp
+fisso); 503 con binario a percorso inesistente (il PATH di sviluppo ha uno Stockfish
+vero), 404 utente ignoto. **Dal vivo:** il profilo di remoto_a riporta acpl 539,5 con
+1 blunder (il 3.g4 del matto dell'imbecille) e 1 imprecisione (1.f3).
+
+---
+
 ## 2026-07-06 — Apertura-bersaglio dal profilo avversario
 
 **Richiesta (utente):** implementare le aperture-bersaglio (voce TODO): scegliere dal

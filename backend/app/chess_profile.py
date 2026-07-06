@@ -120,9 +120,65 @@ def build_profile(db: Session, user_id: int, max_games: int = 200) -> dict | Non
         if o["games"] >= _MIN_OPENING_GAMES and o["score"] < 0.5
     ][:3]
 
+    # Stima delle blunder: aggregato delle analisi motore GIÀ calcolate (cache
+    # in analysis_json) — mai lavoro del motore qui: build_profile gira a ogni
+    # mossa dell'umano. Lo storico si arricchisce con POST /users/{id}/analyze-history.
+    profile["accuracy"] = _accuracy(sessions, user_id)
+
     profile["weaknesses"] = _weaknesses(profile)
     profile["style"] = _style(profile)
     return profile
+
+
+# Sotto questa soglia di mosse analizzate la precisione non fa testo (né nelle
+# debolezze né nello stile): una partita corta non è un campione.
+_MIN_ANALYZED_MOVES = 20
+
+
+def _accuracy(sessions, user_id: int) -> dict | None:
+    """Stima delle blunder dalle analisi in cache: ACPL e conteggio errori del giocatore.
+
+    Considera solo le mosse GIOCATE DALL'UTENTE (il suo lato in ogni partita); la
+    perdita per mossa è tetto-ata a 1000 cp perché i tracolli da matto non dominino
+    la media. ``None`` se nessuna partita del campione è stata analizzata.
+    """
+    games = moves = blunders = errors = inaccuracies = 0
+    loss_sum = 0
+    for s in sessions:
+        if not s.analysis_json:
+            continue
+        try:
+            data = json.loads(s.analysis_json)
+        except ValueError:
+            continue
+        if data.get("status") != "done":
+            continue
+        side = "x" if s.x_user_id == user_id else "o"
+        evals = [e for e in data.get("evals", []) if e.get("by") == side]
+        if not evals:
+            continue
+        games += 1
+        for e in evals:
+            moves += 1
+            loss_sum += min(int(e.get("loss") or 0), 1000)
+            tag = e.get("tag")
+            if tag == "??":
+                blunders += 1
+            elif tag == "?":
+                errors += 1
+            elif tag == "?!":
+                inaccuracies += 1
+    if not moves:
+        return None
+    return {
+        "games_analyzed": games,
+        "moves": moves,
+        "acpl": round(loss_sum / moves, 1),  # perdita media in centipedoni per mossa
+        "blunders": blunders,
+        "errors": errors,
+        "inaccuracies": inaccuracies,
+        "blunders_per_game": round(blunders / games, 2),
+    }
 
 
 def _weaknesses(p: dict) -> list[str]:
@@ -139,6 +195,15 @@ def _weaknesses(p: dict) -> list[str]:
         out.append("Debolezza nei finali: cede nelle partite lunghe.")
     for name in p["weakest_openings"]:
         out.append(f"Rende meno con l'apertura «{name}».")
+    acc = p.get("accuracy")
+    if acc and acc["moves"] >= _MIN_ANALYZED_MOVES:
+        if acc["blunders_per_game"] >= 1:
+            out.append(
+                f"Commette blunder frequenti ({acc['blunders_per_game']} per partita, "
+                f"analisi motore su {acc['games_analyzed']} partite)."
+            )
+        if acc["acpl"] >= 120:
+            out.append(f"Precisione bassa: perde in media {acc['acpl']} centipedoni a mossa.")
     return out
 
 
@@ -147,6 +212,11 @@ def _style(p: dict) -> dict:
     chi pareggia spesso. Valori neutri (1.0 / 0) se i dati sono insufficienti."""
     if p["games"] < 3:
         return {"aggression": 1.0, "contempt": 0}
-    aggression = round(1.0 + min(0.6, p["quick_loss_rate"]), 2)
+    aggression = 1.0 + min(0.6, p["quick_loss_rate"])
+    # Stima delle blunder: contro chi sbaglia spesso sotto pressione conviene
+    # tenere la posizione tattica (l'errore prima o poi arriva).
+    acc = p.get("accuracy")
+    if acc and acc["moves"] >= _MIN_ANALYZED_MOVES:
+        aggression += min(0.3, acc["blunders_per_game"] * 0.15)
     contempt = int(min(40, round(p["draw_rate"] * 60)))
-    return {"aggression": aggression, "contempt": contempt}
+    return {"aggression": round(min(aggression, 1.9), 2), "contempt": contempt}

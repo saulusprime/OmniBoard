@@ -7,7 +7,7 @@ import json
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import chess_profile, models, schemas, settings_service, user_prefs
+from .. import analysis, chess_profile, models, schemas, settings_service, user_prefs
 from ..database import get_db
 from ..security import hash_password
 from .admin import require_admin
@@ -148,6 +148,22 @@ def chess_profile_endpoint(user_id: int, db: Session = Depends(get_db)):
     if profile is None:
         raise HTTPException(status_code=404, detail="Utente non trovato")
     return profile
+
+
+@router.post("/{user_id}/analyze-history")
+def analyze_history_endpoint(user_id: int, db: Session = Depends(get_db)):
+    """Analizza (in background) le ultime partite non ancora analizzate del giocatore.
+
+    È il passo che RENDE RICCA la stima delle blunder del profilo: le analisi
+    finiscono in cache (analysis_json) e il profilo le aggrega alla lettura dopo.
+    """
+    if not db.get(models.User, user_id):
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    from ..opponents import stockfish
+
+    if not stockfish.is_available(stockfish.get_config(db)):
+        raise HTTPException(status_code=503, detail="Stockfish non disponibile per l'analisi")
+    return {"queued": analysis.analyze_history(db, user_id)}
 
 
 @router.get("/{user_id}/history")

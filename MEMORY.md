@@ -485,6 +485,12 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   avversario (sottostringa nei due sensi, ripiego su tutto il libro);
   `opponent_style` → `style["target_openings"]` → dispatcher (vale per ogni tipo di
   IA). 160 test verdi.
+- **2026-07-06** — **Stima delle blunder**: `profile["accuracy"]` aggrega SOLO le
+  analisi in cache (mai motore nel build: gira a ogni mossa) — ACPL (tetto 1000),
+  blunder/errori/imprecisioni del lato del giocatore; `POST /users/{id}/analyze-history`
+  riempie la cache in background (pulsante nella scheda). ≥20 mosse analizzate →
+  debolezze («blunder frequenti», «precisione bassa») e aggressività +0,15·bpg
+  (tetto 1,9). 161 test verdi; dal vivo acpl 539,5 su remoto_a.
 
 ## Questioni aperte
 
