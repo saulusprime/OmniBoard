@@ -88,16 +88,23 @@
 
 ## Istruzione guidata (tutorial) + voce sintetica
 
-- [ ] ⭐ **Sistema graduale di istruzione guidata** per imparare i giochi, con voce
-  sintetica. Architettura proposta:
-  - **Contenuti**: lezioni per gioco organizzate in **passi** (testo della spiegazione +
-    posizione preimpostata sulla scacchiera + caselle/mosse da evidenziare + eventuale
-    mossa richiesta all'allievo con verifica); progressione per gradi (es. scacchi: i
-    pezzi uno alla volta → catture → arrocco/en passant → matti elementari → aperture).
-  - **Progressi salvati** per utente (lezioni completate, da riprendere).
-  - **UI**: modalità "lezione" sulla pagina di gioco esistente (riusa scacchiera,
-    animazioni ed evidenziazioni), con pulsanti avanti/indietro e replay vocale.
-  - **Voce**: ogni passo viene letto ad alta voce dal servizio TTS (sotto).
+- [x] ⭐ **Sistema graduale di istruzione guidata** — realizzato:
+  - **Contenuti** in `backend/app/lessons/` (un modulo per gioco, helper `pos8`/`sq` in
+    coordinate scacchistiche): corso di scacchi in 7 lezioni (scacchiera → pedone →
+    torre/alfiere → cavallo → donna/re → arrocco/en passant → matto del corridoio),
+    dama (movimento, presa obbligatoria/multipla, promozione), Tris. Ogni passo: testo +
+    posizione preimpostata + evidenziazioni + eventuale mossa richiesta con verifica.
+    Guardiano nei test (`validate_lesson`): contenuti malformati non passano.
+  - **Progressi per utente** (`lesson_progress`, migrazione 0004): riprendi dal passo
+    raggiunto, `completed` definitivo, `last_step` non regredisce; anonimi fruiscono
+    senza salvataggio. Endpoint `GET /lessons`, `GET /lessons/{code}`, `POST progress`.
+  - **UI** «Impara» (navbar): indice per gioco con badge/riprendi; pagina lezione con la
+    STESSA scacchiera di gioco (CSS condiviso `board_css.html`), evidenziazioni,
+    clic origine→destinazione verificato, avanti/indietro.
+  - **Voce**: pulsante 🔊 + «voce automatica» (localStorage), lettura di ogni passo via
+    `/tts` (italiano con Piper).
+  - Prossimi passi possibili: lezioni per Forza 4/Backgammon, aperture commentate,
+    esercizi con più mosse consecutive e posizioni giocate contro il motore.
 - [x] **Servizio TTS nel backend** (`backend/app/tts.py` + `GET /tts` e `GET /tts/status`):
   astrazione multi-motore con import pigri (motore assente → 503 spiegato, il tutorial
   resta testuale), **cache su disco** dei WAV per motore+voce+velocità+frase

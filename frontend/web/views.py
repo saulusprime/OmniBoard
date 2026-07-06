@@ -148,6 +148,47 @@ def community_json(request):
     return JsonResponse({"online": online, "my_games": games, "me": me})
 
 
+# ----- Tutorial: istruzione guidata con voce sintetica -----
+def learn_index(request):
+    """Indice delle lezioni per gioco, con i progressi del giocatore loggato."""
+    token = request.session.get("auth_token")
+    data = _safe(request, lambda: api.list_lessons(token), default={"lessons": []})
+    # Raggruppa per gioco mantenendo l'ordine (gioco, grado) del backend.
+    by_game: dict[str, list] = {}
+    for lesson in data.get("lessons", []):
+        by_game.setdefault(lesson["game_name"], []).append(lesson)
+    return render(request, "web/learn_index.html", {"by_game": by_game})
+
+
+def learn_lesson(request, code):
+    """Una lezione a passi: scacchiera preimpostata, evidenziazioni, verifica, voce."""
+    token = request.session.get("auth_token")
+    lesson = _safe(request, lambda: api.get_lesson(code, token))
+    if lesson is None:
+        return redirect("learn_index")
+    return render(
+        request,
+        "web/learn_lesson.html",
+        {"lesson": lesson, "backend_url": api.BASE},
+    )
+
+
+def learn_progress_json(request, code):
+    """Proxy del salvataggio progressi: aggiunge il token della sessione Django."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Metodo non consentito"}, status=405)
+    token = request.session.get("auth_token")
+    if not token:
+        return JsonResponse({"saved": False, "reason": "anonimo"})  # nulla da salvare
+    try:
+        step = int(request.POST.get("step", "0"))
+        completed = request.POST.get("completed") == "1"
+        out = api.save_lesson_progress(code, step, completed, token)
+        return JsonResponse({"saved": True, **out})
+    except (ValueError, api.ApiError) as exc:
+        return JsonResponse({"saved": False, "reason": str(exc)}, status=400)
+
+
 def user_detail(request, user_id):
     user = _safe(request, lambda: api.get_user(user_id))
     if user is None:

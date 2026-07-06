@@ -453,6 +453,14 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   categoria admin «Voce», card Admin con anteprime audio. ⚖️ `piper-tts` è **GPL-3** →
   opzionale, MAI in requirements (progetto MIT): si abilita con `make piper`.
   144 test verdi (motori finti); dal vivo: it ~1s/frase, cache 0,09s.
+- **2026-07-06** — **Istruzione guidata (tutorial)**: contenuti in `app/lessons/`
+  (helper `sq`/`pos8`/`path_task`; corso scacchi 7 lezioni + dama + Tris; guardiano
+  `validate_lesson` nei test), progressi per utente (`lesson_progress`, migrazione
+  **0004**, `last_step` non regredisce), router `/lessons` (lettura aperta, progresso
+  autenticato). UI «Impara»: indice con riprendi/completata, pagina lezione con la
+  stessa scacchiera di gioco (CSS estratto in `board_css.html`, condiviso con
+  play.html), evidenziazioni, verifica dei task, voce 🔊 via `/tts` + «voce
+  automatica». 148 test verdi; verifica dal vivo completa.
 
 ## Questioni aperte
 

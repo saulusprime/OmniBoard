@@ -1,0 +1,213 @@
+{% extends "web/base.html" %}
+{% block title %}{{ lesson.title }} — Impara{% endblock %}
+{% block content %}
+{% include "web/board_css.html" %}
+<style>
+  /* Evidenziazione didattica delle caselle (concetti e destinazioni). */
+  .cell.hl { box-shadow: inset 0 0 0 3px var(--accent); }
+  .lesson { display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; }
+  .panel { min-width:280px; flex:1; }
+  #steptext { font-size:1.05rem; line-height:1.55; min-height:90px; }
+  #task { color:var(--accent); font-weight:600; margin-top:10px; }
+  #feedback { min-height:26px; margin-top:8px; font-weight:600; }
+  #feedback.ok { color:#3fb950; }
+  #feedback.ko { color:#e05a4e; }
+  .lesson-nav { margin-top:16px; display:flex; gap:10px; align-items:center; }
+</style>
+
+{{ lesson|json_script:"lesson-data" }}
+
+<div class="card">
+  <h1>🎓 {{ lesson.title }} <span class="muted" style="font-size:.7em;">({{ lesson.game_name }})</span></h1>
+  <div class="lesson">
+    <div id="boardarea"></div>
+    <div class="panel">
+      <div class="muted" id="stepcount"></div>
+      <p id="steptext"></p>
+      <div id="task"></div>
+      <div id="feedback"></div>
+      <div class="lesson-nav">
+        <button class="btn secondary" id="prev" type="button">⟵ Indietro</button>
+        <button class="btn" id="next" type="button">Avanti ⟶</button>
+        <button class="btn secondary" id="speak" type="button" title="Leggi ad alta voce">🔊</button>
+        <label class="muted" style="display:flex; align-items:center; gap:6px; margin:0;">
+          <input type="checkbox" id="autovoice" style="width:auto;"> voce automatica
+        </label>
+      </div>
+      <p class="muted" style="margin-top:14px;">
+        <a href="{% url 'learn_index' %}">← Tutte le lezioni</a>
+        {% if not auth_user %} · <a href="{% url 'login' %}">Accedi</a> per salvare i progressi{% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+
+<audio id="voice" preload="none"></audio>
+
+<script>
+(function () {
+  const LESSON = JSON.parse(document.getElementById("lesson-data").textContent);
+  const PROGRESS_URL = "{% url 'learn_progress_json' lesson.code %}";
+  const TTS_BASE = "{{ backend_url }}/tts";
+  const CSRF = "{{ csrf_token }}";
+  const rows = LESSON.rows, cols = LESSON.cols, moveType = LESSON.move_type;
+  const cellPx = cols <= 3 ? 88 : (cols <= 7 ? 56 : 46);
+  const PIECE_SCALE = 0.83;
+  // Stessi glifi PIENI della pagina di gioco: il colore del lato lo dà il CSS.
+  const WHITE_SET = "X⛀⛁♔♕♖♗♘♙○", BLACK_SET = "O⛂⛃♚♛♜♝♞♟●";
+  const SOLID_GLYPH = { "♔": "♚", "♕": "♛", "♖": "♜", "♗": "♝", "♘": "♞", "♙": "♟",
+                        "⛀": "⛂", "⛁": "⛃", "○": "●" };
+  const isDark = (i) => ((Math.floor(i / cols) + (i % cols)) % 2) === 1;
+
+  // Si riparte dall'ultimo passo raggiunto (se la lezione non era finita).
+  let cur = 0;
+  if (LESSON.progress && !LESSON.progress.completed) {
+    cur = Math.min(LESSON.progress.last_step, LESSON.steps.length - 1);
+  }
+  let selected = null;   // origine scelta per i task origine→destinazione
+  let taskDone = false;  // il task del passo corrente è stato superato
+
+  const area = document.getElementById("boardarea");
+  const grid = document.createElement("div");
+  grid.className = "board";
+  if (moveType === "chess" || moveType === "draughts") grid.classList.add("t-classico");
+  grid.style.gridTemplateColumns = `repeat(${cols}, ${cellPx}px)`;
+  grid.style.gridTemplateRows = `repeat(${rows}, ${cellPx}px)`;
+  for (let i = 0; i < rows * cols; i++) {
+    const el = document.createElement("button");
+    el.className = "cell";
+    if (moveType === "draughts") el.classList.add(isDark(i) ? "dark" : "light");
+    if (moveType === "chess") el.classList.add(isDark(i) ? "csq-d" : "csq-l");
+    el.style.fontSize = (cellPx * PIECE_SCALE) + "px";
+    el.addEventListener("click", () => onCell(i));
+    grid.appendChild(el);
+  }
+  area.appendChild(grid);
+
+  function pieceClass(v) {
+    if (!v) return null;
+    const c = v.slice(-1);
+    if (WHITE_SET.includes(c)) return "x";
+    if (BLACK_SET.includes(c)) return "o";
+    return null;
+  }
+
+  const displayOf = (v) => (v ? [...v].map((ch) => SOLID_GLYPH[ch] || ch).join("") : v);
+
+  function renderStep(popCells) {
+    const step = LESSON.steps[cur];
+    for (let i = 0; i < rows * cols; i++) {
+      const el = grid.children[i];
+      const v = step.board[i];
+      el.textContent = v ? displayOf(v) : "";
+      el.classList.remove("x", "o", "hl", "sel", "pop");
+      const pc = pieceClass(v);
+      if (pc) el.classList.add(pc);
+      if (step.highlights.includes(i)) el.classList.add("hl");
+      if (i === selected) el.classList.add("sel");
+      if (popCells && popCells.has(i)) { void el.offsetWidth; el.classList.add("pop"); }
+    }
+    document.getElementById("stepcount").textContent =
+      `Passo ${cur + 1} di ${LESSON.steps.length}`;
+    document.getElementById("steptext").textContent = step.text;
+    document.getElementById("task").textContent =
+      step.task && !taskDone ? "✋ " + step.task.prompt : "";
+    document.getElementById("prev").disabled = cur === 0;
+    document.getElementById("next").textContent =
+      cur === LESSON.steps.length - 1 ? "Fine ✓" : "Avanti ⟶";
+    if (document.getElementById("autovoice").checked) speak();
+  }
+
+  function feedback(text, ok) {
+    const el = document.getElementById("feedback");
+    el.textContent = text;
+    el.className = ok ? "ok" : "ko";
+  }
+
+  // ----- Verifica della mossa richiesta all'allievo -----
+  function onCell(i) {
+    const task = LESSON.steps[cur].task;
+    if (!task || taskDone) return;
+    if (task.kind === "cell") {
+      if (i === task.cell) succeed(new Set([i]), null, i);
+      else feedback("Riprova: guarda la casella evidenziata.", false);
+      return;
+    }
+    // Task origine→destinazione: primo clic sul pezzo, secondo sulla destinazione.
+    if (selected === null) {
+      if (i === task.from) { selected = i; renderStep(); feedback("Ora la destinazione…", true); }
+      else feedback("Parti dal pezzo giusto: clicca la casella di partenza.", false);
+      return;
+    }
+    if (i === task.to) { succeed(new Set([i]), selected, i); }
+    else if (i === selected) { selected = null; renderStep(); feedback("", true); }
+    else feedback("Non proprio: riprova la destinazione.", false);
+  }
+
+  function succeed(popCells, fromIdx, toIdx) {
+    const step = LESSON.steps[cur];
+    taskDone = true;
+    // La mossa riuscita si VEDE: il pezzo (o il segno) compare a destinazione.
+    if (fromIdx !== null && step.task.kind === "path") {
+      const sym = step.board[fromIdx];
+      step.board = step.board.slice();
+      step.board[fromIdx] = null;
+      step.board[toIdx] = sym;
+    } else if (step.task.kind === "cell") {
+      step.board = step.board.slice();
+      step.board[toIdx] = "X";
+    }
+    selected = null;
+    renderStep(popCells);
+    feedback("✅ " + step.task.success, true);
+    saveProgress(false);
+  }
+
+  // ----- Navigazione e progressi -----
+  function goto(n) {
+    if (n < 0 || n > LESSON.steps.length) return;
+    if (n === LESSON.steps.length) {  // oltre l'ultimo passo = lezione completata
+      saveProgress(true);
+      feedback("🎉 Lezione completata!", true);
+      document.getElementById("next").disabled = true;
+      return;
+    }
+    cur = n;
+    selected = null;
+    taskDone = false;
+    feedback("", true);
+    document.getElementById("next").disabled = false;
+    renderStep();
+    saveProgress(false);
+  }
+  document.getElementById("prev").addEventListener("click", () => goto(cur - 1));
+  document.getElementById("next").addEventListener("click", () => goto(cur + 1));
+
+  async function saveProgress(completed) {
+    try {
+      await fetch(PROGRESS_URL, {
+        method: "POST",
+        headers: { "X-CSRFToken": CSRF, "Content-Type": "application/x-www-form-urlencoded" },
+        body: `step=${cur}&completed=${completed ? 1 : 0}`,
+      });
+    } catch (e) { /* anonimo o backend giù: la lezione resta fruibile */ }
+  }
+
+  // ----- Voce sintetica: il passo viene letto dal servizio /tts del backend -----
+  function speak() {
+    const audio = document.getElementById("voice");
+    audio.src = TTS_BASE + "?text=" + encodeURIComponent(LESSON.steps[cur].text) + "&lang=it";
+    audio.play().catch(() => { /* TTS non disponibile: la lezione resta testuale */ });
+  }
+  document.getElementById("speak").addEventListener("click", speak);
+  const autovoice = document.getElementById("autovoice");
+  autovoice.checked = localStorage.getItem("lesson_autovoice") === "1";
+  autovoice.addEventListener("change", () => {
+    localStorage.setItem("lesson_autovoice", autovoice.checked ? "1" : "0");
+    if (autovoice.checked) speak();
+  });
+
+  renderStep();
+})();
+</script>
+{% endblock %}

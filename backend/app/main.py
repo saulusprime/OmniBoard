@@ -16,6 +16,7 @@ from .routers import (
     config,
     games,
     groups,
+    lessons,
     matches,
     rankings,
     sessions,
@@ -59,6 +60,7 @@ app.include_router(rankings.router)
 app.include_router(admin.router)
 app.include_router(config.router)
 app.include_router(tts.router)
+app.include_router(lessons.router)
 
 
 @app.get("/health", tags=["meta"])

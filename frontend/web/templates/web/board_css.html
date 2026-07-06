@@ -1,0 +1,74 @@
+{% comment %}CSS condiviso della scacchiera (case, pezzi a tinta piena, temi,
+tavolo del backgammon): incluso dalla pagina di gioco (play.html) e dalle
+lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomment %}
+<style>
+  .board { display:grid; gap:4px; margin:8px 0; }
+  .cell { display:flex; align-items:center; justify-content:center; background:#0f1419;
+          border:1px solid var(--line); border-radius:6px; color:var(--text); font-weight:700;
+          padding:0; line-height:1; }
+  .cell.x { color:#e8eaed; }
+  .cell.o { color:#d9a441; }
+  .cell.light { background:#0a0d11; border-color:#0a0d11; }
+  .cell.dark { background:#222c38; }
+  .cell.csq-l { background:#2b3543; }
+  .cell.csq-d { background:#161d26; }
+  .cell.sel { outline:3px solid var(--accent); }
+  .cell.dest { box-shadow: inset 0 0 0 3px #2e7d4f; }
+  .colbtns { display:grid; gap:4px; margin-bottom:4px; }
+  .colbtn { background:transparent; border:1px solid var(--accent); color:var(--accent);
+            border-radius:8px; cursor:pointer; padding:6px 0; font-weight:700; }
+  .colbtn:disabled { opacity:.3; cursor:default; }
+  button.cell { cursor:pointer; }
+  button.cell:hover:enabled { border-color:var(--accent); }
+  button.cell:disabled { cursor:default; }
+  .pop { animation: pop .3s ease-out; }
+  @keyframes pop { from { transform:scale(.3); opacity:0; } to { transform:scale(1); opacity:1; } }
+  /* Pezzo "volante": elemento assoluto sopra la griglia che scivola dalla casella di
+     origine a quella di destinazione (transform → accelerato dalla GPU). */
+  .board { position:relative; }
+  .flyer { position:absolute; display:flex; align-items:center; justify-content:center;
+           font-weight:700; line-height:1; pointer-events:none; z-index:5;
+           transition-property:transform; transition-timing-function:cubic-bezier(.2,.7,.35,1); }
+  .flyer.x { color:#e8eaed; }
+  .flyer.o { color:#d9a441; }
+  /* ----- Temi di scacchiera e pezzi (opzione del giocatore, scacchi e dama) -----
+     Ogni tema ridefinisce i colori delle case (csq-* per gli scacchi, dark/light per
+     la dama) e dei pezzi (x/o, flyer compresi). "classico" = i colori di default.
+     I pezzi sono a TINTA PIENA (displayOf usa sempre i glifi pieni): il lato chiaro
+     porta un bordo scuro (text-stroke) che garantisce il contrasto WCAG 2.1
+     (SC 1.4.11, >=3:1) anche sulla casa chiara; il lato scuro contrasta da solo
+     su entrambe le case (rapporti verificati, tutti >=4.5:1 salvo smeraldo 4.47:1). */
+  .t-legno .csq-l, .t-legno .light { background:#f0d9b5; border-color:#f0d9b5; }
+  .t-legno .csq-d, .t-legno .dark  { background:#b58863; border-color:#b58863; }
+  .t-legno .cell.x, .t-legno .flyer.x { color:#f7f1e3;
+    -webkit-text-stroke:2px #2a1d10; paint-order:stroke fill; }
+  .t-legno .cell.o, .t-legno .flyer.o { color:#2b1f14; }
+  .t-smeraldo .csq-l, .t-smeraldo .light { background:#eeeed2; border-color:#eeeed2; }
+  .t-smeraldo .csq-d, .t-smeraldo .dark  { background:#769656; border-color:#769656; }
+  .t-smeraldo .cell.x, .t-smeraldo .flyer.x { color:#fdfdf6;
+    -webkit-text-stroke:2px #1f2a17; paint-order:stroke fill; }
+  .t-smeraldo .cell.o, .t-smeraldo .flyer.o { color:#26261c; }
+  .t-ghiaccio .csq-l, .t-ghiaccio .light { background:#dee3e6; border-color:#dee3e6; }
+  .t-ghiaccio .csq-d, .t-ghiaccio .dark  { background:#8ca2ad; border-color:#8ca2ad; }
+  .t-ghiaccio .cell.x, .t-ghiaccio .flyer.x { color:#ffffff;
+    -webkit-text-stroke:2px #14222b; paint-order:stroke fill; }
+  .t-ghiaccio .cell.o, .t-ghiaccio .flyer.o { color:#1d2b33; }
+  /* ----- Tavolo classico del Backgammon (non tematizzabile: è "quello originale") -----
+     Punte triangolari alternate disegnate come SVG di sfondo (il testo delle pedine
+     resta sempre sopra), campo in legno, barra e uscite dedicate. */
+  .bg-board { background:#5d3a22; border:6px solid #3a2413; border-radius:10px; padding:6px; }
+  .bg-board .cell { border:none; border-radius:0; background:#5d3a22; color:#f3ead9;
+                    background-repeat:no-repeat; background-size:100% 100%; }
+  .bgp-top.bgp-a { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' preserveAspectRatio='none'%3E%3Cpolygon points='0.6,0 9.4,0 5,9.2' fill='%23e8c9a0'/%3E%3C/svg%3E"); }
+  .bgp-top.bgp-b { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' preserveAspectRatio='none'%3E%3Cpolygon points='0.6,0 9.4,0 5,9.2' fill='%23913b28'/%3E%3C/svg%3E"); }
+  .bgp-bot.bgp-a { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' preserveAspectRatio='none'%3E%3Cpolygon points='5,0.8 9.4,10 0.6,10' fill='%23e8c9a0'/%3E%3C/svg%3E"); }
+  .bgp-bot.bgp-b { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' preserveAspectRatio='none'%3E%3Cpolygon points='5,0.8 9.4,10 0.6,10' fill='%23913b28'/%3E%3C/svg%3E"); }
+  .bg-board .bgbar { background:#3a2413; box-shadow:inset 0 0 0 2px #2a1a0d; }
+  .bg-board .bgoff { background:#2c1c10; box-shadow:inset 0 0 0 1px #a97f52; }
+  /* Pedine a tinta piena: bordo di tono opposto per il contrasto (WCAG 2.1) sia
+     sulla punta chiara sia su quella scura/barra. */
+  .bg-board .cell.x, .bg-board .flyer.x { color:#f3ead9;
+    -webkit-text-stroke:1.5px #241708; paint-order:stroke fill; }
+  .bg-board .cell.o, .bg-board .flyer.o { color:#191512;
+    -webkit-text-stroke:1.5px #e8d9bd; paint-order:stroke fill; }
+</style>
