@@ -11,9 +11,12 @@ Regole implementate (variante italiana):
 - una **pedina non può catturare una dama**;
 - la pedina che raggiunge l'ultima traversa diventa **dama** e la mossa termina.
 
-Semplificazioni rispetto al regolamento FID completo: tra catture di pari numero non si
-applicano le priorità fini (preferire la dama, catturare più dame, catturare prima le dame);
-non è gestita la patta per ripetizione. Verranno affinate in seguito.
+Priorità FID complete tra catture (in cascata): 1) massimo numero di pezzi;
+2) a parità, si prende con la DAMA; 3) a parità, il maggior numero di dame;
+4) a parità, la linea che incontra PRIMA una dama; 5) scelta libera.
+Patta per triplice ripetizione della posizione (dichiarata d'ufficio, come negli
+scacchi). Motore dedicato in ``engine.py`` (alpha-beta con approfondimento
+iterativo ed estensione delle catture) al posto del minimax generico.
 """
 
 from __future__ import annotations
@@ -74,11 +77,16 @@ class Draughts(Game):
         return state.current
 
     # ----- Generazione mosse -----
-    def _capture_paths(self, board: tuple, start: int, piece) -> list[list[int]]:
-        player, king = piece
-        results: list[list[int]] = []
+    def _capture_paths(self, board: tuple, start: int, piece) -> list[tuple]:
+        """Percorsi di cattura dal punto ``start``: [(atterraggi, pezzi catturati)].
 
-        def rec(b, sq, king_flag, path):
+        I pezzi catturati (in ordine di presa) servono alle priorità FID: quante
+        dame si prendono e QUANDO le si incontra lungo la linea.
+        """
+        player, king = piece
+        results: list[tuple] = []
+
+        def rec(b, sq, king_flag, path, captured):
             r, c = divmod(sq, SIZE)
             dirs = _ALL4 if king_flag else _FORWARD[player]
             extended = False
@@ -101,22 +109,23 @@ class Draughts(Game):
                 nb[j] = None
                 nb[land] = (player, king_flag or promote)
                 if promote:
-                    results.append(path + [land])  # la promozione termina la mossa
+                    results.append((path + [land], captured + [target]))  # promozione: fine mossa
                 else:
-                    rec(tuple(nb), land, king_flag, path + [land])
+                    rec(tuple(nb), land, king_flag, path + [land], captured + [target])
             if not extended and path:
-                results.append(path)
+                results.append((path, captured))
 
-        rec(board, start, king, [])
+        rec(board, start, king, [], [])
         return results
 
     def _all_captures(self, state: DraughtsState) -> list[tuple]:
+        """Catture possibili: [(mossa, il_pezzo_che_muove_è_dama, pezzi catturati)]."""
         moves = []
         for sq, piece in enumerate(state.board):
             if piece is None or piece[0] != state.current:
                 continue
-            for path in self._capture_paths(state.board, sq, piece):
-                moves.append((sq, *path))
+            for path, captured in self._capture_paths(state.board, sq, piece):
+                moves.append(((sq, *path), piece[1], captured))
         return moves
 
     def _simple_moves(self, state: DraughtsState) -> list[tuple]:
@@ -134,10 +143,29 @@ class Draughts(Game):
 
     def legal_moves(self, state: DraughtsState) -> list[tuple]:
         captures = self._all_captures(state)
-        if captures:
-            best = max(len(p) - 1 for p in captures)  # massimo numero di prese
-            return [p for p in captures if len(p) - 1 == best]
-        return self._simple_moves(state)
+        if not captures:
+            return self._simple_moves(state)
+        # Priorità FID in cascata tra le catture (regolamento tecnico, art. prese):
+        # 1) massimo numero di pezzi catturati;
+        best = max(len(captured) for _m, _k, captured in captures)
+        pool = [c for c in captures if len(c[2]) == best]
+        # 2) a parità, è obbligatorio prendere con la DAMA;
+        if any(is_king for _m, is_king, _c in pool):
+            pool = [c for c in pool if c[1]]
+        # 3) a parità, si prende il maggior numero di dame;
+        max_kings = max(sum(1 for p in captured if p[1]) for _m, _k, captured in pool)
+        pool = [c for c in pool if sum(1 for p in c[2] if p[1]) == max_kings]
+        # 4) a parità, la linea che incontra PRIMA una dama (confronto lessicografico
+        #    sulle posizioni delle dame lungo la presa: prima = indice più basso);
+        if max_kings:
+
+            def king_slots(entry):
+                return tuple(i for i, piece in enumerate(entry[2]) if piece[1])
+
+            first = min(king_slots(c) for c in pool)
+            pool = [c for c in pool if king_slots(c) == first]
+        # 5) a parità residua: scelta libera.
+        return [move for move, _k, _c in pool]
 
     def apply(self, state: DraughtsState, move: tuple) -> DraughtsState:
         board = list(state.board)
@@ -202,14 +230,71 @@ class Draughts(Game):
         ]
 
     def heuristic(self, state: DraughtsState, player: int) -> float:
+        """Materiale + fattori posizionali (usata anche dal motore dedicato):
+
+        - avanzamento delle pedine verso la promozione;
+        - **trincea**: pedine rimaste sulla propria prima traversa (difendono la
+          promozione avversaria);
+        - **centro**: presidio delle case centrali scure.
+        """
         score = 0.0
         for sq, cell in enumerate(state.board):
             if cell is None:
                 continue
             owner, king = cell
+            r, c = divmod(sq, SIZE)
             value = 5.0 if king else 3.0
-            if not king:  # bonus avanzamento verso la promozione
-                r = sq // SIZE
-                value += (7 - r if owner == 0 else r) * 0.1
+            if not king:
+                value += (7 - r if owner == 0 else r) * 0.1  # avanzamento
+                if (owner == 0 and r == 7) or (owner == 1 and r == 0):
+                    value += 0.25  # trincea: la prima traversa difesa vale
+            if 2 <= r <= 5 and 2 <= c <= 5:
+                value += 0.15  # centro
             score += value if owner == player else -value
         return score
+
+    def is_repetition_draw(self, history: list[str]) -> bool:
+        """Patta per TRIPLICE RIPETIZIONE (possibile solo con le dame in campo):
+        si rigioca lo storico e si contano le occorrenze di (scacchiera, tratto).
+        Dichiarata d'ufficio come negli scacchi, per evitare le partite infinite
+        dei finali dama-contro-dama."""
+        if not history or len(history) < 8:
+            return False
+        counts: dict[tuple, int] = {}
+        state = self.initial_state()
+        key = (state.board, state.current)
+        counts[key] = 1
+        for move_id in history:
+            move = next((m for m in self.legal_moves(state) if self.move_id(m) == move_id), None)
+            if move is None:
+                return False  # storico non ricostruibile: nessuna dichiarazione
+            state = self.apply(state, move)
+            key = (state.board, state.current)
+            counts[key] = counts.get(key, 0) + 1
+        return counts[key] >= 3
+
+    def engine_move(
+        self,
+        state: DraughtsState,
+        history=None,
+        time_limit=2.0,
+        max_depth=24,
+        style=None,
+        jitter=0,
+        tt=None,
+        stop=None,
+    ):
+        """Mossa dal motore dedicato (alpha-beta iterativo con estensione catture)."""
+        from . import engine
+
+        return engine.best_move(
+            self,
+            state,
+            time_limit=time_limit,
+            max_depth=max_depth,
+            # Il jitter della piattaforma è in CENTIPEDONI scacchistici (100 = un
+            # pedone); l'euristica della dama vale ~3 per pedina: si riscala.
+            jitter=jitter * 0.03,
+            tt=tt,
+            stop=stop,
+        )

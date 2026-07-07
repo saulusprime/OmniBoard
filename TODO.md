@@ -168,8 +168,17 @@
 
 ## Giochi
 
-- [ ] **Dama**: priorità FID fini tra catture di pari numero (preferire la dama, catturare
-  più dame, prima le dame); patte per ripetizione.
+- [x] **Dama potenziata** — (1) **priorità FID complete** tra catture di pari
+  numero (`_capture_paths` traccia i pezzi presi; cascata in `legal_moves`:
+  massimo pezzi → si prende CON la dama → più dame → la linea che incontra
+  PRIMA una dama → scelta libera); (2) **patta per triplice ripetizione**
+  (`is_repetition_draw`, chiave scacchiera+tratto, dichiarata d'ufficio: chiude
+  i finali dama-contro-dama infiniti); (3) **motore dedicato**
+  (`draughts/engine.py`: alpha-beta negamax + approfondimento iterativo con
+  budget di tempo + **estensione delle catture** contro l'orizzonte + TT +
+  jitter riscalato dai livelli, agganciato al dispatch `engine_move` esistente
+  al posto del minimax generico a profondità 4); (4) euristica con **trincea**
+  e **centro** oltre a materiale e avanzamento.
 - [ ] **Forza 4**: motore dedicato più profondo (bitboard + tabella trasposizioni).
 - [ ] **Nuovi giochi deterministici**: Othello/Reversi, Filetto 3D, Gomoku.
 - [x] **Backgammon** — nodi del caso realizzati: il server tira i dadi (`resolve_chance`),
