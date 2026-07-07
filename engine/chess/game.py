@@ -474,7 +474,17 @@ class Chess(Game):
             )
         return views
 
-    def engine_move(self, state, history=None, time_limit=2.0, max_depth=64, style=None, jitter=0):
+    def engine_move(
+        self,
+        state,
+        history=None,
+        time_limit=2.0,
+        max_depth=64,
+        style=None,
+        jitter=0,
+        tt=None,
+        stop=None,
+    ):
         """Mossa scelta dal motore di ricerca dedicato (alpha-beta + quiescence + TT).
 
         È molto più forte del minimax generico: analizza la scacchiera in profondità
@@ -491,6 +501,8 @@ class Chess(Game):
             max_depth=max_depth,
             style=style,
             jitter=jitter,
+            tt=tt,
+            stop=stop,
         )
 
     # Libro delle aperture indicizzato PER POSIZIONE (costruito pigramente una volta):

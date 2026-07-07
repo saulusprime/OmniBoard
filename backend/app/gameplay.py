@@ -104,6 +104,12 @@ def finish_if_terminal(db: Session, game, session: models.GameSession, state) ->
     db.commit()
 
 
+def _ponder_drop(session_id: int) -> None:
+    from . import ponder
+
+    ponder.drop(session_id)
+
+
 def finish_manual(db: Session, session: models.GameSession, winner: str, reason: str) -> None:
     """Chiusura NON di scacchiera: abbandono («resign») o patta d'accordo («agreement»).
 
@@ -115,6 +121,7 @@ def finish_manual(db: Session, session: models.GameSession, winner: str, reason:
     session.draw_offer = None
     services.finalize_session(db, session)
     db.commit()
+    _ponder_drop(session.id)
 
 
 def opponent_style(db: Session, game, session: models.GameSession):
@@ -458,12 +465,16 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
             budget = max(50, _remaining_ms(session, player) // 10)
             move_think_ms = min(int(think_ms), budget)
             sf_cfg = dict(sf_cfg, move_ms=min(int(sf_cfg["move_ms"]), budget))
+        from . import ponder  # import locale: evita il ciclo gameplay↔ponder
+
         move, source = opponents.choose_move(
             game,
             state,
             history_ids(moves),
             kind=side_kind(session, player),
             provider=provider_for(player),
+            # Pondering: la TT riempita durante il turno dell'umano si riusa qui.
+            tt=ponder.tt_for(session.id),
             # Il preset del livello (Zeus/Atena/…) si applica sopra la base globale,
             # per lato: in IA-vs-IA i due lati possono avere livelli diversi.
             stockfish_cfg=sf_cfg,
@@ -489,6 +500,13 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
         commentary.schedule(session.id)
         last_move_at = time.monotonic()
     finish_if_terminal(db, game, session, state)
+    from . import ponder
+
+    if session.status == "in_progress":
+        # Il turno è passato all'umano: il motore continua a pensare (pondering).
+        ponder.start(db, session)
+    else:
+        ponder.drop(session.id)
 
 
 # ----- Worker in background -----

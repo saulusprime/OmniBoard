@@ -736,12 +736,24 @@ def _past_position_keys(game, state, history):
     return frozenset(keys)
 
 
-def best_move(game, state, history=None, time_limit=2.0, max_depth=64, style=None, jitter=0):
+def best_move(
+    game,
+    state,
+    history=None,
+    time_limit=2.0,
+    max_depth=64,
+    style=None,
+    jitter=0,
+    tt=None,
+    stop=None,
+):
     """Sceglie la miglior mossa per il giocatore al tratto con iterative deepening.
 
     ``jitter`` (centipedoni) sceglie a caso tra le mosse quasi-ottimali alla radice per
-    variare tra partite (0 = deterministico). Ritorna una mossa ``(from, to, promo)``
-    legale, oppure ``None`` se non ce ne sono.
+    variare tra partite (0 = deterministico). ``tt`` inietta una transposition table
+    CONDIVISA (pondering: il lavoro fatto durante il turno avversario resta usabile);
+    ``stop`` è un threading.Event opzionale che interrompe la ricerca dall'esterno.
+    Ritorna una mossa ``(from, to, promo)`` legale, oppure ``None`` se non ce ne sono.
     """
     legal = game.legal_moves(state)
     if not legal:
@@ -752,6 +764,9 @@ def best_move(game, state, history=None, time_limit=2.0, max_depth=64, style=Non
     ctx = SearchContext(
         game=game, deadline=time.monotonic() + time_limit, jitter=max(0, int(jitter))
     )
+    if tt is not None:
+        ctx.tt = tt  # TT condivisa fra ricerche (pondering / stessa sessione)
+    ctx.stop_event = stop
     ctx.root_side = state.current
     ctx.past_keys = _past_position_keys(game, state, history)
     if style:

@@ -97,7 +97,12 @@
   pedone; l'euristica SOSTITUISCE la valutazione del finale). Prova funzionale: da
   KQ vs K il motore matta in ~7 mosse a 0,5 s/mossa. Mini-tablebase rimandata (non
   necessaria coi risultati attuali).
-- [ ] **Pondering** — pensare durante il tempo dell'avversario (richiede la mossa async).
+- [x] **Pondering** (`app/ponder.py`) — durante il turno dell'umano un thread riempie
+  una **TT condivisa per sessione** sulla posizione corrente (niente ponderhit da
+  gestire: qualunque replica beneficia dei sottoalberi); la ricerca vera del worker
+  la riusa (~3× meno nodi a parità di profondità). Ciclo di vita: start a turno
+  umano, stop alla mossa (TT conservata), drop a fine partita; cap 400k voci; solo
+  scacchi umano-vs-motore-locale, gate `ponder.enabled` + async.
 - [ ] **Livelli di difficoltà** selezionabili in partita (tempo/profondità/jitter più alto
   per i principianti), oltre al parametro globale `ai.engine_ms`.
 - [x] **Suggerimento mossa (hint)** — `POST /sessions/{id}/hint` col motore locale a

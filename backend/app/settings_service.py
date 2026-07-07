@@ -107,6 +107,13 @@ SETTINGS_DEFS = [
         "label": "Ritardo minimo tra una mossa e l'altra dell'IA (millisecondi; 0 = nessuno)",
     },
     {
+        "key": "ponder.enabled",
+        "type": "bool",
+        "default": True,
+        "category": "IA",
+        "label": "Pondering: il motore pensa durante il turno dell'umano (scacchi)",
+    },
+    {
         "key": "commentary.enabled",
         "type": "bool",
         "default": True,

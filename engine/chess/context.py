@@ -27,8 +27,12 @@ class SearchContext:
     jitter: int = 0
     root_side: int = 0
     past_keys: frozenset = frozenset()  # posizioni già occorse nella partita (anti-ripetizione)
+    stop_event: object = None  # threading.Event opzionale: stop esterno (pondering)
 
     def tick(self):
         self.nodes += 1
-        if self.allow_timeout and (self.nodes & 1023) == 0 and time.monotonic() > self.deadline:
-            raise TimeUp
+        if self.allow_timeout and (self.nodes & 1023) == 0:
+            if time.monotonic() > self.deadline:
+                raise TimeUp
+            if self.stop_event is not None and self.stop_event.is_set():
+                raise TimeUp
