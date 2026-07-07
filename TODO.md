@@ -203,6 +203,36 @@
 - [x] Confronto `ADMIN_TOKEN` in tempo costante; budget IA-vs-IA limitato.
 
 
+## Statistiche avanzate del giocatore (idee da chess.com «Insights», 2026-07-07)
+
+> Fonte studiata: chess.com/it/news/view/annuncio-statistiche-avanzate (funzione
+> premium «Diamond»; da noi sarebbe GRATIS). Materia prima già in casa: analisi in
+> cache (`analysis_json`), badge di qualità per mossa (`moves_json.quality`),
+> `profile["accuracy"]`, `tc_category` sulle sessioni. Più partite analizzate =
+> insights più ricchi (sinergia col pulsante «Analizza lo storico»).
+
+- [ ] ⭐ **Pagina «Statistiche avanzate»** del giocatore: aggrega le analisi già in
+  cache in un cruscotto dedicato (oggi il profilo mostra solo il riassunto).
+- [ ] **Raccolta «mosse geniali»**: tutte le mosse migliori giocate (badge 🌟) in un
+  archivio consultabile, ognuna linkata alla MOVIOLA sulla posizione esatta; filtri
+  per pezzo/tema (es. «sacrifici di torre»). Prerequisito: nuovo badge 💎 «geniale»
+  (mossa migliore del motore CHE sacrifica materiale — oggi 🌟 non distingue i
+  sacrifici).
+- [ ] **Prestazioni per cadenza**: rendimento e precisione separati per
+  blitz/rapid/classical/FIDE (`tc_category` già persistita per sessione).
+- [ ] **Valutazione per i quattro aspetti del gioco** — aperture, tattica, strategia,
+  finali — calcolabile dalle analisi per fasce di semimosse: aperture = ACPL nelle
+  prime ~12 + rendimento col libro; finali = ACPL da soglia di materiale; tattica =
+  blunder concessi/puniti; strategia = ACPL nelle mosse "quiete" centrali.
+- [ ] **Sottocategorie tattiche**: matti mancati (il motore vedeva `mate` e la mossa
+  giocata non lo dà — dato già in `evaluate()`), pezzi lasciati in presa (perdita ≥
+  valore del pezzo), tipi di tattiche concesse.
+- [ ] **Confronto con i pari fascia**: ogni metrica contestualizzata sui giocatori
+  della stessa fascia («meglio del 70% dei 1400-1600»). Prerequisito: **rating Elo**
+  (già in backlog) + massa di giocatori.
+- [ ] **Punteggio aggregato per categoria con peso alla recency**: le partite recenti
+  contano più delle vecchie (decadimento esponenziale), come i rating.
+
 ## Visione — coaching, community e creator (idee del 2026-07-06, con valutazione)
 
 > Sei proposte analizzate e ordinate per rapporto valore/sforzo. Prima le **primitive
