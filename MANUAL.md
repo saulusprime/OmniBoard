@@ -536,14 +536,19 @@ ancora più aggressiva. Il profilo è consultabile nella scheda del giocatore (p
 ### Regole principali (variante italiana / FID)
 - Le pedine muovono in diagonale in avanti di una casella.
 - La **cattura** avviene saltando una pedina avversaria adiacente con casella libera oltre.
-- La cattura è **obbligatoria**; in caso di scelte multiple valgono le regole di precedenza
-  della variante italiana (es. si deve eseguire la presa che cattura più pezzi).
+- La cattura è **obbligatoria**; tra più prese valgono le **precedenze FID complete**,
+  in cascata: 1) la presa che cattura **più pezzi**; 2) a parità, si prende **con la
+  dama**; 3) a parità, la presa che cattura **più dame**; 4) a parità, la linea che
+  **incontra prima una dama**; 5) a parità residua, scelta libera.
 - Una pedina **non** può catturare una dama (regola tipica della variante italiana).
 - Raggiungendo l'ultima traversa la pedina diventa **dama** e può muovere/catturare anche
   all'indietro.
 
 ### Fine della partita
 Vince chi cattura tutte le pedine avversarie o lascia l'avversario senza mosse legali.
+La **triplice ripetizione** della stessa posizione (possibile solo con le dame in
+campo) è **patta**, dichiarata d'ufficio dal server come negli scacchi: i finali
+dama-contro-dama non durano all'infinito.
 
 ### Come giocarci nell'app
 Dal menu **Gioca** scegli **Dama italiana** e imposta i due lati (umano o IA). Clicca una tua
@@ -552,9 +557,9 @@ casella di arrivo per muovere. Quando è disponibile una **cattura** la mossa è
 l'app propone solo le catture (col massimo numero di prese). Contro l'IA la risposta avversaria
 compare con un breve ritardo.
 
-> Note sull'implementazione attuale: non sono ancora applicate le priorità FID fini tra catture
-> di pari numero (preferire la dama, catturare più dame, prima le dame) né le patte per
-> ripetizione; saranno affinate in seguito.
+L'avversario IA usa un **motore dedicato** (ricerca alpha-beta con approfondimento
+iterativo ed estensione delle catture): rispetta il budget di tempo dei parametri IA
+e i livelli di difficoltà del setup («Motore — Novizio» sbaglia apposta anche a dama).
 
 > Nota: esistono diverse varianti di dama (italiana, inglese/checkers, internazionale).
 > Questa sezione descrive la **dama italiana**; eventuali altre varianti integrate saranno

@@ -5,6 +5,51 @@
 
 ---
 
+## 2026-07-07 — Dama potenziata: priorità FID, ripetizione, motore dedicato
+
+**Richiesta (utente):** potenziamo la dama.
+
+**1. Priorità FID complete sulle catture** (`engine/draughts/game.py`):
+`_capture_paths` ora traccia i PEZZI CATTURATI in ordine di presa; `legal_moves`
+applica la cascata del regolamento tecnico FID: massimo numero di pezzi → a
+parità si prende CON LA DAMA → a parità il maggior numero di dame → a parità la
+linea che incontra PRIMA una dama (confronto lessicografico sulle posizioni
+delle dame lungo la presa) → scelta libera. Invariata la regola «una pedina non
+cattura una dama».
+
+**2. Patta per triplice ripetizione**: `Draughts.is_repetition_draw(history)`
+(chiave scacchiera+tratto, storia rigiocata; prudente su storie non
+ricostruibili). `finish_if_terminal` la usa già per ogni gioco → i finali
+dama-contro-dama non sono più infiniti. Possibile solo con dame in campo (le
+pedine non tornano indietro).
+
+**3. Motore dedicato** (`engine/draughts/engine.py`, NUOVO — si aggancia al
+dispatch `engine_move` di `local.best_move`, al posto del minimax generico a
+profondità fissa 4):
+
+- negamax alpha-beta con **approfondimento iterativo** e budget di tempo (si
+  tiene l'ultima profondità completata);
+- **estensione delle catture**: a profondità 0, finché ci sono prese
+  obbligatorie si continua (tetto −8) — l'orizzonte sulle prese forzate era il
+  difetto principale del minimax generico;
+- TT (scacchiera, tratto) a profondità preferita, SENZA flag alpha/beta
+  (semplificazione dichiarata); `tt`/`stop` compatibili con la catena della
+  piattaforma;
+- **jitter riscalato**: la piattaforma lo esprime in centipedoni scacchistici
+  (100 = un pedone), l'euristica dama vale ~3 a pedina → ×0,03 (i livelli
+  Novizio/Apprendista sbagliano anche a dama, in proporzione).
+
+**4. Euristica arricchita**: oltre a materiale (3/5) e avanzamento, **trincea**
+(+0,25 alle pedine sulla propria prima traversa) e **centro** (+0,15).
+
+**Test (+8, 241 verdi):** le tre priorità FID su posizioni costruite (dama
+obbligata, più dame, dama incontrata prima), pedina-non-cattura-dama invariata,
+ripetizione (2 occorrenze no / 3 sì, storia non ricostruibile mai) su istanza
+con partenza ridefinita, motore: legale e rapido, non regala la presa («shot»),
+domina un greedy a 1 mossa in ≤120 semimosse.
+
+---
+
 ## 2026-07-07 — Riconoscimento del tilt + bias cognitivi misurabili
 
 **Richiesta (utente):** il riconoscimento del tilt e i bias cognitivi.

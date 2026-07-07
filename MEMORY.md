@@ -580,6 +580,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   SOLO opzione admin tilt.block con cooldown 30′) e `profile["biases"]`
   (donna precoce, re in centro, coazione cattura, monotonia apertura; ≥5
   partite/≥40%; scheda giocatore). GM-database resta ricerca. 233 verdi.
+- **2026-07-07** — **Dama potenziata**: priorità FID complete sulle catture
+  (cascata: pezzi → con la dama → più dame → dama prima), triplice ripetizione,
+  motore dedicato `draughts/engine.py` (negamax iterativo + estensione catture,
+  TT, jitter ×0,03) al posto del minimax profondità 4; euristica con trincea e
+  centro. 241 test verdi.
 
 ## Questioni aperte
 
