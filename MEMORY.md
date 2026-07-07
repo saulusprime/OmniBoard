@@ -536,6 +536,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   vantaggio ≥ torre su re quasi nudo) e KPK (quadrato col tempo, pedone di torre,
   re davanti; l'euristica SOSTITUISCE l'eval del finale). Self-play KQvK: matto in
   ~7 mosse. 188 test verdi; nodi identici fuori dai finali.
+- **2026-07-07** — **Pondering**: `ponder.py` — thread che riempie una TT condivisa
+  per sessione durante il turno umano (posizione, non ponderhit); `best_move`
+  accetta `tt=`/`stop=`; start a turno umano, stop alla mossa (TT conservata,
+  ~3× meno nodi), drop a fine partita; cap 400k, gate ponder.enabled+async,
+  solo scacchi vs motore locale. 191 test verdi.
 
 ## Questioni aperte
 

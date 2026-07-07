@@ -36,7 +36,7 @@ def engine_time(think_ms=None) -> float:
     return max(0.05, t / 1000.0)
 
 
-def best_move(game, state, legal, history=None, think_ms=None, jitter=0, style=None):
+def best_move(game, state, legal, history=None, think_ms=None, jitter=0, style=None, tt=None):
     """Miglior mossa del giocatore locale. Ritorna ``(mossa, sorgente)``.
 
     ``sorgente`` ∈ {"engine" (motore dedicato), "local" (minimax generico)}.
@@ -46,7 +46,12 @@ def best_move(game, state, legal, history=None, think_ms=None, jitter=0, style=N
     engine_move = getattr(game, "engine_move", None)
     if callable(engine_move):
         move = engine_move(
-            state, history=history, time_limit=engine_time(think_ms), style=style, jitter=jitter
+            state,
+            history=history,
+            time_limit=engine_time(think_ms),
+            style=style,
+            jitter=jitter,
+            tt=tt,  # TT condivisa dal pondering (se attivo per la sessione)
         )
         if move is not None and move in legal:
             return move, "engine"

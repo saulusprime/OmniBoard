@@ -5,6 +5,35 @@
 
 ---
 
+## 2026-07-07 — Pondering (pensare durante il turno dell'umano)
+
+**Richiesta (utente):** il pondering con la mossa async.
+
+**Design:** invece del ponderhit classico (predire la replica), si pondera LA POSIZIONE:
+durante il turno dell'umano un thread cerca sulla posizione corrente riempiendo una
+**transposition table condivisa per sessione**; qualunque mossa l'umano scelga, la
+ricerca vera del worker riparte con i sottoalberi già valutati.
+
+**Implementazione:**
+
+- Motore: `best_move(..., tt=None, stop=None)` — TT iniettabile e `threading.Event` di
+  stop controllato in `tick()` (catena `engine_move` → `local.best_move` →
+  `choose_move`, parametro `tt` fino al dispatcher).
+- **`app/ponder.py`**: store per sessione {tt, stop, thread}; `start` quando il worker
+  IA finisce e il turno passa all'umano (solo scacchi, un solo lato IA di tipo «ai» —
+  Stockfish e provider esclusi —, `ponder.enabled`, async attivo; con AI_ASYNC=0 no-op);
+  `stop` all'arrivo della mossa umana in `make_move` (la TT SOPRAVVIVE per la ricerca
+  vera); `drop` a partita finita (`finish_manual`, fine del worker) libera la memoria.
+  Pensata max 60 s; cap TT 400k voci (oltre: reset).
+- `advance_ai` passa `tt=ponder.tt_for(session.id)` a `choose_move`.
+
+**Test (+3, 191 verdi):** TT condivisa → seconda ricerca < ⅓ dei nodi; stop pre-armato
+→ uscita < 2 s con mossa legale (depth 1 garantita); ciclo di vita completo su sessione
+vera (start/active/stop con TT conservata/drop) + esclusioni via finti oggetti-sessione
+(il primo test creava una partita IA-vs-IA SINCRONA: 132 s → riscritto, 1,9 s).
+
+---
+
 ## 2026-07-07 — Finali: mop-up e riconoscimento KPK
 
 **Richiesta (utente):** la voce TODO «Finali».

@@ -32,6 +32,7 @@ def choose_move(
     think_ms=None,
     jitter=0,
     style=None,
+    tt=None,
 ):
     """Sceglie una mossa legale per il lato IA di tipo ``kind``. Ritorna (mossa, sorgente).
 
@@ -65,5 +66,5 @@ def choose_move(
 
     # Ripiego (o gioco diretto quando non c'è nulla di configurato): giocatore locale.
     return local.best_move(
-        game, state, legal, history=history, think_ms=think_ms, jitter=jitter, style=style
+        game, state, legal, history=history, think_ms=think_ms, jitter=jitter, style=style, tt=tt
     )

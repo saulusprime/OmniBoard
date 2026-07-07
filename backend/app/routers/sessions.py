@@ -27,6 +27,7 @@ from .. import (
     gifexport,
     models,
     opponents,
+    ponder,
     schemas,
     settings_service,
     user_prefs,
@@ -283,6 +284,7 @@ def make_move(
     session = db.get(models.GameSession, session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Sessione non trovata")
+    ponder.stop(session_id)  # l'umano ha mosso: si smette di ponderare (TT conservata)
 
     game = get_game(session.game.code)
     # Nodi del caso: se i dadi sono ancora da tirare, si tirano ora (server-side).
