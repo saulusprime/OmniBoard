@@ -5,6 +5,32 @@
 
 ---
 
+## 2026-07-07 — Finali: mop-up e riconoscimento KPK
+
+**Richiesta (utente):** la voce TODO «Finali».
+
+**Implementazione (in `evaluate()`):**
+
+- **Mop-up** (attivo quando un lato ha ≥ una torre di vantaggio e l'avversario è quasi
+  nudo): `8·dist_centro×2(re perdente) + 5·(14 − Manhattan fra i re)` — ogni passo del
+  re perdente verso il bordo vale ±16 cp e domina il rumore posizionale: il matto
+  arriva anche quando sta OLTRE l'orizzonte di ricerca.
+- **KPK** (re+pedone contro re): regola del QUADRATO con il tempo (pedone imprendibile
+  → ~750+), pedone di TORRE col difensore nell'angolo (→ ~20, patta da manuale), re
+  difensore davanti al pedone (→ ~30), altrimenti vantaggio moderato crescente con
+  l'avanzata e l'appoggio del proprio re. Lezione emersa: l'euristica deve
+  **SOSTITUIRE** la valutazione accumulata (che conterebbe il pedone anche nelle
+  patte), non sommarsi.
+- Mini-tablebase: rimandata — non necessaria coi risultati funzionali attuali.
+
+**Test (+3, 188 verdi):** regola del quadrato / re davanti / pedone di torre sui FEN;
+mop-up (re nero all'angolo coi re vicini > re al centro); prova FUNZIONALE: self-play
+KQ vs K → matto in ~14 semimosse a 0,5 s/mossa, stabile su 3 esecuzioni (prima
+versione a 0,3 s e pesi 6/4 rimescolava: pesi alzati e budget realistico). Benchmark
+di regressione: nodi IDENTICI fuori dai finali.
+
+---
+
 ## 2026-07-07 — Potenziamenti di ricerca del motore (SEE, PVS, aspiration, futility)
 
 **Richiesta (utente):** la voce TODO «Potenziamenti di ricerca».

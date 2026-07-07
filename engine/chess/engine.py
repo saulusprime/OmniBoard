@@ -19,6 +19,9 @@ Tecniche implementate (tutte in puro Python, sopra le regole di ``game.py``):
   completo (swap con raggi X) vengono potate; il delta pruning resta per il resto.
 - **Futility pruning** ai nodi frontiera: a profondità 1, se la valutazione statica più
   un margine non raggiunge alpha, le mosse quiete che non danno scacco si saltano.
+- **Finali**: *mop-up* (con vantaggio schiacciante il re avversario va spinto al bordo e
+  il proprio re avvicinato: il matto arriva anche oltre l'orizzonte di ricerca) e
+  riconoscimento **KPK** (regola del quadrato, pedone di torre, re davanti al pedone).
 - **Valutazione**: materiale + tabelle posizionali (piece-square) per fase di gioco,
   struttura pedonale (pedoni doppiati/isolati/passati), coppia degli alfieri, torri su
   colonna aperta, sicurezza del re (scudo pedonale), tempo.
@@ -142,6 +145,59 @@ _TK = {
 _VAL_C = {c: _VAL[c.upper()] for c in "PNBRQKpnbrqk"}
 
 
+# ----- Finali: euristiche dedicate -----
+def _mopup(winner_k, loser_k):
+    """Mop-up: col vantaggio schiacciante si SPINGE il re avversario al bordo.
+
+    Premia il re perdente lontano dal centro e i re vicini tra loro (il matto
+    con donna/torre richiede l'appoggio del proprio re): senza questo termine
+    il motore, oltre il suo orizzonte di ricerca, "rimescola" senza piano.
+    """
+    lr, lc = divmod(loser_k, 8)
+    wr, wc = divmod(winner_k, 8)
+    dist_center2 = abs(2 * lr - 7) + abs(2 * lc - 7)  # 2..14 (×2 per restare interi)
+    kings_md = abs(lr - wr) + abs(lc - wc)  # distanza Manhattan fra i re
+    # Pesi decisi: ogni passo del re perdente verso il bordo (±2 su dist_center2)
+    # deve dominare il rumore posizionale (PST/tempo ~ ±30 cp).
+    return 8 * dist_center2 + 5 * (14 - kings_md)
+
+
+def _kpk_white(pawn_sq, wk, bk, white_to_move):
+    """Euristica del finale RE+PEDONE contro RE (pedone bianco), lato bianco.
+
+    Riconosce i casi classici SENZA tablebase: regola del quadrato (pedone
+    imprendibile → vinto), pedone di torre col re difensore nell'angolo
+    (patta), re difensore piantato davanti al pedone (tendente alla patta);
+    negli altri casi un vantaggio moderato che cresce con l'avanzata e con
+    l'appoggio del proprio re. È un'euristica dichiarata, non una dimostrazione.
+    """
+    r, c = divmod(pawn_sq, 8)
+    steps = r - 1 if r == 6 else r  # dalla traversa iniziale vale il doppio passo
+    # Pedone di torre: se il difensore presidia l'angolo di promozione è patta.
+    if c in (0, 7) and max(bk // 8, abs(bk % 8 - c)) <= 1:
+        return 20
+    # Regola del quadrato: il re difensore non arriva sul pedone → promozione.
+    defender_dist = max(bk // 8, abs(bk % 8 - c))  # Chebyshev alla casa di promozione
+    tempo = 0 if white_to_move else 1
+    if defender_dist - tempo > steps:
+        return 750 + (6 - steps) * 30
+    # Re difensore davanti al pedone, sulla stessa colonna: difesa da manuale.
+    if bk % 8 == c and bk // 8 < r:
+        return 30
+    support = max(abs(wk // 8 - r), abs(wk % 8 - c))  # re attaccante vicino al pedone
+    return 150 + (6 - steps) * 25 - 8 * support
+
+
+_FLIP = [(7 - (sq // 8)) * 8 + (sq % 8) for sq in range(64)]
+
+
+def _kpk(pawn_sq, pawn_is_white, wk, bk, side_to_move):
+    """KPK dal punto di vista del BIANCO (specchia il caso del pedone nero)."""
+    if pawn_is_white:
+        return _kpk_white(pawn_sq, wk, bk, side_to_move == WHITE)
+    return -_kpk_white(_FLIP[pawn_sq], _FLIP[bk], _FLIP[wk], side_to_move != WHITE)
+
+
 # ----- Valutazione -----
 def _is_endgame(npm_w, npm_b):
     # Finale: poco materiale pesante per entrambi (≈ assenza di donne / pochi pezzi).
@@ -240,6 +296,19 @@ def evaluate(game, state, ctx=None):
     aggr = ctx.aggression if ctx else 1.0
     white += int(_king_safety(board, wk, wp_files, WHITE) * aggr)
     white -= int(_king_safety(board, bk, bp_files, 1 - WHITE) * aggr)
+
+    # ----- Finali (vedi _mopup/_kpk): attivi solo nelle configurazioni giuste -----
+    if wk is not None and bk is not None:
+        if npm_b == 0 and not bp and npm_w >= 500:
+            white += _mopup(wk, bk)  # il bianco domina un re (quasi) nudo
+        elif npm_w == 0 and not wp and npm_b >= 500:
+            white -= _mopup(bk, wk)
+        elif npm_w == 0 and npm_b == 0 and len(wp) + len(bp) == 1:
+            # KPK: l'euristica CARATTERIZZA l'intero finale — sostituisce la
+            # valutazione accumulata (che conterebbe il pedone anche nelle
+            # posizioni di patta da manuale).
+            pawn_white = bool(wp)
+            white = _kpk((wp or bp)[0], pawn_white, wk, bk, state.current)
 
     rel = white if state.current == WHITE else -white
     return rel + _TEMPO

@@ -91,8 +91,12 @@
   fail), **futility pruning** a depth 1 (statico+150 ≤ alpha → quiete saltate, mai la
   prima legale né gli scacchi). Misurato a profondità 6: −36/−62/−65% di tempo su
   iniziale/mediogioco/tattica, stesse mosse e stessi punteggi.
-- [ ] **Finali**: euristica "mop-up" (spingere il re avversario al bordo con materiale di
-  vantaggio), riconoscimento KPK; eventuale mini-tablebase.
+- [x] **Finali** — *mop-up* (con vantaggio schiacciante: re avversario spinto al bordo
+  + re propri avvicinati, pesi 8/5 che dominano il rumore posizionale) e riconoscimento
+  **KPK** (regola del quadrato con tempo, pedone di torre in angolo, re davanti al
+  pedone; l'euristica SOSTITUISCE la valutazione del finale). Prova funzionale: da
+  KQ vs K il motore matta in ~7 mosse a 0,5 s/mossa. Mini-tablebase rimandata (non
+  necessaria coi risultati attuali).
 - [ ] **Pondering** — pensare durante il tempo dell'avversario (richiede la mossa async).
 - [ ] **Livelli di difficoltà** selezionabili in partita (tempo/profondità/jitter più alto
   per i principianti), oltre al parametro globale `ai.engine_ms`.

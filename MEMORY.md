@@ -532,6 +532,10 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   aspiration windows (±50 cp, fail→ricerca piena, jitter-safe), futility a depth 1
   (statico+150, prima legale sempre cercata). Prof. 6: −36/−62/−65% di tempo,
   stesse mosse/punteggi. 185 test verdi (SEE su scambi noti, matto, donna salva).
+- **2026-07-07** — **Finali**: mop-up (8·dist_centro + 5·vicinanza re, attivo con
+  vantaggio ≥ torre su re quasi nudo) e KPK (quadrato col tempo, pedone di torre,
+  re davanti; l'euristica SOSTITUISCE l'eval del finale). Self-play KQvK: matto in
+  ~7 mosse. 188 test verdi; nodi identici fuori dai finali.
 
 ## Questioni aperte
 
