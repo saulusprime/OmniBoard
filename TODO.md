@@ -115,7 +115,14 @@
   (negato oltre `hints.max_wins` vittorie nel gioco), mai nel **formato FIDE** (e nei
   futuri tornei/campionati), col token del giocatore al tratto nei remote; pulsante 💡
   in partita con mossa evidenziata.
-- [ ] **Export PGN / import FEN** dall'interfaccia.
+- [x] **Export PGN / import FEN** dall'interfaccia — «📄 Esporta PGN» in partita
+  (`GET /sessions/{id}/pgn`: tag standard, mosse in SAN dal nuovo scrittore
+  `pgn.uci_to_san`/`san_line`, note dei giocatori come commenti `{…}`, tag
+  `SetUp`/`FEN` e numerazione `1...` nelle partite da FEN); campo «Posizione
+  iniziale FEN» al setup (colonna `start_fen`, migrazione 0007) — validata dal
+  motore (re, scacco al lato senza tratto, posizione non conclusa), normalizzata
+  con `to_fen`; replay/analisi/commento/Stockfish/ripetizioni ripartono tutti
+  dalla FEN (helper unico `stockfish.uci_position`). X resta il Bianco.
 
 ## IA e provider remoti
 

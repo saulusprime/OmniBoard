@@ -413,6 +413,9 @@ def play_setup(request):
                     if form.cleaned_data.get("time_base_min"):
                         data["time_base_min"] = form.cleaned_data["time_base_min"]
                     data["time_inc_s"] = form.cleaned_data.get("time_inc_s") or 0
+                # Posizione iniziale FEN (solo scacchi): la valida il backend.
+                if form.cleaned_data.get("start_fen", "").strip():
+                    data["start_fen"] = form.cleaned_data["start_fen"].strip()
                 try:
                     session = api.create_session(data)
                     return redirect("play", session_id=session["id"])

@@ -546,6 +546,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   jitter crescente (0→300 cp); scavalcano il provider remoto; stessa colonna
   `*_ai_level` (no migrazione); voci «Motore — …» al setup; livelli deboli esclusi
   dal pondering. 197 test verdi.
+- **2026-07-07** — **Export PGN + import FEN**: scrittore SAN nel motore
+  (`pgn.uci_to_san`/`san_line`), `GET /sessions/{id}/pgn` (tag, SAN, note come
+  `{…}`, SetUp/FEN); colonna `start_fen` (migrazione 0007) validata/normalizzata,
+  campo FEN al setup; replay/analisi/commento/Stockfish/ripetizione ripartono
+  dalla FEN (`stockfish.uci_position` unico). X = Bianco sempre. 208 test verdi.
 
 ## Questioni aperte
 

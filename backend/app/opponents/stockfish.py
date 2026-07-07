@@ -108,7 +108,17 @@ def is_available(cfg: dict) -> bool:
     return bool(path) and os.path.isfile(path) and os.access(path, os.X_OK)
 
 
-def best_move(game, state, history, cfg):
+def uci_position(history, start_fen: str | None = None) -> str:
+    """Comando UCI ``position`` dallo storico, con eventuale partenza da FEN.
+
+    Punto unico per tutte le trasmissioni di posizione (mosse, analisi, commento):
+    nelle partite da FEN lo storico NON parte da startpos.
+    """
+    base = f"fen {start_fen}" if start_fen else "startpos"
+    return f"position {base} moves {' '.join(history)}" if history else f"position {base}"
+
+
+def best_move(game, state, history, cfg, start_fen: str | None = None):
     """Mossa scelta da Stockfish; ``None`` se non disponibile o in errore.
 
     Funziona solo per gli scacchi (protocollo UCI); per gli altri giochi ritorna
@@ -119,8 +129,8 @@ def best_move(game, state, history, cfg):
     if getattr(game, "code", "") != "chess" or not is_available(cfg):
         return None
 
-    if history:
-        position = f"position startpos moves {' '.join(history)}"
+    if history or start_fen:
+        position = uci_position(history, start_fen)
     else:
         position = f"position fen {game.to_fen(state)}"
 

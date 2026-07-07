@@ -95,24 +95,28 @@ def _tag_and_comment(db, session, moves: list, ply: int) -> None:
     cfg = dict(cfg, elo=0, skill_level=20)
     cfg["move_ms"] = int(settings_service.get(db, "stockfish.analysis_ms"))
     history = history_ids(moves)
-    mover_white = (ply - 1) % 2 == 0
+    # Partite da FEN: la parità segue il tratto iniziale e le posizioni UCI
+    # ripartono dalla FEN (mai da startpos).
+    start_fen = session.start_fen
+    start_white = not (start_fen and start_fen.split()[1] == "b")
+    mover_white = ((ply - 1) % 2 == 0) == start_white
 
     # Valutazione PRIMA della mossa: memoizzata dalla mossa precedente, oppure
     # ricalcolata (prima mossa della partita ≈ pari, nessuna ricerca in più).
     cached = _last_eval.get(session.id)
     if cached and cached[0] == ply - 1:
         cp_before, best_before = cached[1], cached[2]
-    elif ply == 1:
+    elif ply == 1 and not start_fen:
         cp_before, best_before = 0, None
     else:
-        prefix = f"position startpos moves {' '.join(history[:-1])}"
+        prefix = stockfish.uci_position(history[:-1], start_fen)
         ev = stockfish._ENGINE.evaluate(cfg, prefix)
         if ev is None:
             return
         cp_before = _white_cp(ev, white_to_move=mover_white)
         best_before = ev.get("best")
 
-    ev_after = stockfish._ENGINE.evaluate(cfg, f"position startpos moves {' '.join(history)}")
+    ev_after = stockfish._ENGINE.evaluate(cfg, stockfish.uci_position(history, start_fen))
     if ev_after is None:
         return
     cp_after = _white_cp(ev_after, white_to_move=not mover_white)

@@ -200,6 +200,9 @@ class SessionCreate(BaseModel):
     time_category: Optional[str] = None
     time_base_min: Optional[int] = None
     time_inc_s: int = 0
+    # Posizione iniziale personalizzata (FEN, solo scacchi): la partita parte da
+    # qui invece che dalla posizione standard. Validata alla creazione sessione.
+    start_fen: Optional[str] = None
 
 
 class MoveIn(BaseModel):

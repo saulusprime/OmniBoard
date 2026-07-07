@@ -142,13 +142,25 @@ passaggio del mouse). Se un **provider IA è attivo**, il widget «🎙️ Comme
 una battuta in italiano sulle ultime mosse — il modello COMMENTA, non gioca. Interruttori
 nella categoria IA («Badge di qualità sulle mosse», «Commentatore LLM»).
 
+### Partire da una posizione (FEN)
+Al setup di una partita di scacchi puoi incollare una **FEN** nel campo «Posizione
+iniziale»: la partita parte da lì (studio di un finale, sparring su una posizione,
+riprendere una partita famosa). La posizione viene **validata dal motore** (devono
+esserci i due re, il giocatore senza il tratto non può essere sotto scacco, la
+posizione non può essere già conclusa). **X resta il Bianco**: se la FEN dà il
+tratto al Nero, la prima mossa spetta al lato O. Moviola, analisi, commento,
+Stockfish e patta per ripetizione ripartono tutti dalla posizione data.
+
 ### Moviola, note, analisi post-partita ed export GIF
 A partita conclusa, sotto il log delle mosse compare la **Moviola**: con ⏮ ◀ ▶ ⏭ (o
 cliccando una mossa nel log) ti muovi avanti e indietro nel tempo di gioco, posizione per
 posizione. Su ogni mossa puoi scrivere una **nota** («💾 Salva nota»): le note vengono
 salvate **dentro lo storico della partita** e ricompaiono nella moviola e nella scheda
 del giocatore. Con «🎞️ Esporta GIF» scarichi l'**intera partita come GIF animata** (un
-fotogramma per posizione; scacchi, dama, Tris e Forza 4).
+fotogramma per posizione; scacchi, dama, Tris e Forza 4). Negli scacchi «📄 **Esporta
+PGN**» scarica la partita in formato **PGN standard** (tag `White`/`Black`/`Result`,
+mosse in notazione algebrica SAN, le tue note come commenti `{…}`): si apre con
+qualunque programma di scacchi. Le partite iniziate da FEN hanno i tag `SetUp`/`FEN`.
 
 Negli scacchi c'è anche «🔬 **Analizza la partita**»: Stockfish valuta ogni posizione e
 marca gli errori nel log — **??** blunder (≥ 2 pedoni persi), **?** errore (≥ 1),

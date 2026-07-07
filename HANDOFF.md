@@ -5,6 +5,47 @@
 
 ---
 
+## 2026-07-07 — Export PGN e import FEN dall'interfaccia
+
+**Richiesta (utente):** Export PGN / import FEN dall'interfaccia.
+
+**Export PGN** — `GET /sessions/{id}/pgn` (solo scacchi, allegato `partita-N.pgn`):
+tag standard (`Event` dal nome del sito, `White`/`Black` da alias o etichetta del
+lato IA, `Result` dal vincitore), mosse in **SAN** e note dei giocatori come
+commenti `{…}`. Il motore ha ora lo SCRITTORE SAN (`engine/chess/pgn.py`):
+`uci_to_san` (disambiguazione minima file→traversa→entrambe, arrocco, en passant,
+promozione, `+`/`#` dallo stato successivo) e `san_line` (dalla posizione standard
+o da FEN; si ferma al primo storico non ricostruibile — mai un movetext corrotto).
+Round-trip garantito col parser esistente (`san_to_uci`). Pulsante «📄 Esporta
+PGN» in partita accanto alla GIF.
+
+**Import FEN** — campo «Posizione iniziale FEN» al setup (solo scacchi): colonna
+`game_sessions.start_fen` (**migrazione 0007**), validazione col motore (due re,
+lato senza tratto non in scacco, posizione non conclusa), FEN **normalizzata** con
+`to_fen` prima del salvataggio. X resta il Bianco: col tratto al Nero la prima
+mossa spetta a O. Tutto il mondo post-mossa riparte dalla FEN:
+
+- `_replay_boards` (moviola/GIF) e l'export PGN (tag `SetUp`/`FEN`, numerazione
+  `1...`);
+- **analisi** e **commento**: posizioni UCI via nuovo helper unico
+  `stockfish.uci_position(history, start_fen)` e parità delle semimosse dal
+  tratto iniziale (il Nero può muovere per primo); l'analisi valuta anche la
+  posizione di partenza (non è ≈ 0 come la standard);
+- **Stockfish avversario**: `choose_move`/`stockfish.best_move` ricevono
+  `start_fen` (mai più `startpos + moves` fuori posto);
+- **ripetizione**: `is_repetition_draw(history, start_fen=…)` nel motore;
+  l'anti-ripetizione della ricerca resta prudente (set vuoto se lo storico non
+  riproduce lo stato — comportamento già esistente).
+
+**Test (+11, 208 verdi):** scrittore SAN (matto del barbiere, arrocco, en passant,
+promozione con scacco, disambiguazioni file/traversa, round-trip col parser,
+prefisso valido da FEN), PGN completo con nota `{…}`, PGN solo-scacchi 400,
+creazione da FEN + replay a 3 pezzi, validazioni FEN (malformata/re mancante/
+scacco illegale/gioco sbagliato), PGN da FEN col Nero al tratto (`1... Qh1+`),
+helper `uci_position`.
+
+---
+
 ## 2026-07-07 — Livelli di difficoltà del motore locale
 
 **Richiesta (utente):** i livelli di difficoltà.

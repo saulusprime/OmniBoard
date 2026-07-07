@@ -106,6 +106,8 @@
         <p style="margin-top:10px;">
           {% if s.game_code == 'chess' %}
           <button class="btn" id="btn-analyze" type="button">🔬 Analizza la partita</button>
+          <a class="btn secondary" id="pgn-link"
+             href="{{ backend_url }}/sessions/{{ s.id }}/pgn" download>📄 Esporta PGN</a>
           {% endif %}
           {% if s.move_type != 'backgammon' %}
           <a class="btn secondary" id="gif-link"

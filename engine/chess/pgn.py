@@ -93,6 +93,71 @@ def _sq(coord: str) -> int:
     return (8 - int(coord[1])) * 8 + (ord(coord[0]) - ord("a"))
 
 
+def uci_to_san(game, state, uci: str) -> str | None:
+    """SAN di una mossa UCI legale nello stato dato (inverso di ``san_to_uci``).
+
+    Disambiguazione minima da standard PGN: file se basta, poi traversa, poi
+    entrambe. Scacco ``+`` e matto ``#`` letti dallo stato successivo.
+    """
+    legal = {game.move_id(m): m for m in game.legal_moves(state)}
+    move = legal.get(uci)
+    if move is None:
+        return None
+    frm, to, promo = uci[:2], uci[2:4], uci[4:]
+    piece = (state.board[_sq(frm)] or "").upper()
+    # Cattura: casa di arrivo occupata, o pedone che cambia colonna (en passant).
+    capture = state.board[_sq(to)] is not None or (piece == "P" and frm[0] != to[0])
+
+    if piece == "K" and frm[0] == "e" and abs(ord(to[0]) - ord(frm[0])) == 2:
+        san = "O-O" if to[0] == "g" else "O-O-O"
+    elif piece == "P":
+        san = (frm[0] + "x" if capture else "") + to
+        if promo:
+            san += "=" + promo.upper()
+    else:
+        # Altri pezzi UGUALI che possono raggiungere la stessa casa: serve il minimo
+        # indizio sulla partenza che renda la mossa univoca.
+        twins = [
+            u
+            for u in legal
+            if u != uci and u[2:4] == to and (state.board[_sq(u[:2])] or "").upper() == piece
+        ]
+        hint = ""
+        if twins:
+            if all(u[0] != frm[0] for u in twins):
+                hint = frm[0]
+            elif all(u[1] != frm[1] for u in twins):
+                hint = frm[1]
+            else:
+                hint = frm
+        san = piece + hint + ("x" if capture else "") + to
+
+    nxt = game.apply(state, move)
+    if game._in_check(nxt, nxt.current):
+        # Sotto scacco senza mosse legali = matto (lo stallo non è sotto scacco).
+        san += "#" if game.is_terminal(nxt) else "+"
+    return san
+
+
+def san_line(game, history, start_fen: str | None = None) -> list[str]:
+    """Lista di SAN dallo storico UCI (dalla posizione iniziale o da una FEN).
+
+    Si ferma alla prima mossa non ricostruibile: il prefisso valido è comunque
+    un PGN corretto (mai un movetext corrotto).
+    """
+    state = game.from_fen(start_fen) if start_fen else game.initial_state()
+    sans: list[str] = []
+    for uci in history:
+        san = uci_to_san(game, state, uci)
+        if san is None:
+            break
+        sans.append(san)
+        state = game.apply(
+            state, next(m for m in game.legal_moves(state) if game.move_id(m) == uci)
+        )
+    return sans
+
+
 def parse_pgn(game, text: str, max_plies: int = 16) -> list[tuple[str, list[str]]]:
     """Estrae dal PGN una linea di libro per partita: (nome, prefisso di mosse UCI).
 

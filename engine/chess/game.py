@@ -575,7 +575,7 @@ class Chess(Game):
                 return move
         return None
 
-    def is_repetition_draw(self, history) -> bool:
+    def is_repetition_draw(self, history, start_fen: str | None = None) -> bool:
         """Patta per TRIPLICE RIPETIZIONE: la posizione corrente (dopo l'ultima
         mossa dello storico) si è già presentata almeno tre volte.
 
@@ -587,7 +587,7 @@ class Chess(Game):
         if not history or len(history) < 8:  # servono almeno 4 mosse per parte
             return False
         counts: dict[tuple, int] = {}
-        state = self.initial_state()
+        state = self.from_fen(start_fen) if start_fen else self.initial_state()
         key = (state.board, state.current, state.castling, state.ep)
         counts[key] = 1
         for uci in history:

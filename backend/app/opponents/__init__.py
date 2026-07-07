@@ -33,6 +33,7 @@ def choose_move(
     jitter=0,
     style=None,
     tt=None,
+    start_fen=None,
 ):
     """Sceglie una mossa legale per il lato IA di tipo ``kind``. Ritorna (mossa, sorgente).
 
@@ -56,7 +57,7 @@ def choose_move(
             return book, "book"
 
     if kind == "stockfish":
-        move = stockfish.best_move(game, state, history, stockfish_cfg)
+        move = stockfish.best_move(game, state, history, stockfish_cfg, start_fen=start_fen)
         if move is not None and move in legal:
             return move, "stockfish"
     elif provider:  # kind "ai": l'avversario è il modello remoto scelto dal super admin
