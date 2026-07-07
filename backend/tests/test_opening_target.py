@@ -61,9 +61,12 @@ def test_dispatcher_passes_targets_from_style(tmp_path, monkeypatch):
 
 def test_opponent_style_carries_weakest_openings(monkeypatch):
     """Il profilo dell'avversario umano alimenta lo stile con le aperture-bersaglio."""
+    from app import profile_cache
+
+    # opponent_style ora passa dalla cache del profilo: si finge quel livello.
     monkeypatch.setattr(
-        gameplay.chess_profile,
-        "build_profile",
+        profile_cache,
+        "get",
         lambda db, uid: {
             "style": {"aggression": 0.2, "contempt": 10},
             "weakest_openings": ["Difesa Siciliana", "Gambetto di Donna"],

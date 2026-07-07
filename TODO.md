@@ -154,7 +154,12 @@
   Chiave: `TOKENS_KEY` in `.env` (consigliata in produzione) o derivata da
   `ADMIN_TOKEN` (PBKDF2); chiave cambiata → token illeggibile = assente, con
   badge «da reinserire» nella pagina Provider IA (mai eccezioni).
-- [ ] **Cache del profilo avversario** con TTL (oggi ricostruito a ogni mossa umana).
+- [x] **Cache del profilo avversario** (`app/profile_cache.py`) — una copia per
+  giocatore in memoria, consultata da `opponent_style` (ogni mossa dell'IA) e
+  dall'endpoint `/users/{id}/chess-profile`. **Invalidazione a eventi** (fine
+  partita di scacchi in `finalize_session`, analisi scritta in `analysis`) +
+  TTL di sicurezza `profile.cache_ttl_s` (default 300s; 0 = disattivata). Il
+  dict è condiviso: trattato come immutabile (i chiamanti copiano).
 - [x] **LLM come commentatore + badge di qualità** — `app/commentary.py`: dopo ogni mossa
   di scacchi Stockfish classifica (🌟 da maestro, 👍 buona, ⚔️ aggressiva, 🐔 codarda,
   🤔 imprecisa, 😬 errore, 🤡 blunder; simbolino in alto a destra del pezzo mosso) e il

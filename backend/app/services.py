@@ -74,3 +74,12 @@ def finalize_session(db: Session, session: "models.GameSession") -> None:
         from . import ai_arena
 
         ai_arena.record_result(db, session)
+
+    # La partita conclusa cambia il profilo scacchistico dei giocatori umani:
+    # si butta la voce in cache (ricostruita al prossimo uso).
+    if session.game and session.game.code == "chess":
+        from . import profile_cache
+
+        for uid in (x_uid, o_uid):
+            if uid:
+                profile_cache.invalidate(uid)

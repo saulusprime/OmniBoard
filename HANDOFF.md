@@ -5,6 +5,37 @@
 
 ---
 
+## 2026-07-07 — Cache del profilo avversario
+
+**Richiesta (utente):** cache del profilo avversari.
+
+**Problema:** `chess_profile.build_profile` (fino a 200 sessioni + parse delle
+analisi) girava a OGNI mossa dell'IA nelle partite umano-vs-IA (`opponent_style`)
+e a ogni visita della scheda giocatore.
+
+**Soluzione** (`app/profile_cache.py`): una copia per giocatore in memoria
+(lock: worker IA e richieste su thread diversi), con doppia scadenza:
+
+- **invalidazione a eventi** — il profilo cambia solo in due punti, che ora
+  chiamano `invalidate(user_id)`: `services.finalize_session` (partita di
+  scacchi conclusa, entrambi i giocatori umani) e `analysis._run` (analisi
+  scritta → accuracy/debolezze nuove);
+- **TTL di sicurezza** `profile.cache_ttl_s` (default 300s; 0 = cache
+  disattivata) per ogni percorso di scrittura non previsto.
+
+Chiamanti aggiornati: `gameplay.opponent_style` e l'endpoint
+`/users/{id}/chess-profile` (stessa freschezza per l'IA e per la pagina). Il
+dict restituito è CONDIVISO e va trattato come immutabile (`opponent_style` già
+copia ciò che adatta).
+
+**Test (+3, 222 verdi):** riuso (contatore su build_profile, stessa istanza),
+TTL 0 = nessuna cache, integrazione «la scheda si aggiorna appena la partita
+finisce» (senza invalidazione vedrebbe la copia vecchia). Adeguato
+test_opening_target: il monkeypatch dello stile passa da `profile_cache.get`
+(nuovo livello di aggancio) invece che da `build_profile`.
+
+---
+
 ## 2026-07-07 — Circuit breaker dei provider + cifratura dei token
 
 **Richiesta (utente):** circuit breaker e cifratura dei token provider.

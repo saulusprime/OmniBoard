@@ -566,6 +566,10 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   list_providers + badge admin) e `token_crypto.py` (Fernet `enc:…` stessa
   colonna, chiave TOKENS_KEY o derivata da ADMIN_TOKEN via PBKDF2, migrazione
   lazy al seed, key_unreadable in lista). Dep nuova `cryptography`. 219 verdi.
+- **2026-07-07** — **Cache profilo avversario**: `profile_cache.py` (copia per
+  giocatore, invalidazione a eventi in finalize_session/analysis + TTL
+  `profile.cache_ttl_s` 300s, 0=off; usata da opponent_style e dall'endpoint
+  profilo; dict condiviso = immutabile). 222 test verdi.
 
 ## Questioni aperte
 

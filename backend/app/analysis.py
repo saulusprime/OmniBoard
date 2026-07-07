@@ -118,6 +118,12 @@ def _run(session_id: int) -> None:
             }
         )
         db.commit()
+        # L'analisi alimenta accuracy e debolezze del profilo: voci da rifare.
+        from . import profile_cache
+
+        for uid in (session.x_user_id, session.o_user_id):
+            if uid:
+                profile_cache.invalidate(uid)
     finally:
         db.close()
         with _lock:

@@ -163,7 +163,10 @@ def opponent_style(db: Session, game, session: models.GameSession):
         opponent_id = session.x_user_id
     else:
         return None
-    profile = chess_profile.build_profile(db, opponent_id)
+    # Dalla cache: si consulta a OGNI mossa dell'IA (invalidazione a eventi + TTL).
+    from . import profile_cache
+
+    profile = profile_cache.get(db, opponent_id)
     if not profile:
         return None
     style = dict(profile["style"])
