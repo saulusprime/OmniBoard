@@ -32,6 +32,7 @@ from .. import (
     ponder,
     schemas,
     settings_service,
+    tilt,
     user_prefs,
 )
 from ..database import get_db
@@ -183,6 +184,15 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
 
     x_uid, x_ai, x_kind, x_level, x_provider = resolve(payload.x)
     o_uid, o_ai, o_kind, o_level, o_provider = resolve(payload.o)
+
+    # Anti-tilt FORZATO (solo opzione admin; il default è l'avviso soft nel
+    # setup): a blocco attivo un giocatore in tilt non apre nuove partite di
+    # scacchi finché non è passato il raffreddamento. Mai sulle partite in corso.
+    if payload.game_code == "chess":
+        for uid in {u for u in (x_uid, o_uid) if u}:
+            reason = tilt.block_new_game(db, uid)
+            if reason:
+                raise HTTPException(status_code=403, detail=reason)
 
     # Orologio di gioco (solo scacchi): valida categoria/minuti/incremento Fischer.
     try:

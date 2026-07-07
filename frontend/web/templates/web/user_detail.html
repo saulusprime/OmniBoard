@@ -43,6 +43,13 @@
   patte {{ chess.draw_rate }}, sconfitte {{ chess.loss_rate }}; durata media
   {{ chess.avg_plies }} semimosse.</p>
 
+  {% if chess.biases %}
+  <h3>Bias ricorrenti</h3>
+  <ul>{% for b in chess.biases %}
+    <li><strong>{{ b.label }}</strong> — {{ b.detail }}
+      <span class="muted">({{ b.games }} partite, {{ b.share }})</span></li>
+  {% endfor %}</ul>
+  {% endif %}
   {% if chess.weaknesses %}
   <h3 style="margin-bottom:6px;">Debolezze individuate</h3>
   <ul>{% for w in chess.weaknesses %}<li>{{ w }}</li>{% endfor %}</ul>
