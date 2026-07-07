@@ -32,7 +32,12 @@
         <input type="text" name="{{ p.code }}__model" value="{{ p.model }}">
       </p>
       <p>
-        <label>Token / API key {% if p.has_key %}<span class="pill">configurato</span>{% endif %}</label>
+        <label>Token / API key
+          {% if p.key_unreadable %}<span class="pill" style="background:#7a2e2e;">da reinserire (chiave cambiata)</span>
+          {% elif p.has_key %}<span class="pill">configurato (cifrato)</span>{% endif %}
+          {% if p.breaker.open %}<span class="pill" style="background:#7a5a2e;"
+            title="Troppi errori consecutivi: chiamate remote sospese">⛔ sospeso ~{{ p.breaker.retry_in_s }}s</span>{% endif %}
+        </label>
         <input type="password" name="{{ p.code }}__api_key" autocomplete="off"
                placeholder="{% if p.has_key %}lascia vuoto per non modificare{% else %}incolla il token{% endif %}">
       </p>

@@ -561,6 +561,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   A–H/1–8 solo scacchi, case a filo con selezione a ombra interna, colori per
   tema via --bframe/--binlay/--bcoord, WCAG ≥4.5:1); usata da play.html e
   learn_lesson.html. Solo frontend, 213 test verdi.
+- **2026-07-07** — **Breaker + cifratura token**: `breaker.py` (3 errori → aperto
+  120s, mezzo-aperto a sonda, scudo `api_ai.guarded_complete`, stato in
+  list_providers + badge admin) e `token_crypto.py` (Fernet `enc:…` stessa
+  colonna, chiave TOKENS_KEY o derivata da ADMIN_TOKEN via PBKDF2, migrazione
+  lazy al seed, key_unreadable in lista). Dep nuova `cryptography`. 219 verdi.
 
 ## Questioni aperte
 

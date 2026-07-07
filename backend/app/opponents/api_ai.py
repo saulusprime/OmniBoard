@@ -21,6 +21,8 @@ import re
 
 import httpx
 
+from .. import breaker
+
 _SYSTEM_PROMPT = (
     "Sei un giocatore esperto di giochi da tavolo. "
     "Rispondi sempre e solo con l'id esatto della mossa scelta, senza altro testo."
@@ -129,16 +131,40 @@ def _complete(provider, prompt):
 
 
 # ----- API del modulo -----
+def guarded_complete(provider, prompt):
+    """``_complete`` protetto dal circuit breaker del provider (o ``None``).
+
+    Circuito APERTO → nessuna chiamata (si ritorna subito None: niente attese di
+    timeout a ogni mossa quando il provider è giù). Errore → si registra e dopo N
+    errori consecutivi il circuito si apre per il periodo di raffreddamento; una
+    risposta qualsiasi (anche vuota o non interpretabile) è un successo di RETE e
+    richiude il circuito. Soglie nella config del provider (parametri
+    ``providers.breaker_*``).
+    """
+    code = provider.get("code") or "remote"
+    # NB: "or" mangerebbe lo 0 legittimo (cooldown azzerato = riprova subito).
+    cooldown = provider.get("breaker_cooldown_s")
+    cooldown = breaker.DEFAULT_COOLDOWN_S if cooldown is None else int(cooldown)
+    failures = provider.get("breaker_failures")
+    failures = breaker.DEFAULT_FAILURES if failures is None else int(failures)
+    if not breaker.allow(code, cooldown):
+        return None
+    try:
+        content = _complete(provider, prompt)
+    except Exception:  # noqa: BLE001 - chi chiama ripiega sul giocatore locale
+        breaker.record_failure(code, failures, cooldown)
+        return None
+    breaker.record_success(code)
+    return content
+
+
 def remote_move(game, state, legal, provider):
     """Mossa scelta dal provider remoto; ``None`` se errore o risposta non valida.
 
     Best effort volutamente silenzioso: qualsiasi problema (rete, quota, refusal,
     risposta non interpretabile) non deve mai interrompere la partita.
     """
-    try:
-        content = _complete(provider, _build_prompt(game, state, legal))
-    except Exception:  # noqa: BLE001 - in caso di errore si usa il giocatore locale
-        return None
+    content = guarded_complete(provider, _build_prompt(game, state, legal))
     if not content:
         return None
     return _match_move(game, legal, content)
@@ -149,10 +175,13 @@ def ping(provider):
 
     Usata dal pulsante «Verifica connessione» della pagina Provider IA.
     """
+    code = provider.get("code") or "remote"
     try:
         content = _complete(provider, "Rispondi solo con: ok")
     except Exception as exc:  # noqa: BLE001 - si riporta l'errore all'utente
+        breaker.record_failure(code)  # la sonda manuale conta come le altre
         return False, str(exc)
+    breaker.record_success(code)  # sonda riuscita: il circuito si richiude
     if not content:
         return False, "Nessuna risposta dal provider"
     return True, content.strip()[:120]

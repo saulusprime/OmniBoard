@@ -5,6 +5,48 @@
 
 ---
 
+## 2026-07-07 — Circuit breaker dei provider + cifratura dei token
+
+**Richiesta (utente):** circuit breaker e cifratura dei token provider.
+
+**Circuit breaker** (`app/breaker.py`, stato in memoria per processo):
+
+- Dopo N errori CONSECUTIVI (default 3) il circuito del provider si APRE: le
+  chiamate remote si saltano per il raffreddamento (default 120s) — la partita
+  usa subito il giocatore locale senza pagare il timeout a ogni mossa. Scaduto
+  il raffreddamento è MEZZO APERTO: la prima chiamata fa da sonda (successo →
+  chiuso e conteggio azzerato; errore → riaperto).
+- Scudo unico `api_ai.guarded_complete` usato da `remote_move` E dal
+  commentatore LLM; una risposta di rete qualsiasi (anche non interpretabile) è
+  un successo. `ping` («Verifica connessione») BYPASSA il breaker e ne registra
+  l'esito: sonda manuale.
+- Soglie nei parametri `providers.breaker_failures`/`providers.breaker_cooldown_s`,
+  iniettate nella cfg del provider da `ai_providers.get_config` (api_ai non ha il
+  DB). **Bug trovato dal test**: `or` sul cooldown mangiava lo 0 legittimo
+  (riprova subito) → sostituito con check su None.
+- Stato esposto in `list_providers` (`breaker: {open, failures, retry_in_s}`) e
+  badge «⛔ sospeso ~Ns» nella pagina Provider IA.
+
+**Cifratura dei token a riposo** (`app/token_crypto.py`, dipendenza NUOVA
+`cryptography` — Apache-2.0/BSD, ok col progetto MIT):
+
+- Fernet; formato `enc:<token>` nella STESSA colonna `ai_providers.api_key`
+  (nessuna migrazione di schema). Righe legacy in chiaro cifrate al primo avvio
+  (`seed_providers`); token da env cifrati alla nascita.
+- Chiave: `TOKENS_KEY` in `.env` (Fernet.generate_key(), consigliata in
+  produzione) o DERIVATA da `ADMIN_TOKEN` (PBKDF2-SHA256, 200k, sale
+  applicativo) per lo zero-config in sviluppo. Chiave cambiata → decrypt None
+  (mai eccezioni): config assente (ripiego locale), `key_unreadable: true` in
+  lista, badge «da reinserire» e messaggio dedicato in «Verifica connessione».
+
+**Test (+6, 219 verdi):** round-trip/legacy/chiave-cambiata, PUT admin che salva
+cifrato e config che decifra (con soglie breaker incluse), migrazione lazy del
+seed, flag token illeggibile, breaker apre/half-open/richiude, scudo che salta
+le chiamate a circuito aperto (contatore) e sonda che richiude. Pulizia dei
+token di prova a fine test (ordine casuale della suite).
+
+---
+
 ## 2026-07-07 — Scacchiera da torneo (cornice + coordinate)
 
 **Richiesta (utente):** una scacchiera migliore (riferimento: temi/scacchiera.jpg,

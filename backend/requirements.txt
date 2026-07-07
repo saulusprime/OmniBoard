@@ -6,6 +6,8 @@ python-dotenv>=1.0
 httpx>=0.27
 Pillow>=10.0
 anthropic>=0.40
+# Cifratura dei token provider nel DB (Fernet); licenza Apache-2.0/BSD.
+cryptography>=42
 # KittenTTS: sintesi vocale locale (ONNX, solo CPU) per la sezione di istruzione
 # guidata. E' il submodule git in integrazioni/KittenTTS: installare dalla ROOT del
 # repository (come fa `make install`) dopo `git submodule update --init`.

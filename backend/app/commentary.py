@@ -152,7 +152,7 @@ def _tag_and_comment(db, session, moves: list, ply: int) -> None:
                 "Commenta in UNA frase breve, vivace e senza tecnicismi pesanti."
             )
             try:
-                text = api_ai._complete(provider, prompt)
+                text = api_ai.guarded_complete(provider, prompt)
                 if text:
                     moves[-1]["comment"] = " ".join(text.split())[:280]
             except Exception:  # noqa: BLE001 - niente commento, nessun danno
