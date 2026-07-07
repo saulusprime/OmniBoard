@@ -61,7 +61,19 @@
       <p style="margin:8px 0 0;">
         <button class="btn secondary" id="btn-hint" type="button"
                 style="padding:4px 12px; font-size:.85rem;">💡 Suggerimento</button>
+        <button class="btn secondary" id="btn-draw" type="button"
+                style="padding:4px 12px; font-size:.85rem;">½ Offri patta</button>
+        <button class="btn secondary" id="btn-resign" type="button"
+                style="padding:4px 12px; font-size:.85rem;">🏳️ Abbandona</button>
         <span id="hint-text" class="muted" style="font-size:.85rem;"></span>
+      </p>
+      <p id="draw-banner" style="display:none; margin:8px 0 0; color:var(--accent);
+                                 font-weight:600;">
+        Ti è stata offerta la patta:
+        <button class="btn" id="btn-draw-accept" type="button"
+                style="padding:4px 12px; font-size:.85rem;">Accetta</button>
+        <button class="btn secondary" id="btn-draw-decline" type="button"
+                style="padding:4px 12px; font-size:.85rem;">Rifiuta</button>
       </p>
       <div id="aisource" class="muted" style="font-size:.85rem;"></div>
       <noscript><p class="muted">Questa pagina richiede JavaScript per giocare.</p></noscript>
@@ -698,7 +710,9 @@
     const el = document.getElementById("turninfo");
     if (session.status === "finished") {
       const perTempo = session.finish_reason === "time" ? " (tempo scaduto)"
-        : session.finish_reason === "repetition" ? " (triplice ripetizione)" : "";
+        : session.finish_reason === "repetition" ? " (triplice ripetizione)"
+        : session.finish_reason === "resign" ? " (per abbandono)"
+        : session.finish_reason === "agreement" ? " (patta d'accordo)" : "";
       el.innerHTML = session.winner === "draw"
         ? '<span class="pill">Patta' + perTempo + "</span>"
         : '<span class="pill">Ha vinto ' + session.winner.toUpperCase() + perTempo + "</span>";
@@ -821,6 +835,50 @@
       (i) => grid.children[i] && grid.children[i].classList.remove("dest")), 3000);
   });
 
+  // ----- Abbandono e patta d'accordo (FIDE 5.1.2 / 9.1) -----
+  const ENDGAME_URL = "{% url 'play_endgame_json' s.id %}";
+  let drawOffer = SESSION.draw_offer || null;
+
+  // Chi agisce: a distanza il proprio lato; in hotseat il giocatore al tratto.
+  const actSide = () => (REMOTE ? MY_SIDE : current);
+
+  async function endgame(what, action) {
+    const side = actSide();
+    if (!side) return;
+    const res = await fetch(ENDGAME_URL, {
+      method: "POST",
+      headers: { "X-CSRFToken": CSRF, "Content-Type": "application/x-www-form-urlencoded" },
+      body: `what=${what}&side=${side}&action=${action || ""}`,
+    });
+    const d = await res.json();
+    if (d.error) { document.getElementById("hint-text").textContent = d.error; return; }
+    applySession(d);
+  }
+
+  document.getElementById("btn-resign").addEventListener("click", () => {
+    if (window.confirm("Abbandonare la partita?")) endgame("resign");
+  });
+  document.getElementById("btn-draw").addEventListener("click", () => endgame("draw", "offer"));
+  document.getElementById("btn-draw-accept")
+    .addEventListener("click", () => endgame("draw", "accept"));
+  document.getElementById("btn-draw-decline")
+    .addEventListener("click", () => endgame("draw", "decline"));
+
+  function renderEndgame(session) {
+    drawOffer = session.draw_offer || null;
+    const playing = session.status === "in_progress";
+    const mine = actSide();
+    // I comandi valgono solo per un lato umano identificabile, a partita viva.
+    const canEnd = playing && mine && !sideIsAi(mine);
+    document.getElementById("btn-resign").style.display = canEnd ? "" : "none";
+    // La patta d'accordo esiste solo fra due umani (l'IA non tratta).
+    const other = mine === "x" ? "o" : "x";
+    const showDraw = canEnd && !sideIsAi(other) && drawOffer !== mine;
+    document.getElementById("btn-draw").style.display = showDraw && !drawOffer ? "" : "none";
+    document.getElementById("draw-banner").style.display =
+      canEnd && drawOffer && drawOffer !== mine ? "" : "none";
+  }
+
   // ----- Dopo la partita: moviola (rewind/step-by-step), note, analisi e GIF -----
   const REPLAY_URL = "{% url 'play_replay_json' s.id %}";
   const NOTE_URL = "{% url 'play_note_json' s.id %}";
@@ -926,7 +984,7 @@
   });
 
   const _setStatus = setStatus;  // la fine della partita (anche live) apre la moviola
-  setStatus = (session) => { _setStatus(session); maybePostGame(); };
+  setStatus = (session) => { _setStatus(session); renderEndgame(session); maybePostGame(); };
 
   buildBoard();
   renderCells(new Set());

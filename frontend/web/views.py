@@ -523,6 +523,22 @@ def play_hint_json(request, session_id):
         return JsonResponse({"error": str(exc)}, status=exc.status or 400)
 
 
+def play_endgame_json(request, session_id):
+    """Abbandono e patta d'accordo (proxy col token della sessione, se loggati)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Metodo non consentito"}, status=405)
+    token = request.session.get("auth_token")
+    side = request.POST.get("side", "")
+    try:
+        if request.POST.get("what") == "resign":
+            return JsonResponse(api.session_resign(session_id, side, token=token))
+        return JsonResponse(
+            api.session_draw(session_id, side, request.POST.get("action", "offer"), token=token)
+        )
+    except api.ApiError as exc:
+        return JsonResponse({"error": str(exc)}, status=exc.status or 400)
+
+
 def play_state_json(request, session_id):
     """Stato corrente della partita in JSON: usato dal client per risincronizzarsi
     quando una mossa fallisce (evita disallineamenti client/server)."""

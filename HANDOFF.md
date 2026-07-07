@@ -5,6 +5,36 @@
 
 ---
 
+## 2026-07-07 — Abbandono e patta d'accordo (le lacune dell'audit FIDE)
+
+**Richiesta (utente):** implementare abbandono (FIDE 5.1.2) e patta d'accordo (9.1).
+
+**Backend:** colonna `game_sessions.draw_offer` (**migrazione 0006**: lato con offerta
+pendente). `POST /sessions/{id}/resign` {side}: vince l'avversario, MA col re nudo →
+patta (riusa `_winner_on_time`, coerente con la bandierina); `finish_reason="resign"`.
+`POST /sessions/{id}/draw` {side, action}: offer/accept/decline — l'offerta resta
+pendente finché l'altro non risponde; la MOSSA dell'altro la rifiuta (in `make_move`);
+offerta incrociata = accettazione; contro l'IA 409 («l'IA non tratta»);
+`finish_reason="agreement"`. Validazione `_acting_human`: lato x/o umano, nei remote
+il token deve possedere il lato (stesse regole di fiducia delle mosse). Helper
+`gameplay.finish_manual` (esito+punti+spegnimento offerta). **Guardia anti-corsa**:
+l'abbandono può arrivare DURANTE la pensata dell'IA → `db.refresh(session)` nel loop
+del worker prima di ogni mossa.
+
+**Frontend:** pulsanti «🏳️ Abbandona» (confirm) e «½ Offri patta» accanto all'hint;
+banner «Ti è stata offerta la patta» con Accetta/Rifiuta; visibilità: solo lato umano
+identificabile (hotseat = giocatore al tratto, remote = MY_SIDE), patta solo fra due
+umani; esiti «(per abbandono)» / «(patta d'accordo)»; `draw_offer` in vista (i remoti
+la vedono col polling).
+
+**Test (+3, 180 verdi):** abbandono (vittoria avversario, 409 post-fine, 400 lato
+IA/inesistente), flusso patta completo (accept senza offerta 409, doppia offerta 409,
+decline, mossa-rifiuto, accettazione → agreement), IA che non tratta, remote con
+401/403/ok. **Dal vivo:** 0006 auto-applicata; offerta → accettazione →
+`finished draw agreement`.
+
+---
+
 ## 2026-07-07 — Posizione morta corretta + audit di conformità FIDE
 
 **Richiesta (utente):** verificare la patta per scarsità di pezzi nel regolamento

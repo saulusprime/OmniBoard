@@ -517,6 +517,12 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   Chess: tabella in MANUAL con le semplificazioni dichiarate (ripetizione/50 mosse
   d'ufficio, bandierina=re nudo, morte non-materiali non rilevate); scoperte lacune
   → TODO: abbandono (5.1.2) e patta d'accordo (9.1). 177 test verdi.
+- **2026-07-07** — **Abbandono + patta d'accordo**: `draw_offer` (migrazione 0006),
+  `/sessions/{id}/resign` (re nudo → patta, come bandierina) e `/draw`
+  (offer/accept/decline, mossa = rifiuto, offerta incrociata = accettazione, IA non
+  tratta), `_acting_human` con token nei remote, `finish_manual`, guardia anti-corsa
+  (refresh nel worker). Pulsanti 🏳️/½ + banner in partita. 180 test verdi;
+  dal vivo `finished draw agreement`. Lacune FIDE dell'audit chiuse.
 
 ## Questioni aperte
 

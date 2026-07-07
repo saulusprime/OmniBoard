@@ -116,6 +116,14 @@ parametri di programma del super admin:
 Il **tavolo del Backgammon non si personalizza**: è sempre quello originale, con le 24
 punte triangolari alternate su campo di legno, la barra centrale e le vasche di uscita.
 
+### Abbandono e patta d'accordo
+In partita trovi «🏳️ Abbandona» (con conferma: l'avversario vince) e — solo fra due
+umani — «½ Offri patta»: l'avversario vede il banner «Ti è stata offerta la patta» con
+Accetta/Rifiuta, e può rifiutare anche semplicemente muovendo. In hotseat i pulsanti
+agiscono per il giocatore al tratto; a distanza ognuno agisce solo per il proprio lato
+(verificato col token). Gli esiti compaiono come «(per abbandono)» e «(patta d'accordo)»
+e assegnano i punti come ogni altra conclusione.
+
 ### Suggerimento mossa (hint)
 In partita il pulsante «💡 Suggerimento» chiede al motore (a budget ridotto) una mossa per
 il giocatore al tratto: la notazione compare accanto al pulsante e la mossa viene
@@ -314,8 +322,11 @@ eseguita il 2026-07-07.
   più ampio: patta se l'avversario non può dare matto con *alcuna* serie di mosse legali).
 - Le posizioni morte **non riconducibili al solo materiale** (es. blocchi totali di pedoni)
   non vengono rilevate: l'art. 5.2.2 pieno richiederebbe un'analisi dedicata.
-- **Non ancora implementati** (in TODO): l'abbandono (art. 5.1.2) e la patta d'accordo
-  (art. 9.1) — oggi una partita si chiude solo sul risultato o sull'orologio.
+- **Abbandono** (art. 5.1.2) e **patta d'accordo** (art. 9.1): implementati — pulsanti
+  «🏳️ Abbandona» e «½ Offri patta» in partita; l'offerta resta pendente finché
+  l'avversario non risponde (anche muovendo: la mossa vale come rifiuto); contro
+  l'IA l'accordo non è disponibile; se chi abbandona lascia l'avversario col re
+  nudo, l'esito è patta (stessa semplificazione della bandierina).
 
 ### Tecniche di apertura
 L'app riconosce le aperture dal **libro integrato** — oltre 70 linee con le varianti

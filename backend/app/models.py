@@ -231,6 +231,9 @@ class GameSession(Base):
     # ai_providers). None = si usa il provider attivo globale (storico).
     x_ai_provider = Column(String, nullable=True)
     o_ai_provider = Column(String, nullable=True)
+    # Patta d'accordo (FIDE 9.1): lato («x»/«o») con un'offerta di patta PENDENTE;
+    # None = nessuna offerta. L'offerta decade se l'altro giocatore muove.
+    draw_offer = Column(String, nullable=True)
     # Analisi post-partita (Stockfish): JSON con le valutazioni mossa per mossa
     # e gli errori marcati — calcolata una volta e riletta da qui (vedi analysis.py).
     analysis_json = Column(String, nullable=True)

@@ -193,6 +193,21 @@ def session_hint(session_id, token: str | None = None):
     return _request("POST", f"/sessions/{session_id}/hint", headers=headers)
 
 
+def session_resign(session_id, side: str, token: str | None = None):
+    headers = {"X-Auth-Token": token} if token else {}
+    return _request("POST", f"/sessions/{session_id}/resign", json={"side": side}, headers=headers)
+
+
+def session_draw(session_id, side: str, action: str, token: str | None = None):
+    headers = {"X-Auth-Token": token} if token else {}
+    return _request(
+        "POST",
+        f"/sessions/{session_id}/draw",
+        json={"side": side, "action": action},
+        headers=headers,
+    )
+
+
 def run_batch(data: dict):
     return _request("POST", "/sessions/batch", json=data)
 

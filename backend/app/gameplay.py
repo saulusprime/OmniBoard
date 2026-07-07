@@ -104,6 +104,19 @@ def finish_if_terminal(db: Session, game, session: models.GameSession, state) ->
     db.commit()
 
 
+def finish_manual(db: Session, session: models.GameSession, winner: str, reason: str) -> None:
+    """Chiusura NON di scacchiera: abbandono («resign») o patta d'accordo («agreement»).
+
+    Assegna esito e punti come le altre conclusioni; l'offerta pendente si spegne.
+    """
+    session.winner = winner
+    session.status = "finished"
+    session.finish_reason = reason
+    session.draw_offer = None
+    services.finalize_session(db, session)
+    db.commit()
+
+
 def opponent_style(db: Session, game, session: models.GameSession):
     """Stile di gioco dell'IA derivato dal profilo dell'avversario umano (solo scacchi).
 
@@ -425,6 +438,9 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
         # budget di riflessione viene limitato a una frazione del residuo, così l'IA
         # non fa cadere la propria bandierina pensando troppo a lungo.
         check_time(db, game, session)
+        # La partita può chiudersi ANCHE da fuori (abbandono/patta d'accordo da un
+        # altro processo di richiesta): si rilegge lo stato prima di muovere.
+        db.refresh(session)
         if session.status != "in_progress":
             return
         move_think_ms = think_ms

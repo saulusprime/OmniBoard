@@ -24,9 +24,13 @@
 
 ## Motore scacchi
 
-- [ ] ⭐ **Abbandono e patta d'accordo** (scoperti mancanti dall'audit FIDE 2026-07-07):
-  pulsante «Abbandona» (art. 5.1.2) e «Offri patta»/«Accetta» (art. 9.1) in partita, con
-  esiti `finish_reason="resign"/"agreement"` e punti assegnati di conseguenza.
+- [x] ⭐ **Abbandono e patta d'accordo** — `POST /sessions/{id}/resign` (vince
+  l'avversario; col re nudo → patta, come la bandierina) e `POST .../draw`
+  (offer/accept/decline; colonna `draw_offer`, migrazione 0006; la mossa dell'altro
+  vale come rifiuto — FIDE 9.1; contro l'IA non disponibile; offerta incrociata =
+  accettazione). Regole di fiducia delle mosse (token nei remote); pulsanti 🏳️/½ e
+  banner di risposta in partita; `finish_reason="resign"/"agreement"`; guardia
+  anti-corsa nel worker IA (refresh dello stato prima di muovere).
 - [ ] Bandierina più fedele all'art. 6.9: patta se l'avversario non può dare matto con
   alcuna serie di mosse (oggi solo re nudo).
 

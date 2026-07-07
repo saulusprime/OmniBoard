@@ -83,7 +83,9 @@ def _view(session: models.GameSession) -> dict:
         "legal_moves": legal,
         "playable_moves": playable_moves,
         "winner": session.winner,
-        "finish_reason": session.finish_reason,  # "time" = decisa dall'orologio
+        "finish_reason": session.finish_reason,  # time | repetition | resign | agreement
+        # Patta d'accordo: lato con offerta PENDENTE ("x"/"o", None = nessuna).
+        "draw_offer": session.draw_offer,
         "clock": gameplay.clock_view(session, game),  # None se partita senza orologio
         # Riga informativa specifica del gioco (es. "Dadi da giocare: 5 3" nel
         # backgammon); None per i giochi che non ne hanno bisogno.
@@ -314,6 +316,8 @@ def make_move(
     # completata); se la bandierina è caduta nel frattempo, la mossa arriva tardi.
     if not gameplay.consume_time(db, game, session, player, moves):
         raise HTTPException(status_code=409, detail="Tempo scaduto: partita conclusa")
+    if session.draw_offer and session.draw_offer != ("x" if player == 0 else "o"):
+        session.draw_offer = None  # muovere = rifiutare l'offerta pendente (FIDE 9.1)
     gameplay.record_move(game, state, chosen, player, moves)
     state = game.apply(state, chosen)
     session.moves_json = json.dumps(moves)
@@ -506,3 +510,108 @@ def move_hint(
         think_ms=int(settings_service.get(db, "hints.engine_ms")),
     )
     return {"move": game.move_id(move), "notation": game.describe_move(state, move)}
+
+
+# ----- Abbandono (FIDE 5.1.2) e patta d'accordo (FIDE 9.1) -----
+class SideAction(BaseModel):
+    side: str  # "x" oppure "o": chi compie l'azione
+
+
+class DrawAction(BaseModel):
+    side: str
+    action: str = "offer"  # offer | accept | decline
+
+
+def _acting_human(session, payload_side: str, db, token: str):
+    """Valida chi agisce: lato esistente, UMANO, e nei remote il token corrisponde.
+
+    Stesse regole di fiducia delle mosse: in hotseat ci si fida dello schermo,
+    a distanza l'identità è verificata dal token di sessione.
+    """
+    side = (payload_side or "").lower()
+    if side not in ("x", "o"):
+        raise HTTPException(status_code=400, detail="Lato non valido (x oppure o)")
+    is_ai = session.x_is_ai if side == "x" else session.o_is_ai
+    if is_ai:
+        raise HTTPException(status_code=400, detail="Solo un giocatore umano può farlo")
+    if session.remote:
+        actor = session_from_token(db, token).user
+        owner = session.x_user_id if side == "x" else session.o_user_id
+        if actor.id != owner:
+            raise HTTPException(status_code=403, detail="Puoi agire solo per il tuo lato")
+    return side
+
+
+@router.post("/{session_id}/resign")
+def resign(
+    session_id: int,
+    payload: SideAction,
+    x_auth_token: str = Header(default="", alias="X-Auth-Token"),
+    db: Session = Depends(get_db),
+):
+    """Abbandono: l'avversario vince (FIDE 5.1.2).
+
+    Sfumatura del regolamento: se all'avversario resta il RE NUDO (non può dare
+    matto), l'abbandono produce PATTA — stessa semplificazione della bandierina.
+    """
+    session = db.get(models.GameSession, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessione non trovata")
+    if session.status != "in_progress":
+        raise HTTPException(status_code=409, detail="La partita non è in corso")
+    side = _acting_human(session, payload.side, db, x_auth_token)
+
+    game = get_game(session.game.code)
+    state = gameplay.load_state(game, session)
+    winner = "o" if side == "x" else "x"
+    if game.code == "chess":
+        resigner = 0 if side == "x" else 1
+        winner = gameplay._winner_on_time(game, state, resigner)  # riusa la regola 6.9
+    gameplay.finish_manual(db, session, winner, "resign")
+    return _view(session)
+
+
+@router.post("/{session_id}/draw")
+def draw_agreement(
+    session_id: int,
+    payload: DrawAction,
+    x_auth_token: str = Header(default="", alias="X-Auth-Token"),
+    db: Session = Depends(get_db),
+):
+    """Patta d'accordo (FIDE 9.1): offri / accetta / rifiuta.
+
+    Un'offerta resta pendente finché l'avversario non risponde — anche muovendo
+    (la mossa vale come rifiuto). Contro l'IA l'accordo non è disponibile.
+    """
+    session = db.get(models.GameSession, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessione non trovata")
+    if session.status != "in_progress":
+        raise HTTPException(status_code=409, detail="La partita non è in corso")
+    side = _acting_human(session, payload.side, db, x_auth_token)
+    other_is_ai = session.o_is_ai if side == "x" else session.x_is_ai
+
+    if payload.action == "offer":
+        if other_is_ai:
+            raise HTTPException(
+                status_code=409, detail="Contro l'IA la patta d'accordo non è disponibile"
+            )
+        if session.draw_offer == side:
+            raise HTTPException(status_code=409, detail="Hai già un'offerta pendente")
+        if session.draw_offer:  # l'avversario aveva già offerto: offrire = accettare
+            gameplay.finish_manual(db, session, "draw", "agreement")
+            return _view(session)
+        session.draw_offer = side
+        db.commit()
+    elif payload.action == "accept":
+        if not session.draw_offer or session.draw_offer == side:
+            raise HTTPException(status_code=409, detail="Nessuna offerta da accettare")
+        gameplay.finish_manual(db, session, "draw", "agreement")
+    elif payload.action == "decline":
+        if not session.draw_offer or session.draw_offer == side:
+            raise HTTPException(status_code=409, detail="Nessuna offerta da rifiutare")
+        session.draw_offer = None
+        db.commit()
+    else:
+        raise HTTPException(status_code=400, detail="Azione non valida (offer/accept/decline)")
+    return _view(session)
