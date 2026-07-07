@@ -161,6 +161,16 @@ class GameSetupForm(forms.Form):
         initial=0,
         required=False,
     )
+    # Posizione iniziale personalizzata: la partita di scacchi parte da qui (studio
+    # di un finale, sparring su una posizione). La validazione autorevole è del
+    # backend (motore); X resta il Bianco anche se la FEN dà il tratto al Nero.
+    start_fen = forms.CharField(
+        label="Posizione iniziale FEN (solo scacchi, vuoto = standard)",
+        required=False,
+        widget=forms.TextInput(
+            attrs={"placeholder": "es. 8/8/8/4k3/8/4K3/4P3/8 w - - 0 1", "spellcheck": "false"}
+        ),
+    )
     games_count = forms.IntegerField(
         label="Partite consecutive (solo se entrambi IA)",
         min_value=1,

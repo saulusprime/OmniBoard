@@ -109,7 +109,13 @@ def finish_if_terminal(db: Session, game, session: models.GameSession, state) ->
     if game.is_terminal(state):
         winner = game.outcome(state).winner
         session.winner = "draw" if winner is None else ("x" if winner == 0 else "o")
-    elif game.is_repetition_draw(history_ids(json.loads(session.moves_json or "[]"))):
+    elif (
+        game.is_repetition_draw(
+            history_ids(json.loads(session.moves_json or "[]")), start_fen=session.start_fen
+        )
+        if session.start_fen
+        else game.is_repetition_draw(history_ids(json.loads(session.moves_json or "[]")))
+    ):
         # Patta per TRIPLICE RIPETIZIONE, dichiarata d'ufficio dall'arbitro (il
         # server) alla terza occorrenza della stessa posizione: negli scacchi da
         # regolamento è su richiesta, ma qui evita le partite infinite.
@@ -493,6 +499,8 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
             history_ids(moves),
             kind=side_kind(session, player),
             provider=provider_for(player) if use_provider else None,
+            # Partite da FEN: Stockfish riceve la posizione di partenza corretta.
+            start_fen=session.start_fen,
             # Pondering: la TT riempita durante il turno dell'umano si riusa qui.
             tt=ponder.tt_for(session.id),
             # Il preset del livello (Zeus/Atena/…) si applica sopra la base globale,

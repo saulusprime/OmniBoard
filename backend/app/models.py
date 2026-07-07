@@ -258,6 +258,9 @@ class GameSession(Base):
     o_clock_ms = Column(Integer, nullable=True)
     turn_started_at = Column(DateTime, nullable=True)
     finish_reason = Column(String(16), nullable=True)  # "time" = decisa dall'orologio
+    # Posizione iniziale personalizzata (FEN, solo scacchi): la partita non parte
+    # dalla posizione standard e ogni replay/analisi riparte da qui. None = standard.
+    start_fen = Column(String, nullable=True)
     state_json = Column(String, nullable=False)  # stato serializzato dal motore
     moves_json = Column(String, default="[]", nullable=False)  # log delle mosse
     status = Column(String, default="in_progress", nullable=False)  # in_progress | finished

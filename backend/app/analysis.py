@@ -69,19 +69,29 @@ def _run(session_id: int) -> None:
         moves = json.loads(session.moves_json or "[]")
         uci_history = history_ids(moves)
 
+        # Partite da FEN: le posizioni ripartono dalla FEN e la parità delle
+        # semimosse segue il tratto iniziale (il Nero può muovere per primo).
+        start_fen = session.start_fen
+        start_white = not (start_fen and start_fen.split()[1] == "b")
+
         evals: list[dict] = []
-        prev_cp = 0  # posizione iniziale ≈ pari (evitiamo una ricerca in più)
+        prev_cp = 0  # posizione iniziale standard ≈ pari (evitiamo una ricerca in più)
         best_before: str | None = None
         ok = True
+        if start_fen:
+            ev0 = stockfish._ENGINE.evaluate(cfg, stockfish.uci_position([], start_fen))
+            if ev0 is not None:
+                prev_cp = _white_cp(ev0, white_to_move=start_white)
+                best_before = ev0.get("best")
         for i, uci in enumerate(uci_history):
-            position = f"position startpos moves {' '.join(uci_history[: i + 1])}"
+            position = stockfish.uci_position(uci_history[: i + 1], start_fen)
             ev = stockfish._ENGINE.evaluate(cfg, position)
             if ev is None:  # binario mancante o morto: analisi non disponibile
                 ok = False
                 break
-            white_to_move = (i + 1) % 2 == 0  # dopo i+1 semimosse muove il bianco?
+            white_to_move = ((i + 1) % 2 == 0) == start_white  # chi muove dopo i+1 semimosse
             cp = _white_cp(ev, white_to_move)
-            mover_white = i % 2 == 0
+            mover_white = (i % 2 == 0) == start_white
             loss = (prev_cp - cp) if mover_white else (cp - prev_cp)
             tag = next((t for limit, t in _TAGS if loss >= limit), None)
             evals.append(

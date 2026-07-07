@@ -11,13 +11,15 @@ from __future__ import annotations
 
 import json
 import random
+import textwrap
 
 from fastapi import APIRouter, Depends, Header, HTTPException
-from fastapi.responses import Response
+from fastapi.responses import PlainTextResponse, Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from engine import get_game, is_playable
+from engine.chess import pgn as chess_pgn
 
 from .. import (
     ai_providers,
@@ -85,6 +87,8 @@ def _view(session: models.GameSession) -> dict:
         "playable_moves": playable_moves,
         "winner": session.winner,
         "finish_reason": session.finish_reason,  # time | repetition | resign | agreement
+        # Posizione iniziale personalizzata (FEN, solo scacchi); None = standard.
+        "start_fen": session.start_fen,
         # Patta d'accordo: lato con offerta PENDENTE ("x"/"o", None = nessuna).
         "draw_offer": session.draw_offer,
         "clock": gameplay.clock_view(session, game),  # None se partita senza orologio
@@ -187,7 +191,31 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    state = game.initial_state()
+    # Posizione iniziale personalizzata (FEN, solo scacchi): validata col motore
+    # e NORMALIZZATA (to_fen) prima di essere salvata — replay, analisi, Stockfish
+    # e ripetizioni ripartiranno tutti da qui. Negli scacchi X resta il Bianco:
+    # se la FEN dà il tratto al Nero, la prima mossa spetta al lato O.
+    start_fen = None
+    if payload.start_fen and payload.start_fen.strip():
+        if payload.game_code != "chess":
+            raise HTTPException(
+                status_code=400, detail="La posizione iniziale FEN vale solo per gli scacchi"
+            )
+        try:
+            state = game.from_fen(payload.start_fen.strip())
+            if state.board.count("K") != 1 or state.board.count("k") != 1:
+                raise ValueError("servono esattamente i due re")
+            if game._in_check(state, 1 - state.current):
+                raise ValueError("il giocatore senza il tratto è sotto scacco")
+            if game.is_terminal(state):
+                raise ValueError("la posizione è già conclusa")
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=f"FEN non valida: {exc}") from exc
+        except Exception as exc:  # noqa: BLE001 - FEN malformata: indici/valori fuori posto
+            raise HTTPException(status_code=400, detail="FEN non valida") from exc
+        start_fen = game.to_fen(state)
+    else:
+        state = game.initial_state()
     session = models.GameSession(
         game_id=game_model.id,
         x_user_id=x_uid,
@@ -201,6 +229,7 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
         x_ai_provider=x_provider,
         o_ai_provider=o_provider,
         remote=payload.remote,
+        start_fen=start_fen,
         state_json=json.dumps(game.serialize_state(state)),
         moves_json="[]",
         status="in_progress",
@@ -361,7 +390,7 @@ def _replay_boards(session: models.GameSession):
     (rewind/step-by-step) e dei fotogrammi della GIF.
     """
     game = get_game(session.game.code)
-    state = game.initial_state()
+    state = game.from_fen(session.start_fen) if session.start_fen else game.initial_state()
     boards = [game.view_board(state)]
     moves = json.loads(session.moves_json or "[]")
     for uci in gameplay.history_ids(moves):
@@ -381,6 +410,77 @@ def replay(session_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Sessione non trovata")
     game, boards = _replay_boards(session)
     return {"rows": game.rows, "cols": game.cols, "boards": boards}
+
+
+@router.get("/{session_id}/pgn")
+def export_pgn(session_id: int, db: Session = Depends(get_db)):
+    """Export PGN della partita (solo scacchi): tag standard + mosse in SAN.
+
+    Le note dei giocatori diventano commenti PGN ``{…}``; le partite da FEN
+    hanno i tag ``SetUp``/``FEN``. Risposta come allegato ``partita-N.pgn``.
+    """
+    session = db.get(models.GameSession, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessione non trovata")
+    if session.game.code != "chess":
+        raise HTTPException(status_code=400, detail="L'export PGN vale solo per gli scacchi")
+    game = get_game("chess")
+    moves = json.loads(session.moves_json or "[]")
+    sans = chess_pgn.san_line(game, gameplay.history_ids(moves), start_fen=session.start_fen)
+
+    def side_name(idx: int) -> str:
+        user = session.x_user if idx == 0 else session.o_user
+        if user:
+            return user.alias
+        kind = gameplay.side_kind(session, idx)
+        level = session.x_ai_level if idx == 0 else session.o_ai_level
+        if kind == "stockfish":
+            label = opponents.stockfish.preset_label(level)
+            return f"Stockfish — {label}" if label else "Stockfish"
+        provider = session.x_ai_provider if idx == 0 else session.o_ai_provider
+        label = ai_providers.provider_label(provider) or opponents.local.level_label(level)
+        return f"IA — {label}" if label else "IA"
+
+    result = {"x": "1-0", "o": "0-1", "draw": "1/2-1/2"}.get(session.winner or "", "*")
+    tags = [
+        ("Event", str(settings_service.get(db, "general.site_name") or "Scacchi")),
+        ("Site", f"partita {session.id}"),
+        ("Date", session.created_at.strftime("%Y.%m.%d") if session.created_at else "????.??.??"),
+        ("Round", "-"),
+        ("White", side_name(0)),
+        ("Black", side_name(1)),
+        ("Result", result),
+    ]
+    if session.start_fen:
+        tags += [("SetUp", "1"), ("FEN", session.start_fen)]
+
+    # Movetext: numerazione dalla 1 (con "1..." se da FEN muove il Nero); le note
+    # dei giocatori seguono la mossa come commenti.
+    black_first = bool(session.start_fen) and session.start_fen.split()[1] == "b"
+    tokens: list[str] = []
+    for i, san in enumerate(sans):
+        number = (i + 1) // 2 + 1 if black_first else i // 2 + 1
+        if black_first:
+            if i == 0:
+                tokens.append("1...")
+            elif i % 2 == 1:
+                tokens.append(f"{number}.")
+        elif i % 2 == 0:
+            tokens.append(f"{number}.")
+        tokens.append(san)
+        note = (moves[i].get("note") or "").replace("{", "(").replace("}", ")")
+        if note:
+            tokens.append("{" + note + "}")
+    tokens.append(result)
+
+    lines = [f'[{key} "{value}"]' for key, value in tags]
+    lines.append("")
+    lines.extend(textwrap.wrap(" ".join(tokens), width=80) or [result])
+    return PlainTextResponse(
+        "\n".join(lines) + "\n",
+        media_type="application/x-chess-pgn",
+        headers={"Content-Disposition": f'attachment; filename="partita-{session.id}.pgn"'},
+    )
 
 
 class NoteIn(BaseModel):
