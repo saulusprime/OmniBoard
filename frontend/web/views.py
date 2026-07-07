@@ -358,6 +358,68 @@ def match_create(request):
 
 
 # ----- Partite giocabili -----
+def arena(request):
+    """Arena IA: classifica Elo dei concorrenti e tornei IA-vs-IA.
+
+    La classifica si alimenta da ogni partita IA-vs-IA conclusa; il form crea un
+    torneo (girone all'italiana) che il backend gioca in sequenza in background.
+    """
+    all_games = _safe(request, api.list_games, default=[])
+    games = [g for g in all_games if g.get("playable")]
+    game_code = request.GET.get("game") or (
+        "chess" if any(g["code"] == "chess" for g in games) else (games[0]["code"] if games else "")
+    )
+
+    if request.method == "POST":
+        data = {
+            "game_code": request.POST.get("game_code", "chess"),
+            "participants": request.POST.getlist("participants"),
+            "double_round": request.POST.get("double_round") == "on",
+            "name": request.POST.get("name", "").strip(),
+        }
+        try:
+            created = api.create_tournament(data)
+            messages.success(request, f"Torneo «{created['name']}» avviato.")
+            return redirect("arena_tournament", tournament_id=created["id"])
+        except api.ApiError as exc:
+            messages.error(request, str(exc))
+
+    ranking = (
+        _safe(request, lambda: api.arena_ranking(game_code), default={"rows": []})
+        if game_code
+        else {"rows": []}
+    )
+    return render(
+        request,
+        "web/arena.html",
+        {
+            "games": games,
+            "game_code": game_code,
+            "ranking": ranking.get("rows", []),
+            "identities": _safe(request, api.arena_identities, default=[]),
+            "tournaments": _safe(request, api.arena_tournaments, default=[]),
+        },
+    )
+
+
+def arena_tournament(request, tournament_id):
+    """Dettaglio di un torneo: classifica del girone e partite (con link)."""
+    try:
+        tournament = api.arena_tournament(tournament_id)
+    except api.ApiError as exc:
+        messages.error(request, str(exc))
+        return redirect("arena")
+    return render(request, "web/arena_tournament.html", {"t": tournament})
+
+
+def arena_tournament_json(request, tournament_id):
+    """Stato del torneo per il polling della pagina di dettaglio."""
+    try:
+        return JsonResponse(api.arena_tournament(tournament_id))
+    except api.ApiError as exc:
+        return JsonResponse({"error": str(exc)}, status=exc.status or 502)
+
+
 def play_setup(request):
     users = _safe(request, api.list_users, default=[])
     all_games = _safe(request, api.list_games, default=[])

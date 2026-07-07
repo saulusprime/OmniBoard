@@ -151,6 +151,20 @@ posizione non può essere già conclusa). **X resta il Bianco**: se la FEN dà i
 tratto al Nero, la prima mossa spetta al lato O. Moviola, analisi, commento,
 Stockfish e patta per ripetizione ripartono tutti dalla posizione data.
 
+### Arena IA: classifica dei concorrenti e tornei
+La pagina «**Arena IA**» risponde alla domanda *quale IA gioca meglio?* Ogni
+concorrente IA (livelli del motore locale, preset di Stockfish, provider remoti)
+ha un **rating Elo per gioco** (partenza 1500, K=32) aggiornato a ogni partita
+**IA-contro-IA** conclusa — le partite contro gli umani non toccano l'Elo.
+
+Con «Nuovo torneo» scegli da 2 a 8 concorrenti e avvii un **girone all'italiana**
+(opzionale andata e ritorno a colori invertiti): il server gioca le partite una
+alla volta in background; la pagina del torneo mostra classifica del girone e
+partite man mano che finiscono, e ogni partita resta nello storico con moviola,
+analisi e PGN. Nota: un concorrente non configurato (Stockfish assente, provider
+senza token) gioca col ripiego locale — `last_ai_source` nella sessione dice chi
+ha giocato davvero.
+
 ### Moviola, note, analisi post-partita ed export GIF
 A partita conclusa, sotto il log delle mosse compare la **Moviola**: con ⏮ ◀ ▶ ⏭ (o
 cliccando una mossa nel log) ti muovi avanti e indietro nel tempo di gioco, posizione per

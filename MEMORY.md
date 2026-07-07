@@ -551,6 +551,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   `{…}`, SetUp/FEN); colonna `start_fen` (migrazione 0007) validata/normalizzata,
   campo FEN al setup; replay/analisi/commento/Stockfish/ripetizione ripartono
   dalla FEN (`stockfish.uci_position` unico). X = Bianco sempre. 208 test verdi.
+- **2026-07-07** — **Arena IA**: `ai_arena.py` — identità per configurazione IA,
+  Elo per (gioco, identità) in `ai_ratings` (1500/K=32, hook in
+  `finalize_session`, solo IA-vs-IA); tornei round-robin (2-8, andata/ritorno)
+  giocati in sequenza come vere sessioni; migrazione 0008; endpoint `/arena/*`;
+  pagina «Arena IA» con dettaglio torneo in polling. 213 test verdi.
 
 ## Questioni aperte
 

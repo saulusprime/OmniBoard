@@ -5,6 +5,47 @@
 
 ---
 
+## 2026-07-07 — Classifica delle IA e tornei (Arena IA)
+
+**Richiesta (utente):** classifica delle IA e tornei.
+
+**Identità** (`app/ai_arena.py`): ogni configurazione di lato non umano è un
+concorrente — `motore:<livello>`, `stockfish:<preset>`, `ai:<provider>`, più i
+generici `ai`/`stockfish`; `identity_of` ↔ `side_columns` sono inversi (test su
+tutto il catalogo).
+
+**Rating Elo per (gioco, identità)** — tabella `ai_ratings` (**migrazione 0008**),
+partenza 1500, K=32, aggiornato in `services.finalize_session` (punto unico di
+fine partita) SOLO per partite IA-vs-IA con identità diverse; contro gli umani
+restano i punti 3/1/0 (non c'è un rating umano da confrontare — arriverà con
+l'Elo dei giocatori).
+
+**Tornei** — tabelle `tournaments`/`tournament_games`: girone all'italiana tra
+2-8 identità (singolo: una partita per coppia, X al primo elencato; doppio:
+andata e ritorno). Il runner (thread; SINCRONO nei test con AI_ASYNC=0) gioca le
+partite UNA ALLA VOLTA come **vere sessioni** (`advance_ai` chiamato direttamente,
+non `schedule_ai`): restano nello storico con moviola/analisi/PGN e alimentano
+l'Elo dal flusso normale. Una partita rotta non ferma il girone; alla ripresa le
+partite già giocate si saltano. Classifica del girone coi punti di piattaforma
+(`scoring.points_*`).
+
+**API** `/arena/*`: `identities`, `ranking/{game}`, `tournaments` (POST con
+validazioni 2-8/identità note/dedup, GET lista e dettaglio). Dopo lo start
+sincrono il router fa `db.expire_all()` (il runner usa un'ALTRA sessione DB).
+
+**Frontend**: pagina «Arena IA» in nav — classifica per gioco (selettore),
+elenco tornei, form di creazione (checkbox dei concorrenti); pagina di dettaglio
+con classifica del girone e partite (link alla sessione), in auto-aggiornamento
+via polling finché il torneo è in corso.
+
+**Test (+5, 213 verdi):** catalogo/inversi, Elo atteso + accoppiamenti,
+validazioni, torneo completo sincrono (Tris, doppio girone: sessioni vere,
+classifiche, conservazione dell'Elo — asserzioni a DELTA perché la classifica è
+condivisa con le altre partite IA-vs-IA della suite), partite con umani che non
+toccano l'Elo. Fix: mossa del Tris come stringa nel test.
+
+---
+
 ## 2026-07-07 — Export PGN e import FEN dall'interfaccia
 
 **Richiesta (utente):** Export PGN / import FEN dall'interfaccia.
