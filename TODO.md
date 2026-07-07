@@ -309,13 +309,22 @@
   nota del giocatore). Passa da `guarded_complete` (circuit breaker); spiegazione
   **salvata nello storico della mossa** (secondo clic senza LLM, ricompare
   navigando la moviola); interruttore `coach.explain_enabled`.
-- [ ] **Riconoscimento del tilt**: N sconfitte rapide consecutive + ACPL sopra la
-  propria media (dati del profilo già esistenti) → avviso + esercizio consigliato.
-  ⚠️ Design: blocco SOFT di default (l'obbligo fa scappare i giocatori); versione
-  forzata solo come opzione admin.
-- [ ] **Bias cognitivi** (attacchi prematuri, ecc.): richiede classificazione di
-  pattern sullo storico e un database di partite di GM che NON abbiamo → fase di
-  ricerca, non feature immediata.
+- [x] **Riconoscimento del tilt** (`app/tilt.py`, `GET /users/{id}/tilt`) — due
+  segnali dai dati esistenti: N **sconfitte rapide consecutive** (`tilt.losses`,
+  `tilt.quick_plies`) e serie di sconfitte con **ACPL recente sopra la propria
+  media** × `tilt.acpl_factor` (ultime 3 analisi vs `accuracy.acpl` del profilo).
+  Risposta: banner SOFT nel setup con esercizio consigliato (lezioni «Impara»);
+  il **blocco** delle nuove partite di scacchi esiste solo come opzione admin
+  (`tilt.block`, raffreddamento `tilt.block_cooldown_min` dall'ultima sconfitta,
+  mai sulle partite in corso).
+- [x] **Bias cognitivi (pattern misurabili)** — `profile["biases"]`
+  (`chess_profile._biases`): **donna precoce** (nelle prime 5 mosse proprie),
+  **re in centro** (arrocco assente/oltre la 15ª in partite ≥20 semimosse),
+  **coazione alla cattura** (maggioranza dei blunder dell'analisi = catture),
+  **monotonia in apertura** (≥4 delle prime 8 mosse con lo stesso tipo di pezzo,
+  pedoni esclusi). Soglie: ≥5 partite, ≥40% di ricorrenza (≥3 blunder per le
+  catture); mostrati nella scheda giocatore. Il confronto con database di
+  partite di GM resta fase di ricerca (non implementato).
 
 ### 2. Repertoire dinamico e «Gatekeeper»
 

@@ -193,6 +193,20 @@ eventuale nota). La spiegazione viene **salvata nello storico della mossa**: la
 ritrovi ripassando dalla moviola, senza nuove chiamate al modello. Interruttore
 nella categoria IA; il modello spiega soltanto, non gioca.
 
+### Anti-tilt e bias ricorrenti
+Se stai infilando **sconfitte rapide una dietro l'altra** (o perdi giocando
+peggio del tuo solito, quando le partite sono analizzate), la pagina «Gioca» ti
+accoglie con un invito alla pausa e un esercizio consigliato — un avviso
+**gentile**, mai un ostacolo. Il super admin può attivare la versione severa
+(`tilt.block`): con quella, una nuova partita di scacchi aspetta la fine del
+raffreddamento. Le partite in corso non vengono mai toccate.
+
+Nella scheda giocatore, la sezione «**Bias ricorrenti**» elenca i pattern
+misurati sul tuo storico: *donna precoce*, *re in centro* (arrocco tardivo o
+assente), *coazione alla cattura* (blunder che sono quasi sempre catture),
+*monotonia in apertura*. Servono almeno 5 partite perché un pattern faccia
+testo.
+
 Negli scacchi c'è anche «🔬 **Analizza la partita**»: Stockfish valuta ogni posizione e
 marca gli errori nel log — **??** blunder (≥ 2 pedoni persi), **?** errore (≥ 1),
 **?!** imprecisione (≥ 0,5) — con la mossa che il motore preferiva e un grafico

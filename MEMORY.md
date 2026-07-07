@@ -575,6 +575,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   ≤3 frasi via guarded_complete; salvata in moves_json[ply-1]["explain"],
   cached al secondo clic; coach.explain_enabled); pulsante 🎓 in moviola.
   226 test verdi.
+- **2026-07-07** — **Tilt + bias**: `tilt.py` (sconfitte rapide consecutive +
+  ACPL recente vs media; GET /users/{id}/tilt; banner soft nel setup; blocco
+  SOLO opzione admin tilt.block con cooldown 30′) e `profile["biases"]`
+  (donna precoce, re in centro, coazione cattura, monotonia apertura; ≥5
+  partite/≥40%; scheda giocatore). GM-database resta ricerca. 233 verdi.
 
 ## Questioni aperte
 

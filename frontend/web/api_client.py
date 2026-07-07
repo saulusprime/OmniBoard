@@ -48,6 +48,10 @@ def list_games():
     return _request("GET", "/games")
 
 
+def get_tilt(user_id):
+    return _request("GET", f"/users/{user_id}/tilt")
+
+
 def explain_move(session_id, ply: int):
     return _request("POST", f"/sessions/{session_id}/explain", json={"ply": ply})
 

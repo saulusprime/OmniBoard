@@ -7,7 +7,7 @@ import json
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import analysis, models, profile_cache, schemas, settings_service, user_prefs
+from .. import analysis, models, profile_cache, schemas, settings_service, tilt, user_prefs
 from ..database import get_db
 from ..security import hash_password
 from .admin import require_admin
@@ -148,6 +148,15 @@ def chess_profile_endpoint(user_id: int, db: Session = Depends(get_db)):
     if profile is None:
         raise HTTPException(status_code=404, detail="Utente non trovato")
     return profile
+
+
+@router.get("/{user_id}/tilt")
+def tilt_endpoint(user_id: int, db: Session = Depends(get_db)):
+    """Stato del tilt del giocatore: avviso soft con motivazioni ed esercizio."""
+    state = tilt.assess(db, user_id)
+    if state is None:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    return state
 
 
 @router.post("/{user_id}/analyze-history")

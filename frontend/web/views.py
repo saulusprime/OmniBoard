@@ -435,6 +435,14 @@ def arena_tournament_json(request, tournament_id):
 
 def play_setup(request):
     users = _safe(request, api.list_users, default=[])
+    # Avviso SOFT anti-tilt per chi è loggato: banner nel setup, mai un blocco
+    # (il blocco forzato esiste solo come opzione admin, lato backend).
+    tilt_state = None
+    me = request.session.get("auth_user")
+    if me:
+        tilt_state = _safe(request, lambda: api.get_tilt(me["id"]), default=None)
+        if tilt_state and not tilt_state.get("tilted"):
+            tilt_state = None
     all_games = _safe(request, api.list_games, default=[])
     games = [g for g in all_games if g.get("playable")]
     # Concorrenti IA multipli: il catalogo provider popola le voci «IA — Claude»,
@@ -508,7 +516,7 @@ def play_setup(request):
         if request.GET.get("game"):
             initial["game"] = request.GET["game"]
         form = GameSetupForm(users=users, games=games, providers=providers, initial=initial)
-    return render(request, "web/play_setup.html", {"form": form})
+    return render(request, "web/play_setup.html", {"form": form, "tilt": tilt_state})
 
 
 def play(request, session_id):

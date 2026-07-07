@@ -125,6 +125,7 @@ def build_profile(db: Session, user_id: int, max_games: int = 200) -> dict | Non
     # mossa dell'umano. Lo storico si arricchisce con POST /users/{id}/analyze-history.
     profile["accuracy"] = _accuracy(sessions, user_id)
 
+    profile["biases"] = _biases(sessions, user_id)
     profile["weaknesses"] = _weaknesses(profile)
     profile["style"] = _style(profile)
     return profile
@@ -179,6 +180,123 @@ def _accuracy(sessions, user_id: int) -> dict | None:
         "inaccuracies": inaccuracies,
         "blunders_per_game": round(blunders / games, 2),
     }
+
+
+# Soglie dei bias: minimo campione e frazione di partite perché un pattern
+# diventi un bias dichiarato (sotto, è solo rumore).
+_MIN_BIAS_GAMES = 5
+_BIAS_SHARE = 0.4
+
+
+def _biases(sessions, user_id: int) -> list[dict]:
+    """Bias COGNITIVI misurabili dallo storico (nessun confronto con partite di GM:
+    quello resta ricerca — vedi TODO). Pattern rilevati:
+
+    - **donna precoce** — la donna esce nelle prime 5 mosse proprie;
+    - **re in centro** — arrocco assente (o oltre la 15ª mossa) in partite non corte;
+    - **coazione alla cattura** — la maggioranza dei blunder (dalle analisi già
+      calcolate) è una cattura: si prende ciò che si muove anche quando costa;
+    - **monotonia in apertura** — metà delle prime 8 mosse proprie muove lo
+      stesso tipo di pezzo (il cavallo preferito che balla da solo).
+
+    Ogni bias: {code, label, detail, share, games} con share = frazione di
+    partite (o di blunder, per le catture) in cui il pattern compare.
+    """
+    early_queen = no_castle = monotone = 0
+    long_games = 0
+    capture_blunders = blunders = 0
+    total = 0
+    for s in sessions:
+        side = "X" if s.x_user_id == user_id else "O"
+        moves = json.loads(s.moves_json or "[]")
+        mine = [m for m in moves if m.get("player") == side]
+        if not mine:
+            continue
+        total += 1
+        # Donna precoce: mossa di donna tra le prime 5 mosse proprie.
+        if any((m.get("notation") or "").startswith("Q") for m in mine[:5]):
+            early_queen += 1
+        # Re in centro: nelle partite di almeno 20 semimosse, arrocco mai fatto
+        # o arrivato dopo la 15ª mossa propria.
+        if len(moves) >= 20:
+            long_games += 1
+            castle_at = next(
+                (i for i, m in enumerate(mine) if (m.get("notation") or "").startswith("O-O")),
+                None,
+            )
+            if castle_at is None or castle_at >= 15:
+                no_castle += 1
+        # Monotonia: metà delle prime 8 mosse proprie con lo stesso tipo di pezzo
+        # (pedoni e arrocco esclusi: 4 spinte di pedone in apertura sono normali).
+        opening = [(m.get("notation") or "P")[0] for m in mine[:8]]
+        opening = [c if c in "KQRBN" else ("O" if c == "O" else "P") for c in opening]
+        piece_counts = [opening.count(c) for c in set(opening) - {"P", "O"}]
+        if len(opening) >= 6 and piece_counts and max(piece_counts) >= 4:
+            monotone += 1
+        # Coazione alla cattura: fra i blunder segnati dall'analisi, quanti sono
+        # catture (la "x" nella notazione del motore).
+        if s.analysis_json:
+            try:
+                data = json.loads(s.analysis_json)
+            except ValueError:
+                data = {}
+            if data.get("status") == "done":
+                low_side = side.lower()
+                by_ply = {m["ply"]: m for m in moves if "ply" in m}
+                for e in data.get("evals", []):
+                    if e.get("by") != low_side or e.get("tag") != "??":
+                        continue
+                    blunders += 1
+                    rec = by_ply.get(e.get("ply")) or {}
+                    if "x" in (rec.get("notation") or ""):
+                        capture_blunders += 1
+
+    biases: list[dict] = []
+    if total >= _MIN_BIAS_GAMES:
+        if early_queen / total >= _BIAS_SHARE:
+            biases.append(
+                {
+                    "code": "donna_precoce",
+                    "label": "Donna precoce",
+                    "detail": "la donna esce nelle prime 5 mosse: bersaglio di sviluppo "
+                    "avversario con perdita di tempi",
+                    "share": round(early_queen / total, 2),
+                    "games": early_queen,
+                }
+            )
+        if long_games >= _MIN_BIAS_GAMES and no_castle / long_games >= _BIAS_SHARE:
+            biases.append(
+                {
+                    "code": "re_in_centro",
+                    "label": "Re in centro",
+                    "detail": "arrocco assente o molto tardivo: il re resta esposto nel mediogioco",
+                    "share": round(no_castle / long_games, 2),
+                    "games": no_castle,
+                }
+            )
+        if monotone / total >= _BIAS_SHARE:
+            biases.append(
+                {
+                    "code": "monotonia_apertura",
+                    "label": "Monotonia in apertura",
+                    "detail": "lo stesso tipo di pezzo domina le prime mosse: sviluppo "
+                    "incompleto degli altri pezzi",
+                    "share": round(monotone / total, 2),
+                    "games": monotone,
+                }
+            )
+    if blunders >= 3 and capture_blunders / blunders >= 0.5:
+        biases.append(
+            {
+                "code": "coazione_cattura",
+                "label": "Coazione alla cattura",
+                "detail": "la maggioranza dei blunder è una cattura: si prende il "
+                "materiale anche quando la ripresa costa di più",
+                "share": round(capture_blunders / blunders, 2),
+                "games": capture_blunders,
+            }
+        )
+    return biases
 
 
 def _weaknesses(p: dict) -> list[str]:

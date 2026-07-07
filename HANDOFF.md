@@ -5,6 +5,47 @@
 
 ---
 
+## 2026-07-07 — Riconoscimento del tilt + bias cognitivi misurabili
+
+**Richiesta (utente):** il riconoscimento del tilt e i bias cognitivi.
+
+**Tilt** (`app/tilt.py`): due segnali, tutti da dati esistenti (mai lavoro del
+motore):
+
+- **sconfitte rapide consecutive** — serie dalle ultime 10 partite concluse,
+  interrotta al primo non-persa; «rapida» = ≤ `tilt.quick_plies` (40) semimosse;
+  scatta a `tilt.losses` (3);
+- **ACPL peggiore del solito** — serie di sconfitte + ACPL delle ultime 3
+  partite ANALIZZATE > `accuracy.acpl` del profilo × `tilt.acpl_factor` (1,25).
+
+`GET /users/{id}/tilt` → {tilted, reasons, streak, acpl, advice, last_loss_at}.
+Risposta SOFT di default: banner nel setup (Django, utente loggato) con
+esercizio consigliato e link alle lezioni. **Blocco forzato SOLO opzione admin**
+(`tilt.block`, default false): `create_session` rifiuta (403) nuove partite di
+SCACCHI per giocatori in tilt entro `tilt.block_cooldown_min` (30′) dall'ultima
+sconfitta; mai sulle partite in corso, mai sugli altri giochi.
+
+**Bias cognitivi** — implementata la parte ONESTA (pattern misurabili sullo
+storico); il confronto con database GM resta ricerca (TODO aggiornato).
+`chess_profile._biases` → `profile["biases"]` (lista {code,label,detail,share,
+games}), soglie ≥5 partite / ≥40%:
+
+- donna precoce (Q nelle prime 5 mosse proprie);
+- re in centro (nessun O-O/O-O-O o oltre la 15ª propria, partite ≥20 semimosse);
+- coazione alla cattura (≥50% dei blunder «??» dell'analisi sono catture, ≥3);
+- monotonia in apertura (≥4 delle prime 8 mosse proprie con lo stesso tipo di
+  pezzo; pedoni e arrocco ESCLUSI — 4 spinte di pedone sono normali).
+
+Scheda giocatore: sezione «Bias ricorrenti».
+
+**Test (+7, 233 verdi):** tilt scatta alla terza rapida (non alla seconda), il
+vincitore non è in tilt, l'avviso resta soft (partita creabile), blocco admin
+403 con «anti-tilt» nel detail (e Tris NON bloccato), la vittoria azzera la
+serie; bias su sessioni finte (donna+re in centro, monotonia+catture, campione
+minimo) e chiave `biases` esposta dal profilo.
+
+---
+
 ## 2026-07-07 — «Spiegami questa mossa» (coach LLM in moviola)
 
 **Richiesta (utente):** implementiamo «Spiegami questa mossa» (prima voce
