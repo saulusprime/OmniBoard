@@ -131,9 +131,15 @@
   provider, lati con concorrenti diversi possibili), ognuno con la propria
   configurazione/token nella pagina Provider IA; aggiunti **Gemini** (Google) e **Grok**
   (xAI), endpoint OpenAI-compatible. Colonne `x/o_ai_provider` (migrazione 0003).
-- [ ] **Classifica delle IA e tornei** — profilo e punteggi per concorrente IA (quale IA
-  gioca meglio?), tornei IA-vs-IA fra provider diversi; oggi i punteggi esistono solo per
-  i giocatori umani.
+- [x] **Classifica delle IA e tornei** (`app/ai_arena.py`, pagina «Arena IA») —
+  ogni configurazione IA è un'IDENTITÀ (`motore:<livello>`, `stockfish:<preset>`,
+  `ai:<provider>`, generici `ai`/`stockfish`) con **rating Elo per gioco**
+  (partenza 1500, K=32, tabella `ai_ratings`), aggiornato SOLO su partite
+  IA-vs-IA concluse (hook in `finalize_session`; contro gli umani restano i
+  punti 3/1/0). **Tornei** round-robin (2-8 identità, singolo o andata/ritorno):
+  le partite sono vere sessioni giocate in sequenza da un thread (storico,
+  moviola, PGN), con classifica del girone (punti di piattaforma) e pagina di
+  dettaglio in auto-aggiornamento. Migrazione 0008; endpoint `/arena/*`.
 - [ ] **Circuit breaker** sui provider remoti: dopo N errori consecutivi disattivazione
   temporanea automatica (oggi c'è solo il connect-timeout breve).
 - [ ] **Cifratura dei token provider** nel DB (oggi in chiaro, scaffold di sviluppo) o

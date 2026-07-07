@@ -1,0 +1,87 @@
+{% extends "web/base.html" %}
+{% block title %}Arena IA{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>🤖 Arena IA</h1>
+  <p class="muted">Quale IA gioca meglio? Ogni partita <strong>IA-contro-IA</strong> conclusa
+  aggiorna il <strong>rating Elo</strong> del concorrente (partenza 1500); le partite contro
+  gli umani non contano. I tornei qui sotto sono il modo più rapido di alimentare la
+  classifica.</p>
+
+  <h2>Classifica — {{ game_code }}</h2>
+  <p>
+    {% for g in games %}
+    <a class="btn {% if g.code != game_code %}secondary{% endif %}"
+       href="{% url 'arena' %}?game={{ g.code }}">{{ g.name }}</a>
+    {% endfor %}
+  </p>
+  <table>
+    <tr><th>#</th><th>Concorrente</th><th>Elo</th><th>V</th><th>P</th><th>S</th><th>Partite</th></tr>
+    {% for r in ranking %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>{{ r.label }}</td>
+      <td><strong>{{ r.elo }}</strong></td>
+      <td>{{ r.wins }}</td><td>{{ r.draws }}</td><td>{{ r.losses }}</td>
+      <td>{{ r.games }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7" class="muted">Nessuna partita IA-vs-IA ancora giocata in questo
+      gioco: crea un torneo per iniziare la classifica.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="card">
+  <h2>🏆 Tornei</h2>
+  <table>
+    <tr><th>Torneo</th><th>Gioco</th><th>Stato</th><th>Partite</th><th></th></tr>
+    {% for t in tournaments %}
+    <tr>
+      <td>{{ t.name }}</td>
+      <td>{{ t.game_name }}</td>
+      <td>{% if t.status == 'finished' %}concluso{% else %}in corso…{% endif %}</td>
+      <td>{{ t.games_played }}/{{ t.games_total }}</td>
+      <td><a class="btn secondary" href="{% url 'arena_tournament' t.id %}">Dettaglio</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5" class="muted">Nessun torneo ancora creato.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="card">
+  <h2>Nuovo torneo (girone all'italiana)</h2>
+  <p class="muted">Scegli da 2 a 8 concorrenti: ogni coppia gioca una partita (il primo
+  elencato ha il primo tratto); con «andata e ritorno» anche la partita a colori
+  invertiti. Le partite si giocano una alla volta in background e restano nello storico
+  (moviola, analisi, PGN). Nota: un concorrente non configurato (Stockfish assente,
+  provider senza token) gioca col ripiego locale.</p>
+  <form method="post">
+    {% csrf_token %}
+    <p>
+      <label>Gioco
+        <select name="game_code">
+          {% for g in games %}
+          <option value="{{ g.code }}" {% if g.code == game_code %}selected{% endif %}>
+            {{ g.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label style="margin-left:12px;">Nome (opzionale)
+        <input type="text" name="name" placeholder="es. Derby dei motori">
+      </label>
+      <label style="margin-left:12px;">
+        <input type="checkbox" name="double_round"> Andata e ritorno
+      </label>
+    </p>
+    <p><strong>Concorrenti</strong></p>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:4px;">
+      {% for i in identities %}
+      <label><input type="checkbox" name="participants" value="{{ i.code }}"> {{ i.label }}</label>
+      {% endfor %}
+    </div>
+    <p><button class="btn" type="submit">🏁 Avvia il torneo</button></p>
+  </form>
+</div>
+{% endblock %}

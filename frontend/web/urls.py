@@ -26,6 +26,13 @@ urlpatterns = [
         name="proposal_vote",
     ),
     path("classifiche/", views.rankings, name="rankings"),
+    path("arena/", views.arena, name="arena"),
+    path("arena/tornei/<int:tournament_id>/", views.arena_tournament, name="arena_tournament"),
+    path(
+        "arena/tornei/<int:tournament_id>/stato.json",
+        views.arena_tournament_json,
+        name="arena_tournament_json",
+    ),
     path("partite/registra/", views.match_create, name="match_create"),
     path("gioca/", views.play_setup, name="play_setup"),
     path("partite/<int:session_id>/", views.play, name="play"),

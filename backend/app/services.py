@@ -67,3 +67,10 @@ def finalize_session(db: Session, session: "models.GameSession") -> None:
             award(db, o_uid, gid, "win")
         if x_uid:
             award(db, x_uid, gid, "loss")
+
+    # Classifica delle IA: le partite IA-vs-IA aggiornano l'Elo dei concorrenti
+    # (import locale: ai_arena usa il motore e i cataloghi degli avversari).
+    if session.x_is_ai and session.o_is_ai:
+        from . import ai_arena
+
+        ai_arena.record_result(db, session)

@@ -142,6 +142,66 @@ class Score(Base):
     game = relationship("Game", back_populates="scores")
 
 
+class AiRating(Base):
+    """Rating Elo di un CONCORRENTE IA in un gioco (classifica delle IA).
+
+    L'identità è la configurazione del lato ("motore:novizio", "stockfish:zeus",
+    "ai:anthropic", …). Aggiornato SOLO su partite IA-vs-IA concluse (tornei o
+    sessioni normali): contro gli umani non c'è un rating da confrontare.
+    """
+
+    __tablename__ = "ai_ratings"
+    __table_args__ = (UniqueConstraint("game_id", "identity", name="uq_game_identity"),)
+
+    id = Column(Integer, primary_key=True)
+    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
+    identity = Column(String, nullable=False)
+    elo = Column(Float, default=1500.0, nullable=False)
+    wins = Column(Integer, default=0, nullable=False)
+    draws = Column(Integer, default=0, nullable=False)
+    losses = Column(Integer, default=0, nullable=False)
+
+    game = relationship("Game")
+
+
+class Tournament(Base):
+    """Torneo IA-vs-IA: girone all'italiana tra concorrenti IA di un gioco."""
+
+    __tablename__ = "tournaments"
+
+    id = Column(Integer, primary_key=True)
+    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
+    name = Column(String, nullable=False)
+    # Doppio girone = andata e ritorno (colori invertiti); singolo = una partita
+    # per coppia (il primo elencato ha X).
+    double_round = Column(Boolean, default=False, nullable=False)
+    status = Column(String, default="running", nullable=False)  # running | finished
+    created_at = Column(DateTime, default=utcnow)
+
+    game = relationship("Game")
+    games = relationship(
+        "TournamentGame", back_populates="tournament", cascade="all, delete-orphan"
+    )
+
+
+class TournamentGame(Base):
+    """Una partita di torneo: accoppiamento + (a partita giocata) sessione ed esito."""
+
+    __tablename__ = "tournament_games"
+
+    id = Column(Integer, primary_key=True)
+    tournament_id = Column(Integer, ForeignKey("tournaments.id"), nullable=False)
+    x_identity = Column(String, nullable=False)
+    o_identity = Column(String, nullable=False)
+    # Compilati quando la partita viene giocata (le partite sono vere sessioni:
+    # storico, moviola, PGN inclusi). result ∈ {x, o, draw}; None = da giocare.
+    session_id = Column(Integer, ForeignKey("game_sessions.id"), nullable=True)
+    result = Column(String, nullable=True)
+
+    tournament = relationship("Tournament", back_populates="games")
+    session = relationship("GameSession")
+
+
 class GroupProposal(Base):
     """Proposta di fondazione di un gruppo: si fonda al raggiungimento dei voti."""
 

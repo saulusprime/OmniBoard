@@ -48,6 +48,27 @@ def list_games():
     return _request("GET", "/games")
 
 
+# ----- Arena IA (classifica dei concorrenti e tornei) -----
+def arena_identities():
+    return _request("GET", "/arena/identities")
+
+
+def arena_ranking(game_code):
+    return _request("GET", f"/arena/ranking/{game_code}")
+
+
+def arena_tournaments():
+    return _request("GET", "/arena/tournaments")
+
+
+def arena_tournament(tournament_id):
+    return _request("GET", f"/arena/tournaments/{tournament_id}")
+
+
+def create_tournament(data: dict):
+    return _request("POST", "/arena/tournaments", json=data)
+
+
 # ----- Utenti -----
 def list_users():
     return _request("GET", "/users")
