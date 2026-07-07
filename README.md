@@ -286,7 +286,7 @@ Configurazione tramite `.env` (vedi `.env.example`).
 - [x] Migrazioni del database (Alembic); PostgreSQL in produzione resta da provare
 - [x] Gioco a distanza fra client diversi (polling strutturato; mosse autorizzate col token del giocatore) + area Community con presenza online e badge punti
 - [ ] Affinamento regole dama (priorità FID tra catture di pari numero, patte)
-- [ ] Scacchi: patta per ripetizione; ampliamento del libro aperture; apertura-bersaglio sul profilo avversario
+- [x] Scacchi: patta per ripetizione e posizione morta (audit FIDE nel MANUAL), libro esteso (testo/PGN/Polyglot), apertura-bersaglio, analisi post-partita, sparring Elo, hint, badge di qualità + commentatore LLM
 - [ ] Sistema di rating (es. Elo) al posto dello schema punti provvisorio
 - [x] **Backgammon**: primo gioco stocastico — nodi del caso realizzati (il server tira i dadi)
 

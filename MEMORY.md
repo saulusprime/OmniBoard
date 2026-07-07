@@ -5,7 +5,7 @@
 > (che è il registro cronologico delle sessioni). Le decisioni rilevanti sono annotate come
 > *ADR* (Architecture Decision Record).
 >
-> **Ultimo aggiornamento:** 2026-06-28
+> **Ultimo aggiornamento:** 2026-07-07
 
 ---
 
@@ -511,6 +511,12 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   mossa di scacchi (eval memoizzata per sessione, 1 ricerca/mossa) — 🌟👍⚔️🐔🤔😬🤡
   in `moves_json.quality`, battuta del provider attivo in `comment` (widget «🎙️»);
   badge sul pezzo mosso (.qbadge), interruttori commentary.enabled/llm. 174 verdi.
+- **2026-07-07** — **Posizione morta FIDE + audit di conformità**: `_insufficient`
+  corretta (bug: K+B+B vs K dichiarato patta con matto forzato disponibile!) — ora
+  K vs K, K+minore, soli alfieri monotinta; Re+2C viva. Audit completo vs Laws of
+  Chess: tabella in MANUAL con le semplificazioni dichiarate (ripetizione/50 mosse
+  d'ufficio, bandierina=re nudo, morte non-materiali non rilevate); scoperte lacune
+  → TODO: abbandono (5.1.2) e patta d'accordo (9.1). 177 test verdi.
 
 ## Questioni aperte
 

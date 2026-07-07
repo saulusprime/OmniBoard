@@ -4,7 +4,7 @@
 > Ogni nuovo gioco aggiunto alla piattaforma va documentato qui seguendo il
 > [modello per nuovi giochi](#modello-per-nuovi-giochi).
 >
-> **Ultimo aggiornamento:** 2026-06-28
+> **Ultimo aggiornamento:** 2026-07-07
 
 ---
 
@@ -287,6 +287,35 @@ le giocherà in apertura (anche come aperture-bersaglio). In più `CHESS_POLYGLO
 può puntare a un libro **Polyglot (.bin)** — il formato standard dei libri scaricabili
 in rete: viene interrogato per chiave Zobrist quando il libro interno non copre la
 posizione, con scelta proporzionale ai pesi delle mosse.
+
+### Conformità al regolamento FIDE
+Verifica sistematica del motore contro le *Laws of Chess* FIDE (handbook.fide.com, cap. E01),
+eseguita il 2026-07-07.
+
+**Conforme:**
+
+| Regola | Articolo | Note |
+|---|---|---|
+| Movimento dei pezzi, scacco, matto, stallo | 3, 5.1-5.2 | legalità = mossa applicata + verifica del re |
+| Arrocco | 3.8.2 | re non sotto scacco, case di transito del re non attaccate, b1/b8 solo libera (come da regola), torre e diritti verificati |
+| En passant | 3.7.4 | valido solo alla mossa immediatamente successiva al doppio passo |
+| Promozione | 3.7.5 | scelta fra Donna/Torre/Alfiere/Cavallo |
+| Posizione morta per materiale | 5.2.2 | K vs K, K+minore vs K, soli alfieri sulla stessa tinta (di uno o entrambi i lati); Re+2C correttamente NON dichiarata (matto d'aiuto possibile) |
+| Triplice ripetizione | 9.2 | chiave completa: posizione + tratto + diritti arrocco + en passant |
+| Regola delle 50 mosse | 9.3 | contatore azzerato su spinta di pedone o cattura |
+| Tempo e bandierina | 6.x | orologi per categoria, incremento Fischer, formato FIDE 90′+30″ |
+
+**Semplificazioni dichiarate** (scelte di piattaforma, comuni ai siti di gioco online):
+
+- Ripetizione e 50 mosse sono dichiarate **d'ufficio** al primo raggiungimento (la FIDE le
+  prevede *su richiesta*, con dichiarazione automatica solo alla 5ª ripetizione e alla 75ª
+  mossa — art. 9.6): evita le partite infinite.
+- Alla bandierina la patta scatta solo se all'avversario resta il **re nudo** (l'art. 6.9 è
+  più ampio: patta se l'avversario non può dare matto con *alcuna* serie di mosse legali).
+- Le posizioni morte **non riconducibili al solo materiale** (es. blocchi totali di pedoni)
+  non vengono rilevate: l'art. 5.2.2 pieno richiederebbe un'analisi dedicata.
+- **Non ancora implementati** (in TODO): l'abbandono (art. 5.1.2) e la patta d'accordo
+  (art. 9.1) — oggi una partita si chiude solo sul risultato o sull'orologio.
 
 ### Tecniche di apertura
 L'app riconosce le aperture dal **libro integrato** — oltre 70 linee con le varianti
