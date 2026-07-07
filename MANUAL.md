@@ -142,6 +142,15 @@ passaggio del mouse). Se un **provider IA è attivo**, il widget «🎙️ Comme
 una battuta in italiano sulle ultime mosse — il modello COMMENTA, non gioca. Interruttori
 nella categoria IA («Badge di qualità sulle mosse», «Commentatore LLM»).
 
+### La scacchiera da torneo
+Scacchi e dama si giocano su una **scacchiera con cornice** in stile torneo (il
+riferimento è una scacchiera in legno vera): case a filo, filetto d'intarsio
+attorno al campo e — negli scacchi — **coordinate algebriche** A–H e 1–8 incise
+sui quattro lati della cornice, utilissime per seguire notazione, lezioni e
+analisi. La cornice segue il **tema** scelto dal giocatore (classico, legno,
+smeraldo, ghiaccio) con contrasto delle coordinate verificato (WCAG 2.1); la
+stessa cornice compare nelle pagine «Impara».
+
 ### Partire da una posizione (FEN)
 Al setup di una partita di scacchi puoi incollare una **FEN** nel campo «Posizione
 iniziale»: la partita parte da lì (studio di un finale, sparring su una posizione,

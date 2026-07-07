@@ -82,7 +82,9 @@
     el.addEventListener("click", () => onCell(i));
     grid.appendChild(el);
   }
-  area.appendChild(grid);
+  // Cornice da torneo anche nelle lezioni: le coordinate (A-H/1-8) aiutano a
+  // seguire i riferimenti dei passi ("il pedone va in e4").
+  area.appendChild(frameBoard(grid, moveType, rows, cols, cellPx, "classico"));
 
   function pieceClass(v) {
     if (!v) return null;

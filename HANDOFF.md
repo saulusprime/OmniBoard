@@ -5,6 +5,35 @@
 
 ---
 
+## 2026-07-07 — Scacchiera da torneo (cornice + coordinate)
+
+**Richiesta (utente):** una scacchiera migliore (riferimento: temi/scacchiera.jpg,
+scacchiera in legno da torneo).
+
+**Implementazione (solo frontend):**
+
+- `board_css.html`: CSS della cornice (`.bframe` inline-grid 3×3: bande da 26px
+  sui quattro lati, venatura leggera con repeating-linear-gradient, ombra di
+  profondità, FILETTO d'intarsio con outline+offset attorno alle case) e helper
+  JS condiviso `frameBoard(grid, moveType, rows, cols, cellPx, theme)` che
+  avvolge la griglia: coordinate A–H/1–8 sui quattro lati per gli SCACCHI (vista
+  sempre col Bianco in basso: nessun flip da gestire), sola cornice per la DAMA,
+  griglia intatta per gli altri giochi.
+- Dentro la cornice le case sono A FILO (gap 0, niente bordi né angoli tondi);
+  selezione e hover passano a ombre INTERNE per non sconfinare nelle case
+  adiacenti. Badge di qualità e pezzi "volanti" non toccati (vivono dentro
+  celle/griglia).
+- Colori della cornice per TEMA via variabili CSS (--bframe/--binlay/--bcoord):
+  classico, legno (mogano come il riferimento), smeraldo, ghiaccio; contrasto
+  coordinate/cornice verificato ≥4.5:1 (WCAG 2.1).
+- `play.html` e `learn_lesson.html` avvolgono la griglia con `frameBoard` (nelle
+  lezioni le coordinate aiutano a seguire i passi: «il pedone va in e4»).
+
+**Verifiche:** node --check sul JS dell'helper, `manage.py check`, suite completa
+213 verdi (nessun cambio backend).
+
+---
+
 ## 2026-07-07 — Classifica delle IA e tornei (Arena IA)
 
 **Richiesta (utente):** classifica delle IA e tornei.

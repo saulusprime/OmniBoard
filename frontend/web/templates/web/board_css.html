@@ -53,6 +53,35 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
   .t-ghiaccio .cell.x, .t-ghiaccio .flyer.x { color:#ffffff;
     -webkit-text-stroke:2px #14222b; paint-order:stroke fill; }
   .t-ghiaccio .cell.o, .t-ghiaccio .flyer.o { color:#1d2b33; }
+  /* ----- Cornice da torneo (scacchi e dama) -----
+     Come una scacchiera in legno vera (vedi temi/scacchiera.jpg): cornice del
+     colore del tema con venatura leggera, FILETTO d'intarsio attorno alle case,
+     coordinate algebriche A-H/1-8 incise sui quattro lati (solo scacchi: la dama
+     italiana ha la sola cornice). Dentro la cornice le case sono A FILO (niente
+     gap né angoli tondi); la selezione passa a un'ombra interna per non
+     sconfinare nelle case adiacenti. I colori (--bframe cornice, --binlay
+     filetto, --bcoord coordinate) li dà il tema; contrasto coordinate/cornice
+     verificato >=4.5:1 (WCAG 2.1). */
+  .bframe { display:inline-grid; grid-template-columns:auto auto auto; margin:8px 0;
+            border-radius:10px; background:var(--bframe, #6b4a2e);
+            background-image:repeating-linear-gradient(93deg,
+              rgba(255,255,255,.035) 0 2px, rgba(0,0,0,.05) 2px 5px, transparent 5px 9px);
+            box-shadow:0 6px 18px rgba(0,0,0,.4), inset 0 0 0 1px rgba(0,0,0,.25); }
+  .bframe .board { margin:0; gap:0; outline:1px solid var(--binlay, #e9d3ae);
+                   outline-offset:4px; }
+  .bframe .cell { border:none; border-radius:0; }
+  .bframe .cell.sel { outline:none; box-shadow:inset 0 0 0 3px var(--accent); }
+  .bframe button.cell:hover:enabled { box-shadow:inset 0 0 0 2px var(--accent); }
+  .bc { display:flex; align-items:center; justify-content:center;
+        color:var(--bcoord, #e9d3ae); font-size:12px; font-weight:700;
+        letter-spacing:.5px; user-select:none; }
+  .bc span { display:flex; align-items:center; justify-content:center; }
+  .bc-h { flex-direction:row; height:26px; }
+  .bc-v { flex-direction:column; width:26px; }
+  .t-classico { --bframe:#0b0f14; --binlay:#4a5a6d; --bcoord:#8fa1b3; }
+  .t-legno { --bframe:#7a4a2b; --binlay:#ecd9b0; --bcoord:#ecd9b0; }
+  .t-smeraldo { --bframe:#3e4f30; --binlay:#d8dcb5; --bcoord:#e5e8c8; }
+  .t-ghiaccio { --bframe:#4f6470; --binlay:#c8d4da; --bcoord:#e8eef1; }
   /* ----- Tavolo classico del Backgammon (non tematizzabile: è "quello originale") -----
      Punte triangolari alternate disegnate come SVG di sfondo (il testo delle pedine
      resta sempre sopra), campo in legno, barra e uscite dedicate. */
@@ -72,3 +101,38 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
   .bg-board .cell.o, .bg-board .flyer.o { color:#191512;
     -webkit-text-stroke:1.5px #e8d9bd; paint-order:stroke fill; }
 </style>
+<script>
+  // Cornice da torneo attorno alla griglia (scacchi e dama). Ritorna l'elemento
+  // da inserire nella pagina: la griglia stessa per i giochi senza cornice.
+  // La vista è sempre col Bianco in basso: traversa 8 in alto, colonna A a sinistra.
+  function frameBoard(grid, moveType, rows, cols, cellPx, theme) {
+    if (moveType !== "chess" && moveType !== "draughts") return grid;
+    const frame = document.createElement("div");
+    frame.className = "bframe t-" + theme;
+    const withCoords = moveType === "chess";
+    const files = "ABCDEFGH".slice(0, cols).split("");
+    const ranks = Array.from({ length: rows }, (_, r) => String(rows - r));
+    const strip = (items, horiz) => {
+      const s = document.createElement("div");
+      s.className = "bc " + (horiz ? "bc-h" : "bc-v");
+      for (const it of items) {
+        const seg = document.createElement("span");
+        seg.textContent = withCoords ? it : "";
+        seg.style[horiz ? "width" : "height"] = cellPx + "px";
+        s.appendChild(seg);
+      }
+      return s;
+    };
+    const corner = () => document.createElement("div");
+    frame.appendChild(corner());
+    frame.appendChild(strip(files, true));
+    frame.appendChild(corner());
+    frame.appendChild(strip(ranks, false));
+    frame.appendChild(grid);
+    frame.appendChild(strip(ranks, false));
+    frame.appendChild(corner());
+    frame.appendChild(strip(files, true));
+    frame.appendChild(corner());
+    return frame;
+  }
+</script>

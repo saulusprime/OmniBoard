@@ -556,6 +556,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   `finalize_session`, solo IA-vs-IA); tornei round-robin (2-8, andata/ritorno)
   giocati in sequenza come vere sessioni; migrazione 0008; endpoint `/arena/*`;
   pagina «Arena IA» con dettaglio torneo in polling. 213 test verdi.
+- **2026-07-07** — **Scacchiera da torneo**: cornice `.bframe` + helper JS
+  `frameBoard` in board_css.html (bande 26px, filetto d'intarsio, coordinate
+  A–H/1–8 solo scacchi, case a filo con selezione a ombra interna, colori per
+  tema via --bframe/--binlay/--bcoord, WCAG ≥4.5:1); usata da play.html e
+  learn_lesson.html. Solo frontend, 213 test verdi.
 
 ## Questioni aperte
 

@@ -244,7 +244,8 @@
       el.style.fontSize = (cellPx * PIECE_SCALE) + "px";
       grid.appendChild(el);
     }
-    area.appendChild(grid);
+    // Scacchi e dama: cornice da torneo (coordinate algebriche negli scacchi).
+    area.appendChild(frameBoard(grid, moveType, rows, cols, cellPx, THEME));
   }
 
   function pieceClass(v) {
