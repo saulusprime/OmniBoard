@@ -40,19 +40,19 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
      su entrambe le case (rapporti verificati, tutti >=4.5:1 salvo smeraldo 4.47:1). */
   .t-legno .csq-l, .t-legno .light { background:#f0d9b5; border-color:#f0d9b5; }
   .t-legno .csq-d, .t-legno .dark  { background:#b58863; border-color:#b58863; }
-  .t-legno .cell.x, .t-legno .flyer.x { color:#f7f1e3;
+  .t-legno .cell.x, .t-legno .flyer.x, .t-legno .dragghost.x { color:#f7f1e3;
     -webkit-text-stroke:2px #2a1d10; paint-order:stroke fill; }
-  .t-legno .cell.o, .t-legno .flyer.o { color:#2b1f14; }
+  .t-legno .cell.o, .t-legno .flyer.o, .t-legno .dragghost.o { color:#2b1f14; }
   .t-smeraldo .csq-l, .t-smeraldo .light { background:#eeeed2; border-color:#eeeed2; }
   .t-smeraldo .csq-d, .t-smeraldo .dark  { background:#769656; border-color:#769656; }
-  .t-smeraldo .cell.x, .t-smeraldo .flyer.x { color:#fdfdf6;
+  .t-smeraldo .cell.x, .t-smeraldo .flyer.x, .t-smeraldo .dragghost.x { color:#fdfdf6;
     -webkit-text-stroke:2px #1f2a17; paint-order:stroke fill; }
-  .t-smeraldo .cell.o, .t-smeraldo .flyer.o { color:#26261c; }
+  .t-smeraldo .cell.o, .t-smeraldo .flyer.o, .t-smeraldo .dragghost.o { color:#26261c; }
   .t-ghiaccio .csq-l, .t-ghiaccio .light { background:#dee3e6; border-color:#dee3e6; }
   .t-ghiaccio .csq-d, .t-ghiaccio .dark  { background:#8ca2ad; border-color:#8ca2ad; }
-  .t-ghiaccio .cell.x, .t-ghiaccio .flyer.x { color:#ffffff;
+  .t-ghiaccio .cell.x, .t-ghiaccio .flyer.x, .t-ghiaccio .dragghost.x { color:#ffffff;
     -webkit-text-stroke:2px #14222b; paint-order:stroke fill; }
-  .t-ghiaccio .cell.o, .t-ghiaccio .flyer.o { color:#1d2b33; }
+  .t-ghiaccio .cell.o, .t-ghiaccio .flyer.o, .t-ghiaccio .dragghost.o { color:#1d2b33; }
   /* ----- Cornice da torneo (scacchi e dama) -----
      Come una scacchiera in legno vera (vedi temi/scacchiera.jpg): cornice del
      colore del tema con venatura leggera, FILETTO d'intarsio attorno alle case,
@@ -70,6 +70,20 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
   .bframe .board { margin:0; gap:0; outline:1px solid var(--binlay, #e9d3ae);
                    outline-offset:4px; }
   .bframe .cell { border:none; border-radius:0; }
+  /* Drag&drop: niente scroll col dito sulla scacchiera incorniciata. */
+  .bframe button.cell { touch-action:none; }
+  /* Ultima mossa: velo dorato su origine e destinazione (sotto il testo del
+     pezzo; la selezione, definita DOPO, vince quando presente). */
+  .cell.lastmv { box-shadow: inset 0 0 0 999px rgba(217,164,65,.20); }
+  .cell.dragsrc { opacity:.35; }
+  .dragghost { position:absolute; display:flex; align-items:center; justify-content:center;
+               font-weight:700; line-height:1; pointer-events:none; z-index:9;
+               filter:drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
+  .dragghost.x { color:#e8eaed; }
+  .dragghost.o { color:#d9a441; }
+  /* Pezzi catturati a lato della scacchiera (+ bilancio materiale). */
+  .captured { font-size:1rem; margin:6px 0; }
+  .captured .who { font-weight:600; }
   .bframe .cell.sel { outline:none; box-shadow:inset 0 0 0 3px var(--accent); }
   .bframe button.cell:hover:enabled { box-shadow:inset 0 0 0 2px var(--accent); }
   .bc { display:flex; align-items:center; justify-content:center;
@@ -105,13 +119,14 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
   // Cornice da torneo attorno alla griglia (scacchi e dama). Ritorna l'elemento
   // da inserire nella pagina: la griglia stessa per i giochi senza cornice.
   // La vista è sempre col Bianco in basso: traversa 8 in alto, colonna A a sinistra.
-  function frameBoard(grid, moveType, rows, cols, cellPx, theme) {
+  function frameBoard(grid, moveType, rows, cols, cellPx, theme, flipped) {
     if (moveType !== "chess" && moveType !== "draughts") return grid;
     const frame = document.createElement("div");
     frame.className = "bframe t-" + theme;
     const withCoords = moveType === "chess";
     const files = "ABCDEFGH".slice(0, cols).split("");
     const ranks = Array.from({ length: rows }, (_, r) => String(rows - r));
+    if (flipped) { files.reverse(); ranks.reverse(); }  // vista dal lato del Nero
     const strip = (items, horiz) => {
       const s = document.createElement("div");
       s.className = "bc " + (horiz ? "bc-h" : "bc-v");

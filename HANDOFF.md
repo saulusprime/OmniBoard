@@ -5,6 +5,41 @@
 
 ---
 
+## 2026-07-07 — Scacchiera migliore: drag&drop, ultima mossa, rotazione, catture
+
+**Richiesta (utente):** drag&drop, evidenzia ultima mossa, orientamento dal lato
+del Nero, coordinate, pezzi catturati a lato. (Solo frontend.)
+
+**Scelta architetturale — l'orientamento ruota solo la CSS `order`**: il DOM
+della griglia resta in ordine di scacchiera (0..63), a cambiare è la POSIZIONE
+delle celle nella grid. Così TUTTO il codice indicizzato esistente (flyer,
+badge, syncCell, hint, cellRect via getBoundingClientRect) funziona invariato
+nelle due viste. Auto-flip per il Nero remoto (MY_SIDE=="o", scacchi e dama) +
+pulsante «🔄 Ruota»; il flip ricrea griglia e cornice (`frameBoard` ha ora il
+parametro `flipped`: coordinate A–H/1–8 che seguono la vista).
+
+- **Drag&drop** (pointer events, scacchi e dama): pointerdown su un proprio
+  pezzo seleziona e mostra le destinazioni; oltre 6px parte il ghost
+  (`.dragghost`, colori per tema come i flyer; sorgente attenuata). Al rilascio:
+  `elementFromPoint` → `dataset.bi` della cella → stessa via di `onSelect`
+  (promozione compresa); rilascio sulla casella di partenza = resta selezionato;
+  fuori bersaglio = deselezione. Il click sintetico post-drop è SOPPRESSO
+  (flag consumato da onSelect); tap semplice = flusso classico intatto.
+  `touch-action:none` sulle celle incorniciate (niente scroll col dito).
+- **Ultima mossa evidenziata**: `.lastmv` (velo dorato in inset shadow, sotto la
+  selezione); `lastMoveSquares()` — in partita l'ultima del log, in MOVIOLA la
+  semimossa corrente (replayAt); scacchi = origine+destinazione dall'id uci,
+  dama = l'intero percorso ("42-33-19").
+- **Pezzi catturati** (`renderCaptured`, aggiornato da renderCells): confronto
+  col corredo standard — scacchi per tipo con `Math.max(0,…)` anti-promozione e
+  **bilancio materiale** (+n a chi è avanti); dama conteggio pedine; NASCOSTO
+  nelle partite da FEN (corredo non standard).
+
+**Verifiche:** node --check sul JS (tag Django spogliati), manage.py check,
+suite 241 verdi (nessun cambio backend).
+
+---
+
 ## 2026-07-07 — Dama potenziata: priorità FID, ripetizione, motore dedicato
 
 **Richiesta (utente):** potenziamo la dama.

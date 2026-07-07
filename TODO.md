@@ -235,8 +235,17 @@
 ## Frontend / UX
 
 - [ ] **Promozione con dialog grafico** (oggi `window.prompt`).
-- [ ] **Scacchiera migliore**: drag&drop, evidenzia ultima mossa, orientamento dal lato del
-  Nero, coordinate, pezzi catturati a lato.
+- [x] **Scacchiera migliore** — (1) **drag&drop** coi pointer events (tap
+  origine→destinazione intatto; ghost del pezzo, promozione al rilascio, click
+  post-drop soppresso, `touch-action:none` nella cornice); (2) **ultima mossa
+  evidenziata** (velo dorato su origine/destinazione — negli scacchi; percorso
+  intero nella dama — anche in moviola sulla semimossa corrente);
+  (3) **orientamento dal lato del Nero**: auto per il Nero remoto + pulsante
+  «🔄 Ruota» — il DOM resta in ordine di scacchiera, ruota solo la CSS `order`
+  (flyer/badge/indici intatti), coordinate della cornice che seguono la vista;
+  (4) coordinate già nella cornice da torneo; (5) **pezzi catturati** sotto la
+  scacchiera con bilancio materiale (+n; dama: conteggio pedine; nascosto nelle
+  partite da FEN, corredo non standard).
 - [ ] **Responsive mobile** e accessibilità (navigazione da tastiera, ARIA).
 - [ ] **i18n** — testi in file di traduzione (oggi tutto hardcoded in italiano).
 

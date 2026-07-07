@@ -585,6 +585,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   motore dedicato `draughts/engine.py` (negamax iterativo + estensione catture,
   TT, jitter ×0,03) al posto del minimax profondità 4; euristica con trincea e
   centro. 241 test verdi.
+- **2026-07-07** — **Scacchiera migliore**: drag&drop (pointer events, ghost,
+  promozione, click post-drop soppresso), ultima mossa evidenziata (live e
+  moviola), rotazione via CSS `order` (DOM in ordine di scacchiera: flyer/badge
+  intatti; auto-flip Nero remoto + 🔄; coordinate che seguono), pannello catture
+  con bilancio (+n; nascosto da FEN). Solo frontend, 241 verdi.
 
 ## Questioni aperte
 

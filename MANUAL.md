@@ -151,6 +151,16 @@ analisi. La cornice segue il **tema** scelto dal giocatore (classico, legno,
 smeraldo, ghiaccio) con contrasto delle coordinate verificato (WCAG 2.1); la
 stessa cornice compare nelle pagine «Impara».
 
+In partita la scacchiera offre anche: **trascinamento dei pezzi** (drag&drop, oltre
+al classico clic origine→destinazione — su schermi touch compreso), **ultima mossa
+evidenziata** (velo dorato su partenza e arrivo, nella dama sull'intero percorso di
+presa; funziona anche nella moviola), **orientamento**: chi gioca col Nero a
+distanza vede la scacchiera dal proprio lato, e il pulsante «🔄 Ruota» la gira in
+qualsiasi momento (le coordinate seguono la vista); sotto la scacchiera il pannello
+**pezzi catturati** con il bilancio materiale (+n per chi è avanti; nella dama il
+conteggio delle pedine). Nelle partite iniziate da FEN il pannello catture resta
+nascosto (il corredo di partenza non è quello standard).
+
 ### Partire da una posizione (FEN)
 Al setup di una partita di scacchi puoi incollare una **FEN** nel campo «Posizione
 iniziale»: la partita parte da lì (studio di un finale, sparring su una posizione,
