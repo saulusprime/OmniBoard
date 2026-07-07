@@ -541,6 +541,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   accetta `tt=`/`stop=`; start a turno umano, stop alla mossa (TT conservata,
   ~3× meno nodi), drop a fine partita; cap 400k, gate ponder.enabled+async,
   solo scacchi vs motore locale. 191 test verdi.
+- **2026-07-07** — **Livelli di difficoltà del motore locale**: 5 preset
+  (`local.ENGINE_LEVELS` — Maestro/Esperto/Medio/Apprendista/Novizio) con tempo e
+  jitter crescente (0→300 cp); scavalcano il provider remoto; stessa colonna
+  `*_ai_level` (no migrazione); voci «Motore — …» al setup; livelli deboli esclusi
+  dal pondering. 197 test verdi.
 
 ## Questioni aperte
 

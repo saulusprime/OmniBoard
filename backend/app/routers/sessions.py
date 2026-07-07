@@ -101,7 +101,9 @@ def _view(session: models.GameSession) -> dict:
                 "user_id": session.x_user_id,
                 "alias": session.x_user.alias if session.x_user else None,
                 "level": session.x_ai_level,
-                "level_label": opponents.stockfish.preset_label(session.x_ai_level),
+                # Etichetta del livello: preset Stockfish o livello del motore locale.
+                "level_label": opponents.stockfish.preset_label(session.x_ai_level)
+                or opponents.local.level_label(session.x_ai_level),
                 # Concorrente IA del lato («gioca contro …»); None = provider attivo.
                 "provider": session.x_ai_provider,
                 "provider_label": ai_providers.provider_label(session.x_ai_provider),
@@ -114,7 +116,8 @@ def _view(session: models.GameSession) -> dict:
                 "user_id": session.o_user_id,
                 "alias": session.o_user.alias if session.o_user else None,
                 "level": session.o_ai_level,
-                "level_label": opponents.stockfish.preset_label(session.o_ai_level),
+                "level_label": opponents.stockfish.preset_label(session.o_ai_level)
+                or opponents.local.level_label(session.o_ai_level),
                 "provider": session.o_ai_provider,
                 "provider_label": ai_providers.provider_label(session.o_ai_provider),
                 "board_theme": o_prefs.get("board_theme") if session.o_user else None,
@@ -156,7 +159,17 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
             # provider None = provider attivo globale (comportamento storico).
             if spec.provider and not ai_providers.is_known(spec.provider):
                 raise HTTPException(status_code=400, detail="Provider IA sconosciuto")
-            return None, True, spec.type, None, spec.provider
+            # Livello del MOTORE LOCALE: alternativo al provider (lo scavalca).
+            if spec.level:
+                if spec.level not in opponents.local.ENGINE_LEVELS:
+                    raise HTTPException(status_code=400, detail="Livello del motore sconosciuto")
+                if spec.provider:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Livello e provider insieme non hanno senso: il livello "
+                        "calibra il motore locale",
+                    )
+            return None, True, spec.type, spec.level, spec.provider
         if not spec.user_id:
             raise HTTPException(status_code=400, detail="Manca l'utente per un giocatore umano")
         if not db.get(models.User, spec.user_id):

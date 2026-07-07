@@ -5,6 +5,38 @@
 
 ---
 
+## 2026-07-07 — Livelli di difficoltà del motore locale
+
+**Richiesta (utente):** i livelli di difficoltà.
+
+**Design:** cinque preset del MOTORE LOCALE (`opponents/local.py::ENGINE_LEVELS`) —
+Maestro (piena forza, tempo globale), Esperto (1,2 s), Medio (0,5 s), Apprendista
+(0,2 s), Novizio (0,1 s) — con **jitter crescente** (0→300 cp: a jitter alto il
+motore sceglie anche mosse lontane dalla migliore, cioè sbaglia in modo "umano").
+Un livello scelto **scavalca il provider remoto** («Novizio» non è Claude a piena
+forza). Riusa la colonna `*_ai_level` dei preset Stockfish: **nessuna migrazione**,
+il tipo del lato distingue la semantica.
+
+**Implementazione:**
+
+- `gameplay.engine_level_params(session, player, default_think)` →
+  `(think_ms, jitter, usa_provider)`; `advance_ai` la usa al posto dei valori fissi
+  (jitter storico 15 per i lati senza livello) e passa `provider=None` se il livello
+  è attivo. Il tetto dell'orologio (`tc_category`) continua ad applicarsi.
+- Validazione al setup: livello sconosciuto → 400; livello+provider insieme → 400.
+- Vista: `level_label` risolta da preset Stockfish O livello motore; intestazione di
+  `play.html` mostra «IA — Novizio (per imparare)».
+- Form Django: voci «Motore — …» (`motore:<livello>`) tra le IA e Stockfish.
+- **Pondering**: i livelli sotto «maestro» sono esclusi (la TT ponderata a piena
+  forza rinforzerebbe un livello depotenziato).
+
+**Test (+6, 197 verdi):** creazione con livello (201 + etichetta in vista), livello
+sconosciuto 400, conflitto livello+provider 400, risoluzione parametri per lato
+(incl. lato Stockfish ignorato), ordinamento dei preset, pondering che salta i
+livelli deboli ma parte col Maestro.
+
+---
+
 ## 2026-07-07 — Pondering (pensare durante il turno dell'umano)
 
 **Richiesta (utente):** il pondering con la mossa async.

@@ -383,10 +383,25 @@ Il tempo di analisi per mossa è regolabile dal super admin (parametro *Tempo di
 motore scacchi*, default 2 secondi): più tempo = gioco più forte. Per gli scacchi il motore locale
 è preferito a un eventuale provider IA remoto perché più forte.
 
-### I tre tipi di avversario
-Al setup della partita ogni lato (X e O) può essere di **tre tipi**:
+### I quattro tipi di avversario
+Al setup della partita ogni lato (X e O) può essere di **quattro tipi**:
 
 - **Umano** — un giocatore registrato (sullo stesso schermo, o a distanza — vedi Community).
+- **Motore locale a livelli** — il motore di gioco interno, calibrato su uno dei
+  **cinque livelli di difficoltà** (voci «Motore — …»). Ogni livello fissa il tempo
+  di riflessione e il *jitter* (quanto il motore può allontanarsi dalla mossa
+  migliore: a jitter alto commette errori "umani"), e **scavalca il provider IA
+  remoto** — «Novizio» significa motore debole, non un modello a piena forza. I
+  livelli sotto il Maestro sono esclusi dal pondering (la TT ponderata li
+  rinforzerebbe).
+
+  | Livello | Carattere | Tempo/mossa | Jitter (centipedoni) |
+  |---|---|---|---|
+  | **Maestro** | piena forza | `ai.engine_ms` globale | 0 |
+  | **Esperto** | forte | 1,2 s | 15 |
+  | **Medio** | da circolo | 0,5 s | 60 |
+  | **Apprendista** | facile | 0,2 s | 150 |
+  | **Novizio** | per imparare | 0,1 s | 300 |
 - **IA via API** — la mossa viene chiesta a un modello remoto. Puoi scegliere il
   **concorrente specifico** («IA — Claude (Anthropic)», «IA — Gemini (Google)»,
   «IA — Grok (xAI)», «IA — Qwen», «IA — OpenAI»: una voce per ogni provider del

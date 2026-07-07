@@ -386,7 +386,8 @@ def play_setup(request):
 
                 def spec(side):
                     # Valori del form: "human" | "ai" | "ai:<provider>" |
-                    # "stockfish:<livello>". Per Stockfish si scinde in type + level
+                    # "motore:<livello>" | "stockfish:<livello>". Per Stockfish e
+                    # motore locale si scinde in type + level
                     # (preset Zeus/Atena/…); per l'IA il suffisso è il CONCORRENTE
                     # scelto («gioca contro Claude/Gemini/…», nessuno = attivo).
                     kind = form.cleaned_data[f"{side}_type"]
@@ -396,6 +397,8 @@ def play_setup(request):
                         return {"type": "stockfish", "level": kind.split(":", 1)[1]}
                     if kind.startswith("ai:"):
                         return {"type": "ai", "provider": kind.split(":", 1)[1]}
+                    if kind.startswith("motore:"):
+                        return {"type": "ai", "level": kind.split(":", 1)[1]}
                     return {"type": kind}
 
                 data = {"game_code": game_code, "x": spec("x"), "o": spec("o")}

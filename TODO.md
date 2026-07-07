@@ -103,8 +103,13 @@
   la riusa (~3× meno nodi a parità di profondità). Ciclo di vita: start a turno
   umano, stop alla mossa (TT conservata), drop a fine partita; cap 400k voci; solo
   scacchi umano-vs-motore-locale, gate `ponder.enabled` + async.
-- [ ] **Livelli di difficoltà** selezionabili in partita (tempo/profondità/jitter più alto
-  per i principianti), oltre al parametro globale `ai.engine_ms`.
+- [x] **Livelli di difficoltà** selezionabili in partita — cinque preset del MOTORE
+  LOCALE (`local.ENGINE_LEVELS`): Maestro (piena forza), Esperto, Medio,
+  Apprendista, Novizio; ogni livello calibra tempo di riflessione e **jitter**
+  (a jitter alto il motore sceglie anche mosse lontane dalla migliore: errori
+  "umani") e **scavalca il provider remoto**. Voci «Motore — …» al setup; stessa
+  colonna `*_ai_level` dei preset Stockfish; i livelli depotenziati sono esclusi
+  dal pondering; etichetta del livello nell'intestazione della partita.
 - [x] **Suggerimento mossa (hint)** — `POST /sessions/{id}/hint` col motore locale a
   budget ridotto (`hints.engine_ms`), per tutti i giochi; **riservato ai principianti**
   (negato oltre `hints.max_wins` vittorie nel gioco), mai nel **formato FIDE** (e nei

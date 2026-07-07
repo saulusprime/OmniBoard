@@ -59,6 +59,9 @@ def start(db, session: models.GameSession) -> bool:
     ai_kind = session.x_ai_kind if session.x_is_ai else session.o_ai_kind
     if (ai_kind or "ai") != "ai":
         return False  # Stockfish pondera già col suo processo; qui serve al motore locale
+    level = session.x_ai_level if session.x_is_ai else session.o_ai_level
+    if level and level != "maestro":
+        return False  # un livello depotenziato non deve rinforzarsi con la TT ponderata
     if not settings_service.get(db, "ponder.enabled"):
         return False
 

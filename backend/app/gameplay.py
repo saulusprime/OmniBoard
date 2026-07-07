@@ -61,8 +61,26 @@ def side_kind(session: models.GameSession, player: int) -> str:
 
 
 def side_level(session: models.GameSession, player: int) -> str | None:
-    """Livello preconfigurato del lato Stockfish (chiave di ``stockfish.PRESETS``)."""
+    """Livello del lato IA: preset Stockfish o livello del motore locale."""
     return session.x_ai_level if player == 0 else session.o_ai_level
+
+
+def engine_level_params(session: models.GameSession, player: int, default_think: int):
+    """(think_ms, jitter, usa_provider) per un lato IA, dal suo livello di difficoltà.
+
+    Un LIVELLO del motore locale (colonna ``*_ai_level`` sui lati di tipo "ai")
+    calibra tempo e jitter e SCAVALCA il provider remoto: «Novizio» significa
+    motore locale debole, non Claude a piena forza. Senza livello: parametri
+    globali e provider come sempre.
+    """
+    from .opponents import local
+
+    level = side_level(session, player)
+    if side_kind(session, player) == "ai" and level in local.ENGINE_LEVELS:
+        preset = local.ENGINE_LEVELS[level]
+        think = preset["think_ms"] if preset["think_ms"] is not None else default_think
+        return int(think), int(preset["jitter"]), False
+    return int(default_think), 15, True
 
 
 def side_provider(session: models.GameSession, player: int) -> str | None:
@@ -459,11 +477,13 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
         db.refresh(session)
         if session.status != "in_progress":
             return
-        move_think_ms = think_ms
+        # Livello di difficoltà del motore locale (se scelto al setup): tempo e
+        # jitter del preset, e nessuna chiamata al provider remoto.
+        move_think_ms, move_jitter, use_provider = engine_level_params(session, player, think_ms)
         sf_cfg = stockfish.config_for_level(stockfish_base, side_level(session, player))
         if session.tc_category:
             budget = max(50, _remaining_ms(session, player) // 10)
-            move_think_ms = min(int(think_ms), budget)
+            move_think_ms = min(int(move_think_ms), budget)
             sf_cfg = dict(sf_cfg, move_ms=min(int(sf_cfg["move_ms"]), budget))
         from . import ponder  # import locale: evita il ciclo gameplay↔ponder
 
@@ -472,14 +492,14 @@ def advance_ai(db: Session, game, session: models.GameSession) -> None:
             state,
             history_ids(moves),
             kind=side_kind(session, player),
-            provider=provider_for(player),
+            provider=provider_for(player) if use_provider else None,
             # Pondering: la TT riempita durante il turno dell'umano si riusa qui.
             tt=ponder.tt_for(session.id),
             # Il preset del livello (Zeus/Atena/…) si applica sopra la base globale,
             # per lato: in IA-vs-IA i due lati possono avere livelli diversi.
             stockfish_cfg=sf_cfg,
             think_ms=move_think_ms,
-            jitter=15,
+            jitter=move_jitter,
             style=style,
         )
         # Il tempo pensato (reale) viene scalato dall'orologio dell'IA: se nel

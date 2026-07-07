@@ -36,6 +36,27 @@ def engine_time(think_ms=None) -> float:
     return max(0.05, t / 1000.0)
 
 
+# Livelli di difficoltà del MOTORE LOCALE, selezionabili al setup della partita
+# (per i lati di tipo "ai"; la colonna è la stessa dei preset Stockfish).
+# think_ms None = si usa il parametro globale ai.engine_ms; jitter alto = il
+# motore sceglie tra mosse anche molto lontane dalla migliore (errori "umani").
+# Pensati per gli scacchi (tempo e jitter agiscono sul motore dedicato); negli
+# altri giochi il minimax generico ne è poco influenzato.
+ENGINE_LEVELS: dict[str, dict] = {
+    "maestro": {"label": "Maestro (piena forza)", "think_ms": None, "jitter": 0},
+    "esperto": {"label": "Esperto (forte)", "think_ms": 1200, "jitter": 15},
+    "medio": {"label": "Medio (circolo)", "think_ms": 500, "jitter": 60},
+    "apprendista": {"label": "Apprendista (facile)", "think_ms": 200, "jitter": 150},
+    "novizio": {"label": "Novizio (per imparare)", "think_ms": 100, "jitter": 300},
+}
+
+
+def level_label(level: str | None) -> str | None:
+    """Etichetta leggibile del livello del motore locale; None se sconosciuto."""
+    preset = ENGINE_LEVELS.get(level or "")
+    return preset["label"] if preset else None
+
+
 def best_move(game, state, legal, history=None, think_ms=None, jitter=0, style=None, tt=None):
     """Miglior mossa del giocatore locale. Ritorna ``(mossa, sorgente)``.
 

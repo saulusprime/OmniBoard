@@ -105,9 +105,16 @@ class GameSetupForm(forms.Form):
     # Le voci "ai:<codice>" (un CONCORRENTE per provider: «gioca contro Claude»,
     # «gioca contro Gemini», …) vengono aggiunte dinamicamente nell'__init__ dal
     # catalogo del backend; "ai" da sola = provider attivo scelto dal super admin.
+    # Le voci "motore:<livello>" calibrano il MOTORE LOCALE (scavalcando il
+    # provider remoto): dal Maestro a piena forza al Novizio che sbaglia apposta.
     PLAYER_TYPES = [
         ("human", "Umano"),
         ("ai", "IA via API (provider attivo)"),
+        ("motore:maestro", "Motore — Maestro (piena forza)"),
+        ("motore:esperto", "Motore — Esperto (forte)"),
+        ("motore:medio", "Motore — Medio (circolo)"),
+        ("motore:apprendista", "Motore — Apprendista (facile)"),
+        ("motore:novizio", "Motore — Novizio (per imparare)"),
         ("stockfish:zeus", "Stockfish — Zeus (Extreme)"),
         ("stockfish:atena", "Stockfish — Atena (Master)"),
         ("stockfish:apollo", "Stockfish — Apollo (Champion)"),
