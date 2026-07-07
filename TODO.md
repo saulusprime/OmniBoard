@@ -303,9 +303,12 @@
 
 ### 1. AI Coach «umano» e psicologico ⭐ (il più vicino a ciò che abbiamo)
 
-- [ ] **«Spiegami questa mossa»**: pulsante in moviola/analisi → LLM spiega in parole
-  semplici usando dati GIÀ prodotti (valutazione, mossa migliore, apertura, badge).
-  Basso sforzo: prompt su `api_ai._complete`, il modello spiega e non gioca.
+- [x] **«Spiegami questa mossa»** — pulsante 🎓 in moviola →
+  `POST /sessions/{id}/explain`: l'LLM spiega in ≤3 frasi con i dati GIÀ prodotti
+  (FEN prima della mossa, valutazione/perdita/best dall'analisi, badge, apertura,
+  nota del giocatore). Passa da `guarded_complete` (circuit breaker); spiegazione
+  **salvata nello storico della mossa** (secondo clic senza LLM, ricompare
+  navigando la moviola); interruttore `coach.explain_enabled`.
 - [ ] **Riconoscimento del tilt**: N sconfitte rapide consecutive + ACPL sopra la
   propria media (dati del profilo già esistenti) → avviso + esercizio consigliato.
   ⚠️ Design: blocco SOFT di default (l'obbligo fa scappare i giocatori); versione

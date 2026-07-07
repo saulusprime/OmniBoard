@@ -102,6 +102,12 @@
                     style="width:100%;"></textarea>
           <button class="btn secondary" id="notesave" type="button"
                   style="margin-top:4px;">💾 Salva nota</button>
+          {% if s.game_code == 'chess' %}
+          <button class="btn secondary" id="explainbtn" type="button"
+                  style="margin-top:4px;">🎓 Spiegami questa mossa</button>
+          <div id="explaintext" class="muted"
+               style="font-size:.9rem; margin-top:6px; display:none;"></div>
+          {% endif %}
         </div>
         <p style="margin-top:10px;">
           {% if s.game_code == 'chess' %}
@@ -918,6 +924,15 @@
     const note = replayAt > 0 ? (lastMoves[replayAt - 1] || {}).note || "" : "";
     document.getElementById("noteinput").value = note;
     document.getElementById("notesave").disabled = replayAt === 0;
+    const explainBtn = document.getElementById("explainbtn");
+    if (explainBtn) {
+      // Una spiegazione già chiesta (salvata nello storico) ricompare subito.
+      const saved = replayAt > 0 ? (lastMoves[replayAt - 1] || {}).explain || "" : "";
+      const out = document.getElementById("explaintext");
+      out.textContent = saved;
+      out.style.display = saved ? "block" : "none";
+      explainBtn.disabled = replayAt === 0;
+    }
     const ol = document.getElementById("movelog");
     [...ol.children].forEach((li, i) => li.classList.toggle("cur", i === replayAt - 1));
   }
@@ -926,6 +941,34 @@
   document.getElementById("pg-prev").addEventListener("click", () => gotoPly(replayAt - 1));
   document.getElementById("pg-next").addEventListener("click", () => gotoPly(replayAt + 1));
   document.getElementById("pg-last").addEventListener("click", () => gotoPly(1e9));
+
+  const explainBtn = document.getElementById("explainbtn");
+  if (explainBtn) explainBtn.addEventListener("click", async () => {
+    // «Spiegami questa mossa»: l'LLM spiega la semimossa corrente della moviola
+    // con i dati già prodotti (analisi, badge, apertura). Risposta salvata nello
+    // storico: il secondo clic non richiama il modello.
+    if (replayAt === 0) return;
+    const out = document.getElementById("explaintext");
+    explainBtn.disabled = true;
+    out.style.display = "block";
+    out.textContent = "🎓 Sto guardando la posizione…";
+    try {
+      const res = await fetch("{% url 'play_explain_json' s.id %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": CSRF, "Content-Type": "application/x-www-form-urlencoded" },
+        body: `ply=${replayAt}`,
+      });
+      const d = await res.json();
+      if (d.error) { out.textContent = "⚠️ " + d.error; }
+      else {
+        out.textContent = d.text;
+        if (lastMoves[d.ply - 1]) lastMoves[d.ply - 1].explain = d.text;
+      }
+    } catch (e) {
+      out.textContent = "⚠️ Spiegazione non disponibile (backend irraggiungibile?)";
+    }
+    explainBtn.disabled = false;
+  });
 
   document.getElementById("notesave").addEventListener("click", async () => {
     // La nota viene salvata DENTRO lo storico della partita (moves_json).

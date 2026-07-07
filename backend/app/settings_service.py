@@ -107,6 +107,13 @@ SETTINGS_DEFS = [
         "label": "Ritardo minimo tra una mossa e l'altra dell'IA (millisecondi; 0 = nessuno)",
     },
     {
+        "key": "coach.explain_enabled",
+        "type": "bool",
+        "default": True,
+        "category": "IA",
+        "label": "«Spiegami questa mossa» in moviola (usa il provider IA attivo)",
+    },
+    {
         "key": "profile.cache_ttl_s",
         "type": "int",
         "default": 300,

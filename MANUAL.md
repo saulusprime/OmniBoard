@@ -185,6 +185,14 @@ PGN**» scarica la partita in formato **PGN standard** (tag `White`/`Black`/`Res
 mosse in notazione algebrica SAN, le tue note come commenti `{…}`): si apre con
 qualunque programma di scacchi. Le partite iniziate da FEN hanno i tag `SetUp`/`FEN`.
 
+Negli scacchi, con un provider IA attivo, il pulsante «🎓 **Spiegami questa
+mossa**» chiede al modello di spiegare in parole semplici la mossa su cui è ferma
+la moviola — cosa fa e perché è buona o cattiva — usando i dati già calcolati
+(valutazione del motore, mossa preferita, badge di qualità, apertura, la tua
+eventuale nota). La spiegazione viene **salvata nello storico della mossa**: la
+ritrovi ripassando dalla moviola, senza nuove chiamate al modello. Interruttore
+nella categoria IA; il modello spiega soltanto, non gioca.
+
 Negli scacchi c'è anche «🔬 **Analizza la partita**»: Stockfish valuta ogni posizione e
 marca gli errori nel log — **??** blunder (≥ 2 pedoni persi), **?** errore (≥ 1),
 **?!** imprecisione (≥ 0,5) — con la mossa che il motore preferiva e un grafico

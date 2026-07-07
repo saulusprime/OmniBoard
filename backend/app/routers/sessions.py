@@ -35,6 +35,7 @@ from .. import (
     user_prefs,
 )
 from ..database import get_db
+from ..opponents import api_ai
 from .auth import session_from_token
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
@@ -481,6 +482,97 @@ def export_pgn(session_id: int, db: Session = Depends(get_db)):
         media_type="application/x-chess-pgn",
         headers={"Content-Disposition": f'attachment; filename="partita-{session.id}.pgn"'},
     )
+
+
+class ExplainIn(BaseModel):
+    ply: int  # 1-based: la semimossa da spiegare
+
+
+@router.post("/{session_id}/explain")
+def explain_move(session_id: int, payload: ExplainIn, db: Session = Depends(get_db)):
+    """«Spiegami questa mossa»: l'LLM spiega in parole semplici una semimossa.
+
+    Il modello SPIEGA e non gioca: il prompt gli porta solo dati GIÀ prodotti
+    (posizione, valutazione e mossa preferita dall'analisi, badge di qualità,
+    apertura, eventuale nota del giocatore). La spiegazione viene salvata nello
+    storico della mossa (``explain``): il secondo clic non richiama il modello e
+    il testo ricompare in moviola. Protetta dal circuit breaker del provider.
+    """
+    session = db.get(models.GameSession, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessione non trovata")
+    if session.game.code != "chess":
+        raise HTTPException(status_code=400, detail="Disponibile solo per gli scacchi")
+    if not settings_service.get(db, "coach.explain_enabled"):
+        raise HTTPException(status_code=403, detail="Funzione disattivata dal super admin")
+    moves = json.loads(session.moves_json or "[]")
+    if not (1 <= payload.ply <= len(moves)):
+        raise HTTPException(status_code=400, detail="Semimossa inesistente")
+    rec = moves[payload.ply - 1]
+    if rec.get("explain"):
+        return {"ply": payload.ply, "text": rec["explain"], "cached": True}
+
+    provider = ai_providers.get_active_config(db)
+    if provider is None:
+        raise HTTPException(
+            status_code=503, detail="Nessun provider IA attivo (configura un token)"
+        )
+
+    game = get_game("chess")
+    history = gameplay.history_ids(moves)
+    # Posizione PRIMA della mossa, rigiocata col motore (anche da FEN).
+    state = game.from_fen(session.start_fen) if session.start_fen else game.initial_state()
+    for uci in history[: payload.ply - 1]:
+        move = next((m for m in game.legal_moves(state) if game.move_id(m) == uci), None)
+        if move is None:
+            raise HTTPException(status_code=409, detail="Storico non ricostruibile")
+        state = game.apply(state, move)
+    mover = "il Bianco" if state.current == 0 else "il Nero"
+
+    # Dati GIÀ prodotti: analisi (valutazione/perdita/mossa migliore), badge, apertura.
+    fatti = [f"posizione prima della mossa (FEN): {game.to_fen(state)}"]
+    ev = None
+    if session.analysis_json:
+        evals = (json.loads(session.analysis_json) or {}).get("evals") or []
+        ev = next((e for e in evals if e.get("ply") == payload.ply), None)
+    if ev:
+        fatti.append(
+            f"dopo la mossa il motore valuta {ev['cp'] / 100:+.1f} pedoni "
+            "(punto di vista del Bianco)"
+        )
+        if ev.get("loss"):
+            fatti.append(f"chi ha mosso ha perso ~{ev['loss'] / 100:.1f} pedoni rispetto al meglio")
+        if ev.get("best"):
+            fatti.append(f"il motore preferiva {ev['best']}")
+    quality = rec.get("quality")
+    if quality:
+        fatti.append(f"giudizio sintetico: {quality.get('label', '')}")
+    opening = game.opening_name(history[: payload.ply])
+    if opening:
+        fatti.append(f"apertura: {opening}")
+    if rec.get("note"):
+        fatti.append(f"nota del giocatore: «{rec['note']}»")
+
+    prompt = (
+        "Sei un istruttore di scacchi paziente, in italiano. Spiega in parole semplici "
+        f"la semimossa {payload.ply} della partita: {mover} ha giocato "
+        f"{rec.get('notation') or rec.get('id')}. Dati del motore: "
+        + "; ".join(fatti)
+        + ". Spiega COSA fa la mossa e PERCHÉ è buona o cattiva (e, se c'era di meglio, "
+        "cosa e perché) in AL MASSIMO 3 frasi, senza sommergere di varianti. "
+        "Tu spieghi soltanto: non proporre di continuare la partita."
+    )
+    text = api_ai.guarded_complete(provider, prompt)
+    if not text:
+        raise HTTPException(
+            status_code=503,
+            detail="Provider IA non disponibile al momento (errore o circuito aperto): riprova",
+        )
+    text = " ".join(text.split())[:600]
+    rec["explain"] = text
+    session.moves_json = json.dumps(moves)
+    db.commit()
+    return {"ply": payload.ply, "text": text, "cached": False}
 
 
 class NoteIn(BaseModel):

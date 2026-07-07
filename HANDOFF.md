@@ -5,6 +5,38 @@
 
 ---
 
+## 2026-07-07 — «Spiegami questa mossa» (coach LLM in moviola)
+
+**Richiesta (utente):** implementiamo «Spiegami questa mossa» (prima voce
+dell'AI Coach nel TODO).
+
+**Endpoint** `POST /sessions/{id}/explain` (solo scacchi, `ExplainIn.ply`):
+
+- raccoglie SOLO dati già prodotti: posizione prima della mossa rigiocata col
+  motore (FEN, anche da `start_fen`), valutazione/perdita/mossa preferita
+  dall'analisi (se calcolata), badge di qualità del commentatore, nome
+  dell'apertura, eventuale nota del giocatore;
+- prompt da istruttore («spiega COSA fa la mossa e PERCHÉ, ≤3 frasi, non
+  proporre di continuare la partita») al provider ATTIVO via
+  `api_ai.guarded_complete` → protetto dal circuit breaker; 503 se nessun
+  provider o circuito aperto, 403 se `coach.explain_enabled` (nuovo parametro)
+  è spento;
+- la spiegazione è SALVATA nello storico della mossa (`moves_json[ply-1]
+  ["explain"]`, max 600 caratteri): il secondo clic risponde `cached: true`
+  senza richiamare il modello, e il testo ricompare navigando la moviola.
+
+**Frontend**: pulsante «🎓 Spiegami questa mossa» sotto le note della moviola
+(proxy Django `partite/<id>/spiega.json`); il testo persistito si mostra da solo
+quando ci si ferma su una mossa già spiegata.
+
+**Test (+4, 226 verdi):** 503 senza provider, prompt coi dati (mover/notazione/
+FEN/nota) + cache al secondo clic + persistenza nella vista, validazioni
+(ply/404/solo scacchi), 403 da interruttore. Nota: il finto provider va attivato
+DOPO aver giocato la partita, o il commentatore LLM (stesso scudo) cattura i
+prompt.
+
+---
+
 ## 2026-07-07 — Cache del profilo avversario
 
 **Richiesta (utente):** cache del profilo avversari.

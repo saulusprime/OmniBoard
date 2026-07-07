@@ -48,6 +48,10 @@ def list_games():
     return _request("GET", "/games")
 
 
+def explain_move(session_id, ply: int):
+    return _request("POST", f"/sessions/{session_id}/explain", json={"ply": ply})
+
+
 # ----- Arena IA (classifica dei concorrenti e tornei) -----
 def arena_identities():
     return _request("GET", "/arena/identities")

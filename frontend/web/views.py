@@ -358,6 +358,19 @@ def match_create(request):
 
 
 # ----- Partite giocabili -----
+def play_explain_json(request, session_id):
+    """«Spiegami questa mossa»: proxy verso il backend (LLM, risposta salvata)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "POST richiesto"}, status=405)
+    try:
+        ply = int(request.POST.get("ply", "0"))
+        return JsonResponse(api.explain_move(session_id, ply))
+    except api.ApiError as exc:
+        return JsonResponse({"error": str(exc)}, status=exc.status or 502)
+    except ValueError:
+        return JsonResponse({"error": "Semimossa non valida"}, status=400)
+
+
 def arena(request):
     """Arena IA: classifica Elo dei concorrenti e tornei IA-vs-IA.
 

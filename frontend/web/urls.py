@@ -41,6 +41,11 @@ urlpatterns = [
     path("partite/<int:session_id>/stato.json", views.play_state_json, name="play_state_json"),
     path("partite/<int:session_id>/replay.json", views.play_replay_json, name="play_replay_json"),
     path("partite/<int:session_id>/nota.json", views.play_note_json, name="play_note_json"),
+    path(
+        "partite/<int:session_id>/spiega.json",
+        views.play_explain_json,
+        name="play_explain_json",
+    ),
     path("partite/<int:session_id>/hint.json", views.play_hint_json, name="play_hint_json"),
     path("partite/<int:session_id>/fine.json", views.play_endgame_json, name="play_endgame_json"),
     path(

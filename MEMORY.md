@@ -570,6 +570,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   giocatore, invalidazione a eventi in finalize_session/analysis + TTL
   `profile.cache_ttl_s` 300s, 0=off; usata da opponent_style e dall'endpoint
   profilo; dict condiviso = immutabile). 222 test verdi.
+- **2026-07-07** — **«Spiegami questa mossa»**: POST /sessions/{id}/explain
+  (dati già prodotti: FEN, analisi, badge, apertura, nota → prompt istruttore
+  ≤3 frasi via guarded_complete; salvata in moves_json[ply-1]["explain"],
+  cached al secondo clic; coach.explain_enabled); pulsante 🎓 in moviola.
+  226 test verdi.
 
 ## Questioni aperte
 
