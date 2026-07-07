@@ -5,6 +5,41 @@
 
 ---
 
+## 2026-07-07 — Posizione morta corretta + audit di conformità FIDE
+
+**Richiesta (utente):** verificare la patta per scarsità di pezzi nel regolamento
+ufficiale, applicare la correzione proposta, rivedere la corrispondenza complessiva al
+regolamento e aggiornare tutti i documenti (resilienza all'auto-compattazione).
+
+**Verifica sulle fonti:** FIDE Laws of Chess (handbook.fide.com, E01): l'art. 5.2.2 non
+elenca materiali ma definisce la **posizione morta** (nessuno può dare matto con alcuna
+serie di mosse legali); 6.9 (bandierina), 5.1.2 (abbandono), 9.6 (dichiarazioni
+d'ufficio alla 5ª ripetizione / 75ª mossa).
+
+**Correzione (`Chess._insufficient`):** il vecchio controllo ignorava proprietario e
+tinta delle case — dichiarava patta **Re+Alfiere+Alfiere vs Re** (con la coppia di
+alfieri il matto è FORZATO: bug che derubava una vittoria) e Re+A vs Re+A su tinte
+diverse (matto d'aiuto possibile). Ora: K vs K; K+minore vs K; soli alfieri (di uno o
+entrambi i lati) **tutti sulla stessa tinta**. Re+2C resta correttamente viva.
+Test nuovi (`engine/tests/test_dead_position.py`, +3): coppia di alfieri, alfieri
+contrapposti stessa/diversa tinta, KNN, pedone sempre vivo. (Refuso di tinta nelle case
+di test trovato e corretto: 27 e 36 sono la STESSA tinta, 28 quella opposta.)
+
+**Audit FIDE completo** (tabella in MANUAL, «Conformità al regolamento FIDE»):
+conformi movimento/scacco/matto/stallo, arrocco (transito del re non attaccato, b1/b8
+solo libera), en passant a scadenza, promozione a scelta, ripetizione con chiave
+completa, 50 mosse con azzeramenti giusti, orologi. **Semplificazioni dichiarate**:
+ripetizione e 50 mosse d'ufficio al primo raggiungimento (FIDE: su richiesta, d'ufficio
+a 5ª/75ª), bandierina = patta solo con re nudo, posizioni morte non-materiali non
+rilevate. **Lacune scoperte → TODO**: abbandono (5.1.2) e patta d'accordo (9.1) non
+esistono ancora; bandierina fedele al 6.9 pieno.
+
+**Documenti aggiornati** (anti-perdita alla compattazione): MANUAL (tabella conformità,
+intestazione), TODO (2 voci nuove), README (roadmap scacchi consolidata), MEMORY
+(milestone + intestazione), memoria persistente di progetto riallineata.
+
+---
+
 ## 2026-07-06 — Badge di qualità delle mosse + commentatore LLM (widget)
 
 **Richiesta (utente):** un LLM come commentatore in un widget + simbolini in alto a

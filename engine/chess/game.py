@@ -345,12 +345,26 @@ class Chess(Game):
 
     @staticmethod
     def _insufficient(board):
-        others = [p.upper() for p in board if p and p.upper() != "K"]
-        if not others:
+        """Posizione MORTA per solo materiale (FIDE art. 5.2.2, casi rilevabili):
+
+        - Re contro Re;
+        - Re + un pezzo minore contro Re;
+        - soli ALFIERI (di uno o di entrambi i lati, in qualunque numero) tutti
+          su case della stessa tinta: nessuno può mai dare matto.
+
+        NON sono morte (il matto resta possibile, anche solo d'aiuto): Re+2C vs
+        Re, alfieri su tinte diverse — compresa la coppia di alfieri, che anzi
+        vince forzatamente. La tinta si controlla per casa, non per proprietario.
+        """
+        pieces = [(sq, p) for sq, p in enumerate(board) if p and p.upper() != "K"]
+        if not pieces:
             return True
-        if len(others) == 1 and others[0] in ("N", "B"):
+        if len(pieces) == 1 and pieces[0][1].upper() in ("N", "B"):
             return True
-        return len(others) == 2 and all(o == "B" for o in others)
+        if pieces and all(p.upper() == "B" for _, p in pieces):
+            tints = {(sq // 8 + sq % 8) % 2 for sq, _ in pieces}
+            return len(tints) == 1
+        return False
 
     def is_terminal(self, state):
         if state.halfmove >= 100 or self._insufficient(state.board):

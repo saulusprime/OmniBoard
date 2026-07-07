@@ -24,6 +24,12 @@
 
 ## Motore scacchi
 
+- [ ] ⭐ **Abbandono e patta d'accordo** (scoperti mancanti dall'audit FIDE 2026-07-07):
+  pulsante «Abbandona» (art. 5.1.2) e «Offri patta»/«Accetta» (art. 9.1) in partita, con
+  esiti `finish_reason="resign"/"agreement"` e punti assegnati di conseguenza.
+- [ ] Bandierina più fedele all'art. 6.9: patta se l'avversario non può dare matto con
+  alcuna serie di mosse (oggi solo re nudo).
+
 - [x] ⭐ **Avversario Stockfish (NNUE) configurabile** — integrato via protocollo **UCI**
   (`backend/app/opponents/stockfish.py`): tipo di giocatore «Stockfish» al setup partita;
   percorso binario da super admin (`stockfish.path`) o `STOCKFISH_PATH`; forza regolabile
