@@ -527,6 +527,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   su materiale: impossibile solo re nudo / K+C vs nudo / alfieri monotinta bilaterali;
   K+2C vince a tempo); `_winner_on_time` la usa → vale anche per l'abbandono.
   182 test verdi. Tabella FIDE del MANUAL: semplificazione rimossa.
+- **2026-07-07** — **Potenziamenti di ricerca**: SEE (swap+raggi X, pota catture
+  perdenti in quiescence), PVS (nodi interni e radice, composto con LMR),
+  aspiration windows (±50 cp, fail→ricerca piena, jitter-safe), futility a depth 1
+  (statico+150, prima legale sempre cercata). Prof. 6: −36/−62/−65% di tempo,
+  stesse mosse/punteggi. 185 test verdi (SEE su scambi noti, matto, donna salva).
 
 ## Questioni aperte
 

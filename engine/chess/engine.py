@@ -11,6 +11,14 @@ Tecniche implementate (tutte in puro Python, sopra le regole di ``game.py``):
   scambio). È ciò che impedisce all'IA di "regalare" pezzi.
 - **Ordinamento delle mosse**: mossa della TT, catture per MVV-LVA, promozioni, *killer
   moves* e *history heuristic* → molti più tagli alpha-beta, quindi più profondità.
+- **PVS** (Principal Variation Search): solo la prima mossa di ogni nodo ha la finestra
+  piena, le altre vengono sondate a finestra nulla e ri-cercate solo se promettono.
+- **Aspiration windows** alla radice: dal terzo livello si cerca in una finestra stretta
+  attorno al punteggio dell'iterazione precedente, riaprendola sul fail low/high.
+- **SEE** (Static Exchange Evaluation): in quiescence le catture che PERDONO lo scambio
+  completo (swap con raggi X) vengono potate; il delta pruning resta per il resto.
+- **Futility pruning** ai nodi frontiera: a profondità 1, se la valutazione statica più
+  un margine non raggiunge alpha, le mosse quiete che non danno scacco si saltano.
 - **Valutazione**: materiale + tabelle posizionali (piece-square) per fase di gioco,
   struttura pedonale (pedoni doppiati/isolati/passati), coppia degli alfieri, torri su
   colonna aperta, sicurezza del re (scudo pedonale), tempo.
@@ -25,7 +33,7 @@ from __future__ import annotations
 import random
 import time
 
-from .board import WHITE
+from .board import BISHOP_DIRS, BLACK, KNIGHT_DIRS, ROOK_DIRS, WHITE
 from .context import SearchContext
 from .errors import TimeUp
 from .state import ChessState
@@ -303,6 +311,94 @@ def _order(ctx, state, moves, ply, tt_move):
     return sorted(moves, key=key, reverse=True)
 
 
+# ----- SEE (Static Exchange Evaluation) -----
+_RAYS = ROOK_DIRS + BISHOP_DIRS
+
+
+def _least_attacker(occ, to, color):
+    """(casa, pezzo) dell'attaccante di MINOR VALORE di ``color`` sulla casa ``to``.
+
+    ``occ`` è l'occupazione corrente dello swap ({casa: pezzo}): rimuovere un
+    pezzo e riscandire i raggi scopre naturalmente gli attacchi a raggi X.
+    """
+    tr, tc = divmod(to, 8)
+    # Pedoni (i più economici): un pedone bianco attacca da una riga più in basso.
+    pr = tr + 1 if color == WHITE else tr - 1
+    pawn = "P" if color == WHITE else "p"
+    if 0 <= pr < 8:
+        for dc in (-1, 1):
+            c = tc + dc
+            if 0 <= c < 8 and occ.get(pr * 8 + c) == pawn:
+                return pr * 8 + c, pawn
+    knight = "N" if color == WHITE else "n"
+    for dr, dc in KNIGHT_DIRS:
+        r, c = tr + dr, tc + dc
+        if 0 <= r < 8 and 0 <= c < 8 and occ.get(r * 8 + c) == knight:
+            return r * 8 + c, knight
+    best = None
+    for dr, dc in _RAYS:
+        r, c, dist = tr + dr, tc + dc, 1
+        diag = dr != 0 and dc != 0
+        while 0 <= r < 8 and 0 <= c < 8:
+            piece = occ.get(r * 8 + c)
+            if piece is not None:
+                if (piece.isupper()) == (color == WHITE):
+                    up = piece.upper()
+                    if (
+                        up == "Q"
+                        or (up == "B" and diag)
+                        or (up == "R" and not diag)
+                        or (up == "K" and dist == 1)
+                    ):
+                        if best is None or _VAL_C[piece] < _VAL_C[best[1]]:
+                            best = (r * 8 + c, piece)
+                break  # il primo pezzo sul raggio blocca comunque
+            r += dr
+            c += dc
+            dist += 1
+    return best
+
+
+def _see(board, move):
+    """Valore dello SCAMBIO COMPLETO sulla casa di arrivo (swap algorithm).
+
+    Simula la sequenza di ricatture con l'attaccante di minor valore a ogni
+    turno (raggi X inclusi, perché i raggi vengono riscanditi dopo ogni
+    rimozione) e con il passaggio all'indietro che permette a ciascun lato di
+    FERMARSI quando ricatturare non conviene. Usata in quiescence per potare
+    le catture perdenti (es. DxP difeso da pedone → ~ -800). L'en passant e le
+    promozioni non passano da qui (rare: si lasciano al delta pruning).
+    """
+    frm, to, _promo = move
+    victim = board[to]
+    if victim is None:
+        return 0
+    occ = {sq: p for sq, p in enumerate(board) if p is not None}
+    attacker = occ.pop(frm)
+    gain = [_VAL_C[victim]]
+    occ[to] = attacker
+    side = BLACK if attacker.isupper() else WHITE  # tocca ricatturare all'altro
+    while True:
+        nxt = _least_attacker(occ, to, side)
+        if nxt is None:
+            break
+        sq, piece = nxt
+        if piece.upper() == "K":
+            # Il re può ricatturare solo se la casa non resta difesa (altrimenti
+            # la "ricattura" sarebbe illegale e falserebbe lo scambio).
+            probe = dict(occ)
+            del probe[sq]
+            if _least_attacker(probe, to, 1 - side) is not None:
+                break
+        gain.append(_VAL_C[occ[to]] - gain[-1])
+        del occ[sq]
+        occ[to] = piece
+        side = 1 - side
+    for i in range(len(gain) - 1, 0, -1):
+        gain[i - 1] = -max(-gain[i - 1], gain[i])
+    return gain[0]
+
+
 # ----- Quiescence -----
 _DELTA_MARGIN = 200  # margine di sicurezza per il delta pruning (centipedoni)
 
@@ -340,6 +436,10 @@ def _quiesce(ctx, state, alpha, beta, ply):
             if move[2]:
                 gain += _VAL[move[2]] - _VAL["P"]
             if stand + gain + _DELTA_MARGIN <= alpha:
+                continue
+            # SEE: la cattura che PERDE lo scambio completo (es. donna per pedone
+            # difeso) non merita la ricerca — è il grosso del ramo di quiete.
+            if victim is not None and not move[2] and _see(board, move) < 0:
                 continue
         child = game.apply(state, move)
         if game._in_check(child, color):
@@ -438,6 +538,15 @@ def _negamax(ctx, state, depth, alpha, beta, ply):
         if -_negamax(ctx, null, depth - 3, -beta, -beta + 1, ply + 1) >= beta:
             return beta
 
+    # Futility pruning ai nodi FRONTIERA (depth 1): se la valutazione statica più
+    # un margine non arriva ad alpha, le mosse quiete non possono recuperare in una
+    # sola mossa → si saltano (le catture, le promozioni e gli scacchi no).
+    futile = False
+    static = None
+    if depth == 1 and not in_check and abs(alpha) < _MATE_BOUND:
+        static = evaluate(game, state, ctx)
+        futile = static + 150 <= alpha
+
     alpha_orig = alpha
     best = -_INF
     best_move = None
@@ -449,21 +558,28 @@ def _negamax(ctx, state, depth, alpha, beta, ply):
         if game._in_check(child, color):
             continue
         searched += 1
-        # LMR (Late Move Reductions): le mosse quiete tardive si esplorano ridotte di un
-        # livello con finestra nulla; solo se superano alpha si ri-cercano per intero.
-        score = None
-        if (
-            searched > 3
-            and depth >= 3
-            and not in_check
-            and not move[2]
-            and not _is_capture(state, move)
-        ):
-            score = -_negamax(ctx, child, depth - 2, -alpha - 1, -alpha, ply + 1)
-            if score <= alpha:
-                continue  # la riduzione conferma che la mossa non promette
-        if score is None or score > alpha:
+        quiet = not move[2] and not _is_capture(state, move)
+        # Futility: la PRIMA mossa legale si cerca sempre (serve per matto/stallo e
+        # come miglior mossa di riserva); le quiete successive che non danno scacco
+        # vengono saltate col punteggio statico come limite superiore.
+        if futile and quiet and searched > 1 and not game._in_check(child, 1 - color):
+            if static > best:
+                best = static
+            continue
+        # PVS (Principal Variation Search): solo la prima mossa ha la finestra piena;
+        # le altre si sondano con finestra nulla — con LMR anche ridotte di un livello
+        # se quiete e tardive — e si ri-cercano per intero solo se promettono.
+        if searched == 1:
             score = -_negamax(ctx, child, depth - 1, -beta, -alpha, ply + 1)
+        else:
+            reduction = 1 if (searched > 3 and depth >= 3 and not in_check and quiet) else 0
+            score = -_negamax(ctx, child, depth - 1 - reduction, -alpha - 1, -alpha, ply + 1)
+            if score > alpha and reduction:
+                # La riduzione prometteva: si verifica a profondità piena (finestra nulla).
+                score = -_negamax(ctx, child, depth - 1, -alpha - 1, -alpha, ply + 1)
+            if alpha < score < beta:
+                # Supera alpha dentro la finestra: ricerca piena per il valore esatto.
+                score = -_negamax(ctx, child, depth - 1, -beta, -alpha, ply + 1)
         if score > best:
             best = score
             best_move = move
@@ -487,25 +603,39 @@ def _negamax(ctx, state, depth, alpha, beta, ply):
     return best
 
 
-def _search_root(ctx, state, depth, prev_best):
+def _search_root(ctx, state, depth, prev_best, alpha0=-_INF, beta0=_INF):
+    """Ricerca alla radice dentro la finestra [alpha0, beta0] (aspiration window).
+
+    PVS anche qui: prima mossa a finestra piena, le altre sondate a finestra
+    nulla e ri-cercate solo se promettono. Il chiamante riconosce il fail
+    low/high (best ≤ alpha0 / best ≥ beta0) e riapre la finestra.
+    """
     game = ctx.game
     moves = game.legal_moves(state)
     if prev_best in moves:  # principal variation: prima la miglior mossa precedente
         moves = [prev_best] + [m for m in moves if m != prev_best]
     else:
         moves = _order(ctx, state, moves, 0, None)
-    alpha = -_INF
+    alpha = alpha0
     best = -_INF
     best_move = moves[0]
     scored = []
-    for move in moves:
-        score = -_negamax(ctx, game.apply(state, move), depth - 1, -_INF, -alpha, 1)
+    for n, move in enumerate(moves):
+        child = game.apply(state, move)
+        if n == 0:
+            score = -_negamax(ctx, child, depth - 1, -beta0, -alpha, 1)
+        else:
+            score = -_negamax(ctx, child, depth - 1, -alpha - 1, -alpha, 1)
+            if alpha < score < beta0:
+                score = -_negamax(ctx, child, depth - 1, -beta0, -alpha, 1)
         scored.append((score, move))
         if score > best:
             best = score
             best_move = move
         if best > alpha:
             alpha = best
+        if alpha >= beta0:
+            break  # fail high: la finestra va riaperta dal chiamante
     # Jitter: scelta casuale tra le mosse quasi-ottimali (entro `jitter` centipedoni dal
     # massimo) per variare tra partite. La ricerca resta esatta: il jitter non tocca
     # alpha né i punteggi, quindi non degrada la qualità tattica.
@@ -560,13 +690,25 @@ def best_move(game, state, history=None, time_limit=2.0, max_depth=64, style=Non
         ctx.aggression = float(style.get("aggression", 1.0))
 
     best = legal[0]
+    prev_score = None
+    window = 50  # ampiezza iniziale dell'aspiration window (centipedoni)
     for depth in range(1, max_depth + 1):
         ctx.allow_timeout = depth > 1  # la profondità 1 si completa sempre
         try:
-            score, move = _search_root(ctx, state, depth, best)
+            # Aspiration window: dal terzo livello si cerca in una finestra stretta
+            # attorno al punteggio precedente (molti più tagli); se il risultato
+            # esce dalla finestra (fail low/high) si ri-cerca a finestra piena.
+            if depth >= 3 and prev_score is not None and abs(prev_score) < _MATE_BOUND:
+                a, b = prev_score - window, prev_score + window
+                score, move = _search_root(ctx, state, depth, best, a, b)
+                if score <= a or score >= b:
+                    score, move = _search_root(ctx, state, depth, best)
+            else:
+                score, move = _search_root(ctx, state, depth, best)
         except TimeUp:
             break
         best = move
+        prev_score = score
         if abs(score) >= MATE - 100:  # matto forzato trovato: inutile approfondire
             break
     return best

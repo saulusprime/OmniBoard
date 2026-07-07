@@ -84,8 +84,13 @@
   scelta pesata, arrocchi «re cattura torre» tradotti in UCI; `CHESS_POLYGLOT_BOOK`
   interrogato quando il libro interno non ha la posizione (il libro con nomi ha
   priorità: mantiene le aperture-bersaglio).
-- [ ] **Potenziamenti di ricerca**: SEE (potare le catture perdenti in quiescence),
-  aspiration windows alla radice, PVS, futility pruning ai nodi frontier.
+- [x] **Potenziamenti di ricerca** — tutti e quattro: **SEE** (swap con raggi X e
+  guardia del re; pota le catture perdenti in quiescence), **PVS** (finestra nulla
+  dopo la prima mossa, ai nodi interni E alla radice, composto con la LMR),
+  **aspiration windows** alla radice (±50 cp dal punteggio precedente, riaperta sul
+  fail), **futility pruning** a depth 1 (statico+150 ≤ alpha → quiete saltate, mai la
+  prima legale né gli scacchi). Misurato a profondità 6: −36/−62/−65% di tempo su
+  iniziale/mediogioco/tattica, stesse mosse e stessi punteggi.
 - [ ] **Finali**: euristica "mop-up" (spingere il re avversario al bordo con materiale di
   vantaggio), riconoscimento KPK; eventuale mini-tablebase.
 - [ ] **Pondering** — pensare durante il tempo dell'avversario (richiede la mossa async).

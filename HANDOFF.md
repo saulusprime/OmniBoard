@@ -5,6 +5,39 @@
 
 ---
 
+## 2026-07-07 — Potenziamenti di ricerca del motore (SEE, PVS, aspiration, futility)
+
+**Richiesta (utente):** la voce TODO «Potenziamenti di ricerca».
+
+**Implementazione (`engine/chess/engine.py`):**
+
+- **SEE** (Static Exchange Evaluation): swap algorithm con attaccante di minor valore,
+  RAGGI X naturali (i raggi si riscandiscono dopo ogni rimozione), guardia del re (non
+  ricattura su casa ancora difesa), passaggio all'indietro con lo stop facoltativo.
+  In quiescence le catture con SEE < 0 vengono potate (en passant e promozioni escluse:
+  restano al delta pruning).
+- **PVS**: prima mossa a finestra piena, le successive sondate a finestra nulla e
+  ri-cercate solo se promettono — composto con la LMR (riduzione+finestra nulla → se
+  promette, prima verifica a profondità piena a finestra nulla, poi ricerca esatta).
+  Applicato anche alla radice.
+- **Aspiration windows**: dal terzo livello dell'iterative deepening finestra ±50 cp
+  attorno al punteggio precedente; fail low/high → ricerca piena. Compatibile col
+  jitter: le mosse uscite a fail-low restano fuori dall'insieme quasi-ottimale.
+- **Futility pruning** a depth 1: statico+150 ≤ alpha → le mosse quiete che non danno
+  scacco si saltano (mai la prima legale: matto/stallo e mossa di riserva salvi).
+
+**Misure (profondità 6 fissa, jitter 0):** iniziale 1,48→0,95 s (23k→19k nodi),
+mediogioco 5,09→1,92 s (59k→27k), tattica 8,26→2,90 s (92k→37k) — **stesse mosse e
+identici punteggi** (PVS/aspiration esatte a fine ricerca). A parità di tempo il
+motore guadagna ~1 livello di profondità nel mediogioco.
+
+**Test (+3, 185 verdi):** SEE su scambi noti (DxP difeso −800, TxD +900, CxP con
+torre −220, +100 coi raggi X della donna), matto del corridoio trovato, donna
+minacciata che si mette in salvo senza catturare il pedone difeso (premessa del primo
+tentativo di test corretta: d5 non attacca d4).
+
+---
+
 ## 2026-07-07 — Bandierina fedele all'art. 6.9 (matti d'aiuto)
 
 **Richiesta (utente):** patta alla bandierina se l'avversario non può dare matto con
