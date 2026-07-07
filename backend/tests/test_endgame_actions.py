@@ -125,3 +125,24 @@ def test_draw_vs_ai_rejected_and_remote_needs_token():
             f"/sessions/{sid}/resign", json={"side": "x"}, headers={"X-Auth-Token": t1}
         ).json()
         assert out["winner"] == "o" and out["finish_reason"] == "resign"
+
+
+def test_flag_rule_follows_art_6_9():
+    """Bandierina (e abbandono, che la riusa): patta se il vincitore non può dare
+    matto con ALCUNA serie di mosse — non più solo col re nudo."""
+    from app import gameplay
+
+    from engine import get_game
+    from engine.chess.state import ChessState
+
+    game = get_game("chess")
+    board = [None] * 64
+    board[0], board[63], board[27] = "k", "K", "N"
+    state = ChessState(
+        board=tuple(board), current=0, castling=(False, False, False, False), ep=None, halfmove=0
+    )
+    # Cade la bandierina del NERO: il bianco ha K+C contro re nudo → patta.
+    assert gameplay._winner_on_time(game, state, 1) == "draw"
+    # Se il nero possiede una torre, il matto d'aiuto esiste → vince il bianco.
+    board[8] = "r"
+    assert gameplay._winner_on_time(game, state._replace(board=tuple(board)), 1) == "x"

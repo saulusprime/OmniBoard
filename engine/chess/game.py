@@ -366,6 +366,39 @@ class Chess(Game):
             return len(tints) == 1
         return False
 
+    @staticmethod
+    def cannot_mate(board, color: int) -> bool:
+        """Il COLORE (0 = bianco) non può dare matto con ALCUNA serie di mosse legali.
+
+        È il test dell'art. 6.9 (bandierina) e 5.1.2 (abbandono) FIDE, valutato per
+        solo materiale con la teoria dei matti d'aiuto — l'altro giocatore COLLABORA,
+        i pedoni possono promuovere. Il matto è impossibile solo in tre casi:
+
+        1. re nudo;
+        2. re + UN cavallo contro re nudo (con un qualunque pezzo o pedone avversario
+           il matto d'aiuto esiste: fa da blocco, o promuove per farlo);
+        3. soli alfieri, di ENTRAMBE le parti, tutti su case della stessa tinta
+           (nessuno scacco può diventare matto: l'unica casa di blocco è dell'altra
+           tinta e nessun pezzo in campo può occuparla).
+
+        Tutto il resto — compreso re + due cavalli — ammette almeno un matto d'aiuto.
+        """
+        mine: list[tuple[int, str]] = []
+        theirs: list[tuple[int, str]] = []
+        for sq, piece in enumerate(board):
+            if not piece or piece.upper() == "K":
+                continue
+            side = mine if piece.isupper() == (color == 0) else theirs
+            side.append((sq, piece.upper()))
+        if not mine:
+            return True
+        if len(mine) == 1 and mine[0][1] == "N" and not theirs:
+            return True
+        if all(p == "B" for _, p in mine) and all(p == "B" for _, p in theirs):
+            tints = {(sq // 8 + sq % 8) % 2 for sq, _ in mine + theirs}
+            return len(tints) == 1
+        return False
+
     def is_terminal(self, state):
         if state.halfmove >= 100 or self._insufficient(state.board):
             return True

@@ -31,8 +31,10 @@
   accettazione). Regole di fiducia delle mosse (token nei remote); pulsanti 🏳️/½ e
   banner di risposta in partita; `finish_reason="resign"/"agreement"`; guardia
   anti-corsa nel worker IA (refresh dello stato prima di muovere).
-- [ ] Bandierina più fedele all'art. 6.9: patta se l'avversario non può dare matto con
-  alcuna serie di mosse (oggi solo re nudo).
+- [x] Bandierina fedele all'art. 6.9 — `Chess.cannot_mate(board, color)` (matti
+  d'aiuto su base materiale: impossibile solo con re nudo, K+C vs re nudo, o soli
+  alfieri monotinta di entrambe le parti; K+2C e ogni caso con pezzi/pedoni avversari
+  possono dare matto). Usata da `_winner_on_time` → vale per bandierina E abbandono.
 
 - [x] ⭐ **Avversario Stockfish (NNUE) configurabile** — integrato via protocollo **UCI**
   (`backend/app/opponents/stockfish.py`): tipo di giocatore «Stockfish» al setup partita;

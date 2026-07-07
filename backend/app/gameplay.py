@@ -230,9 +230,18 @@ def _remaining_ms(session: models.GameSession, player: int) -> int:
 
 
 def _winner_on_time(game, state, flagged_player: int) -> str:
-    """Esito alla caduta della bandierina: vince l'avversario, MA è patta se questi
-    non ha più materiale per dare matto. Semplificazione (regola FIDE completa: "non
-    può dare matto con alcuna serie di mosse legali"): patta solo con il re nudo."""
+    """Esito alla caduta della bandierina (e dell'abbandono, che la riusa).
+
+    FIDE art. 6.9: vince l'avversario, MA è patta se questi non può dare matto
+    con ALCUNA serie di mosse legali. Il test è del motore (``cannot_mate``,
+    teoria dei matti d'aiuto su base materiale); per giochi senza quel metodo
+    resta il ripiego «re nudo».
+    """
+    winner_player = 1 - flagged_player
+    if hasattr(game, "cannot_mate"):
+        if game.cannot_mate(state.board, winner_player):
+            return "draw"
+        return "x" if winner_player == 0 else "o"
     opponent_pieces = [
         p
         for p in state.board
