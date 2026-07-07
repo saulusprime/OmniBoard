@@ -107,6 +107,20 @@ SETTINGS_DEFS = [
         "label": "Ritardo minimo tra una mossa e l'altra dell'IA (millisecondi; 0 = nessuno)",
     },
     {
+        "key": "providers.breaker_failures",
+        "type": "int",
+        "default": 3,
+        "category": "IA",
+        "label": "Circuit breaker: errori consecutivi che sospendono un provider remoto",
+    },
+    {
+        "key": "providers.breaker_cooldown_s",
+        "type": "int",
+        "default": 120,
+        "category": "IA",
+        "label": "Circuit breaker: pausa prima di riprovare il provider (secondi)",
+    },
+    {
         "key": "ponder.enabled",
         "type": "bool",
         "default": True,

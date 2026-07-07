@@ -140,10 +140,20 @@
   le partite sono vere sessioni giocate in sequenza da un thread (storico,
   moviola, PGN), con classifica del girone (punti di piattaforma) e pagina di
   dettaglio in auto-aggiornamento. Migrazione 0008; endpoint `/arena/*`.
-- [ ] **Circuit breaker** sui provider remoti: dopo N errori consecutivi disattivazione
-  temporanea automatica (oggi c'è solo il connect-timeout breve).
-- [ ] **Cifratura dei token provider** nel DB (oggi in chiaro, scaffold di sviluppo) o
-  spostamento in un secret manager.
+- [x] **Circuit breaker** sui provider remoti (`app/breaker.py`) — dopo N errori
+  consecutivi (default 3, parametro `providers.breaker_failures`) il circuito si
+  APRE: chiamate remote saltate per il raffreddamento (`providers.breaker_cooldown_s`,
+  default 120s: niente attese di timeout a ogni mossa), poi MEZZO APERTO (la
+  prossima chiamata fa da sonda; successo richiude, errore riapre). Scudo unico
+  `api_ai.guarded_complete` (mosse + commentatore LLM); «Verifica connessione»
+  bypassa e registra (sonda manuale); stato nel payload provider e badge
+  «⛔ sospeso» nella pagina Provider IA. Stato in memoria per processo.
+- [x] **Cifratura dei token provider** nel DB (`app/token_crypto.py`) — Fernet
+  (libreria `cryptography`), formato `enc:…` nella stessa colonna (niente
+  migrazione di schema); righe legacy in chiaro cifrate al primo avvio dal seed.
+  Chiave: `TOKENS_KEY` in `.env` (consigliata in produzione) o derivata da
+  `ADMIN_TOKEN` (PBKDF2); chiave cambiata → token illeggibile = assente, con
+  badge «da reinserire» nella pagina Provider IA (mai eccezioni).
 - [ ] **Cache del profilo avversario** con TTL (oggi ricostruito a ogni mossa umana).
 - [x] **LLM come commentatore + badge di qualità** — `app/commentary.py`: dopo ogni mossa
   di scacchi Stockfish classifica (🌟 da maestro, 👍 buona, ⚔️ aggressiva, 🐔 codarda,

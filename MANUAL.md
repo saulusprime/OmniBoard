@@ -442,7 +442,15 @@ Al setup della partita ogni lato (X e O) può essere di **quattro tipi**:
   «IA — Grok (xAI)», «IA — Qwen», «IA — OpenAI»: una voce per ogni provider del
   catalogo, ognuno con la propria configurazione e il proprio token nella pagina
   *Provider IA*), oppure la voce generica «IA via API (provider attivo)» che usa il
-  provider scelto globalmente dal super admin. I due lati possono avere **concorrenti
+  provider scelto globalmente dal super admin. I token dei provider sono
+  **cifrati a riposo** nel database (chiave `TOKENS_KEY` in `.env`, o derivata dal
+  token super admin) e non vengono mai rimostrati; se la chiave di cifratura
+  cambia, la pagina Provider IA segnala i token **da reinserire**. Un **circuit
+  breaker** protegge le partite: dopo 3 errori consecutivi di un provider (rete,
+  quota) le chiamate remote si sospendono per ~2 minuti (gioca subito il
+  ripiego locale, senza attese) e riprendono da sole alla prima sonda riuscita —
+  la pagina Provider IA mostra «⛔ sospeso» e «Verifica connessione» fa da sonda
+  manuale. Soglie regolabili (categoria IA). I due lati possono avere **concorrenti
   diversi** (es. Claude contro Gemini). Le voci senza token sono segnalate («token
   mancante»): funzionano comunque, ma gioca il **giocatore locale** al posto del
   modello remoto (stesso ripiego in caso di errore di rete).

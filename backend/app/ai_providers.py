@@ -12,7 +12,7 @@ import os
 
 from sqlalchemy.orm import Session
 
-from . import models, settings_service
+from . import breaker, models, settings_service, token_crypto
 from .opponents import api_ai
 
 # Provider noti. base_url/model sono valori iniziali modificabili dal super admin.
@@ -82,7 +82,7 @@ def seed_providers(db: Session) -> None:
             if d["code"] == "qwen":
                 base_url = os.getenv("QWEN_BASE_URL", base_url)
                 model = os.getenv("QWEN_MODEL", model)
-                api_key = env_key
+                api_key = token_crypto.encrypt(env_key) if env_key else None
             db.add(
                 models.AiProvider(
                     code=d["code"],
@@ -97,9 +97,14 @@ def seed_providers(db: Session) -> None:
             row.label = d["label"]
             row.kind = d["kind"]
             if d["code"] == "qwen" and not row.api_key and env_key:
-                row.api_key = env_key
+                row.api_key = token_crypto.encrypt(env_key)
                 row.base_url = os.getenv("QWEN_BASE_URL", row.base_url)
                 row.model = os.getenv("QWEN_MODEL", row.model)
+    # Migrazione lazy: le righe con token ancora IN CHIARO (scaffold di sviluppo
+    # pre-cifratura) vengono cifrate qui, al primo avvio con questo codice.
+    for row in db.query(models.AiProvider).all():
+        if row.api_key and not token_crypto.is_encrypted(row.api_key):
+            row.api_key = token_crypto.encrypt(row.api_key)
     db.commit()
 
 
@@ -111,6 +116,7 @@ def list_providers(db: Session) -> list[dict]:
         r = rows.get(d["code"])
         if r is None:
             continue
+        cooldown = int(settings_service.get(db, "providers.breaker_cooldown_s"))
         result.append(
             {
                 "code": r.code,
@@ -119,6 +125,10 @@ def list_providers(db: Session) -> list[dict]:
                 "base_url": r.base_url or "",
                 "model": r.model or "",
                 "has_key": bool(r.api_key),
+                # Token presente ma non decifrabile (chiave cambiata): da reinserire.
+                "key_unreadable": bool(r.api_key) and token_crypto.decrypt(r.api_key) is None,
+                # Circuito del breaker: se aperto, le chiamate remote sono sospese.
+                "breaker": breaker.snapshot(r.code, cooldown),
             }
         )
     return result
@@ -146,12 +156,18 @@ def get_config(db: Session, code: str | None) -> dict | None:
     row = db.get(models.AiProvider, code)
     if row is None or not row.api_key:
         return None
+    api_key = token_crypto.decrypt(row.api_key)
+    if not api_key:
+        return None  # chiave di cifratura cambiata: come non avere il token
     return {
         "code": row.code,
         "kind": row.kind,
         "base_url": row.base_url or "",
         "model": row.model or "",
-        "api_key": row.api_key,
+        "api_key": api_key,
+        # Soglie del circuit breaker (iniettate qui: api_ai non ha il DB).
+        "breaker_failures": int(settings_service.get(db, "providers.breaker_failures")),
+        "breaker_cooldown_s": int(settings_service.get(db, "providers.breaker_cooldown_s")),
     }
 
 
@@ -178,7 +194,7 @@ def update_providers(db: Session, active, providers: dict) -> None:
             row.model = fields["model"]
         key = (fields.get("api_key") or "").strip()
         if key:
-            row.api_key = key
+            row.api_key = token_crypto.encrypt(key)  # mai in chiaro nel DB
     if active is not None and (active == "" or active in _VALID):
         settings_service.update_many(db, {"ai.provider": active})
     db.commit()
@@ -190,6 +206,12 @@ def test_provider(db: Session, code: str):
     if row is None:
         return False, "Provider sconosciuto"
     if not row.api_key:
+        row = db.get(models.AiProvider, code)
+        if row is not None and row.api_key and token_crypto.decrypt(row.api_key) is None:
+            return False, (
+                "Token presente ma NON decifrabile (chiave di cifratura cambiata?): "
+                "reinserisci il token"
+            )
         return False, "Nessun token configurato (salva prima il token)"
     config = {
         "code": row.code,
