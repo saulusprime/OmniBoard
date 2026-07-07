@@ -311,15 +311,18 @@ eseguita il 2026-07-07.
 | Posizione morta per materiale | 5.2.2 | K vs K, K+minore vs K, soli alfieri sulla stessa tinta (di uno o entrambi i lati); Re+2C correttamente NON dichiarata (matto d'aiuto possibile) |
 | Triplice ripetizione | 9.2 | chiave completa: posizione + tratto + diritti arrocco + en passant |
 | Regola delle 50 mosse | 9.3 | contatore azzerato su spinta di pedone o cattura |
-| Tempo e bandierina | 6.x | orologi per categoria, incremento Fischer, formato FIDE 90′+30″ |
+| Tempo e bandierina | 6.x, 6.9 | orologi per categoria, incremento Fischer, formato FIDE 90′+30″; alla bandierina patta se l'avversario non può dare matto con alcuna serie di mosse (`cannot_mate`) |
 
 **Semplificazioni dichiarate** (scelte di piattaforma, comuni ai siti di gioco online):
 
 - Ripetizione e 50 mosse sono dichiarate **d'ufficio** al primo raggiungimento (la FIDE le
   prevede *su richiesta*, con dichiarazione automatica solo alla 5ª ripetizione e alla 75ª
   mossa — art. 9.6): evita le partite infinite.
-- Alla bandierina la patta scatta solo se all'avversario resta il **re nudo** (l'art. 6.9 è
-  più ampio: patta se l'avversario non può dare matto con *alcuna* serie di mosse legali).
+- ~~Bandierina solo col re nudo~~ → ora **fedele all'art. 6.9**: alla caduta della
+  bandierina (e all'abbandono) è patta se l'avversario non può dare matto con *alcuna*
+  serie di mosse legali, valutato con la teoria dei matti d'aiuto su base materiale
+  (impossibile solo con re nudo, re+cavallo contro re nudo, o soli alfieri sulla stessa
+  tinta da entrambe le parti — re+due cavalli PUÒ vincere a tempo).
 - Le posizioni morte **non riconducibili al solo materiale** (es. blocchi totali di pedoni)
   non vengono rilevate: l'art. 5.2.2 pieno richiederebbe un'analisi dedicata.
 - **Abbandono** (art. 5.1.2) e **patta d'accordo** (art. 9.1): implementati — pulsanti

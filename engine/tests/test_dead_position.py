@@ -35,3 +35,25 @@ def test_helpmate_material_stays_alive():
     assert Chess._insufficient(_board({0: "k", 63: "K", 27: "N", 36: "N"})) is False
     # Un pedone in giro = mai morta per materiale (può promuovere).
     assert Chess._insufficient(_board({0: "k", 63: "K", 27: "P"})) is False
+
+
+def test_cannot_mate_flag_rule():
+    """Art. 6.9: chi vince a tempo deve poter dare matto con QUALCHE serie di mosse."""
+    # Re nudo: mai. K+N contro re nudo: mai. K+N contro QUALSIASI cosa: sì
+    # (l'avversario collabora col blocco — o promuove un pedone per farlo).
+    assert Chess.cannot_mate(_board({0: "k", 63: "K"}), 0) is True
+    assert Chess.cannot_mate(_board({0: "k", 63: "K", 27: "N"}), 0) is True
+    assert Chess.cannot_mate(_board({0: "k", 63: "K", 27: "N", 8: "r"}), 0) is False
+    assert Chess.cannot_mate(_board({0: "k", 63: "K", 27: "N", 8: "p"}), 0) is False
+    # Re + due cavalli: il matto d'aiuto esiste → può vincere a tempo.
+    assert Chess.cannot_mate(_board({0: "k", 63: "K", 27: "N", 28: "N"}), 0) is False
+    # Alfieri monotinta da entrambe le parti (27 e 48 = stessa tinta): mai matto.
+    assert Chess.cannot_mate(_board({0: "k", 63: "K", 27: "B"}), 0) is True
+    assert Chess.cannot_mate(_board({0: "k", 63: "K", 27: "B", 48: "b"}), 0) is True
+    # Alfiere avversario su tinta DIVERSA (28): il blocco esiste → matto possibile.
+    assert Chess.cannot_mate(_board({0: "k", 63: "K", 27: "B", 28: "b"}), 0) is False
+    # Un pedone proprio: promuove → matto sempre possibile.
+    assert Chess.cannot_mate(_board({0: "k", 63: "K", 27: "P"}), 0) is False
+    # Il test vale per lato: il NERO con solo il re non può, il bianco pieno sì.
+    assert Chess.cannot_mate(_board({0: "k", 63: "K", 27: "Q"}), 1) is True
+    assert Chess.cannot_mate(_board({0: "k", 63: "K", 27: "Q"}), 0) is False

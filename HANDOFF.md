@@ -5,6 +5,28 @@
 
 ---
 
+## 2026-07-07 — Bandierina fedele all'art. 6.9 (matti d'aiuto)
+
+**Richiesta (utente):** patta alla bandierina se l'avversario non può dare matto con
+alcuna serie di mosse (prima: solo re nudo).
+
+**Implementazione:** `Chess.cannot_mate(board, color)` — teoria dei MATTI D'AIUTO su
+base materiale (l'altro giocatore collabora, i pedoni promuovono). Il matto è
+impossibile SOLO in tre casi: re nudo; re+UN cavallo contro re nudo (qualunque pezzo o
+pedone avversario fa da blocco → matto d'aiuto possibile); soli alfieri di ENTRAMBE le
+parti su case della stessa tinta. Re+2 cavalli PUÒ dare matto (blocco d'aiuto) →
+vince a tempo. `gameplay._winner_on_time` usa il metodo del motore quando esiste
+(ripiego re-nudo per giochi futuri senza) → la regola vale per la BANDIERINA e per
+l'**abbandono** (che la riusa). Semantica allineata a quella di lichess
+(«timeout vs insufficient material»).
+
+**Test (+2, 182 verdi):** casistica completa di `cannot_mate` (re nudo, K+N vs nudo /
+vs torre / vs pedone, K+2C, alfieri mono/bi-tinta, per lato) e `_winner_on_time` su
+stati costruiti (K+N vs re nudo → patta; con torre avversaria → vittoria). MANUAL:
+riga della tabella di conformità aggiornata, semplificazione rimossa dall'elenco.
+
+---
+
 ## 2026-07-07 — Abbandono e patta d'accordo (le lacune dell'audit FIDE)
 
 **Richiesta (utente):** implementare abbandono (FIDE 5.1.2) e patta d'accordo (9.1).

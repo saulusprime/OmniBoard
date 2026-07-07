@@ -523,6 +523,10 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   tratta), `_acting_human` con token nei remote, `finish_manual`, guardia anti-corsa
   (refresh nel worker). Pulsanti 🏳️/½ + banner in partita. 180 test verdi;
   dal vivo `finished draw agreement`. Lacune FIDE dell'audit chiuse.
+- **2026-07-07** — **Bandierina art. 6.9 piena**: `Chess.cannot_mate` (matti d'aiuto
+  su materiale: impossibile solo re nudo / K+C vs nudo / alfieri monotinta bilaterali;
+  K+2C vince a tempo); `_winner_on_time` la usa → vale anche per l'abbandono.
+  182 test verdi. Tabella FIDE del MANUAL: semplificazione rimossa.
 
 ## Questioni aperte
 
