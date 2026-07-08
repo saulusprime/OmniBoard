@@ -33,6 +33,12 @@
   #commentary { max-height:150px; overflow:auto; margin:0 0 12px; padding:0;
                 list-style:none; font-size:.85rem; }
   #commentary li { padding:4px 6px; border-bottom:1px solid var(--line); }
+  @media (max-width: 700px) {
+    .play { gap:14px; }
+    .side { min-width:100%; }
+    .movelog { max-height:220px; }
+    #commentary { max-height:110px; }
+  }
 </style>
 
 {{ s|json_script:"session-data" }}
@@ -171,7 +177,9 @@
   const O_MARK = SESSION.players.o.mark || "O";
   const isSelect =
     moveType === "draughts" || moveType === "chess" || moveType === "backgammon";
-  const cellPx = cols <= 3 ? 88 : (cols <= 7 ? 56 : 46);
+  const BASE_CELL = cols <= 3 ? 88 : (cols <= 7 ? 56 : 46);
+  const FRAMED = moveType === "chess" || moveType === "draughts";
+  let cellPx = fitCellPx(BASE_CELL, cols, FRAMED);  // adattivo: entra nel telefono
   // Dimensione dei pezzi rispetto alla casella (celle e flyer condividono il valore).
   const PIECE_SCALE = 0.83;
   const WHITE_SET = "X⛀⛁♔♕♖♗♘♙○", BLACK_SET = "O⛂⛃♚♛♜♝♞♟●";
@@ -929,6 +937,20 @@
     if (to === from) { renderCells(new Set()); return; }  // rimesso giù: resta selezionato
     selected = null;           // rilascio fuori bersaglio: si annulla
     renderCells(new Set());
+  });
+
+  // ----- Responsive: al cambio di larghezza (o rotazione del telefono) la
+  // scacchiera si rimisura e si ricostruisce (mai a metà di un drag o mossa). -----
+  let fitTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(fitTimer);
+    fitTimer = setTimeout(() => {
+      const px = fitCellPx(BASE_CELL, cols, FRAMED);
+      if (px === cellPx || busy || drag) return;
+      cellPx = px;
+      buildBoard();
+      renderCells(new Set());
+    }, 200);
   });
 
   // ----- Rotazione della scacchiera (vista dal lato del Nero) -----

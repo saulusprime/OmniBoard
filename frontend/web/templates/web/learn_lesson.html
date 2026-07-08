@@ -51,7 +51,11 @@
   const TTS_BASE = "{{ backend_url }}/tts";
   const CSRF = "{{ csrf_token }}";
   const rows = LESSON.rows, cols = LESSON.cols, moveType = LESSON.move_type;
-  const cellPx = cols <= 3 ? 88 : (cols <= 7 ? 56 : 46);
+  const cellPx = fitCellPx(
+    cols <= 3 ? 88 : (cols <= 7 ? 56 : 46),
+    cols,
+    moveType === "chess" || moveType === "draughts"
+  );  // adattivo: la scacchiera della lezione entra nel telefono
   const PIECE_SCALE = 0.83;
   // Stessi glifi PIENI della pagina di gioco: il colore del lato lo dà il CSS.
   const WHITE_SET = "X⛀⛁♔♕♖♗♘♙○", BLACK_SET = "O⛂⛃♚♛♜♝♞♟●";

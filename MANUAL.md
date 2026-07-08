@@ -159,7 +159,11 @@ distanza vede la scacchiera dal proprio lato, e il pulsante «🔄 Ruota» la gi
 qualsiasi momento (le coordinate seguono la vista); sotto la scacchiera il pannello
 **pezzi catturati** con il bilancio materiale (+n per chi è avanti; nella dama il
 conteggio delle pedine). Nelle partite iniziate da FEN il pannello catture resta
-nascosto (il corredo di partenza non è quello standard). Quando un pedone
+nascosto (il corredo di partenza non è quello standard). L'interfaccia è **responsive**: su
+telefono la scacchiera si rimisura da sola per entrare nello schermo (anche
+ruotando il dispositivo), il log delle mosse scende sotto la scacchiera, le
+tabelle lunghe (classifiche, community, arena) scorrono in orizzontale e i
+pezzi si muovono col dito (trascinamento o tocco). Quando un pedone
 promuove, la scelta del pezzo avviene in un **pannello grafico** sopra la
 scacchiera (donna, torre, alfiere, cavallo nei colori del tuo tema): clicca il
 pezzo, oppure premi q/r/b/n; un clic fuori dal pannello (o Esc) annulla la mossa.
