@@ -100,12 +100,43 @@ def build(db: Session, user_id: int) -> dict | None:
         }
         per_game.append(entry)
 
-    # Scacchi: esiti e badge dalle sessioni; il resto dal profilo in cache.
+    # Scacchi: esiti, badge e CADENZE dalle sessioni; il resto dal profilo in cache.
     chess_sessions = _user_sessions(db, user_id, CHESS_CODE)
     finish_reasons = {"mate": 0, "time": 0, "resign": 0, "agreement": 0, "repetition": 0}
     badges = dict.fromkeys(BADGE_SYMBOLS, 0)
+    cadences: dict[str, dict] = {}
     my_marks = ("X", "O")
     for s in chess_sessions:
+        # Prestazioni PER CADENZA (tc_category; None = senza orologio): rendimento
+        # e — dove l'analisi esiste — precisione (ACPL delle proprie mosse).
+        cat = s.tc_category or "none"
+        row = cadences.setdefault(
+            cat,
+            {
+                "category": cat,
+                "games": 0,
+                "wins": 0,
+                "draws": 0,
+                "losses": 0,
+                "analyzed": 0,
+                "_loss_sum": 0,
+                "_moves": 0,
+            },
+        )
+        row["games"] += 1
+        row[{"win": "wins", "draw": "draws", "loss": "losses"}[_result_for(s, user_id)]] += 1
+        if s.analysis_json:
+            try:
+                analysis = json.loads(s.analysis_json)
+            except ValueError:
+                analysis = {}
+            if analysis.get("status") == "done":
+                side = "x" if s.x_user_id == user_id else "o"
+                evals = [e for e in analysis.get("evals", []) if e.get("by") == side]
+                if evals:
+                    row["analyzed"] += 1
+                    row["_moves"] += len(evals)
+                    row["_loss_sum"] += sum(min(int(e.get("loss") or 0), 1000) for e in evals)
         reason = s.finish_reason or ("mate" if s.winner in ("x", "o") else "agreement")
         if s.winner == "draw" and s.finish_reason is None:
             reason = "agreement"  # patte di scacchiera senza motivo esplicito: raro
@@ -131,6 +162,21 @@ def build(db: Session, user_id: int) -> dict | None:
             "quick_loss_rate": profile.get("quick_loss_rate"),
             "accuracy": profile.get("accuracy"),
             "finish_reasons": finish_reasons,
+            "by_cadence": [
+                {
+                    "category": row["category"],
+                    "games": row["games"],
+                    "wins": row["wins"],
+                    "draws": row["draws"],
+                    "losses": row["losses"],
+                    "analyzed": row["analyzed"],
+                    "acpl": round(row["_loss_sum"] / row["_moves"], 1) if row["_moves"] else None,
+                }
+                # Ordine fisso di presentazione: dalla più lenta assenza di
+                # orologio alle cadenze ufficiali.
+                for key in ("none", "blitz", "rapid", "classical", "fide")
+                if (row := cadences.get(key)) is not None
+            ],
             "badges": badges,
             "brilliancies": sum(badges.get(s, 0) for s in BRILLIANT),
         },

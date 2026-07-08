@@ -375,8 +375,12 @@
   (3) **salto della moviola** esattamente alla semimossa (`?ply=N` nell'URL
   della partita, usato dai link della raccolta). 💎 è di prima classe in
   insights (BRILLIANT, badges, conteggio).
-- [ ] **Prestazioni per cadenza**: rendimento e precisione separati per
-  blitz/rapid/classical/FIDE (`tc_category` già persistita per sessione).
+- [x] **Prestazioni per cadenza** — `insights.by_cadence`: per ognuna fra
+  senza-orologio/blitz/rapid/classical/FIDE (ordine fisso, solo cadenze
+  giocate): partite, V/P/S, quante analizzate e **ACPL delle proprie mosse**
+  (— dove l'analisi manca). Tabella nella pagina Statistiche avanzate,
+  bilingue. Trappola .po documentata: riempire `msgstr ""` di un'entry
+  MULTIRIGA con un regex a riga singola concatena traduzioni fantasma.
 - [ ] **Valutazione per i quattro aspetti del gioco** — aperture, tattica, strategia,
   finali — calcolabile dalle analisi per fasce di semimosse: aperture = ACPL nelle
   prime ~12 + rendimento col libro; finali = ACPL da soglia di materiale; tattica =
