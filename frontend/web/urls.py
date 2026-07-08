@@ -18,6 +18,7 @@ urlpatterns = [
         name="learn_progress_json",
     ),
     path("giocatori/<int:user_id>/", views.user_detail, name="user_detail"),
+    path("giocatori/<int:user_id>/statistiche/", views.user_stats, name="user_stats"),
     path("gruppi/", views.groups, name="groups"),
     path("gruppi/proponi/", views.group_propose, name="group_propose"),
     path(

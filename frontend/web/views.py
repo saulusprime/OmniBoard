@@ -383,6 +383,24 @@ def play_explain_json(request, session_id):
         return JsonResponse({"error": "Semimossa non valida"}, status=400)
 
 
+def user_stats(request, user_id):
+    """Statistiche avanzate del giocatore + raccolta delle mosse geniali."""
+    data = _safe(request, lambda: api.get_user_insights(user_id))
+    if data is None:
+        return redirect("user_detail", user_id=user_id)
+    gems = _safe(request, lambda: api.get_user_brilliancies(user_id), default={})
+    return render(
+        request,
+        "web/user_stats.html",
+        {
+            "st": data,
+            "gems": (gems or {}).get("brilliancies", []),
+            "user_id": user_id,
+            "backend_url": api.BASE,  # per gli screenshot board.png della galleria
+        },
+    )
+
+
 def arena(request):
     """Arena IA: classifica Elo dei concorrenti e tornei IA-vs-IA.
 

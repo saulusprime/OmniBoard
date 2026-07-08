@@ -64,6 +64,14 @@ def elo_ranking(game_code):
     return _request("GET", f"/rankings/elo/{game_code}")
 
 
+def get_user_insights(user_id):
+    return _request("GET", f"/users/{user_id}/insights")
+
+
+def get_user_brilliancies(user_id):
+    return _request("GET", f"/users/{user_id}/brilliancies")
+
+
 def get_user_ratings(user_id):
     return _request("GET", f"/users/{user_id}/ratings")
 

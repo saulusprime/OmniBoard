@@ -635,6 +635,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   dei job, GET /admin/jobs). **ADR: RabbitMQ scartato** (seconda fonte di
   verità + footprint; a multi-processo → Postgres SKIP LOCKED o Redis/RQ
   dietro la stessa interfaccia). 258 verdi.
+- **2026-07-08** — **Statistiche avanzate + mosse geniali**: `insights.py`
+  (per-gioco con Elo e serie, esiti scacchi, badge propri; brilliancies 🌟 con
+  avversario/esito/data), `GET /sessions/{id}/board.png?ply=` (render_png dal
+  renderer GIF), pagina `/giocatori/<id>/statistiche/` con galleria. 💎
+  sacrifici e salto moviola ?ply= restano nel TODO. 262 verdi.
 
 ## Questioni aperte
 

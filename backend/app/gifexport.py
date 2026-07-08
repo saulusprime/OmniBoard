@@ -127,6 +127,16 @@ def _draw_board(board: list, rows: int, cols: int, move_type: str, font_pack) ->
     return img
 
 
+def render_png(board: list, rows: int, cols: int, move_type: str) -> bytes:
+    """PNG di una SINGOLA posizione (lo «screenshot» delle mosse geniali)."""
+    font, has_glyphs = _load_font(int(_CELL * 0.78))
+    small = font.font_variant(size=int(_CELL * 0.6)) if font else None
+    img = _draw_board(board, rows, cols, move_type, (font, has_glyphs, small))
+    out = io.BytesIO()
+    img.save(out, format="PNG")
+    return out.getvalue()
+
+
 def render(boards: list[list], rows: int, cols: int, move_type: str) -> bytes:
     """GIF animata dalla sequenza di posizioni (una per semimossa, iniziale inclusa)."""
     font, has_glyphs = _load_font(int(_CELL * 0.78))

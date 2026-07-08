@@ -429,6 +429,28 @@ def replay(session_id: int, db: Session = Depends(get_db)):
     return {"rows": game.rows, "cols": game.cols, "boards": boards}
 
 
+@router.get("/{session_id}/board.png")
+def board_png(session_id: int, ply: int = 0, db: Session = Depends(get_db)):
+    """PNG della posizione dopo la semimossa ``ply`` (0 = iniziale).
+
+    Lo «screenshot» della raccolta mosse geniali (riusa il renderer della GIF).
+    """
+    session = db.get(models.GameSession, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail=_("Sessione non trovata"))
+    game, boards = _replay_boards(session)
+    if not gifexport.supported(game.move_type):
+        raise HTTPException(status_code=400, detail=_("Export GIF non supportato per questo gioco"))
+    if not (0 <= ply < len(boards)):
+        raise HTTPException(status_code=400, detail=_("Semimossa inesistente"))
+    png = gifexport.render_png(boards[ply], game.rows, game.cols, game.move_type)
+    return Response(
+        content=png,
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
+
+
 @router.get("/{session_id}/pgn")
 def export_pgn(session_id: int, db: Session = Depends(get_db)):
     """Export PGN della partita (solo scacchi): tag standard + mosse in SAN.

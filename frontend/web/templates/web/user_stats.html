@@ -1,0 +1,88 @@
+{% extends "web/base.html" %}
+{% load i18n %}
+{% block title %}{{ st.alias }} — {% trans 'Statistiche avanzate' %}{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>📊 {{ st.alias }} — {% trans 'Statistiche avanzate' %}</h1>
+  <p class="muted">{% trans 'Aggregato delle partite concluse e delle analisi già calcolate; più partite analizzi, più il quadro si arricchisce.' %}
+    <a href="{% url 'user_detail' user_id %}">← {% trans 'Scheda giocatore' %}</a></p>
+
+  <h2>{% trans 'Per gioco' %}</h2>
+  <table>
+    <tr><th>{% trans 'Gioco' %}</th><th>{% trans 'Punti' %}</th><th>Elo</th>
+        <th>V/P/S</th><th>{% trans 'Serie migliore' %}</th><th>{% trans 'Serie in corso' %}</th></tr>
+    {% for g in st.games %}
+    <tr>
+      <td>{{ g.game_name }}</td>
+      <td>{{ g.points }}</td>
+      <td>{% if g.elo %}<strong>{{ g.elo.elo }}</strong>{% if g.elo.provisional %} <span class="muted">?</span>{% endif %}{% else %}—{% endif %}</td>
+      <td>{{ g.wins }}/{{ g.draws }}/{{ g.losses }}</td>
+      <td>{{ g.best_win_streak }}</td>
+      <td>{{ g.current_win_streak }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6" class="muted">{% trans 'Nessuna partita giocata.' %}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% if st.chess.games %}
+<div class="card">
+  <h2>♟️ {% trans 'Scacchi in profondità' %}</h2>
+  <p class="muted">
+    {% blocktrans with n=st.chess.games ap=st.chess.avg_plies %}Su {{ n }} partite — durata media {{ ap }} semimosse.{% endblocktrans %}
+    {% if st.chess.accuracy %}
+    {% blocktrans with acpl=st.chess.accuracy.acpl bl=st.chess.accuracy.blunders %}Precisione: {{ acpl }} centipedoni persi a mossa, {{ bl }} blunder totali.{% endblocktrans %}
+    {% endif %}
+  </p>
+  {% if st.chess.by_color %}
+  <h3>{% trans 'Per colore' %}</h3>
+  <table>
+    <tr><th></th><th>{% trans 'Partite' %}</th><th>{% trans 'Vinte' %}</th><th>{% trans 'Patte' %}</th><th>{% trans 'Perse' %}</th></tr>
+    <tr><td>{% trans 'Bianco' %}</td><td>{{ st.chess.by_color.white.games }}</td><td>{{ st.chess.by_color.white.wins }}</td><td>{{ st.chess.by_color.white.draws }}</td><td>{{ st.chess.by_color.white.losses }}</td></tr>
+    <tr><td>{% trans 'Nero' %}</td><td>{{ st.chess.by_color.black.games }}</td><td>{{ st.chess.by_color.black.wins }}</td><td>{{ st.chess.by_color.black.draws }}</td><td>{{ st.chess.by_color.black.losses }}</td></tr>
+  </table>
+  {% endif %}
+
+  <h3>{% trans 'Come finiscono le partite' %}</h3>
+  <p>
+    ♚ {% trans 'scacco matto' %}: <strong>{{ st.chess.finish_reasons.mate }}</strong> ·
+    ⏱ {% trans 'tempo' %}: <strong>{{ st.chess.finish_reasons.time }}</strong> ·
+    🏳️ {% trans 'abbandono' %}: <strong>{{ st.chess.finish_reasons.resign }}</strong> ·
+    ½ {% trans 'patta d’accordo' %}: <strong>{{ st.chess.finish_reasons.agreement }}</strong> ·
+    🔁 {% trans 'ripetizione' %}: <strong>{{ st.chess.finish_reasons.repetition }}</strong>
+  </p>
+
+  <h3>{% trans 'I tuoi badge di qualità' %}</h3>
+  <p style="font-size:1.05rem;">
+    {% for sym, n in st.chess.badges.items %}{{ sym }}×{{ n }}&nbsp;&nbsp;{% endfor %}
+  </p>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>🌟 {% trans 'Mosse geniali' %} <span class="pill">{{ gems|length }}</span></h2>
+  <p class="muted">{% trans 'Le tue mosse «da maestro» secondo il motore: lo scatto della posizione, l’avversario e il collegamento alla moviola.' %}</p>
+  {% if gems %}
+  <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:14px;">
+    {% for g in gems %}
+    <div class="card" style="margin:0;">
+      <img src="{{ backend_url }}/sessions/{{ g.session_id }}/board.png?ply={{ g.ply }}"
+           alt="{{ g.notation }}" style="width:100%; border-radius:8px;" loading="lazy">
+      <p style="margin:8px 0 2px;"><strong>{{ g.notation }}</strong> 🌟
+        <span class="muted">({% trans 'semimossa' %} {{ g.ply }})</span></p>
+      <p class="muted" style="margin:0; font-size:.85rem;">
+        {% trans 'vs' %} {{ g.opponent }} —
+        {% if g.result == 'win' %}{% trans 'Vittoria' %}{% elif g.result == 'draw' %}{% trans 'Patta' %}{% else %}{% trans 'Sconfitta' %}{% endif %}
+        {% if g.date %}· {{ g.date|slice:":10" }}{% endif %}</p>
+      <p style="margin:8px 0 0;">
+        <a class="btn secondary" href="{% url 'play' g.session_id %}">{% trans 'Apri la moviola' %}</a>
+      </p>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="muted">{% trans 'Ancora nessuna mossa da maestro: gioca (con i badge di qualità attivi) e torna qui.' %}</p>
+  {% endif %}
+</div>
+{% endblock %}

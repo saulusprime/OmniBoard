@@ -240,6 +240,16 @@ eventuale nota). La spiegazione viene **salvata nello storico della mossa**: la
 ritrovi ripassando dalla moviola, senza nuove chiamate al modello. Interruttore
 nella categoria IA; il modello spiega soltanto, non gioca.
 
+### Statistiche avanzate e mosse geniali
+Dalla scheda giocatore, «📊 **Statistiche avanzate**» apre il cruscotto: per ogni
+gioco punti, Elo, vinte/patte/perse e **serie di vittorie** (migliore e in
+corso); per gli scacchi il rendimento per colore, la precisione dalle analisi,
+**come finiscono le tue partite** (matto, tempo, abbandono, accordo,
+ripetizione) e il conteggio dei badge di qualità. In fondo, la **raccolta delle
+mosse geniali**: ogni tua mossa «da maestro» (🌟) con lo **scatto della
+posizione**, l'avversario, l'esito e il collegamento alla partita per rivederla
+in moviola.
+
 ### Anti-tilt e bias ricorrenti
 Se stai infilando **sconfitte rapide una dietro l'altra** (o perdi giocando
 peggio del tuo solito, quando le partite sono analizzate), la pagina «Gioca» ti

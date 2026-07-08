@@ -3,6 +3,37 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-08 — Statistiche avanzate + raccolta mosse geniali con screenshot
+
+**Richiesta (utente):** pagina delle statistiche avanzate e raccolta delle
+mosse geniali con screenshot della mossa e dettagli della partita.
+
+- **`app/insights.py`** — aggrega SOLO materia prima in cache (mai motore):
+  per gioco punti/V/P/S + Elo stagione corrente + **serie di vittorie**
+  (migliore/corrente, calcolate dall'ordine cronologico delle sessioni);
+  scacchi: esiti (matto/tempo/abbandono/accordo/ripetizione — «matto» =
+  winner senza finish_reason), badge di qualità contati SOLO sulle proprie
+  mosse, riassunto dal profilo in cache (colori, ACPL).
+- **Raccolta mosse geniali** (`insights.brilliancies`): le proprie mosse col
+  badge 🌟 dalle più recenti, con avversario (alias umano o etichetta del
+  concorrente IA via `ai_arena.identity_of/label_of`), esito, data, notazione.
+  Il badge 💎 «sacrificio» resta nel TODO (raffinamento).
+- **Screenshot**: `GET /sessions/{id}/board.png?ply=N` — nuovo
+  `gifexport.render_png` (il renderer Pillow della GIF su UNA posizione),
+  Cache-Control 1h; 400 su ply fuori storico.
+- **Pagina** `/giocatori/<id>/statistiche/` (link «📊» dalla scheda): tabella
+  per gioco, blocco scacchi, galleria a card con <img> sul backend, moviola
+  linkata. Bilingue (nuove stringhe .po + fuzzy header ripulito).
+- **Nota di test**: il commentatore VERO gira nei test (Stockfish in PATH,
+  sincrono) e assegna 🌟 reali oltre a quelli iniettati → asserzioni per
+  PRESENZA, mai per conteggio esatto.
+
+**Test (+4, 262 verdi):** serie e esiti su partite vere (2 matti + 1 abbandono),
+raccolta con avversario/esito e separazione per lato, PNG con firma e
+validazioni, etichetta IA come avversario.
+
+---
+
 ## 2026-07-08 — Coda di lavoro per le mosse IA (e perché NON RabbitMQ)
 
 **Richiesta (utente):** la coda di lavoro per la mossa IA; «ha senso RabbitMQ?».
