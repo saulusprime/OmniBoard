@@ -354,13 +354,22 @@
 > `profile["accuracy"]`, `tc_category` sulle sessioni. Più partite analizzate =
 > insights più ricchi (sinergia col pulsante «Analizza lo storico»).
 
-- [ ] ⭐ **Pagina «Statistiche avanzate»** del giocatore: aggrega le analisi già in
-  cache in un cruscotto dedicato (oggi il profilo mostra solo il riassunto).
-- [ ] **Raccolta «mosse geniali»**: tutte le mosse migliori giocate (badge 🌟) in un
-  archivio consultabile, ognuna linkata alla MOVIOLA sulla posizione esatta; filtri
-  per pezzo/tema (es. «sacrifici di torre»). Prerequisito: nuovo badge 💎 «geniale»
-  (mossa migliore del motore CHE sacrifica materiale — oggi 🌟 non distingue i
-  sacrifici).
+- [x] ⭐ **Pagina «Statistiche avanzate»** (`/giocatori/<id>/statistiche/`,
+  `app/insights.py`, `GET /users/{id}/insights`) — per gioco: punti, Elo
+  (stagione corrente), V/P/S, **serie di vittorie** (migliore e in corso);
+  scacchi in profondità: rendimento per colore, precisione (ACPL/blunder dalla
+  cache), **distribuzione degli esiti** (matto/tempo/abbandono/accordo/
+  ripetizione), conteggio dei badge di qualità sulle proprie mosse. Solo
+  materia prima già in cache, mai lavoro del motore. Bilingue IT/EN.
+- [x] **Raccolta «mosse geniali»** (prima versione) — galleria nella pagina
+  Statistiche: le proprie mosse col badge 🌟 con **screenshot della posizione**
+  (`GET /sessions/{id}/board.png?ply=N`, renderer Pillow della GIF riusato,
+  cache 1h), avversario (alias umano o etichetta del concorrente IA), esito,
+  data e link alla partita/moviola (`insights.brilliancies`).
+- [ ] Raccolta mosse geniali — raffinamenti: badge 💎 «geniale» (mossa migliore
+  CHE sacrifica materiale: 🌟 non distingue i sacrifici), filtri per
+  pezzo/tema, salto della moviola ESATTAMENTE alla semimossa (?ply= nell'URL
+  della partita).
 - [ ] **Prestazioni per cadenza**: rendimento e precisione separati per
   blitz/rapid/classical/FIDE (`tc_category` già persistita per sessione).
 - [ ] **Valutazione per i quattro aspetti del gioco** — aperture, tattica, strategia,

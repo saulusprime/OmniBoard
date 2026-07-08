@@ -8,7 +8,17 @@ import re
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import analysis, models, profile_cache, rating, schemas, settings_service, tilt, user_prefs
+from .. import (
+    analysis,
+    insights,
+    models,
+    profile_cache,
+    rating,
+    schemas,
+    settings_service,
+    tilt,
+    user_prefs,
+)
 from ..database import get_db
 from ..i18n import _
 from ..security import hash_password
@@ -199,6 +209,23 @@ def _translate_profile(profile: dict) -> dict:
     out["openings"] = [{**o, "name": _(o["name"])} for o in profile.get("openings") or []]
     out["weakest_openings"] = [_(n) for n in profile.get("weakest_openings") or []]
     return out
+
+
+@router.get("/{user_id}/insights")
+def user_insights(user_id: int, db: Session = Depends(get_db)):
+    """Statistiche avanzate del giocatore (aggregato di dati già in cache)."""
+    data = insights.build(db, user_id)
+    if data is None:
+        raise HTTPException(status_code=404, detail=_("Utente non trovato"))
+    return data
+
+
+@router.get("/{user_id}/brilliancies")
+def user_brilliancies(user_id: int, db: Session = Depends(get_db)):
+    """Raccolta delle mosse geniali (badge 🌟) del giocatore."""
+    if db.get(models.User, user_id) is None:
+        raise HTTPException(status_code=404, detail=_("Utente non trovato"))
+    return {"brilliancies": insights.brilliancies(db, user_id)}
 
 
 @router.get("/{user_id}/ratings")
