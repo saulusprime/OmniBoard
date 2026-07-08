@@ -1,16 +1,17 @@
 {% extends "web/base.html" %}
-{% block title %}Giocatori{% endblock %}
+{% load i18n %}
+{% block title %}{% trans 'Giocatori' %}{% endblock %}
 {% block content %}
 <div class="card">
-  <h1>Giocatori</h1>
-  <p><a class="btn" href="{% url 'user_create' %}">+ Richiedi registrazione</a></p>
+  <h1>{% trans 'Giocatori' %}</h1>
+  <p><a class="btn" href="{% url 'user_create' %}">+ {% trans 'Richiedi registrazione' %}</a></p>
   {% if users %}
   <table>
-    <tr><th>Alias</th><th>Nome</th><th>Nazionalità</th><th>Regione</th></tr>
+    <tr><th>{% trans 'Alias' %}</th><th>{% trans 'Nome' %}</th><th>{% trans 'Nazionalità' %}</th><th>{% trans 'Regione' %}</th></tr>
     {% for u in users %}
     <tr>
       <td><a href="{% url 'user_detail' u.id %}">{{ u.alias }}</a>
-        {% if not u.is_approved %}<span class="muted" style="font-size:.8rem;">(in attesa di approvazione)</span>{% endif %}</td>
+        {% if not u.is_approved %}<span class="muted" style="font-size:.8rem;">({% trans 'in attesa di approvazione' %})</span>{% endif %}</td>
       <td>{{ u.first_name }} {{ u.last_name }}</td>
       <td>{{ u.nationality|default:"—" }}</td>
       <td>{{ u.region|default:"—" }}</td>
@@ -18,7 +19,7 @@
     {% endfor %}
   </table>
   {% else %}
-  <p class="muted">Ancora nessun giocatore registrato.</p>
+  <p class="muted">{% trans 'Ancora nessun giocatore registrato.' %}</p>
   {% endif %}
 </div>
 {% endblock %}

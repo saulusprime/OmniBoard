@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-08 18:22+0200\n"
+"POT-Creation-Date: 2026-07-08 18:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +16,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-#: web/forms.py:29
+
+#: web/forms.py:29 web/templates/web/admin.html:14
+#: web/templates/web/groups.html:31 web/templates/web/users_list.html:10
 msgid "Nome"
 msgstr "First name"
 
@@ -25,7 +26,8 @@ msgstr "First name"
 msgid "Cognome"
 msgstr "Last name"
 
-#: web/forms.py:31
+#: web/forms.py:31 web/templates/web/admin.html:14
+#: web/templates/web/users_list.html:10
 msgid "Alias"
 msgstr "Alias"
 
@@ -33,11 +35,12 @@ msgstr "Alias"
 msgid "Email"
 msgstr "Email"
 
-#: web/forms.py:33
+#: web/forms.py:33 web/templates/web/users_list.html:10
 msgid "Nazionalità"
 msgstr "Nationality"
 
-#: web/forms.py:34
+#: web/forms.py:34 web/templates/web/rankings.html:45
+#: web/templates/web/rankings.html:52 web/templates/web/users_list.html:10
 msgid "Regione"
 msgstr "Region"
 
@@ -85,100 +88,442 @@ msgstr "Against"
 msgid "Tema scacchiera e pezzi (scacchi e dama)"
 msgstr "Board and piece theme (chess and draughts)"
 
-#: web/forms.py:93
+#: web/forms.py:94
 msgid "Il tuo segno nel Tris"
 msgstr "Your Tic-tac-toe mark"
 
-#: web/forms.py:138 web/forms.py:212
+#: web/forms.py:140 web/forms.py:214 web/templates/web/arena.html:35
+#: web/templates/web/arena.html:56 web/templates/web/community.html:34
+#: web/templates/web/rankings.html:29 web/templates/web/user_detail.html:25
 msgid "Gioco"
 msgstr "Game"
 
-#: web/forms.py:139
+#: web/forms.py:141
 msgid "Giocatore X (primo a muovere)"
 msgstr "Player X (moves first)"
 
-#: web/forms.py:140
+#: web/forms.py:142
 msgid "Utente per X"
 msgstr "User for X"
 
-#: web/forms.py:141
+#: web/forms.py:143
 msgid "Giocatore O"
 msgstr "Player O"
 
-#: web/forms.py:142
+#: web/forms.py:144
 msgid "Utente per O"
 msgstr "User for O"
 
-#: web/forms.py:146
+#: web/forms.py:148
 msgid ""
 "Partita a distanza (ogni giocatore dal proprio dispositivo, serve l'accesso)"
-msgstr ""
+msgstr "Remote game (each player on their own device, login required)"
 
-#: web/forms.py:150
+#: web/forms.py:152
 msgid "Orologio (solo scacchi)"
 msgstr "Clock (chess only)"
 
-#: web/forms.py:153
+#: web/forms.py:155
 msgid "Minuti a testa (vuoto = default della categoria)"
 msgstr "Minutes per side (empty = category default)"
 
-#: web/forms.py:159
+#: web/forms.py:161
 msgid "Incremento Fischer (secondi a mossa; non per FIDE)"
 msgstr "Fischer increment (seconds per move; not for FIDE)"
 
-#: web/forms.py:169
+#: web/forms.py:171
 msgid "Posizione iniziale FEN (solo scacchi, vuoto = standard)"
 msgstr "Starting position FEN (chess only, empty = standard)"
 
-#: web/forms.py:176
+#: web/forms.py:178
 msgid "Partite consecutive (solo se entrambi IA)"
 msgstr "Consecutive games (only if both sides are AI)"
 
-#: web/forms.py:213
+#: web/forms.py:215
 msgid "Giocatore A"
 msgstr "Player A"
 
-#: web/forms.py:214
+#: web/forms.py:216
 msgid "Giocatore B"
 msgstr "Player B"
 
-#: web/forms.py:216
+#: web/forms.py:218
 msgid "Risultato"
 msgstr "Result"
+
+#: web/templates/web/admin.html:3
+msgid "Super admin — Parametri"
+msgstr "Super admin — Settings"
+
+#: web/templates/web/admin.html:6
+msgid "Super admin — Parametri di programma"
+msgstr "Super admin — Application settings"
+
+#: web/templates/web/admin.html:7
+msgid ""
+"Tutti i parametri configurabili dell'applicazione. Modifica i valori e salva "
+"inserendo il <strong>token super admin</strong>."
+msgstr "All configurable application settings. Edit the values and save by entering the <strong>super admin token</strong>."
+
+#: web/templates/web/admin.html:8 web/templates/web/admin_ai.html:6
+msgid "Provider IA"
+msgstr "AI providers"
+
+#: web/templates/web/admin.html:11
+msgid "Richieste di registrazione in attesa"
+msgstr "Pending registration requests"
+
+#: web/templates/web/admin.html:12
+msgid ""
+"Solo il super admin accetta un nuovo giocatore: finché la richiesta non è "
+"approvata, il login è negato. «Respingi» elimina la richiesta."
+msgstr "Only the super admin accepts a new player: until the request is approved, login is denied. “Reject” deletes the request."
+
+#: web/templates/web/admin.html:14
+#| msgid "Regione"
+msgid "Azione"
+msgstr "Action"
+
+#: web/templates/web/admin.html:23 web/templates/web/admin.html:97
+#: web/templates/web/admin.html:133 web/templates/web/admin_ai.html:56
+msgid "Token super admin"
+msgstr "Super admin token"
+
+#: web/templates/web/admin.html:26
+msgid "Approva"
+msgstr "Approve"
+
+#: web/templates/web/admin.html:28
+msgid "Respingi"
+msgstr "Reject"
+
+#: web/templates/web/admin.html:37
+msgid "Voce sintetica (TTS)"
+msgstr "Speech synthesis (TTS)"
+
+#: web/templates/web/admin.html:43 web/templates/web/base.html:84
+msgid "Lingua"
+msgstr "Language"
+
+#: web/templates/web/admin.html:43
+msgid "Motore"
+msgstr "Engine"
+
+#: web/templates/web/admin.html:43
+msgid "Voce"
+msgstr "Voice"
+
+#: web/templates/web/admin.html:43 web/templates/web/arena.html:35
+#: web/templates/web/groups.html:31
+msgid "Stato"
+msgstr "Status"
+
+#: web/templates/web/admin.html:43
+msgid "Anteprima"
+msgstr "Preview"
+
+#: web/templates/web/admin.html:49
+msgid "pronto"
+msgstr "ready"
+
+#: web/templates/web/admin.html:65
+msgid "Sparring — quanto è forte il motore interno?"
+msgstr "Sparring — how strong is the internal engine?"
+
+#: web/templates/web/admin.html:71 web/templates/web/groups.html:36
+msgid "in corso"
+msgstr "running"
+
+#: web/templates/web/admin.html:74
+#| msgid "Risultato"
+msgid "Risultato:"
+msgstr "Result:"
+
+#: web/templates/web/admin.html:85 web/templates/web/community.html:34
+msgid "Avversario"
+msgstr "Opponent"
+
+#: web/templates/web/admin.html:93 web/templates/web/arena.html:17
+#: web/templates/web/arena.html:35 web/templates/web/arena_tournament.html:15
+#: web/templates/web/arena_tournament.html:29
+#: web/templates/web/batch_result.html:9 web/templates/web/user_detail.html:25
+#: web/templates/web/user_detail.html:61
+msgid "Partite"
+msgstr "Games"
+
+#: web/templates/web/admin.html:95
+msgid "Motore ms/mossa"
+msgstr "Engine ms/move"
+
+#: web/templates/web/admin.html:99
+msgid "Avvia sparring"
+msgstr "Start sparring"
+
+#: web/templates/web/admin.html:110
+msgid "Parametro"
+msgstr "Setting"
+
+#: web/templates/web/admin.html:110
+msgid "Valore"
+msgstr "Value"
+
+#: web/templates/web/admin.html:117
+msgid "Sì"
+msgstr "Yes"
+
+#: web/templates/web/admin.html:118
+#| msgid "Nome"
+msgid "No"
+msgstr "No"
+
+#: web/templates/web/admin.html:138
+msgid "Salva parametri"
+msgstr "Save settings"
+
+#: web/templates/web/admin.html:140
+msgid "Verifica Stockfish"
+msgstr "Check Stockfish"
+
+#: web/templates/web/admin.html:145
+msgid "Impossibile caricare i parametri (backend non raggiungibile?)"
+msgstr "Could not load settings (backend unreachable?)"
+
+#: web/templates/web/admin_ai.html:3
+msgid "Super admin — Provider IA"
+msgstr "Super admin — AI providers"
+
+#: web/templates/web/admin_ai.html:7
+msgid ""
+"Configura qui i token verso uno o più servizi di IA. Scegli il provider "
+"<strong>attivo</strong>: l'avversario IA userà quello (se ha un token "
+"valido), altrimenti gioca in locale. Il token del provider non viene mai "
+"rimostrato."
+msgstr "Configure the tokens for one or more AI services here. Choose the <strong>active</strong> provider: the AI opponent will use it (if it has a valid token), otherwise it plays locally. Provider tokens are never shown again."
+
+#: web/templates/web/admin_ai.html:19
+msgid "Provider attivo"
+msgstr "Active provider"
+
+#: web/templates/web/admin_ai.html:23
+msgid "Endpoint (base URL)"
+msgstr "Endpoint (base URL)"
+
+#: web/templates/web/admin_ai.html:23
+msgid "vuoto = predefinito"
+msgstr "empty = default"
+
+#: web/templates/web/admin_ai.html:27
+msgid "Modello"
+msgstr "Model"
+
+#: web/templates/web/admin_ai.html:32
+msgid "da reinserire (chiave cambiata)"
+msgstr "re-enter (encryption key changed)"
+
+#: web/templates/web/admin_ai.html:33
+msgid "configurato (cifrato)"
+msgstr "configured (encrypted)"
+
+#: web/templates/web/admin_ai.html:35
+msgid "Troppi errori consecutivi: chiamate remote sospese"
+msgstr "Too many consecutive errors: remote calls suspended"
+
+#: web/templates/web/admin_ai.html:35
+msgid "sospeso"
+msgstr "suspended"
+
+#: web/templates/web/admin_ai.html:38
+msgid "lascia vuoto per non modificare"
+msgstr "leave empty to keep unchanged"
+
+#: web/templates/web/admin_ai.html:38
+msgid "incolla il token"
+msgstr "paste the token"
+
+#: web/templates/web/admin_ai.html:42
+msgid "Verifica connessione"
+msgstr "Test connection"
+
+#: web/templates/web/admin_ai.html:51
+msgid "Nessuno — usa solo il giocatore locale"
+msgstr "None — use the local player only"
+
+#: web/templates/web/admin_ai.html:61
+#| msgid "Salva nota"
+msgid "Salva"
+msgstr "Save"
+
+#: web/templates/web/admin_ai.html:62
+msgid "Parametri"
+msgstr "Settings"
+
+#: web/templates/web/admin_ai.html:66
+msgid "Impossibile caricare i provider (backend non raggiungibile?)"
+msgstr "Could not load providers (backend unreachable?)"
+
+#: web/templates/web/arena.html:3 web/templates/web/arena.html:6
+#: web/templates/web/arena_tournament.html:11 web/templates/web/base.html:77
+msgid "Arena IA"
+msgstr "AI Arena"
+
+#: web/templates/web/arena.html:7
+msgid ""
+"Quale IA gioca meglio? Ogni partita <strong>IA-contro-IA</strong> conclusa "
+"aggiorna il <strong>rating Elo</strong> del concorrente (partenza 1500); le "
+"partite contro gli umani non contano. I tornei qui sotto sono il modo più "
+"rapido di alimentare la classifica."
+msgstr "Which AI plays best? Every finished <strong>AI-vs-AI</strong> game updates the competitor's <strong>Elo rating</strong> (starting at 1500); games against humans don't count. The tournaments below are the quickest way to feed the ranking."
+
+#: web/templates/web/arena.html:9
+#| msgid "Classifiche"
+msgid "Classifica"
+msgstr "Ranking"
+
+#: web/templates/web/arena.html:17 web/templates/web/arena_tournament.html:15
+msgid "Concorrente"
+msgstr "Competitor"
+
+#: web/templates/web/arena.html:27
+msgid ""
+"Nessuna partita IA-vs-IA ancora giocata in questo gioco: crea un torneo per "
+"iniziare la classifica."
+msgstr "No AI-vs-AI games played in this game yet: create a tournament to start the ranking."
+
+#: web/templates/web/arena.html:33
+msgid "Tornei"
+msgstr "Tournaments"
+
+#: web/templates/web/arena.html:35
+msgid "Torneo"
+msgstr "Tournament"
+
+#: web/templates/web/arena.html:40 web/templates/web/arena_tournament.html:8
+#: web/templates/web/arena_tournament.html:61
+msgid "concluso"
+msgstr "finished"
+
+#: web/templates/web/arena.html:40 web/templates/web/arena_tournament.html:8
+#: web/templates/web/arena_tournament.html:61
+msgid "in corso…"
+msgstr "in progress…"
+
+#: web/templates/web/arena.html:42
+msgid "Dettaglio"
+msgstr "Details"
+
+#: web/templates/web/arena.html:45
+msgid "Nessun torneo ancora creato."
+msgstr "No tournaments created yet."
+
+#: web/templates/web/arena.html:51
+msgid "Nuovo torneo (girone all'italiana)"
+msgstr "New tournament (round robin)"
+
+#: web/templates/web/arena.html:52
+msgid ""
+"Scegli da 2 a 8 concorrenti: ogni coppia gioca una partita (il primo "
+"elencato ha il primo tratto); con «andata e ritorno» anche la partita a "
+"colori invertiti. Le partite si giocano una alla volta in background e "
+"restano nello storico. Nota: un concorrente non configurato gioca col "
+"ripiego locale."
+msgstr "Pick 2 to 8 competitors: each pair plays one game (the first listed moves first); with “double round” the reversed-colour game too. Games are played one at a time in the background and stay in the history. Note: an unconfigured competitor plays with the local fallback."
+
+#: web/templates/web/arena.html:64
+msgid "Nome (opzionale)"
+msgstr "Name (optional)"
+
+#: web/templates/web/arena.html:65
+msgid "es. Derby dei motori"
+msgstr "e.g. Engine derby"
+
+#: web/templates/web/arena.html:68
+msgid "Andata e ritorno"
+msgstr "Double round"
+
+#: web/templates/web/arena.html:71
+msgid "Concorrenti"
+msgstr "Competitors"
+
+#: web/templates/web/arena.html:77
+msgid "Avvia il torneo"
+msgstr "Start the tournament"
+
+#: web/templates/web/arena_tournament.html:9
+#: web/templates/web/user_detail.html:47
+msgid "partite"
+msgstr "games"
+
+#: web/templates/web/arena_tournament.html:10
+msgid "andata e ritorno"
+msgstr "double round"
+
+#: web/templates/web/arena_tournament.html:13
+#| msgid "Classifiche"
+msgid "Classifica del girone"
+msgstr "Round-robin standings"
+
+#: web/templates/web/arena_tournament.html:15
+#: web/templates/web/rankings.html:10 web/templates/web/rankings.html:52
+#: web/templates/web/user_detail.html:25
+msgid "Punti"
+msgstr "Points"
+
+#: web/templates/web/arena_tournament.html:31
+msgid "Primo tratto"
+msgstr "First move"
+
+#: web/templates/web/arena_tournament.html:31
+msgid "Secondo"
+msgstr "Second"
+
+#: web/templates/web/arena_tournament.html:31
+#: web/templates/web/batch_result.html:9
+msgid "Esito"
+msgstr "Result"
+
+#: web/templates/web/arena_tournament.html:38
+#: web/templates/web/arena_tournament.html:68
+msgid "da giocare"
+msgstr "to be played"
+
+#: web/templates/web/arena_tournament.html:40
+#: web/templates/web/arena_tournament.html:69
+msgid "Partita"
+msgstr "Game"
 
 #: web/templates/web/base.html:69
 msgid "Navigazione principale"
 msgstr "Main navigation"
 
-#: web/templates/web/base.html:71
+#: web/templates/web/base.html:71 web/templates/web/batch_result.html:17
 msgid "Home"
 msgstr "Home"
 
-#: web/templates/web/base.html:72
+#: web/templates/web/base.html:72 web/templates/web/community.html:41
+#: web/templates/web/community.html:83
 msgid "Gioca"
 msgstr "Play"
 
-#: web/templates/web/base.html:73
+#: web/templates/web/base.html:73 web/templates/web/learn_index.html:3
 msgid "Impara"
 msgstr "Learn"
 
-#: web/templates/web/base.html:74
+#: web/templates/web/base.html:74 web/templates/web/users_list.html:3
+#: web/templates/web/users_list.html:6
 msgid "Giocatori"
 msgstr "Players"
 
-#: web/templates/web/base.html:75
+#: web/templates/web/base.html:75 web/templates/web/groups.html:3
+#: web/templates/web/groups.html:6
 msgid "Gruppi"
 msgstr "Groups"
 
-#: web/templates/web/base.html:76
+#: web/templates/web/base.html:76 web/templates/web/rankings.html:3
 msgid "Classifiche"
 msgstr "Rankings"
 
-#: web/templates/web/base.html:77
-msgid "Arena IA"
-msgstr "AI Arena"
-
-#: web/templates/web/base.html:78
+#: web/templates/web/base.html:78 web/templates/web/match_form.html:3
+#: web/templates/web/match_form.html:6
 msgid "Registra partita"
 msgstr "Record game"
 
@@ -186,17 +531,362 @@ msgstr "Record game"
 msgid "Community"
 msgstr "Community"
 
-#: web/templates/web/base.html:84
-msgid "Lingua"
-msgstr "Language"
-
 #: web/templates/web/base.html:101
 msgid "Esci"
 msgstr "Log out"
 
-#: web/templates/web/base.html:104
+#: web/templates/web/base.html:104 web/templates/web/community.html:31
+#: web/templates/web/learn_index.html:8 web/templates/web/learn_lesson.html:40
+#: web/templates/web/login.html:3 web/templates/web/login.html:6
+#: web/templates/web/login.html:10
 msgid "Accedi"
 msgstr "Log in"
+
+#: web/templates/web/batch_result.html:3
+msgid "Risultati IA vs IA"
+msgstr "AI vs AI results"
+
+#: web/templates/web/batch_result.html:6
+#, python-format
+msgid "IA vs IA — %(count)s partite"
+msgstr "AI vs AI — %(count)s games"
+
+#: web/templates/web/batch_result.html:7
+#, python-format
+msgid ""
+"Riepilogo di %(count)s partite giocate consecutivamente dall'IA contro sé "
+"stessa."
+msgstr "Summary of %(count)s games played back-to-back by the AI against itself."
+
+#: web/templates/web/batch_result.html:10
+msgid "Vittorie X"
+msgstr "X wins"
+
+#: web/templates/web/batch_result.html:11
+msgid "Vittorie O"
+msgstr "O wins"
+
+#: web/templates/web/batch_result.html:12 web/templates/web/user_detail.html:25
+msgid "Patte"
+msgstr "Draws"
+
+#: web/templates/web/batch_result.html:14
+msgid ""
+"Nota: con il giocatore locale il Tris a gioco perfetto finisce sempre in "
+"patta; le differenze emergono se l'IA è meno che ottimale."
+msgstr "Note: with the local player, perfectly played Tic-tac-toe always ends in a draw; differences emerge if the AI is less than optimal."
+
+#: web/templates/web/batch_result.html:16 web/templates/web/home.html:9
+#: web/templates/web/play_setup.html:3 web/templates/web/play_setup.html:14
+#| msgid "Registra partita"
+msgid "Nuova partita"
+msgstr "New game"
+
+#: web/templates/web/community.html:7
+msgid ""
+"Chi è connesso adesso, con il punteggio complessivo su tutti i giochi. Con "
+"«Sfida» crei una <strong>partita a distanza</strong>: tu e lo sfidato "
+"giocate ognuno dal proprio dispositivo. L'elenco si aggiorna da solo."
+msgstr "Who is online right now, with the overall score across all games. “Challenge” creates a <strong>remote game</strong>: you and your opponent each play from your own device. The list refreshes by itself."
+
+#: web/templates/web/community.html:9
+#| msgid "Giocatori"
+msgid "Giocatori online"
+msgstr "Players online"
+
+#: web/templates/web/community.html:11 web/templates/web/rankings.html:10
+#: web/templates/web/rankings.html:52
+#| msgid "Giocatore O"
+msgid "Giocatore"
+msgstr "Player"
+
+#: web/templates/web/community.html:11
+msgid "Punti (tutti i giochi)"
+msgstr "Points (all games)"
+
+#: web/templates/web/community.html:18 web/templates/web/community.html:66
+msgid "Sfida"
+msgstr "Challenge"
+
+#: web/templates/web/community.html:19 web/templates/web/community.html:65
+msgid "tu"
+msgstr "you"
+
+#: web/templates/web/community.html:22 web/templates/web/community.html:60
+msgid "Nessun giocatore online in questo momento."
+msgstr "No players online right now."
+
+#: web/templates/web/community.html:29
+msgid "Le tue partite in corso"
+msgstr "Your games in progress"
+
+#: web/templates/web/community.html:31
+msgid "per vedere le tue partite e ricevere le sfide."
+msgstr "to see your games and receive challenges."
+
+#: web/templates/web/community.html:34
+msgid "Turno"
+msgstr "Turn"
+
+#: web/templates/web/community.html:38 web/templates/web/community.html:80
+msgid "a distanza"
+msgstr "remote"
+
+#: web/templates/web/community.html:40 web/templates/web/community.html:82
+msgid "Tocca a te!"
+msgstr "Your turn!"
+
+#: web/templates/web/community.html:40 web/templates/web/community.html:82
+msgid "avversario"
+msgstr "opponent"
+
+#: web/templates/web/community.html:44 web/templates/web/community.html:76
+msgid "Nessuna partita in corso."
+msgstr "No games in progress."
+
+#: web/templates/web/group_propose.html:3
+#: web/templates/web/group_propose.html:6 web/templates/web/groups.html:8
+msgid "Proponi un gruppo"
+msgstr "Propose a group"
+
+#: web/templates/web/group_propose.html:7
+msgid ""
+"Il proponente vota automaticamente a favore. Quando i voti a favore "
+"raggiungono la soglia indicata, il gruppo viene fondato e i votanti ne "
+"diventano membri."
+msgstr "The proposer automatically votes in favour. When the votes in favour reach the threshold, the group is founded and the voters become members."
+
+#: web/templates/web/group_propose.html:10
+msgid "Crea proposta"
+msgstr "Create proposal"
+
+#: web/templates/web/group_propose.html:11 web/templates/web/play_setup.html:19
+#: web/templates/web/user_form.html:11
+msgid "Annulla"
+msgstr "Cancel"
+
+#: web/templates/web/groups.html:7
+msgid ""
+"Per fondare un gruppo serve una proposta votata a favore da almeno due "
+"giocatori."
+msgstr "Founding a group requires a proposal approved by at least two players."
+
+#: web/templates/web/groups.html:12
+#| msgid "Gruppi"
+msgid "Gruppi fondati"
+msgstr "Founded groups"
+
+#: web/templates/web/groups.html:17
+msgid "Membri:"
+msgstr "Members:"
+
+#: web/templates/web/groups.html:18
+#| msgid "Giocatore O"
+msgid "fondatore"
+msgstr "founder"
+
+#: web/templates/web/groups.html:23
+msgid "Nessun gruppo ancora fondato."
+msgstr "No groups founded yet."
+
+#: web/templates/web/groups.html:28
+msgid "Proposte in corso"
+msgstr "Open proposals"
+
+#: web/templates/web/groups.html:31
+msgid "Voti"
+msgstr "Votes"
+
+#: web/templates/web/groups.html:31 web/templates/web/groups.html:43
+#| msgid "Vota come"
+msgid "Vota"
+msgstr "Vote"
+
+#: web/templates/web/groups.html:36
+msgid "fondato"
+msgstr "founded"
+
+#: web/templates/web/groups.html:51
+msgid "Nessuna proposta in corso."
+msgstr "No open proposals."
+
+#: web/templates/web/home.html:3
+msgid "Scacchi — Piattaforma di giochi da tavolo"
+msgstr "Scacchi — Board game platform"
+
+#: web/templates/web/home.html:7
+msgid ""
+"Gioca a scacchi e ad altri giochi da tavolo a turni — dama, tris, forza 4 — "
+"tramite un unico motore. Registrati, sfida gli altri giocatori e scala le "
+"classifiche."
+msgstr "Play chess and other turn-based board games — draughts, tic-tac-toe, connect four — on a single engine. Register, challenge other players and climb the rankings."
+
+#: web/templates/web/home.html:10
+msgid "Crea un giocatore"
+msgstr "Create a player"
+
+#: web/templates/web/home.html:11
+#| msgid "Classifiche"
+msgid "Vedi le classifiche"
+msgstr "See the rankings"
+
+#: web/templates/web/home.html:13
+msgid "Puoi giocare in due sullo stesso schermo oppure sfidare l'IA."
+msgstr "You can play together on the same screen or challenge the AI."
+
+#: web/templates/web/home.html:17
+msgid "Giochi disponibili"
+msgstr "Available games"
+
+#: web/templates/web/home.html:23
+msgid "con dadi"
+msgstr "with dice"
+
+#: web/templates/web/home.html:23
+msgid "deterministico"
+msgstr "deterministic"
+
+#: web/templates/web/home.html:28
+msgid "Nessun gioco disponibile. Verifica che il backend sia avviato."
+msgstr "No games available. Check that the backend is running."
+
+#: web/templates/web/learn_index.html:6
+msgid "Impara a giocare"
+msgstr "Learn to play"
+
+#: web/templates/web/learn_index.html:7
+msgid ""
+"Lezioni guidate passo per passo: posizioni preimpostate sulla scacchiera, "
+"mosse da provare con verifica immediata e spiegazioni lette ad alta voce."
+msgstr "Step-by-step guided lessons: preset positions on the board, moves to try with instant checking and explanations read aloud."
+
+#: web/templates/web/learn_index.html:8
+msgid "per salvare i tuoi progressi e riprendere da dove eri rimasto."
+msgstr "to save your progress and pick up where you left off."
+
+#: web/templates/web/learn_index.html:13
+#| msgid "Regione"
+msgid "Lezione"
+msgstr "Lesson"
+
+#: web/templates/web/learn_index.html:13
+#| msgid "Password"
+msgid "Passi"
+msgstr "Steps"
+
+#: web/templates/web/learn_index.html:13
+msgid "Progresso"
+msgstr "Progress"
+
+#: web/templates/web/learn_index.html:19
+msgid "completata"
+msgstr "completed"
+
+#: web/templates/web/learn_index.html:20
+#, python-format
+msgid "passo %(n)s di %(tot)s"
+msgstr "step %(n)s of %(tot)s"
+
+#: web/templates/web/learn_index.html:25
+msgid "Ripassa"
+msgstr "Review"
+
+#: web/templates/web/learn_index.html:25
+msgid "Riprendi"
+msgstr "Resume"
+
+#: web/templates/web/learn_index.html:25
+#| msgid "Inizio"
+msgid "Inizia"
+msgstr "Start"
+
+#: web/templates/web/learn_index.html:31
+msgid "Nessuna lezione disponibile (backend non raggiungibile?)"
+msgstr "No lessons available (backend unreachable?)"
+
+#: web/templates/web/learn_lesson.html:31 web/templates/web/play.html:106
+msgid "Indietro"
+msgstr "Back"
+
+#: web/templates/web/learn_lesson.html:32
+#: web/templates/web/learn_lesson.html:124 web/templates/web/play.html:108
+msgid "Avanti"
+msgstr "Forward"
+
+#: web/templates/web/learn_lesson.html:33
+msgid "Leggi ad alta voce"
+msgstr "Read aloud"
+
+#: web/templates/web/learn_lesson.html:35
+msgid "voce automatica"
+msgstr "auto voice"
+
+#: web/templates/web/learn_lesson.html:39
+msgid "Tutte le lezioni"
+msgstr "All lessons"
+
+#: web/templates/web/learn_lesson.html:40
+msgid "per salvare i progressi"
+msgstr "to save your progress"
+
+#: web/templates/web/learn_lesson.html:118
+#| msgid "Password"
+msgid "Passo"
+msgstr "Step"
+
+#: web/templates/web/learn_lesson.html:118
+msgid "di"
+msgstr "of"
+
+#: web/templates/web/learn_lesson.html:124 web/templates/web/play.html:109
+msgid "Fine"
+msgstr "End"
+
+#: web/templates/web/learn_lesson.html:140
+msgid "Riprova: guarda la casella evidenziata."
+msgstr "Try again: look at the highlighted square."
+
+#: web/templates/web/learn_lesson.html:145
+msgid "Ora la destinazione…"
+msgstr "Now the destination…"
+
+#: web/templates/web/learn_lesson.html:146
+msgid "Parti dal pezzo giusto: clicca la casella di partenza."
+msgstr "Start from the right piece: click the starting square."
+
+#: web/templates/web/learn_lesson.html:151
+msgid "Non proprio: riprova la destinazione."
+msgstr "Not quite: try the destination again."
+
+#: web/templates/web/learn_lesson.html:178
+msgid "🎉 Lezione completata!"
+msgstr "🎉 Lesson completed!"
+
+#: web/templates/web/login.html:7
+msgid ""
+"Entra con il tuo alias (o l'email) e la password scelta alla registrazione. "
+"Se la tua richiesta non è ancora stata approvata dal super admin, l'accesso "
+"verrà negato con un avviso."
+msgstr "Log in with your alias (or email) and the password you chose at registration. If your request has not been approved by the super admin yet, access will be denied with a notice."
+
+#: web/templates/web/login.html:12
+msgid "Non hai un account?"
+msgstr "No account yet?"
+
+#: web/templates/web/login.html:13
+msgid "Richiedi la registrazione"
+msgstr "Request registration"
+
+#: web/templates/web/match_form.html:7
+msgid ""
+"Registra il risultato di una partita: i punteggi dei due giocatori per il "
+"gioco scelto verranno aggiornati (vittoria +3, patta +1)."
+msgstr "Record the result of a game: the two players' scores for the chosen game will be updated (win +3, draw +1)."
+
+#: web/templates/web/match_form.html:10
+#| msgid "Registra partita"
+msgid "Registra"
+msgstr "Record"
 
 #: web/templates/web/play.html:52 web/templates/web/play.html:55
 msgid "umano"
@@ -250,18 +940,6 @@ msgstr "Moves"
 msgid "Inizio"
 msgstr "Start"
 
-#: web/templates/web/play.html:106
-msgid "Indietro"
-msgstr "Back"
-
-#: web/templates/web/play.html:108
-msgid "Avanti"
-msgstr "Forward"
-
-#: web/templates/web/play.html:109
-msgid "Fine"
-msgstr "End"
-
 #: web/templates/web/play.html:112
 msgid "Nota su questa mossa…"
 msgstr "Note on this move…"
@@ -285,3 +963,241 @@ msgstr "Export PGN"
 #: web/templates/web/play.html:131
 msgid "Esporta GIF"
 msgstr "Export GIF"
+
+#: web/templates/web/play_setup.html:7
+msgid "Un momento…"
+msgstr "One moment…"
+
+#: web/templates/web/play_setup.html:10
+msgid "Vai alle lezioni"
+msgstr "Go to the lessons"
+
+#: web/templates/web/play_setup.html:15
+msgid ""
+"Scegli il <strong>gioco</strong> e chi gioca con <strong>X</strong> (muove "
+"per primo) e con <strong>O</strong>. Ogni lato può essere un giocatore "
+"<strong>umano</strong>, un'<strong>IA via API</strong>, il <strong>motore "
+"locale</strong> a livelli oppure <strong>Stockfish</strong>. Per giocare in "
+"due sullo stesso schermo, imposta entrambi i lati come «Umano». Per gli "
+"<strong>scacchi</strong> puoi attivare l'<strong>orologio di gioco</strong> "
+"e la <strong>posizione iniziale FEN</strong>."
+msgstr "Choose the <strong>game</strong> and who plays <strong>X</strong> (moves first) and <strong>O</strong>. Each side can be a <strong>human</strong> player, an <strong>AI via API</strong>, the tiered <strong>local engine</strong> or <strong>Stockfish</strong>. To play together on the same screen, set both sides to “Human”. For <strong>chess</strong> you can enable the <strong>game clock</strong> and a <strong>starting FEN position</strong>."
+
+#: web/templates/web/play_setup.html:18
+msgid "Inizia a giocare"
+msgstr "Start playing"
+
+#: web/templates/web/rankings.html:6
+#| msgid "Classifiche"
+msgid "Classifica universale"
+msgstr "Universal ranking"
+
+#: web/templates/web/rankings.html:7
+msgid "Somma dei punti ottenuti da ogni giocatore su tutti i giochi."
+msgstr "Sum of the points earned by each player across all games."
+
+#: web/templates/web/rankings.html:10 web/templates/web/rankings.html:44
+#: web/templates/web/rankings.html:52
+#| msgid "Nazionalità"
+msgid "Nazione"
+msgstr "Country"
+
+#: web/templates/web/rankings.html:21
+msgid "Classifica ancora vuota."
+msgstr "Ranking still empty."
+
+#: web/templates/web/rankings.html:26
+#| msgid "Classifiche"
+msgid "Classifica per gioco"
+msgstr "Ranking by game"
+
+#: web/templates/web/rankings.html:37
+msgid "Ambito"
+msgstr "Scope"
+
+#: web/templates/web/rankings.html:39
+msgid "Globale"
+msgstr "Global"
+
+#: web/templates/web/rankings.html:40
+#| msgid "Nazionalità"
+msgid "Nazionale"
+msgstr "National"
+
+#: web/templates/web/rankings.html:41
+#| msgid "Regione"
+msgid "Regionale"
+msgstr "Regional"
+
+#: web/templates/web/rankings.html:45
+msgid "es. Lazio"
+msgstr "e.g. Lazio"
+
+#: web/templates/web/rankings.html:46
+msgid "Mostra"
+msgstr "Show"
+
+#: web/templates/web/rankings.html:62
+msgid "Nessun punteggio per questo filtro."
+msgstr "No scores for this filter."
+
+#: web/templates/web/user_detail.html:6
+msgid "pt universali"
+msgstr "universal pts"
+
+#: web/templates/web/user_detail.html:9
+#| msgid "Giocatori"
+msgid "Tutti i giocatori"
+msgstr "All players"
+
+#: web/templates/web/user_detail.html:13
+msgid "Opzioni giocatore"
+msgstr "Player options"
+
+#: web/templates/web/user_detail.html:14
+msgid ""
+"Preferenze estetiche personali: il <strong>tema</strong> di scacchiera e "
+"pezzi (scacchi e dama) e la <strong>forma del tuo segno</strong> nel Tris."
+msgstr "Personal appearance preferences: the board and piece <strong>theme</strong> (chess and draughts) and the <strong>shape of your mark</strong> in Tic-tac-toe."
+
+#: web/templates/web/user_detail.html:17
+#| msgid "Salva nota"
+msgid "Salva opzioni"
+msgstr "Save options"
+
+#: web/templates/web/user_detail.html:22
+msgid "Punteggi per gioco"
+msgstr "Scores by game"
+
+#: web/templates/web/user_detail.html:25
+msgid "Vinte"
+msgstr "Won"
+
+#: web/templates/web/user_detail.html:25
+msgid "Perse"
+msgstr "Lost"
+
+#: web/templates/web/user_detail.html:34
+msgid "Nessuna partita giocata."
+msgstr "No games played."
+
+#: web/templates/web/user_detail.html:40
+#| msgid "Orologio (solo scacchi)"
+msgid "Profilo scacchistico"
+msgstr "Chess profile"
+
+#: web/templates/web/user_detail.html:40
+msgid "usato dall'IA"
+msgstr "used by the AI"
+
+#: web/templates/web/user_detail.html:41
+#, python-format
+msgid ""
+"Su %(games)s partite — vittorie %(wr)s, patte %(dr)s, sconfitte %(lr)s; "
+"durata media %(ap)s semimosse."
+msgstr "Over %(games)s games — wins %(wr)s, draws %(dr)s, losses %(lr)s; average length %(ap)s plies."
+
+#: web/templates/web/user_detail.html:44
+msgid "Bias ricorrenti"
+msgstr "Recurring biases"
+
+#: web/templates/web/user_detail.html:51
+msgid "Debolezze individuate"
+msgstr "Identified weaknesses"
+
+#: web/templates/web/user_detail.html:54
+msgid "Nessuna debolezza marcata (o partite insufficienti per concludere)."
+msgstr "No marked weaknesses (or not enough games to tell)."
+
+#: web/templates/web/user_detail.html:59
+msgid "Aperture giocate"
+msgstr "Openings played"
+
+#: web/templates/web/user_detail.html:61
+msgid "Apertura"
+msgstr "Opening"
+
+#: web/templates/web/user_detail.html:61
+#| msgid "Suggerimento"
+msgid "Rendimento"
+msgstr "Performance"
+
+#: web/templates/web/user_detail.html:70
+msgid "Precisione (stima delle blunder, analisi motore)"
+msgstr "Accuracy (blunder estimate, engine analysis)"
+
+#: web/templates/web/user_detail.html:71
+#, python-format
+msgid ""
+"Su %(ga)s partite analizzate (%(mv)s mosse): perdita media <strong>%(acpl)s</"
+"strong> centipedoni/mossa · blunder <strong>%(bl)s</strong> (%(bpg)s a "
+"partita) · errori %(er)s · imprecisioni %(im)s."
+msgstr "Over %(ga)s analysed games (%(mv)s moves): average loss <strong>%(acpl)s</strong> centipawns/move · blunders <strong>%(bl)s</strong> (%(bpg)s per game) · mistakes %(er)s · inaccuracies %(im)s."
+
+#: web/templates/web/user_detail.html:75
+msgid "Analizza lo storico (stima blunder)"
+msgstr "Analyse history (blunder estimate)"
+
+#: web/templates/web/user_detail.html:79
+#, python-format
+msgid "Stile IA adattato: aggressività %(ag)s, contempt %(ct)s."
+msgstr "Adapted AI style: aggression %(ag)s, contempt %(ct)s."
+
+#: web/templates/web/user_detail.html:85
+msgid "Storico partite"
+msgstr "Game history"
+
+#: web/templates/web/user_detail.html:89
+msgid "vs"
+msgstr "vs"
+
+#: web/templates/web/user_detail.html:90
+msgid "Vittoria"
+msgstr "Win"
+
+#: web/templates/web/user_detail.html:91
+msgid "Patta"
+msgstr "Draw"
+
+#: web/templates/web/user_detail.html:92
+msgid "Sconfitta"
+msgstr "Loss"
+
+#: web/templates/web/user_detail.html:93
+msgid "lato"
+msgstr "side"
+
+#: web/templates/web/user_detail.html:95
+msgid "Log mosse"
+msgstr "Move log"
+
+#: web/templates/web/user_detail.html:103
+msgid "Nessuna partita conclusa nello storico."
+msgstr "No finished games in the history."
+
+#: web/templates/web/user_form.html:3 web/templates/web/user_form.html:6
+msgid "Richiesta di registrazione"
+msgstr "Registration request"
+
+#: web/templates/web/user_form.html:7
+msgid ""
+"La richiesta sarà valutata da un <strong>super admin</strong>: solo dopo "
+"l'approvazione potrai accedere con alias (o email) e password. La password "
+"viene salvata soltanto come hash."
+msgstr "Your request will be reviewed by a <strong>super admin</strong>: only after approval will you be able to log in with alias (or email) and password. The password is stored only as a hash."
+
+#: web/templates/web/user_form.html:10
+msgid "Invia richiesta"
+msgstr "Send request"
+
+#: web/templates/web/users_list.html:7
+msgid "Richiedi registrazione"
+msgstr "Request registration"
+
+#: web/templates/web/users_list.html:14
+msgid "in attesa di approvazione"
+msgstr "awaiting approval"
+
+#: web/templates/web/users_list.html:22
+msgid "Ancora nessun giocatore registrato."
+msgstr "No players registered yet."

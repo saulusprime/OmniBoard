@@ -1,29 +1,22 @@
 {% extends "web/base.html" %}
 {% load i18n %}
-{% block title %}Nuova partita{% endblock %}
+{% block title %}{% trans 'Nuova partita' %}{% endblock %}
 {% block content %}
 {% if tilt %}
 <div class="card" style="border-left:4px solid #d9a441;">
-  <h2>🧘 Un momento…</h2>
+  <h2>🧘 {% trans 'Un momento…' %}</h2>
   <p>{% for r in tilt.reasons %}{{ r }}{% if not forloop.last %}; {% endif %}{% endfor %}.</p>
   <p class="muted">{{ tilt.advice }}</p>
-  <p><a class="btn secondary" href="{% url 'learn_index' %}">📚 Vai alle lezioni</a></p>
+  <p><a class="btn secondary" href="{% url 'learn_index' %}">📚 {% trans 'Vai alle lezioni' %}</a></p>
 </div>
 {% endif %}
 <div class="card" style="max-width:560px;">
-  <h1>♟ Nuova partita</h1>
-  <p class="muted">Scegli il <strong>gioco</strong> e chi gioca con <strong>X</strong> (muove
-  per primo) e con <strong>O</strong>. Ogni lato può essere un giocatore <strong>umano</strong>,
-  un'<strong>IA via API</strong> (il provider attivo: Qwen, Claude, …) oppure
-  <strong>Stockfish</strong> in sei livelli. Per giocare in due sullo stesso schermo, imposta
-  entrambi i lati come «Umano». Per gli <strong>scacchi</strong> puoi attivare l'<strong>orologio
-  di gioco</strong> (Blitz, Rapid, Classical o formato FIDE, con incremento Fischer opzionale).
-  Se imposti entrambi i lati come «IA via API», puoi far giocare più <strong>partite
-  consecutive</strong> (es. 100) e vedere il riepilogo dei risultati.</p>
+  <h1>♟ {% trans 'Nuova partita' %}</h1>
+  <p class="muted">{% blocktrans %}Scegli il <strong>gioco</strong> e chi gioca con <strong>X</strong> (muove per primo) e con <strong>O</strong>. Ogni lato può essere un giocatore <strong>umano</strong>, un'<strong>IA via API</strong>, il <strong>motore locale</strong> a livelli oppure <strong>Stockfish</strong>. Per giocare in due sullo stesso schermo, imposta entrambi i lati come «Umano». Per gli <strong>scacchi</strong> puoi attivare l'<strong>orologio di gioco</strong> e la <strong>posizione iniziale FEN</strong>.{% endblocktrans %}</p>
   <form method="post" novalidate>{% csrf_token %}
     {{ form.as_p }}
-    <button class="btn" type="submit">Inizia a giocare</button>
-    <a class="btn secondary" href="{% url 'home' %}">Annulla</a>
+    <button class="btn" type="submit">{% trans 'Inizia a giocare' %}</button>
+    <a class="btn secondary" href="{% url 'home' %}">{% trans 'Annulla' %}</a>
   </form>
 </div>
 {% endblock %}

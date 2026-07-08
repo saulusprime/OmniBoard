@@ -1,4 +1,5 @@
 {% extends "web/base.html" %}
+{% load i18n %}
 {% block title %}{{ lesson.title }} — Impara{% endblock %}
 {% block content %}
 {% include "web/board_css.html" %}
@@ -27,16 +28,16 @@
       <div id="task"></div>
       <div id="feedback"></div>
       <div class="lesson-nav">
-        <button class="btn secondary" id="prev" type="button">⟵ Indietro</button>
-        <button class="btn" id="next" type="button">Avanti ⟶</button>
-        <button class="btn secondary" id="speak" type="button" title="Leggi ad alta voce">🔊</button>
+        <button class="btn secondary" id="prev" type="button">⟵ {% trans 'Indietro' %}</button>
+        <button class="btn" id="next" type="button">{% trans 'Avanti' %} ⟶</button>
+        <button class="btn secondary" id="speak" type="button" title="{% trans 'Leggi ad alta voce' %}" aria-label="{% trans 'Leggi ad alta voce' %}">🔊</button>
         <label class="muted" style="display:flex; align-items:center; gap:6px; margin:0;">
-          <input type="checkbox" id="autovoice" style="width:auto;"> voce automatica
+          <input type="checkbox" id="autovoice" style="width:auto;"> {% trans "voce automatica" %}
         </label>
       </div>
       <p class="muted" style="margin-top:14px;">
-        <a href="{% url 'learn_index' %}">← Tutte le lezioni</a>
-        {% if not auth_user %} · <a href="{% url 'login' %}">Accedi</a> per salvare i progressi{% endif %}
+        <a href="{% url 'learn_index' %}">← {% trans 'Tutte le lezioni' %}</a>
+        {% if not auth_user %} · <a href="{% url 'login' %}">{% trans 'Accedi' %}</a> {% trans 'per salvare i progressi' %}{% endif %}
       </p>
     </div>
   </div>
@@ -114,13 +115,13 @@
       if (popCells && popCells.has(i)) { void el.offsetWidth; el.classList.add("pop"); }
     }
     document.getElementById("stepcount").textContent =
-      `Passo ${cur + 1} di ${LESSON.steps.length}`;
+      `{% trans 'Passo' %} ${cur + 1} {% trans 'di' %} ${LESSON.steps.length}`;
     document.getElementById("steptext").textContent = step.text;
     document.getElementById("task").textContent =
       step.task && !taskDone ? "✋ " + step.task.prompt : "";
     document.getElementById("prev").disabled = cur === 0;
     document.getElementById("next").textContent =
-      cur === LESSON.steps.length - 1 ? "Fine ✓" : "Avanti ⟶";
+      cur === LESSON.steps.length - 1 ? "{% trans 'Fine' %} ✓" : "{% trans 'Avanti' %} ⟶";
     if (document.getElementById("autovoice").checked) speak();
   }
 
@@ -136,18 +137,18 @@
     if (!task || taskDone) return;
     if (task.kind === "cell") {
       if (i === task.cell) succeed(new Set([i]), null, i);
-      else feedback("Riprova: guarda la casella evidenziata.", false);
+      else feedback("{% trans 'Riprova: guarda la casella evidenziata.' %}", false);
       return;
     }
     // Task origine→destinazione: primo clic sul pezzo, secondo sulla destinazione.
     if (selected === null) {
-      if (i === task.from) { selected = i; renderStep(); feedback("Ora la destinazione…", true); }
-      else feedback("Parti dal pezzo giusto: clicca la casella di partenza.", false);
+      if (i === task.from) { selected = i; renderStep(); feedback("{% trans 'Ora la destinazione…' %}", true); }
+      else feedback("{% trans 'Parti dal pezzo giusto: clicca la casella di partenza.' %}", false);
       return;
     }
     if (i === task.to) { succeed(new Set([i]), selected, i); }
     else if (i === selected) { selected = null; renderStep(); feedback("", true); }
-    else feedback("Non proprio: riprova la destinazione.", false);
+    else feedback("{% trans 'Non proprio: riprova la destinazione.' %}", false);
   }
 
   function succeed(popCells, fromIdx, toIdx) {
@@ -174,7 +175,7 @@
     if (n < 0 || n > LESSON.steps.length) return;
     if (n === LESSON.steps.length) {  // oltre l'ultimo passo = lezione completata
       saveProgress(true);
-      feedback("🎉 Lezione completata!", true);
+      feedback("{% trans '🎉 Lezione completata!' %}", true);
       document.getElementById("next").disabled = true;
       return;
     }

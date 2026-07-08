@@ -5,6 +5,33 @@
 
 ---
 
+## 2026-07-08 — i18n seconda tranche: interfaccia interamente bilingue
+
+**Richiesta (utente):** i18n (seconda tranche).
+
+- **Tutti i template rimanenti marcati** con {% trans %}/{% blocktrans %}:
+  home, community, arena + dettaglio torneo, classifiche, elenco/scheda
+  giocatore, gruppi + proposta, admin parametri, admin provider IA, lezioni
+  (indice + player), form di registrazione/login/partita, batch IA-vs-IA.
+- **JS incluso**: le stringhe dei template-JS (polling della community e del
+  torneo, feedback delle lezioni, «da giocare»/«concluso») sono rese dal
+  template con {% trans %} DENTRO i literal JS. Attenzione alle COLLISIONI:
+  molte stringhe compaiono sia nell'HTML sia nel JS della stessa pagina → si
+  usano pattern generici (str.replace copre tutte le occorrenze).
+- **Catalogo EN**: ~170 msgid tradotti a mano; i blocktrans multilinea sono
+  riempiti confrontando il msgid normalizzato (whitespace collassato).
+  **Trappola msgmerge**: le voci nuove simili a vecchie diventano FUZZY con
+  una traduzione COPIATA (es. «No» → «First name», «Classifica universale» →
+  «Rankings») e gettext le IGNORA a runtime → pass dedicato che scioglie i
+  28 fuzzy con le traduzioni giuste. `compilemessages` dopo ogni giro.
+- **Smoke test** su 12 pagine (8 EN + 4 IT via Accept-Language, test Client
+  con override ALLOWED_HOSTS): tutte le superfici rispondono nella lingua
+  giusta; node --check sui 3 template con JS toccato; 241 test verdi.
+- Voce TODO residua ribattezzata «i18n (dati)»: detail del backend, contenuti
+  lezioni, nomi aperture, etichette parametri admin (serve i18n lato FastAPI).
+
+---
+
 ## 2026-07-08 — Accessibilità dei giochi + i18n (prima tranche)
 
 **Richiesta (utente):** rendere accessibili i giochi e internazionalizzazione

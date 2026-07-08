@@ -159,8 +159,10 @@ distanza vede la scacchiera dal proprio lato, e il pulsante «🔄 Ruota» la gi
 qualsiasi momento (le coordinate seguono la vista); sotto la scacchiera il pannello
 **pezzi catturati** con il bilancio materiale (+n per chi è avanti; nella dama il
 conteggio delle pedine). Nelle partite iniziate da FEN il pannello catture resta
-nascosto (il corredo di partenza non è quello standard). Dalla navbar puoi cambiare **lingua** (italiano/inglese: menu a tendina — la
-scelta vale per la navigazione e la pagina di gioco; le altre pagine arriveranno).
+nascosto (il corredo di partenza non è quello standard). Dalla navbar puoi cambiare **lingua** (italiano/inglese): l'intera interfaccia
+segue la scelta — navigazione, partita, community, arena, classifiche, lezioni e
+pagine admin. Restano in italiano i contenuti «di dati» (testi delle lezioni,
+nomi delle aperture, messaggi d'errore del backend).
 I giochi sono **accessibili da tastiera**: Tab entra nella scacchiera, le frecce
 spostano il fuoco tra le caselle (seguono l'orientamento della vista), Invio o
 Spazio selezionano e muovono; ogni casella annuncia allo screen reader la sua

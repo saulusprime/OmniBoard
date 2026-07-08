@@ -1,17 +1,18 @@
 {% extends "web/base.html" %}
+{% load i18n %}
 {% block title %}{{ t.name }}{% endblock %}
 {% block content %}
 <div class="card">
   <h1>🏆 {{ t.name }}</h1>
   <p class="muted">{{ t.game_name }} —
-    <span id="t-status">{% if t.status == 'finished' %}concluso{% else %}in corso…{% endif %}</span>
-    · partite <span id="t-progress">{{ t.games_played }}/{{ t.games_total }}</span>
-    {% if t.double_round %}· andata e ritorno{% endif %}
-    · <a href="{% url 'arena' %}">← Arena IA</a></p>
+    <span id="t-status">{% if t.status == 'finished' %}{% trans 'concluso' %}{% else %}{% trans 'in corso…' %}{% endif %}</span>
+    · {% trans 'partite' %} <span id="t-progress">{{ t.games_played }}/{{ t.games_total }}</span>
+    {% if t.double_round %}· {% trans 'andata e ritorno' %}{% endif %}
+    · <a href="{% url 'arena' %}">← {% trans 'Arena IA' %}</a></p>
 
-  <h2>Classifica del girone</h2>
+  <h2>{% trans 'Classifica del girone' %}</h2>
   <table>
-    <tr><th>#</th><th>Concorrente</th><th>Punti</th><th>V</th><th>P</th><th>S</th><th>Partite</th></tr>
+    <tr><th>#</th><th>{% trans 'Concorrente' %}</th><th>{% trans 'Punti' %}</th><th>V</th><th>P</th><th>S</th><th>{% trans 'Partite' %}</th></tr>
     <tbody id="standings">
     {% for r in t.standings %}
     <tr>
@@ -25,18 +26,18 @@
     </tbody>
   </table>
 
-  <h2>Partite</h2>
+  <h2>{% trans 'Partite' %}</h2>
   <table>
-    <tr><th>#</th><th>Primo tratto</th><th>Secondo</th><th>Esito</th><th></th></tr>
+    <tr><th>#</th><th>{% trans 'Primo tratto' %}</th><th>{% trans 'Secondo' %}</th><th>{% trans 'Esito' %}</th><th></th></tr>
     <tbody id="games">
     {% for g in t.games %}
     <tr>
       <td>{{ forloop.counter }}</td>
       <td>{{ g.x_label }}</td>
       <td>{{ g.o_label }}</td>
-      <td>{% if g.result == 'x' %}1-0{% elif g.result == 'o' %}0-1{% elif g.result == 'draw' %}½-½{% else %}<span class="muted">da giocare</span>{% endif %}</td>
+      <td>{% if g.result == 'x' %}1-0{% elif g.result == 'o' %}0-1{% elif g.result == 'draw' %}½-½{% else %}<span class="muted">{% trans 'da giocare' %}</span>{% endif %}</td>
       <td>{% if g.session_id %}
-        <a class="btn secondary" href="{% url 'play' g.session_id %}">Partita</a>
+        <a class="btn secondary" href="{% url 'play' g.session_id %}">{% trans 'Partita' %}</a>
       {% endif %}</td>
     </tr>
     {% endfor %}
@@ -57,15 +58,15 @@
         document.getElementById("t-progress").textContent =
           t.games_played + "/" + t.games_total;
         document.getElementById("t-status").textContent =
-          t.status === "finished" ? "concluso" : "in corso…";
+          t.status === "finished" ? "{% trans 'concluso' %}" : "{% trans 'in corso…' %}";
         document.getElementById("standings").innerHTML = t.standings.map((s, i) =>
           `<tr><td>${i + 1}</td><td>${s.label}</td><td><strong>${s.points}</strong></td>` +
           `<td>${s.wins}</td><td>${s.draws}</td><td>${s.losses}</td><td>${s.games}</td></tr>`
         ).join("");
         document.getElementById("games").innerHTML = t.games.map((g, i) =>
           `<tr><td>${i + 1}</td><td>${g.x_label}</td><td>${g.o_label}</td>` +
-          `<td>${g.result ? RESULT[g.result] : '<span class="muted">da giocare</span>'}</td>` +
-          `<td>${g.session_id ? `<a class="btn secondary" href="/partite/${g.session_id}/">Partita</a>` : ""}</td></tr>`
+          `<td>${g.result ? RESULT[g.result] : '<span class="muted">{% trans "da giocare" %}</span>'}</td>` +
+          `<td>${g.session_id ? `<a class="btn secondary" href="/partite/${g.session_id}/">{% trans 'Partita' %}</a>` : ""}</td></tr>`
         ).join("");
         if (t.status === "finished") clearInterval(timer);
       } catch (e) { /* backend momentaneamente irraggiungibile: si riprova */ }
