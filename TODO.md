@@ -259,9 +259,26 @@
   drag); cornice sottile sotto i 480px (coordinate conservate); log mosse e
   colonna laterale impilati su telefono. Il drag&drop era già touch (pointer
   events + touch-action:none).
-- [ ] **Accessibilità**: navigazione da tastiera, ARIA (scorporata dal punto
-  responsive, fatto il 2026-07-08).
-- [ ] **i18n** — testi in file di traduzione (oggi tutto hardcoded in italiano).
+- [x] **Accessibilità dei giochi** — le caselle (già `<button>`) hanno
+  **etichette ARIA** «coordinata + pezzo» localizzate («e4, pedone bianco»;
+  backgammon col conteggio; aggiornate a ogni render), **roving tabindex** con
+  frecce direzionali che seguono la VISTA (rotazione compresa; nella dama
+  saltano le case chiare non giocabili), Invio/Spazio nativi; `aria-live` su
+  turno/stato/hint/spiegazione, `role="alert"` sull'offerta di patta; dialog di
+  promozione con `role="dialog"`/`aria-modal` e fuoco sul primo pezzo;
+  `focus-visible` interno sulle caselle; etichette sui bottoni-icona (moviola,
+  colonne del Forza 4); nav con `aria-label`.
+- [x] **i18n (prima tranche)** — infrastruttura Django completa
+  (LocaleMiddleware, LANGUAGES it/en, LOCALE_PATHS, rotta `set_language`,
+  **selettore lingua in navbar**); stringhe marcate: navbar, pagina di gioco
+  (template + TUTTO il JS via dizionario `ui` costruito nella view con gettext
+  → `json_script`), label di tutti i form; catalogo **inglese completo**
+  (67 stringhe, .po+.mo in `frontend/locale/`). Restano da marcare le pagine
+  secondarie (home, community, arena, admin, lezioni — contenuti inclusi) e i
+  messaggi del backend: v. voce sotto.
+- [ ] **i18n (seconde tranche)** — template rimanenti (home, community, arena,
+  admin, schede giocatore), messaggi d'errore del backend FastAPI, contenuti
+  delle lezioni (`lessons/`), nomi delle aperture.
 
 ## Sicurezza / DevOps
 

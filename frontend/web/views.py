@@ -5,6 +5,7 @@ from __future__ import annotations
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _t
 
 from . import api_client as api
 from .forms import (
@@ -519,6 +520,70 @@ def play_setup(request):
     return render(request, "web/play_setup.html", {"form": form, "tilt": tilt_state})
 
 
+def _play_ui_strings():
+    """Stringhe della pagina di gioco usate DAL JAVASCRIPT, tradotte qui
+    (gettext le vede, il template le passa con json_script)."""
+    return {
+        "thinking_ai": _t("L'IA sta pensando…"),
+        "waiting_opponent": _t("In attesa della mossa dell'avversario…"),
+        "turn_of": _t("Tocca a:"),
+        "ai_suffix": _t("(IA)"),
+        "won_by": _t("Ha vinto"),
+        "draw": _t("Patta"),
+        "by_time": _t("(tempo scaduto)"),
+        "by_repetition": _t("(triplice ripetizione)"),
+        "by_resign": _t("(per abbandono)"),
+        "by_agreement": _t("(patta d'accordo)"),
+        "opening": _t("Apertura:"),
+        "hint_prefix": _t("Suggerimento:"),
+        "invalid_move": _t("Mossa non valida"),
+        "confirm_resign": _t("Abbandonare la partita?"),
+        "explain_busy": _t("Sto guardando la posizione…"),
+        "explain_error": _t("Spiegazione non disponibile (backend irraggiungibile?)"),
+        "analysis_running": _t("Analisi in corso… (Stockfish valuta ogni posizione)"),
+        "analysis_done": _t("Analisi completata: ?? = blunder, ? = errore, ?! = imprecisione."),
+        "white": _t("Bianco"),
+        "black": _t("Nero"),
+        "promotion": _t("Promozione"),
+        "board": _t("Scacchiera"),
+        "empty_square": _t("vuota"),
+        "row": _t("riga"),
+        "column": _t("colonna"),
+        "drop_col": _t("Gioca nella colonna"),
+        # Nomi dei pezzi per le etichette ARIA delle caselle (screen reader).
+        "pieces": {
+            "♔": _t("re bianco"),
+            "♕": _t("donna bianca"),
+            "♖": _t("torre bianca"),
+            "♗": _t("alfiere bianco"),
+            "♘": _t("cavallo bianco"),
+            "♙": _t("pedone bianco"),
+            "♚": _t("re nero"),
+            "♛": _t("donna nera"),
+            "♜": _t("torre nera"),
+            "♝": _t("alfiere nero"),
+            "♞": _t("cavallo nero"),
+            "♟": _t("pedone nero"),
+            "⛀": _t("pedina bianca"),
+            "⛁": _t("dama bianca"),
+            "⛂": _t("pedina nera"),
+            "⛃": _t("dama nera"),
+            "○": _t("pedina bianca"),
+            "●": _t("pedina nera"),
+        },
+        "promo_labels": {
+            "q": _t("Donna"),
+            "r": _t("Torre"),
+            "b": _t("Alfiere"),
+            "n": _t("Cavallo"),
+        },
+        "nav_first": _t("Inizio"),
+        "nav_prev": _t("Indietro"),
+        "nav_next": _t("Avanti"),
+        "nav_last": _t("Fine"),
+    }
+
+
 def play(request, session_id):
     session = _safe(request, lambda: api.get_session(session_id))
     if session is None:
@@ -528,6 +593,7 @@ def play(request, session_id):
         request,
         "web/play.html",
         {
+            "ui": _play_ui_strings(),
             "s": session,
             # Chi sta guardando: nelle partite a distanza il client abilita solo
             # il lato di questo giocatore (None = visitatore anonimo/hotseat).

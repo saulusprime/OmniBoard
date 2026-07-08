@@ -599,6 +599,12 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   nello schermo, play+lezioni), rimisura al resize con guardie busy/drag,
   cornice sottile ≤480px. Accessibilità (tastiera/ARIA) scorporata nel TODO.
   Solo frontend, 241 verdi.
+- **2026-07-08** — **A11y + i18n**: caselle con aria-label localizzate, roving
+  tabindex + frecce (vista-aware), aria-live, dialog promozione accessibile;
+  i18n Django (LocaleMiddleware, selettore IT/EN in nav, stringhe JS via
+  views._play_ui_strings → json_script, label form gettext_lazy, catalogo EN
+  67 msgid compilato). Seconda tranche (pagine secondarie/backend) nel TODO.
+  241 verdi.
 
 ## Questioni aperte
 

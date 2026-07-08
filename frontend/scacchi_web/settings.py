@@ -35,6 +35,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    # i18n: sceglie la lingua da cookie/Accept-Language (selettore in navbar).
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -85,5 +87,13 @@ LANGUAGE_CODE = "it"
 TIME_ZONE = "Europe/Rome"
 USE_I18N = True
 USE_TZ = True
+
+# Internazionalizzazione: italiano (lingua sorgente) e inglese; le traduzioni
+# vivono in frontend/locale/ (makemessages/compilemessages).
+LANGUAGES = [
+    ("it", "Italiano"),
+    ("en", "English"),
+]
+LOCALE_PATHS = [BASE_DIR / "locale"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

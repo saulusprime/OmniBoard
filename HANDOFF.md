@@ -5,6 +5,49 @@
 
 ---
 
+## 2026-07-08 — Accessibilità dei giochi + i18n (prima tranche)
+
+**Richiesta (utente):** rendere accessibili i giochi e internazionalizzazione
+con i18n.
+
+**Accessibilità (play.html/board_css):**
+
+- caselle (già `<button>`): **aria-label localizzate** «coordinata + pezzo»
+  («e4, pedone bianco»; Tris con X/O; backgammon con conteggio «5× pedina
+  nera»), `aria-pressed` sulla selezione, aggiornate in renderCells;
+- **roving tabindex**: una sola casella nel giro dei Tab; le FRECCE spostano il
+  fuoco seguendo la VISTA (rotazione compresa: si lavora in coordinate di vista
+  e si torna all'indice di scacchiera); nella dama il passo prosegue oltre le
+  case chiare (div non focalizzabili); Invio/Spazio = clic nativo dei bottoni;
+- `aria-live="polite"` su turninfo/statusline/hint/spiegazione + thinking
+  (`role="status"`), `role="alert"` sull'offerta di patta; dialog promozione
+  `role="dialog"` + `aria-modal` + fuoco sul primo pezzo; `focus-visible`
+  interno (outline-offset −3px, non copre le case vicine); aria-label sui
+  bottoni-icona della moviola e sulle colonne del Forza 4; nav con aria-label.
+
+**i18n (Django standard, prima tranche):**
+
+- settings: LocaleMiddleware (dopo Session), LANGUAGES it/en, LOCALE_PATHS;
+  rotta `i18n/` (set_language); **selettore lingua in navbar** (select IT/EN,
+  POST con next alla pagina corrente);
+- stringhe del **JS di play** centralizzate in `views._play_ui_strings()`
+  (gettext nella view → `json_script` → dizionario `T` nel client): stato/turno/
+  esiti, catture, promozione (nomi pezzi), NOMI DEI PEZZI PER ARIA, hint,
+  analisi, spiegazione, conferme;
+- {% trans %} su base.html (nav completa) e play.html (bottoni/intestazioni);
+  **tutte le label dei form** in gettext_lazy (regex su label=");
+- catalogo EN completo: 67 msgid tradotti a mano, compilato (.po+.mo in
+  frontend/locale/; xgettext/msgfmt presenti in /usr/local/bin);
+- smoke test: /accedi/ con Accept-Language en → nav «Play/Log in», IT intatto,
+  selettore presente.
+
+**Scope onesto**: pagine secondarie (home/community/arena/admin/lezioni) e
+messaggi del backend restano in italiano — voce «i18n seconda tranche» nel TODO.
+
+**Verifiche:** node --check, manage.py check, smoke test lingua, 241 verdi.
+
+---
+
 ## 2026-07-08 — Responsive mobile
 
 **Richiesta (utente):** responsive mobile. (La voce TODO includeva anche

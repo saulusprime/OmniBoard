@@ -6,6 +6,7 @@ Le scelte (giocatori, giochi) vengono popolate dinamicamente dai dati del backen
 from __future__ import annotations
 
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 
 def _user_choices(users):
@@ -25,14 +26,14 @@ class UserForm(forms.Form):
     verso il backend che la salva solo come hash; qui non viene mai conservata.
     """
 
-    first_name = forms.CharField(label="Nome", max_length=80)
-    last_name = forms.CharField(label="Cognome", max_length=80)
-    alias = forms.CharField(label="Alias", max_length=50)
-    email = forms.EmailField(label="Email")
-    nationality = forms.CharField(label="Nazionalità", max_length=60, required=False)
-    region = forms.CharField(label="Regione", max_length=60, required=False)
-    password = forms.CharField(label="Password", widget=forms.PasswordInput, min_length=8)
-    password_confirm = forms.CharField(label="Conferma password", widget=forms.PasswordInput)
+    first_name = forms.CharField(label=_("Nome"), max_length=80)
+    last_name = forms.CharField(label=_("Cognome"), max_length=80)
+    alias = forms.CharField(label=_("Alias"), max_length=50)
+    email = forms.EmailField(label=_("Email"))
+    nationality = forms.CharField(label=_("Nazionalità"), max_length=60, required=False)
+    region = forms.CharField(label=_("Regione"), max_length=60, required=False)
+    password = forms.CharField(label=_("Password"), widget=forms.PasswordInput, min_length=8)
+    password_confirm = forms.CharField(label=_("Conferma password"), widget=forms.PasswordInput)
 
     def clean(self):
         data = super().clean()
@@ -42,14 +43,14 @@ class UserForm(forms.Form):
 
 
 class LoginForm(forms.Form):
-    identifier = forms.CharField(label="Alias o email", max_length=120)
-    password = forms.CharField(label="Password", widget=forms.PasswordInput)
+    identifier = forms.CharField(label=_("Alias o email"), max_length=120)
+    password = forms.CharField(label=_("Password"), widget=forms.PasswordInput)
 
 
 class ProposalForm(forms.Form):
-    name = forms.CharField(label="Nome del gruppo", max_length=80)
-    proposed_by = forms.ChoiceField(label="Proponente")
-    threshold = forms.IntegerField(label="Voti a favore necessari", min_value=2, initial=2)
+    name = forms.CharField(label=_("Nome del gruppo"), max_length=80)
+    proposed_by = forms.ChoiceField(label=_("Proponente"))
+    threshold = forms.IntegerField(label=_("Voti a favore necessari"), min_value=2, initial=2)
 
     def __init__(self, *args, users=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -57,10 +58,10 @@ class ProposalForm(forms.Form):
 
 
 class VoteForm(forms.Form):
-    user_id = forms.ChoiceField(label="Vota come")
+    user_id = forms.ChoiceField(label=_("Vota come"))
     in_favor = forms.ChoiceField(
-        label="Voto",
-        choices=[("true", "A favore"), ("false", "Contrario")],
+        label=_("Voto"),
+        choices=[("true", _("A favore")), ("false", _("Contrario"))],
         initial="true",
     )
 
@@ -87,9 +88,11 @@ class PlayerPrefsForm(forms.Form):
     ]
 
     board_theme = forms.ChoiceField(
-        label="Tema scacchiera e pezzi (scacchi e dama)", choices=BOARD_THEMES
+        label=_("Tema scacchiera e pezzi (scacchi e dama)"), choices=BOARD_THEMES
     )
-    tris_mark = forms.ChoiceField(label="Il tuo segno nel Tris", choices=TRIS_MARKS, required=False)
+    tris_mark = forms.ChoiceField(
+        label=_("Il tuo segno nel Tris"), choices=TRIS_MARKS, required=False
+    )
 
 
 class GameSetupForm(forms.Form):
@@ -134,28 +137,28 @@ class GameSetupForm(forms.Form):
         ("fide", "FIDE ufficiale (90′ + 30″/mossa, +30′ dopo la 40ª)"),
     ]
 
-    game = forms.ChoiceField(label="Gioco")
-    x_type = forms.ChoiceField(label="Giocatore X (primo a muovere)", choices=PLAYER_TYPES)
-    x_user = forms.ChoiceField(label="Utente per X", required=False)
-    o_type = forms.ChoiceField(label="Giocatore O", choices=PLAYER_TYPES)
-    o_user = forms.ChoiceField(label="Utente per O", required=False)
+    game = forms.ChoiceField(label=_("Gioco"))
+    x_type = forms.ChoiceField(label=_("Giocatore X (primo a muovere)"), choices=PLAYER_TYPES)
+    x_user = forms.ChoiceField(label=_("Utente per X"), required=False)
+    o_type = forms.ChoiceField(label=_("Giocatore O"), choices=PLAYER_TYPES)
+    o_user = forms.ChoiceField(label=_("Utente per O"), required=False)
     # Partita a distanza: ogni giocatore muove dal PROPRIO dispositivo, le mosse
     # richiedono il suo accesso. Deselezionato = hotseat sullo stesso schermo.
     remote = forms.BooleanField(
-        label="Partita a distanza (ogni giocatore dal proprio dispositivo, serve l'accesso)",
+        label=_("Partita a distanza (ogni giocatore dal proprio dispositivo, serve l'accesso)"),
         required=False,
     )
     time_category = forms.ChoiceField(
-        label="Orologio (solo scacchi)", choices=TIME_CATEGORIES, required=False
+        label=_("Orologio (solo scacchi)"), choices=TIME_CATEGORIES, required=False
     )
     time_base_min = forms.IntegerField(
-        label="Minuti a testa (vuoto = default della categoria)",
+        label=_("Minuti a testa (vuoto = default della categoria)"),
         min_value=1,
         max_value=600,
         required=False,
     )
     time_inc_s = forms.IntegerField(
-        label="Incremento Fischer (secondi a mossa; non per FIDE)",
+        label=_("Incremento Fischer (secondi a mossa; non per FIDE)"),
         min_value=0,
         max_value=60,
         initial=0,
@@ -165,14 +168,14 @@ class GameSetupForm(forms.Form):
     # di un finale, sparring su una posizione). La validazione autorevole è del
     # backend (motore); X resta il Bianco anche se la FEN dà il tratto al Nero.
     start_fen = forms.CharField(
-        label="Posizione iniziale FEN (solo scacchi, vuoto = standard)",
+        label=_("Posizione iniziale FEN (solo scacchi, vuoto = standard)"),
         required=False,
         widget=forms.TextInput(
             attrs={"placeholder": "es. 8/8/8/4k3/8/4K3/4P3/8 w - - 0 1", "spellcheck": "false"}
         ),
     )
     games_count = forms.IntegerField(
-        label="Partite consecutive (solo se entrambi IA)",
+        label=_("Partite consecutive (solo se entrambi IA)"),
         min_value=1,
         max_value=1000,
         initial=1,
@@ -208,11 +211,11 @@ class GameSetupForm(forms.Form):
 
 
 class MatchForm(forms.Form):
-    game_code = forms.ChoiceField(label="Gioco")
-    player_a = forms.ChoiceField(label="Giocatore A")
-    player_b = forms.ChoiceField(label="Giocatore B")
+    game_code = forms.ChoiceField(label=_("Gioco"))
+    player_a = forms.ChoiceField(label=_("Giocatore A"))
+    player_b = forms.ChoiceField(label=_("Giocatore B"))
     result = forms.ChoiceField(
-        label="Risultato",
+        label=_("Risultato"),
         choices=[("a", "Vince A"), ("b", "Vince B"), ("draw", "Patta")],
     )
 
