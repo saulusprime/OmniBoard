@@ -12,6 +12,7 @@ from __future__ import annotations
 from sqlalchemy.orm import Session
 
 from . import models
+from .i18n import _
 
 # Definizione di tutti i parametri configurabili (ordine = ordine in UI).
 SETTINGS_DEFS = [
@@ -373,7 +374,8 @@ def get_all(db: Session) -> list[dict]:
             {
                 "key": d["key"],
                 "category": d["category"],
-                "label": d["label"],
+                # Etichetta tradotta nella lingua della richiesta (i18n dati).
+                "label": _(d["label"]),
                 "type": d["type"],
                 "value": value,
                 "default": d["default"],

@@ -161,8 +161,11 @@ qualsiasi momento (le coordinate seguono la vista); sotto la scacchiera il panne
 conteggio delle pedine). Nelle partite iniziate da FEN il pannello catture resta
 nascosto (il corredo di partenza non è quello standard). Dalla navbar puoi cambiare **lingua** (italiano/inglese): l'intera interfaccia
 segue la scelta — navigazione, partita, community, arena, classifiche, lezioni e
-pagine admin. Restano in italiano i contenuti «di dati» (testi delle lezioni,
-nomi delle aperture, messaggi d'errore del backend).
+pagine admin. Anche i **dati del server** seguono la
+lingua: messaggi d'errore, nomi delle aperture (nomenclatura inglese standard:
+«Difesa Siciliana» → «Sicilian Defence»), avvisi anti-tilt, profilo
+scacchistico ed etichette dei parametri admin. Restano in italiano i testi
+delle lezioni (traduzione editoriale in arrivo).
 I giochi sono **accessibili da tastiera**: Tab entra nella scacchiera, le frecce
 spostano il fuoco tra le caselle (seguono l'orientamento della vista), Invio o
 Spazio selezionano e muovono; ogni casella annuncia allo screen reader la sua

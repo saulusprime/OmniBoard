@@ -5,6 +5,50 @@
 
 ---
 
+## 2026-07-08 — i18n (dati): il backend risponde nella lingua del client
+
+**Richiesta (utente):** il punto «i18n (dati)».
+
+**Architettura** (`app/i18n.py`): middleware FastAPI legge Accept-Language →
+**ContextVar** (sicura fra richieste concorrenti; i worker IA girano fuori
+richiesta e restano in italiano: producono dati PERSISTITI, mai testi di
+risposta). `_()` traduce **alla risposta**: il DB resta in italiano (lingua
+sorgente) e la stessa risorsa si serve in lingue diverse a client diversi.
+**Catalogo a dizionario** (`catalog_en.py`, 208 voci, `# ruff: noqa: E501`):
+scelto sul gettext/babel — una sola lingua target, zero toolchain, greppabile,
+fallback = stringa sorgente; se le lingue crescono si evolve solo i18n.py.
+
+**Coperto:**
+
+- ~76 `detail` dei router sessions/users/auth/arena (marcatura regex
+  `detail="…"` → `detail=_("…")`; le f-string diventano `_(template).format`);
+- tilt: motivi parametrizzati e consiglio (`_(ADVICE)`), messaggio del blocco;
+- etichette dei ~45 parametri admin (tradotte in `get_all`, i DEFS restano IT);
+- **90 nomi di aperture** in nomenclatura inglese standard, tradotti nella
+  vista della sessione (`_(opening_name)`);
+- profilo scacchistico **alla frontiera** (`users._translate_profile`): la
+  cache condivisa resta italiana; bias label/detail e aperture dal catalogo;
+  le debolezze PARAMETRIZZATE (numeri nel testo in cache) ricomposte con
+  regex + template tradotto, numeri preservati.
+
+**Frontend**: `api_client._request` inoltra la lingua attiva di Django come
+Accept-Language su ogni chiamata (i client API diretti usano l'header
+standard).
+
+**Trappole**: (1) `for _ in range(...)` in run_batch OMBREGGIAVA la funzione di
+traduzione (`F823 referenced before assignment`) → rinominata la variabile;
+(2) la marcatura regex ha spezzato una stringa concatenata multiriga → ricucita;
+(3) coverage del catalogo VERIFICATA in generazione (chiavi estratte via AST
+dai file marcati + labels + aperture: genera solo se copertura piena).
+
+**Test (+6, 247 verdi):** parse dell'header, detail IT/EN, etichette parametri
+IT/EN, apertura tradotta ESATTAMENTE come da catalogo sulla partita vera,
+debolezze regex coi numeri preservati, default italiano senza header.
+
+Resta la voce «i18n (contenuti)»: traduzione editoriale delle lezioni.
+
+---
+
 ## 2026-07-08 — i18n seconda tranche: interfaccia interamente bilingue
 
 **Richiesta (utente):** i18n (seconda tranche).

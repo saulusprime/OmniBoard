@@ -36,6 +36,7 @@ from .. import (
     user_prefs,
 )
 from ..database import get_db
+from ..i18n import _
 from ..opponents import api_ai
 from .auth import session_from_token
 
@@ -97,7 +98,7 @@ def _view(session: models.GameSession) -> dict:
         # Riga informativa specifica del gioco (es. "Dadi da giocare: 5 3" nel
         # backgammon); None per i giochi che non ne hanno bisogno.
         "status_line": game.view_status(state),
-        "opening": game.opening_name(gameplay.history_ids(moves)),
+        "opening": _(game.opening_name(gameplay.history_ids(moves)) or "") or None,
         "moves": moves,
         "players": {
             # type ∈ {"human", "ai" (IA via API), "stockfish"} — vedi gameplay.side_kind.
@@ -145,9 +146,9 @@ def _view(session: models.GameSession) -> dict:
 def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)):
     game_model = db.query(models.Game).filter_by(code=payload.game_code).first()
     if not game_model:
-        raise HTTPException(status_code=404, detail="Gioco non trovato")
+        raise HTTPException(status_code=404, detail=_("Gioco non trovato"))
     if not is_playable(payload.game_code):
-        raise HTTPException(status_code=400, detail="Gioco non ancora giocabile")
+        raise HTTPException(status_code=400, detail=_("Gioco non ancora giocabile"))
     game = get_game(payload.game_code)
 
     def resolve(spec: schemas.PlayerSpec):
@@ -159,27 +160,29 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
         if spec.type == "stockfish":
             # Il livello è un preset noto ("zeus", "atena", …) o None (parametri globali).
             if spec.level and spec.level not in opponents.stockfish.PRESETS:
-                raise HTTPException(status_code=400, detail="Livello Stockfish sconosciuto")
+                raise HTTPException(status_code=400, detail=_("Livello Stockfish sconosciuto"))
             return None, True, spec.type, spec.level, None
         if spec.type == "ai":
             # provider None = provider attivo globale (comportamento storico).
             if spec.provider and not ai_providers.is_known(spec.provider):
-                raise HTTPException(status_code=400, detail="Provider IA sconosciuto")
+                raise HTTPException(status_code=400, detail=_("Provider IA sconosciuto"))
             # Livello del MOTORE LOCALE: alternativo al provider (lo scavalca).
             if spec.level:
                 if spec.level not in opponents.local.ENGINE_LEVELS:
-                    raise HTTPException(status_code=400, detail="Livello del motore sconosciuto")
+                    raise HTTPException(status_code=400, detail=_("Livello del motore sconosciuto"))
                 if spec.provider:
                     raise HTTPException(
                         status_code=400,
-                        detail="Livello e provider insieme non hanno senso: il livello "
-                        "calibra il motore locale",
+                        detail=_(
+                            "Livello e provider insieme non hanno senso: "
+                            "il livello calibra il motore locale"
+                        ),
                     )
             return None, True, spec.type, spec.level, spec.provider
         if not spec.user_id:
-            raise HTTPException(status_code=400, detail="Manca l'utente per un giocatore umano")
+            raise HTTPException(status_code=400, detail=_("Manca l'utente per un giocatore umano"))
         if not db.get(models.User, spec.user_id):
-            raise HTTPException(status_code=404, detail="Utente non trovato")
+            raise HTTPException(status_code=404, detail=_("Utente non trovato"))
         return spec.user_id, False, None, None, None
 
     x_uid, x_ai, x_kind, x_level, x_provider = resolve(payload.x)
@@ -210,7 +213,7 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
     if payload.start_fen and payload.start_fen.strip():
         if payload.game_code != "chess":
             raise HTTPException(
-                status_code=400, detail="La posizione iniziale FEN vale solo per gli scacchi"
+                status_code=400, detail=_("La posizione iniziale FEN vale solo per gli scacchi")
             )
         try:
             state = game.from_fen(payload.start_fen.strip())
@@ -221,9 +224,11 @@ def create_session(payload: schemas.SessionCreate, db: Session = Depends(get_db)
             if game.is_terminal(state):
                 raise ValueError("la posizione è già conclusa")
         except ValueError as exc:
-            raise HTTPException(status_code=400, detail=f"FEN non valida: {exc}") from exc
+            raise HTTPException(
+                status_code=400, detail=_("FEN non valida: {err}").format(err=exc)
+            ) from exc
         except Exception as exc:  # noqa: BLE001 - FEN malformata: indici/valori fuori posto
-            raise HTTPException(status_code=400, detail="FEN non valida") from exc
+            raise HTTPException(status_code=400, detail=_("FEN non valida")) from exc
         start_fen = game.to_fen(state)
     else:
         state = game.initial_state()
@@ -263,13 +268,14 @@ def run_batch(payload: schemas.BatchCreate, db: Session = Depends(get_db)):
     simulazione sincrona con budget motore ridotto.
     """
     if not db.query(models.Game).filter_by(code=payload.game_code).first():
-        raise HTTPException(status_code=404, detail="Gioco non trovato")
+        raise HTTPException(status_code=404, detail=_("Gioco non trovato"))
     if not is_playable(payload.game_code):
-        raise HTTPException(status_code=400, detail="Gioco non ancora giocabile")
+        raise HTTPException(status_code=400, detail=_("Gioco non ancora giocabile"))
     max_batch = int(settings_service.get(db, "games.batch_max"))
     if payload.count > max_batch:
         raise HTTPException(
-            status_code=400, detail=f"Numero massimo di partite consecutive: {max_batch}"
+            status_code=400,
+            detail=_("Numero massimo di partite consecutive: {n}").format(n=max_batch),
         )
     game = get_game(payload.game_code)
 
@@ -279,7 +285,7 @@ def run_batch(payload: schemas.BatchCreate, db: Session = Depends(get_db)):
     # Entrambi i lati sono IA di tipo "ai" (API con ripiego sul giocatore locale).
     batch_ms = min(120, int(settings_service.get(db, "ai.engine_ms")))
     tally = {"x": 0, "o": 0, "draw": 0}
-    for _ in range(payload.count):
+    for _game_n in range(payload.count):  # NB: '_' è la funzione di traduzione
         state = game.initial_state()
         history: list[str] = []
         while not game.is_terminal(state):
@@ -314,7 +320,7 @@ def run_batch(payload: schemas.BatchCreate, db: Session = Depends(get_db)):
 def get_session(session_id: int, db: Session = Depends(get_db)):
     session = db.get(models.GameSession, session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Sessione non trovata")
+        raise HTTPException(status_code=404, detail=_("Sessione non trovata"))
     game = get_game(session.game.code)
     # Nodi del caso pigri: chi legge lo stato materializza l'eventuale tiro di dadi.
     gameplay.resolve_chance(db, game, session)
@@ -336,7 +342,7 @@ def make_move(
 ):
     session = db.get(models.GameSession, session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Sessione non trovata")
+        raise HTTPException(status_code=404, detail=_("Sessione non trovata"))
     ponder.stop(session_id)  # l'umano ha mosso: si smette di ponderare (TT conservata)
 
     game = get_game(session.game.code)
@@ -346,12 +352,12 @@ def make_move(
     # la partita viene chiusa e la mossa rifiutata.
     gameplay.check_time(db, game, session)
     if session.status == "finished":
-        raise HTTPException(status_code=409, detail="Partita già conclusa")
+        raise HTTPException(status_code=409, detail=_("Partita già conclusa"))
 
     state = gameplay.load_state(game, session)
     player = game.current_player(state)
     if gameplay.side_is_ai(session, player):
-        raise HTTPException(status_code=409, detail="È il turno dell'IA")
+        raise HTTPException(status_code=409, detail=_("È il turno dell'IA"))
     if session.remote:
         # Partita a distanza: SOLO il giocatore al tratto può muovere, autenticato
         # col proprio token di sessione (i client sono indipendenti e non fidati).
@@ -360,17 +366,17 @@ def make_move(
         owner_id = session.x_user_id if player == 0 else session.o_user_id
         if mover.id != owner_id:
             raise HTTPException(
-                status_code=403, detail="Non sei il giocatore al tratto in questa partita"
+                status_code=403, detail=_("Non sei il giocatore al tratto in questa partita")
             )
     chosen = next((m for m in game.legal_moves(state) if game.move_id(m) == payload.move), None)
     if chosen is None:
-        raise HTTPException(status_code=400, detail="Mossa non valida")
+        raise HTTPException(status_code=400, detail=_("Mossa non valida"))
 
     moves = json.loads(session.moves_json or "[]")
     # Scala il tempo pensato dall'orologio del giocatore (con incremento a mossa
     # completata); se la bandierina è caduta nel frattempo, la mossa arriva tardi.
     if not gameplay.consume_time(db, game, session, player, moves):
-        raise HTTPException(status_code=409, detail="Tempo scaduto: partita conclusa")
+        raise HTTPException(status_code=409, detail=_("Tempo scaduto: partita conclusa"))
     if session.draw_offer and session.draw_offer != ("x" if player == 0 else "o"):
         session.draw_offer = None  # muovere = rifiutare l'offerta pendente (FIDE 9.1)
     gameplay.record_move(game, state, chosen, player, moves)
@@ -418,7 +424,7 @@ def replay(session_id: int, db: Session = Depends(get_db)):
     """Moviola: tutte le posizioni della partita (indice 0 = posizione iniziale)."""
     session = db.get(models.GameSession, session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Sessione non trovata")
+        raise HTTPException(status_code=404, detail=_("Sessione non trovata"))
     game, boards = _replay_boards(session)
     return {"rows": game.rows, "cols": game.cols, "boards": boards}
 
@@ -432,9 +438,9 @@ def export_pgn(session_id: int, db: Session = Depends(get_db)):
     """
     session = db.get(models.GameSession, session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Sessione non trovata")
+        raise HTTPException(status_code=404, detail=_("Sessione non trovata"))
     if session.game.code != "chess":
-        raise HTTPException(status_code=400, detail="L'export PGN vale solo per gli scacchi")
+        raise HTTPException(status_code=400, detail=_("L'export PGN vale solo per gli scacchi"))
     game = get_game("chess")
     moves = json.loads(session.moves_json or "[]")
     sans = chess_pgn.san_line(game, gameplay.history_ids(moves), start_fen=session.start_fen)
@@ -510,14 +516,14 @@ def explain_move(session_id: int, payload: ExplainIn, db: Session = Depends(get_
     """
     session = db.get(models.GameSession, session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Sessione non trovata")
+        raise HTTPException(status_code=404, detail=_("Sessione non trovata"))
     if session.game.code != "chess":
-        raise HTTPException(status_code=400, detail="Disponibile solo per gli scacchi")
+        raise HTTPException(status_code=400, detail=_("Disponibile solo per gli scacchi"))
     if not settings_service.get(db, "coach.explain_enabled"):
-        raise HTTPException(status_code=403, detail="Funzione disattivata dal super admin")
+        raise HTTPException(status_code=403, detail=_("Funzione disattivata dal super admin"))
     moves = json.loads(session.moves_json or "[]")
     if not (1 <= payload.ply <= len(moves)):
-        raise HTTPException(status_code=400, detail="Semimossa inesistente")
+        raise HTTPException(status_code=400, detail=_("Semimossa inesistente"))
     rec = moves[payload.ply - 1]
     if rec.get("explain"):
         return {"ply": payload.ply, "text": rec["explain"], "cached": True}
@@ -525,7 +531,7 @@ def explain_move(session_id: int, payload: ExplainIn, db: Session = Depends(get_
     provider = ai_providers.get_active_config(db)
     if provider is None:
         raise HTTPException(
-            status_code=503, detail="Nessun provider IA attivo (configura un token)"
+            status_code=503, detail=_("Nessun provider IA attivo (configura un token)")
         )
 
     game = get_game("chess")
@@ -535,7 +541,7 @@ def explain_move(session_id: int, payload: ExplainIn, db: Session = Depends(get_
     for uci in history[: payload.ply - 1]:
         move = next((m for m in game.legal_moves(state) if game.move_id(m) == uci), None)
         if move is None:
-            raise HTTPException(status_code=409, detail="Storico non ricostruibile")
+            raise HTTPException(status_code=409, detail=_("Storico non ricostruibile"))
         state = game.apply(state, move)
     mover = "il Bianco" if state.current == 0 else "il Nero"
 
@@ -576,7 +582,7 @@ def explain_move(session_id: int, payload: ExplainIn, db: Session = Depends(get_
     if not text:
         raise HTTPException(
             status_code=503,
-            detail="Provider IA non disponibile al momento (errore o circuito aperto): riprova",
+            detail=_("Provider IA non disponibile al momento (errore o circuito aperto): riprova"),
         )
     text = " ".join(text.split())[:600]
     rec["explain"] = text
@@ -605,14 +611,14 @@ def save_note(
     """
     session = db.get(models.GameSession, session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Sessione non trovata")
+        raise HTTPException(status_code=404, detail=_("Sessione non trovata"))
     if session.remote:
         writer = session_from_token(db, x_auth_token).user
         if writer.id not in (session.x_user_id, session.o_user_id):
-            raise HTTPException(status_code=403, detail="Solo i giocatori possono annotare")
+            raise HTTPException(status_code=403, detail=_("Solo i giocatori possono annotare"))
     moves = json.loads(session.moves_json or "[]")
     if not (1 <= payload.ply <= len(moves)):
-        raise HTTPException(status_code=400, detail="Semimossa inesistente")
+        raise HTTPException(status_code=400, detail=_("Semimossa inesistente"))
     text = payload.text.strip()[:500]
     if text:
         moves[payload.ply - 1]["note"] = text
@@ -628,13 +634,15 @@ def start_analysis(session_id: int, db: Session = Depends(get_db)):
     """Avvia l'analisi post-partita (solo scacchi, partita conclusa)."""
     session = db.get(models.GameSession, session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Sessione non trovata")
+        raise HTTPException(status_code=404, detail=_("Sessione non trovata"))
     if session.game.code != "chess":
-        raise HTTPException(status_code=400, detail="L'analisi è disponibile solo per gli scacchi")
+        raise HTTPException(
+            status_code=400, detail=_("L'analisi è disponibile solo per gli scacchi")
+        )
     if session.status != "finished":
-        raise HTTPException(status_code=409, detail="La partita non è ancora conclusa")
+        raise HTTPException(status_code=409, detail=_("La partita non è ancora conclusa"))
     if not opponents.stockfish.is_available(opponents.stockfish.get_config(db)):
-        raise HTTPException(status_code=503, detail="Stockfish non disponibile per l'analisi")
+        raise HTTPException(status_code=503, detail=_("Stockfish non disponibile per l'analisi"))
     if session.analysis_json:  # già calcolata: si rilegge, niente doppio lavoro
         return {"started": False, "already_done": True}
     return {"started": analysis.start(session_id), "already_done": False}
@@ -645,7 +653,7 @@ def get_analysis(session_id: int, db: Session = Depends(get_db)):
     """Stato/risultato dell'analisi (il client fa polling finché ``running``)."""
     session = db.get(models.GameSession, session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Sessione non trovata")
+        raise HTTPException(status_code=404, detail=_("Sessione non trovata"))
     if analysis.is_running(session_id):
         return {"status": "running"}
     if not session.analysis_json:
@@ -658,10 +666,10 @@ def export_gif(session_id: int, db: Session = Depends(get_db)):
     """L'intera partita come GIF animata (un fotogramma per posizione)."""
     session = db.get(models.GameSession, session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Sessione non trovata")
+        raise HTTPException(status_code=404, detail=_("Sessione non trovata"))
     game, boards = _replay_boards(session)
     if not gifexport.supported(game.move_type):
-        raise HTTPException(status_code=400, detail="Export GIF non supportato per questo gioco")
+        raise HTTPException(status_code=400, detail=_("Export GIF non supportato per questo gioco"))
     data = gifexport.render(boards, game.rows, game.cols, game.move_type)
     return Response(
         content=data,
@@ -685,27 +693,29 @@ def move_hint(
     """
     session = db.get(models.GameSession, session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Sessione non trovata")
+        raise HTTPException(status_code=404, detail=_("Sessione non trovata"))
     if not settings_service.get(db, "hints.enabled"):
-        raise HTTPException(status_code=403, detail="Suggerimenti disattivati dal super admin")
+        raise HTTPException(status_code=403, detail=_("Suggerimenti disattivati dal super admin"))
     if session.tc_category == "fide":
         raise HTTPException(
-            status_code=403, detail="Formato ufficiale FIDE: suggerimenti non ammessi"
+            status_code=403, detail=_("Formato ufficiale FIDE: suggerimenti non ammessi")
         )
     if session.status != "in_progress":
-        raise HTTPException(status_code=409, detail="La partita non è in corso")
+        raise HTTPException(status_code=409, detail=_("La partita non è in corso"))
 
     game = get_game(session.game.code)
     gameplay.resolve_chance(db, game, session)
     state = gameplay.load_state(game, session)
     player = game.current_player(state)
     if gameplay.side_is_ai(session, player):
-        raise HTTPException(status_code=409, detail="È il turno dell'IA")
+        raise HTTPException(status_code=409, detail=_("È il turno dell'IA"))
     user_id = session.x_user_id if player == 0 else session.o_user_id
     if session.remote:
         mover = session_from_token(db, x_auth_token).user
         if mover.id != user_id:
-            raise HTTPException(status_code=403, detail="Il suggerimento è del giocatore al tratto")
+            raise HTTPException(
+                status_code=403, detail=_("Il suggerimento è del giocatore al tratto")
+            )
     # Riservato ai principianti: chi ha già troppe vittorie in QUESTO gioco non lo usa
     # (e in una partita fra esperti nessuno dei due può chiederlo).
     if user_id:
@@ -714,7 +724,9 @@ def move_hint(
         if score and score.wins > max_wins:
             raise HTTPException(
                 status_code=403,
-                detail=f"Suggerimenti riservati ai principianti (max {max_wins} vittorie)",
+                detail=_("Suggerimenti riservati ai principianti (max {n} vittorie)").format(
+                    n=max_wins
+                ),
             )
 
     legal = list(game.legal_moves(state))
@@ -747,15 +759,15 @@ def _acting_human(session, payload_side: str, db, token: str):
     """
     side = (payload_side or "").lower()
     if side not in ("x", "o"):
-        raise HTTPException(status_code=400, detail="Lato non valido (x oppure o)")
+        raise HTTPException(status_code=400, detail=_("Lato non valido (x oppure o)"))
     is_ai = session.x_is_ai if side == "x" else session.o_is_ai
     if is_ai:
-        raise HTTPException(status_code=400, detail="Solo un giocatore umano può farlo")
+        raise HTTPException(status_code=400, detail=_("Solo un giocatore umano può farlo"))
     if session.remote:
         actor = session_from_token(db, token).user
         owner = session.x_user_id if side == "x" else session.o_user_id
         if actor.id != owner:
-            raise HTTPException(status_code=403, detail="Puoi agire solo per il tuo lato")
+            raise HTTPException(status_code=403, detail=_("Puoi agire solo per il tuo lato"))
     return side
 
 
@@ -773,9 +785,9 @@ def resign(
     """
     session = db.get(models.GameSession, session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Sessione non trovata")
+        raise HTTPException(status_code=404, detail=_("Sessione non trovata"))
     if session.status != "in_progress":
-        raise HTTPException(status_code=409, detail="La partita non è in corso")
+        raise HTTPException(status_code=409, detail=_("La partita non è in corso"))
     side = _acting_human(session, payload.side, db, x_auth_token)
 
     game = get_game(session.game.code)
@@ -802,19 +814,19 @@ def draw_agreement(
     """
     session = db.get(models.GameSession, session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Sessione non trovata")
+        raise HTTPException(status_code=404, detail=_("Sessione non trovata"))
     if session.status != "in_progress":
-        raise HTTPException(status_code=409, detail="La partita non è in corso")
+        raise HTTPException(status_code=409, detail=_("La partita non è in corso"))
     side = _acting_human(session, payload.side, db, x_auth_token)
     other_is_ai = session.o_is_ai if side == "x" else session.x_is_ai
 
     if payload.action == "offer":
         if other_is_ai:
             raise HTTPException(
-                status_code=409, detail="Contro l'IA la patta d'accordo non è disponibile"
+                status_code=409, detail=_("Contro l'IA la patta d'accordo non è disponibile")
             )
         if session.draw_offer == side:
-            raise HTTPException(status_code=409, detail="Hai già un'offerta pendente")
+            raise HTTPException(status_code=409, detail=_("Hai già un'offerta pendente"))
         if session.draw_offer:  # l'avversario aveva già offerto: offrire = accettare
             gameplay.finish_manual(db, session, "draw", "agreement")
             return _view(session)
@@ -822,13 +834,13 @@ def draw_agreement(
         db.commit()
     elif payload.action == "accept":
         if not session.draw_offer or session.draw_offer == side:
-            raise HTTPException(status_code=409, detail="Nessuna offerta da accettare")
+            raise HTTPException(status_code=409, detail=_("Nessuna offerta da accettare"))
         gameplay.finish_manual(db, session, "draw", "agreement")
     elif payload.action == "decline":
         if not session.draw_offer or session.draw_offer == side:
-            raise HTTPException(status_code=409, detail="Nessuna offerta da rifiutare")
+            raise HTTPException(status_code=409, detail=_("Nessuna offerta da rifiutare"))
         session.draw_offer = None
         db.commit()
     else:
-        raise HTTPException(status_code=400, detail="Azione non valida (offer/accept/decline)")
+        raise HTTPException(status_code=400, detail=_("Azione non valida (offer/accept/decline)"))
     return _view(session)

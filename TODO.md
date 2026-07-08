@@ -283,10 +283,21 @@
   catalogo EN completo: ~170 msgid tradotti, voci FUZZY di msgmerge corrette a
   mano (una «No»→«First name» inclusa), .mo compilato; smoke test su 12 pagine
   IT/EN. L'interfaccia è ora interamente bilingue.
-- [ ] **i18n (dati)** — messaggi d'errore del backend FastAPI (detail delle
-  eccezioni), contenuti delle lezioni (`lessons/`), nomi delle aperture,
-  etichette dei parametri admin (settings_service): richiede i18n lato backend
-  (Accept-Language + cataloghi propri).
+- [x] **i18n (dati)** — i18n lato BACKEND (`app/i18n.py`): middleware FastAPI
+  che legge Accept-Language → ContextVar; `_()` traduce alla RISPOSTA (il DB
+  resta in italiano, lingua sorgente) con **catalogo a dizionario**
+  (`catalog_en.py`, 208 voci — scelto sul gettext/babel: una sola lingua
+  target, tutto greppabile, fallback = sorgente). Tradotti: ~76 messaggi
+  d'errore dei router (f-string → `_(template).format`), motivi/consiglio del
+  tilt, etichette dei parametri admin (get_all), **90 nomi di aperture**
+  (nomenclatura inglese standard, tradotti nella vista), profilo scacchistico
+  alla FRONTIERA (la cache condivisa resta italiana; debolezze parametrizzate
+  ricomposte via regex coi numeri preservati). Il frontend inoltra la lingua
+  attiva su ogni chiamata (`api_client` → Accept-Language). Trappola evitata:
+  `for _ in range(...)` ombreggiava la funzione di traduzione.
+- [ ] **i18n (contenuti)** — traduzione EDITORIALE dei contenuti delle lezioni
+  (`lessons/`, testo didattico lungo): la pipeline c'è (stesso `_()`),
+  mancano le traduzioni.
 
 ## Sicurezza / DevOps
 

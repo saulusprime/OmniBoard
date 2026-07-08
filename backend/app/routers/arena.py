@@ -16,6 +16,7 @@ from engine import is_playable
 
 from .. import ai_arena, models
 from ..database import get_db
+from ..i18n import _
 
 router = APIRouter(prefix="/arena", tags=["arena"])
 
@@ -31,7 +32,7 @@ def ai_ranking(game_code: str, db: Session = Depends(get_db)):
     """Classifica Elo delle IA nel gioco (ordinata dal rating più alto)."""
     game = db.query(models.Game).filter_by(code=game_code).first()
     if not game:
-        raise HTTPException(status_code=404, detail="Gioco non trovato")
+        raise HTTPException(status_code=404, detail=_("Gioco non trovato"))
     return {"game_code": game_code, "rows": ai_arena.ranking(db, game.id)}
 
 
@@ -78,16 +79,19 @@ def _tournament_view(t: models.Tournament, db: Session, detail: bool = False) ->
 def create_tournament(payload: TournamentCreate, db: Session = Depends(get_db)):
     game = db.query(models.Game).filter_by(code=payload.game_code).first()
     if not game or not is_playable(payload.game_code):
-        raise HTTPException(status_code=404, detail="Gioco non trovato o non giocabile")
+        raise HTTPException(status_code=404, detail=_("Gioco non trovato o non giocabile"))
     participants = list(dict.fromkeys(payload.participants))  # dedup, ordine stabile
     if not 2 <= len(participants) <= ai_arena.MAX_PARTICIPANTS:
         raise HTTPException(
             status_code=400,
-            detail=f"Servono da 2 a {ai_arena.MAX_PARTICIPANTS} concorrenti diversi",
+            detail=_("Servono da 2 a {n} concorrenti diversi").format(n=ai_arena.MAX_PARTICIPANTS),
         )
     unknown = [c for c in participants if not ai_arena.is_known(c)]
     if unknown:
-        raise HTTPException(status_code=400, detail=f"Concorrenti sconosciuti: {unknown}")
+        raise HTTPException(
+            status_code=400,
+            detail=_("Concorrenti sconosciuti: {codes}").format(codes=unknown),
+        )
 
     tournament = models.Tournament(
         game_id=game.id,
@@ -122,5 +126,5 @@ def list_tournaments(db: Session = Depends(get_db)):
 def tournament_detail(tournament_id: int, db: Session = Depends(get_db)):
     t = db.get(models.Tournament, tournament_id)
     if not t:
-        raise HTTPException(status_code=404, detail="Torneo non trovato")
+        raise HTTPException(status_code=404, detail=_("Torneo non trovato"))
     return _tournament_view(t, db, detail=True)

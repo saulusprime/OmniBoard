@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import json
+import re
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from .. import analysis, models, profile_cache, schemas, settings_service, tilt, user_prefs
 from ..database import get_db
+from ..i18n import _
 from ..security import hash_password
 from .admin import require_admin
 
@@ -25,12 +27,12 @@ def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
     """
     if not settings_service.get(db, "users.allow_registration"):
         raise HTTPException(
-            status_code=403, detail="Registrazioni disabilitate dall'amministratore"
+            status_code=403, detail=_("Registrazioni disabilitate dall'amministratore")
         )
     if db.query(models.User).filter(models.User.alias == payload.alias).first():
-        raise HTTPException(status_code=409, detail="Alias già in uso")
+        raise HTTPException(status_code=409, detail=_("Alias già in uso"))
     if db.query(models.User).filter(models.User.email == payload.email).first():
-        raise HTTPException(status_code=409, detail="Email già registrata")
+        raise HTTPException(status_code=409, detail=_("Email già registrata"))
 
     user = models.User(
         first_name=payload.first_name,
@@ -56,7 +58,7 @@ def approve_user(user_id: int, db: Session = Depends(get_db)):
     """Accetta la richiesta di registrazione: SOLO il super admin (X-Admin-Token)."""
     user = db.get(models.User, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="Utente non trovato")
+        raise HTTPException(status_code=404, detail=_("Utente non trovato"))
     user.is_approved = True
     db.commit()
     db.refresh(user)
@@ -72,10 +74,10 @@ def reject_user(user_id: int, db: Session = Depends(get_db)):
     """
     user = db.get(models.User, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="Utente non trovato")
+        raise HTTPException(status_code=404, detail=_("Utente non trovato"))
     if user.is_approved:
         raise HTTPException(
-            status_code=409, detail="Si può respingere solo una richiesta in attesa"
+            status_code=409, detail=_("Si può respingere solo una richiesta in attesa")
         )
     db.delete(user)
     db.commit()
@@ -90,7 +92,7 @@ def list_users(db: Session = Depends(get_db)):
 def get_user(user_id: int, db: Session = Depends(get_db)):
     user = db.get(models.User, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="Utente non trovato")
+        raise HTTPException(status_code=404, detail=_("Utente non trovato"))
     scores = [
         schemas.ScoreOut(
             game_code=s.game.code,
@@ -130,7 +132,7 @@ def update_user_prefs(
     """
     user = db.get(models.User, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="Utente non trovato")
+        raise HTTPException(status_code=404, detail=_("Utente non trovato"))
     values = payload.model_dump(exclude_none=True)
     try:
         return user_prefs.update_prefs(db, user, values)
@@ -146,8 +148,57 @@ def chess_profile_endpoint(user_id: int, db: Session = Depends(get_db)):
     """
     profile = profile_cache.get(db, user_id)
     if profile is None:
-        raise HTTPException(status_code=404, detail="Utente non trovato")
-    return profile
+        raise HTTPException(status_code=404, detail=_("Utente non trovato"))
+    return _translate_profile(profile)
+
+
+_WEAKNESS_PATTERNS = [
+    # Le debolezze PARAMETRIZZATE portano numeri/nomi dentro il testo in cache:
+    # si riconoscono con una regex e si ricompongono nella lingua della risposta.
+    (
+        re.compile(r"Rende meno con l'apertura «(.+)»\."),
+        lambda m: _("Rende meno con l'apertura «{name}».").format(name=_(m.group(1))),
+    ),
+    (
+        re.compile(
+            r"Commette blunder frequenti \(([\d.,]+) per partita, "
+            r"analisi motore su (\d+) partite\)\."
+        ),
+        lambda m: _(
+            "Commette blunder frequenti ({n} per partita, analisi motore su {games} partite)."
+        ).format(n=m.group(1), games=m.group(2)),
+    ),
+    (
+        re.compile(r"Precisione bassa: perde in media ([\d.,]+) centipedoni a mossa\."),
+        lambda m: _("Precisione bassa: perde in media {acpl} centipedoni a mossa.").format(
+            acpl=m.group(1)
+        ),
+    ),
+]
+
+
+def _translate_weakness(text: str) -> str:
+    for pattern, build in _WEAKNESS_PATTERNS:
+        m = pattern.fullmatch(text)
+        if m:
+            return build(m)
+    return _(text)  # le debolezze a testo fisso passano dal catalogo
+
+
+def _translate_profile(profile: dict) -> dict:
+    """Copia del profilo coi testi nella lingua della richiesta.
+
+    La CACHE del profilo è condivisa e resta in italiano (lingua sorgente): si
+    traduce alla frontiera, su una copia superficiale delle parti testuali.
+    """
+    out = dict(profile)
+    out["weaknesses"] = [_translate_weakness(w) for w in profile.get("weaknesses") or []]
+    out["biases"] = [
+        {**b, "label": _(b["label"]), "detail": _(b["detail"])} for b in profile.get("biases") or []
+    ]
+    out["openings"] = [{**o, "name": _(o["name"])} for o in profile.get("openings") or []]
+    out["weakest_openings"] = [_(n) for n in profile.get("weakest_openings") or []]
+    return out
 
 
 @router.get("/{user_id}/tilt")
@@ -155,7 +206,7 @@ def tilt_endpoint(user_id: int, db: Session = Depends(get_db)):
     """Stato del tilt del giocatore: avviso soft con motivazioni ed esercizio."""
     state = tilt.assess(db, user_id)
     if state is None:
-        raise HTTPException(status_code=404, detail="Utente non trovato")
+        raise HTTPException(status_code=404, detail=_("Utente non trovato"))
     return state
 
 
@@ -167,11 +218,11 @@ def analyze_history_endpoint(user_id: int, db: Session = Depends(get_db)):
     finiscono in cache (analysis_json) e il profilo le aggrega alla lettura dopo.
     """
     if not db.get(models.User, user_id):
-        raise HTTPException(status_code=404, detail="Utente non trovato")
+        raise HTTPException(status_code=404, detail=_("Utente non trovato"))
     from ..opponents import stockfish
 
     if not stockfish.is_available(stockfish.get_config(db)):
-        raise HTTPException(status_code=503, detail="Stockfish non disponibile per l'analisi")
+        raise HTTPException(status_code=503, detail=_("Stockfish non disponibile per l'analisi"))
     return {"queued": analysis.analyze_history(db, user_id)}
 
 
@@ -180,7 +231,7 @@ def user_history(user_id: int, db: Session = Depends(get_db)):
     """Storico delle partite concluse del giocatore, con il log delle mosse."""
     user = db.get(models.User, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="Utente non trovato")
+        raise HTTPException(status_code=404, detail=_("Utente non trovato"))
 
     sessions = (
         db.query(models.GameSession)

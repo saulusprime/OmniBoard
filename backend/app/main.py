@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from . import i18n
 from .ai_providers import seed_providers
 from .database import SessionLocal
 from .db_migrate import run_migrations
@@ -49,6 +50,17 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+
+@app.middleware("http")
+async def language_middleware(request, call_next):
+    """La lingua della risposta segue l'Accept-Language della richiesta (i18n)."""
+    token = i18n.set_language(i18n.parse_accept_language(request.headers.get("accept-language")))
+    try:
+        return await call_next(request)
+    finally:
+        i18n.reset_language(token)
+
 
 app.include_router(users.router)
 app.include_router(auth.router)

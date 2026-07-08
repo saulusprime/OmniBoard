@@ -26,6 +26,7 @@ from sqlalchemy.orm import Session
 
 from .. import models, schemas, settings_service
 from ..database import get_db
+from ..i18n import _
 from ..security import verify_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -54,7 +55,7 @@ def session_from_token(db: Session, token: str) -> models.AuthSession:
         else None
     )
     if not sess or _as_utc(sess.expires_at) <= _now():
-        raise HTTPException(status_code=401, detail="Sessione non valida o scaduta")
+        raise HTTPException(status_code=401, detail=_("Sessione non valida o scaduta"))
     return sess
 
 
@@ -75,11 +76,11 @@ def login(payload: schemas.LoginRequest, db: Session = Depends(get_db)):
     )
     good = user and user.password_hash and verify_password(payload.password, user.password_hash)
     if not good:
-        raise HTTPException(status_code=401, detail="Credenziali non valide")
+        raise HTTPException(status_code=401, detail=_("Credenziali non valide"))
     if not user.is_approved:
         raise HTTPException(
             status_code=403,
-            detail="Registrazione in attesa di approvazione da parte del super admin",
+            detail=_("Registrazione in attesa di approvazione da parte del super admin"),
         )
 
     _purge_expired(db)

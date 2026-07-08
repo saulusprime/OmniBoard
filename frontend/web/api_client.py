@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import httpx
 from django.conf import settings
+from django.utils.translation import get_language
 
 BASE = settings.BACKEND_API_URL.rstrip("/")
 TIMEOUT = 10.0
@@ -21,9 +22,12 @@ class ApiError(Exception):
 
 
 def _request(method: str, path: str, **kwargs):
+    # i18n: il backend risponde nella lingua scelta dall'utente (Accept-Language).
+    headers = kwargs.pop("headers", {}) or {}
+    headers.setdefault("Accept-Language", get_language() or "it")
     try:
         with httpx.Client(base_url=BASE, timeout=TIMEOUT) as client:
-            response = client.request(method, path, **kwargs)
+            response = client.request(method, path, headers=headers, **kwargs)
     except httpx.RequestError as exc:
         raise ApiError(f"Impossibile contattare il backend ({BASE}). È avviato?") from exc
 

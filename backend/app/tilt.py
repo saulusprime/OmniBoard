@@ -25,6 +25,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from . import models, profile_cache, settings_service
+from .i18n import _
 
 CHESS_CODE = "chess"
 _SAMPLE = 10  # quante partite recenti guardare
@@ -114,12 +115,18 @@ def assess(db: Session, user_id: int) -> dict | None:
 
     reasons = []
     if quick_streak >= losses_n:
-        reasons.append(f"{quick_streak} sconfitte rapide di fila (≤{quick_plies} semimosse)")
+        reasons.append(
+            _("{n} sconfitte rapide di fila (≤{plies} semimosse)").format(
+                n=quick_streak, plies=quick_plies
+            )
+        )
     acpl_high = recent_acpl is not None and avg_acpl and recent_acpl > float(avg_acpl) * factor
     if streak >= losses_n and acpl_high:
         reasons.append(
-            f"{streak} sconfitte di fila con una precisione peggiore del solito "
-            f"(ACPL recente {recent_acpl} contro una media di {avg_acpl})"
+            _(
+                "{n} sconfitte di fila con una precisione peggiore del solito "
+                "(ACPL recente {rec} contro una media di {avg})"
+            ).format(n=streak, rec=recent_acpl, avg=avg_acpl)
         )
 
     tilted = enabled and bool(reasons)
@@ -130,7 +137,7 @@ def assess(db: Session, user_id: int) -> dict | None:
         "consecutive_quick_losses": quick_streak,
         "recent_acpl": recent_acpl,
         "avg_acpl": avg_acpl,
-        "advice": ADVICE if tilted else None,
+        "advice": _(ADVICE) if tilted else None,
         "last_loss_at": last_loss_at.isoformat() if last_loss_at else None,
     }
 
@@ -154,8 +161,8 @@ def block_new_game(db: Session, user_id: int) -> str | None:
     if datetime.now(timezone.utc) - last >= timedelta(minutes=cooldown_min):
         return None
     return (
-        "Pausa anti-tilt: "
+        _("Pausa anti-tilt: ")
         + "; ".join(state["reasons"])
-        + f". Riprova tra ~{cooldown_min} minuti — intanto: "
-        + ADVICE
+        + _(". Riprova tra ~{min} minuti — intanto: ").format(min=cooldown_min)
+        + _(ADVICE)
     )

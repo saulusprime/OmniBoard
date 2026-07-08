@@ -609,6 +609,12 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   msgmerge corretti (gettext li ignora a runtime!), smoke 12 pagine IT/EN.
   UI interamente bilingue; resta «i18n (dati)» (backend/lezioni/aperture).
   241 verdi.
+- **2026-07-08** — **i18n dati (backend)**: middleware Accept-Language →
+  ContextVar, `_()` alla risposta (DB in italiano), catalogo dict 208 voci
+  (~76 detail, tilt, ~45 etichette admin, 90 aperture EN standard, profilo
+  alla frontiera con regex per le debolezze parametrizzate); api_client
+  inoltra la lingua. Trappola: `for _ in` ombreggia `_`. Resta «i18n
+  (contenuti)» (lezioni). 247 verdi.
 
 ## Questioni aperte
 
