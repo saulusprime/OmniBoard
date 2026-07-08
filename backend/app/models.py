@@ -1,21 +1,20 @@
-"""Modelli SQLAlchemy: anagrafica, giochi, punteggi, gruppi e fondazione gruppi."""
+"""Modelli SQLAlchemy: anagrafica, giochi, punteggi, gruppi e fondazione gruppi.
+
+Stile tipizzato SQLAlchemy 2.0 (``Mapped[]`` + ``mapped_column``): gli attributi
+hanno il tipo Python reale (niente falsi positivi degli analizzatori sugli
+attributi ``Column[...]``). La NULLABILITÀ segue l'annotazione (``T | None`` =
+nullable) ed è stata mantenuta IDENTICA allo schema storico — comprese le
+colonne nullable "per omissione" come i ``created_at`` (verificato con
+``alembic check``: nessuna differenza di schema).
+"""
 
 from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
 
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    Float,
-    ForeignKey,
-    Integer,
-    String,
-    UniqueConstraint,
-)
-from sqlalchemy.orm import relationship
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
 
@@ -29,24 +28,24 @@ class User(Base):
 
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True)
-    first_name = Column(String, nullable=False)  # nome
-    last_name = Column(String, nullable=False)  # cognome
-    alias = Column(String, unique=True, nullable=False, index=True)
-    email = Column(String, unique=True, nullable=False, index=True)
-    nationality = Column(String, nullable=True)  # paese (per classifica nazionale)
-    region = Column(String, nullable=True)  # regione (per classifica regionale)
-    password_hash = Column(String, nullable=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    first_name: Mapped[str] = mapped_column(String)  # nome
+    last_name: Mapped[str] = mapped_column(String)  # cognome
+    alias: Mapped[str] = mapped_column(String, unique=True, index=True)
+    email: Mapped[str] = mapped_column(String, unique=True, index=True)
+    nationality: Mapped[str | None] = mapped_column(String)  # paese (classifica nazionale)
+    region: Mapped[str | None] = mapped_column(String)  # regione (classifica regionale)
+    password_hash: Mapped[str | None] = mapped_column(String)
     # La registrazione è una RICHIESTA: solo il super admin la accetta. Finché
     # is_approved è False il giocatore non può autenticarsi (login negato).
-    is_approved = Column(Boolean, default=False, nullable=False)
+    is_approved: Mapped[bool] = mapped_column(Boolean, default=False)
     # Presenza online (community): aggiornata dal login e dall'heartbeat del client.
     # "Online" = visto negli ultimi community.online_window_s secondi.
-    last_seen_at = Column(DateTime, nullable=True)
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime)
     # Preferenze estetiche del giocatore (JSON: tema scacchiera, segno del Tris, …).
     # Registro e validazione in user_prefs.py; esposte come proprietà ``prefs``.
-    prefs_json = Column(String, default="{}", nullable=False)
-    created_at = Column(DateTime, default=utcnow)
+    prefs_json: Mapped[str] = mapped_column(String, default="{}")
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
 
     @property
     def prefs(self) -> dict:
@@ -56,9 +55,9 @@ class User(Base):
         except (TypeError, ValueError):
             return {}
 
-    scores = relationship("Score", back_populates="user", cascade="all, delete-orphan")
-    memberships = relationship(
-        "GroupMembership", back_populates="user", cascade="all, delete-orphan"
+    scores: Mapped[list[Score]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    memberships: Mapped[list[GroupMembership]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
     )
 
     @property
@@ -79,13 +78,13 @@ class AuthSession(Base):
 
     __tablename__ = "auth_sessions"
 
-    id = Column(Integer, primary_key=True)
-    token = Column(String, unique=True, nullable=False, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    created_at = Column(DateTime, default=utcnow)
-    expires_at = Column(DateTime, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    token: Mapped[str] = mapped_column(String, unique=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
 
-    user = relationship("User")
+    user: Mapped[User] = relationship()
 
 
 class LessonProgress(Base):
@@ -100,14 +99,14 @@ class LessonProgress(Base):
     __tablename__ = "lesson_progress"
     __table_args__ = (UniqueConstraint("user_id", "lesson_code"),)
 
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    lesson_code = Column(String, nullable=False, index=True)
-    last_step = Column(Integer, nullable=False, default=0)
-    completed = Column(Boolean, nullable=False, default=False)
-    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    lesson_code: Mapped[str] = mapped_column(String, index=True)
+    last_step: Mapped[int] = mapped_column(Integer, default=0)
+    completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
 
-    user = relationship("User")
+    user: Mapped[User] = relationship()
 
 
 class Game(Base):
@@ -115,12 +114,13 @@ class Game(Base):
 
     __tablename__ = "games"
 
-    id = Column(Integer, primary_key=True)
-    code = Column(String, unique=True, nullable=False, index=True)
-    name = Column(String, nullable=False)
-    is_stochastic = Column(Boolean, default=False)  # True per giochi con nodi del caso
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    code: Mapped[str] = mapped_column(String, unique=True, index=True)
+    name: Mapped[str] = mapped_column(String)
+    # True per giochi con nodi del caso (nullable per schema storico).
+    is_stochastic: Mapped[bool | None] = mapped_column(Boolean, default=False)
 
-    scores = relationship("Score", back_populates="game", cascade="all, delete-orphan")
+    scores: Mapped[list[Score]] = relationship(back_populates="game", cascade="all, delete-orphan")
 
 
 class Score(Base):
@@ -129,17 +129,17 @@ class Score(Base):
     __tablename__ = "scores"
     __table_args__ = (UniqueConstraint("user_id", "game_id", name="uq_user_game"),)
 
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
-    points = Column(Float, default=0.0, nullable=False)
-    matches_played = Column(Integer, default=0, nullable=False)
-    wins = Column(Integer, default=0, nullable=False)
-    draws = Column(Integer, default=0, nullable=False)
-    losses = Column(Integer, default=0, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    game_id: Mapped[int] = mapped_column(Integer, ForeignKey("games.id"))
+    points: Mapped[float] = mapped_column(Float, default=0.0)
+    matches_played: Mapped[int] = mapped_column(Integer, default=0)
+    wins: Mapped[int] = mapped_column(Integer, default=0)
+    draws: Mapped[int] = mapped_column(Integer, default=0)
+    losses: Mapped[int] = mapped_column(Integer, default=0)
 
-    user = relationship("User", back_populates="scores")
-    game = relationship("Game", back_populates="scores")
+    user: Mapped[User] = relationship(back_populates="scores")
+    game: Mapped[Game] = relationship(back_populates="scores")
 
 
 class Rating(Base):
@@ -155,19 +155,19 @@ class Rating(Base):
     __tablename__ = "ratings"
     __table_args__ = (UniqueConstraint("user_id", "game_id", "season", name="uq_user_game_season"),)
 
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
-    season = Column(String, default="", nullable=False)
-    elo = Column(Float, default=1500.0, nullable=False)
-    peak_elo = Column(Float, default=1500.0, nullable=False)
-    games = Column(Integer, default=0, nullable=False)
-    wins = Column(Integer, default=0, nullable=False)
-    draws = Column(Integer, default=0, nullable=False)
-    losses = Column(Integer, default=0, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    game_id: Mapped[int] = mapped_column(Integer, ForeignKey("games.id"))
+    season: Mapped[str] = mapped_column(String, default="")
+    elo: Mapped[float] = mapped_column(Float, default=1500.0)
+    peak_elo: Mapped[float] = mapped_column(Float, default=1500.0)
+    games: Mapped[int] = mapped_column(Integer, default=0)
+    wins: Mapped[int] = mapped_column(Integer, default=0)
+    draws: Mapped[int] = mapped_column(Integer, default=0)
+    losses: Mapped[int] = mapped_column(Integer, default=0)
 
-    user = relationship("User")
-    game = relationship("Game")
+    user: Mapped[User] = relationship()
+    game: Mapped[Game] = relationship()
 
 
 class AiRating(Base):
@@ -181,15 +181,15 @@ class AiRating(Base):
     __tablename__ = "ai_ratings"
     __table_args__ = (UniqueConstraint("game_id", "identity", name="uq_game_identity"),)
 
-    id = Column(Integer, primary_key=True)
-    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
-    identity = Column(String, nullable=False)
-    elo = Column(Float, default=1500.0, nullable=False)
-    wins = Column(Integer, default=0, nullable=False)
-    draws = Column(Integer, default=0, nullable=False)
-    losses = Column(Integer, default=0, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    game_id: Mapped[int] = mapped_column(Integer, ForeignKey("games.id"))
+    identity: Mapped[str] = mapped_column(String)
+    elo: Mapped[float] = mapped_column(Float, default=1500.0)
+    wins: Mapped[int] = mapped_column(Integer, default=0)
+    draws: Mapped[int] = mapped_column(Integer, default=0)
+    losses: Mapped[int] = mapped_column(Integer, default=0)
 
-    game = relationship("Game")
+    game: Mapped[Game] = relationship()
 
 
 class Tournament(Base):
@@ -197,18 +197,18 @@ class Tournament(Base):
 
     __tablename__ = "tournaments"
 
-    id = Column(Integer, primary_key=True)
-    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
-    name = Column(String, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    game_id: Mapped[int] = mapped_column(Integer, ForeignKey("games.id"))
+    name: Mapped[str] = mapped_column(String)
     # Doppio girone = andata e ritorno (colori invertiti); singolo = una partita
     # per coppia (il primo elencato ha X).
-    double_round = Column(Boolean, default=False, nullable=False)
-    status = Column(String, default="running", nullable=False)  # running | finished
-    created_at = Column(DateTime, default=utcnow)
+    double_round: Mapped[bool] = mapped_column(Boolean, default=False)
+    status: Mapped[str] = mapped_column(String, default="running")  # running | finished
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
 
-    game = relationship("Game")
-    games = relationship(
-        "TournamentGame", back_populates="tournament", cascade="all, delete-orphan"
+    game: Mapped[Game] = relationship()
+    games: Mapped[list[TournamentGame]] = relationship(
+        back_populates="tournament", cascade="all, delete-orphan"
     )
 
 
@@ -217,17 +217,17 @@ class TournamentGame(Base):
 
     __tablename__ = "tournament_games"
 
-    id = Column(Integer, primary_key=True)
-    tournament_id = Column(Integer, ForeignKey("tournaments.id"), nullable=False)
-    x_identity = Column(String, nullable=False)
-    o_identity = Column(String, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    tournament_id: Mapped[int] = mapped_column(Integer, ForeignKey("tournaments.id"))
+    x_identity: Mapped[str] = mapped_column(String)
+    o_identity: Mapped[str] = mapped_column(String)
     # Compilati quando la partita viene giocata (le partite sono vere sessioni:
     # storico, moviola, PGN inclusi). result ∈ {x, o, draw}; None = da giocare.
-    session_id = Column(Integer, ForeignKey("game_sessions.id"), nullable=True)
-    result = Column(String, nullable=True)
+    session_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("game_sessions.id"))
+    result: Mapped[str | None] = mapped_column(String)
 
-    tournament = relationship("Tournament", back_populates="games")
-    session = relationship("GameSession")
+    tournament: Mapped[Tournament] = relationship(back_populates="games")
+    session: Mapped[GameSession | None] = relationship()
 
 
 class GroupProposal(Base):
@@ -235,16 +235,16 @@ class GroupProposal(Base):
 
     __tablename__ = "group_proposals"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    proposed_by = Column(Integer, ForeignKey("users.id"), nullable=False)
-    status = Column(String, default="pending")  # pending | founded
-    threshold = Column(Integer, default=2)  # voti a favore necessari
-    created_at = Column(DateTime, default=utcnow)
-    group_id = Column(Integer, ForeignKey("groups.id"), nullable=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String)
+    proposed_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    status: Mapped[str | None] = mapped_column(String, default="pending")  # pending | founded
+    threshold: Mapped[int | None] = mapped_column(Integer, default=2)  # voti necessari
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
+    group_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("groups.id"))
 
-    votes = relationship(
-        "GroupProposalVote", back_populates="proposal", cascade="all, delete-orphan"
+    votes: Mapped[list[GroupProposalVote]] = relationship(
+        back_populates="proposal", cascade="all, delete-orphan"
     )
 
     @property
@@ -258,13 +258,13 @@ class GroupProposalVote(Base):
     __tablename__ = "group_proposal_votes"
     __table_args__ = (UniqueConstraint("proposal_id", "user_id", name="uq_proposal_user"),)
 
-    id = Column(Integer, primary_key=True)
-    proposal_id = Column(Integer, ForeignKey("group_proposals.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    in_favor = Column(Boolean, default=True, nullable=False)
-    created_at = Column(DateTime, default=utcnow)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    proposal_id: Mapped[int] = mapped_column(Integer, ForeignKey("group_proposals.id"))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    in_favor: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
 
-    proposal = relationship("GroupProposal", back_populates="votes")
+    proposal: Mapped[GroupProposal] = relationship(back_populates="votes")
 
 
 class Group(Base):
@@ -272,12 +272,12 @@ class Group(Base):
 
     __tablename__ = "groups"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    created_at = Column(DateTime, default=utcnow)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
 
-    memberships = relationship(
-        "GroupMembership", back_populates="group", cascade="all, delete-orphan"
+    memberships: Mapped[list[GroupMembership]] = relationship(
+        back_populates="group", cascade="all, delete-orphan"
     )
 
 
@@ -287,14 +287,14 @@ class GroupMembership(Base):
     __tablename__ = "group_memberships"
     __table_args__ = (UniqueConstraint("group_id", "user_id", name="uq_group_user"),)
 
-    id = Column(Integer, primary_key=True)
-    group_id = Column(Integer, ForeignKey("groups.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    role = Column(String, default="member")  # founder | member
-    joined_at = Column(DateTime, default=utcnow)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    group_id: Mapped[int] = mapped_column(Integer, ForeignKey("groups.id"))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    role: Mapped[str | None] = mapped_column(String, default="member")  # founder | member
+    joined_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
 
-    group = relationship("Group", back_populates="memberships")
-    user = relationship("User", back_populates="memberships")
+    group: Mapped[Group] = relationship(back_populates="memberships")
+    user: Mapped[User] = relationship(back_populates="memberships")
 
 
 class GameSession(Base):
@@ -308,59 +308,59 @@ class GameSession(Base):
 
     __tablename__ = "game_sessions"
 
-    id = Column(Integer, primary_key=True)
-    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    game_id: Mapped[int] = mapped_column(Integer, ForeignKey("games.id"))
     # Partita A DISTANZA: i due giocatori usano client diversi; ogni mossa umana
     # richiede il token di sessione (X-Auth-Token) del giocatore al tratto.
     # False = hotseat sullo stesso schermo (comportamento storico, nessun token).
-    remote = Column(Boolean, nullable=False, default=False, server_default="0")
+    remote: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     # Concorrenti IA multipli: per i lati di tipo "ai", il provider SCELTO alla
     # creazione («gioca contro Claude/Gemini/Grok/…», codice del catalogo
     # ai_providers). None = si usa il provider attivo globale (storico).
-    x_ai_provider = Column(String, nullable=True)
-    o_ai_provider = Column(String, nullable=True)
+    x_ai_provider: Mapped[str | None] = mapped_column(String)
+    o_ai_provider: Mapped[str | None] = mapped_column(String)
     # Patta d'accordo (FIDE 9.1): lato («x»/«o») con un'offerta di patta PENDENTE;
     # None = nessuna offerta. L'offerta decade se l'altro giocatore muove.
-    draw_offer = Column(String, nullable=True)
+    draw_offer: Mapped[str | None] = mapped_column(String)
     # Analisi post-partita (Stockfish): JSON con le valutazioni mossa per mossa
     # e gli errori marcati — calcolata una volta e riletta da qui (vedi analysis.py).
-    analysis_json = Column(String, nullable=True)
-    x_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # None se IA
-    o_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # None se IA
-    x_is_ai = Column(Boolean, default=False, nullable=False)
-    o_is_ai = Column(Boolean, default=False, nullable=False)
-    x_ai_kind = Column(String(16), nullable=True)  # "ai" | "stockfish" (None se umano)
-    o_ai_kind = Column(String(16), nullable=True)
-    # Livello preconfigurato per il lato Stockfish (chiave di stockfish.PRESETS, es.
-    # "zeus"); None = parametri globali del super admin.
-    x_ai_level = Column(String(16), nullable=True)
-    o_ai_level = Column(String(16), nullable=True)
+    analysis_json: Mapped[str | None] = mapped_column(String)
+    x_user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"))  # None se IA
+    o_user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"))  # None se IA
+    x_is_ai: Mapped[bool] = mapped_column(Boolean, default=False)
+    o_is_ai: Mapped[bool] = mapped_column(Boolean, default=False)
+    x_ai_kind: Mapped[str | None] = mapped_column(String(16))  # "ai" | "stockfish" (None umano)
+    o_ai_kind: Mapped[str | None] = mapped_column(String(16))
+    # Livello preconfigurato del lato: preset Stockfish ("zeus", …) o livello del
+    # motore locale ("novizio", …); None = parametri globali del super admin.
+    x_ai_level: Mapped[str | None] = mapped_column(String(16))
+    o_ai_level: Mapped[str | None] = mapped_column(String(16))
     # Orologio di gioco (solo scacchi, opzionale). Categoria: blitz | rapid |
     # classical | fide (None = senza orologio); tempo base e incremento in secondi;
     # tempi residui dei due lati in MILLISECONDI; istante d'inizio del turno corrente
     # (l'orologio del giocatore al tratto scorre da qui). La logica è in gameplay.py.
-    tc_category = Column(String(16), nullable=True)
-    tc_base_s = Column(Integer, nullable=True)
-    tc_inc_s = Column(Integer, nullable=True)
-    x_clock_ms = Column(Integer, nullable=True)
-    o_clock_ms = Column(Integer, nullable=True)
-    turn_started_at = Column(DateTime, nullable=True)
-    finish_reason = Column(String(16), nullable=True)  # "time" = decisa dall'orologio
+    tc_category: Mapped[str | None] = mapped_column(String(16))
+    tc_base_s: Mapped[int | None] = mapped_column(Integer)
+    tc_inc_s: Mapped[int | None] = mapped_column(Integer)
+    x_clock_ms: Mapped[int | None] = mapped_column(Integer)
+    o_clock_ms: Mapped[int | None] = mapped_column(Integer)
+    turn_started_at: Mapped[datetime | None] = mapped_column(DateTime)
+    finish_reason: Mapped[str | None] = mapped_column(String(16))  # "time" = dall'orologio
     # Posizione iniziale personalizzata (FEN, solo scacchi): la partita non parte
     # dalla posizione standard e ogni replay/analisi riparte da qui. None = standard.
-    start_fen = Column(String, nullable=True)
-    state_json = Column(String, nullable=False)  # stato serializzato dal motore
-    moves_json = Column(String, default="[]", nullable=False)  # log delle mosse
-    status = Column(String, default="in_progress", nullable=False)  # in_progress | finished
-    winner = Column(String, nullable=True)  # x | o | draw
-    last_ai_cell = Column(Integer, nullable=True)
-    last_ai_source = Column(String, nullable=True)  # book | stockfish | <provider> | engine | local
-    created_at = Column(DateTime, default=utcnow)
-    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+    start_fen: Mapped[str | None] = mapped_column(String)
+    state_json: Mapped[str] = mapped_column(String)  # stato serializzato dal motore
+    moves_json: Mapped[str] = mapped_column(String, default="[]")  # log delle mosse
+    status: Mapped[str] = mapped_column(String, default="in_progress")  # in_progress | finished
+    winner: Mapped[str | None] = mapped_column(String)  # x | o | draw
+    last_ai_cell: Mapped[int | None] = mapped_column(Integer)
+    last_ai_source: Mapped[str | None] = mapped_column(String)  # book | stockfish | <provider> | …
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
 
-    game = relationship("Game")
-    x_user = relationship("User", foreign_keys=[x_user_id])
-    o_user = relationship("User", foreign_keys=[o_user_id])
+    game: Mapped[Game] = relationship()
+    x_user: Mapped[User | None] = relationship(foreign_keys=[x_user_id])
+    o_user: Mapped[User | None] = relationship(foreign_keys=[o_user_id])
 
 
 class Setting(Base):
@@ -368,12 +368,12 @@ class Setting(Base):
 
     __tablename__ = "settings"
 
-    key = Column(String, primary_key=True)
-    value = Column(String, nullable=False)  # valore serializzato come testo
-    value_type = Column(String, nullable=False)  # int | float | bool | str
-    category = Column(String, nullable=False)
-    label = Column(String, nullable=False)
-    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+    key: Mapped[str] = mapped_column(String, primary_key=True)
+    value: Mapped[str] = mapped_column(String)  # valore serializzato come testo
+    value_type: Mapped[str] = mapped_column(String)  # int | float | bool | str
+    category: Mapped[str] = mapped_column(String)
+    label: Mapped[str] = mapped_column(String)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
 
 
 class AiProvider(Base):
@@ -381,10 +381,10 @@ class AiProvider(Base):
 
     __tablename__ = "ai_providers"
 
-    code = Column(String, primary_key=True)  # qwen | anthropic | openai
-    label = Column(String, nullable=False)
-    kind = Column(String, nullable=False)  # "openai" (compatibile) | "anthropic"
-    base_url = Column(String, nullable=True)
-    model = Column(String, nullable=True)
-    api_key = Column(String, nullable=True)  # token; non esposto in lettura dall'API
-    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
+    code: Mapped[str] = mapped_column(String, primary_key=True)  # qwen | anthropic | openai
+    label: Mapped[str] = mapped_column(String)
+    kind: Mapped[str] = mapped_column(String)  # "openai" (compatibile) | "anthropic"
+    base_url: Mapped[str | None] = mapped_column(String)
+    model: Mapped[str | None] = mapped_column(String)
+    api_key: Mapped[str | None] = mapped_column(String)  # token; mai esposto in lettura
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
