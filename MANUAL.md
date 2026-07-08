@@ -240,6 +240,17 @@ eventuale nota). La spiegazione viene **salvata nello storico della mossa**: la
 ritrovi ripassando dalla moviola, senza nuove chiamate al modello. Interruttore
 nella categoria IA; il modello spiega soltanto, non gioca.
 
+### Puzzle
+La pagina «🧩 **Puzzle**» (navbar) propone posizioni da risolvere: **matti
+autoriali** e — la parte migliore — puzzle **generati dai blunder delle tue
+partite analizzate** («Genera puzzle dai tuoi errori»): la posizione dopo un
+grave errore diventa un «trova il colpo», con la confutazione verificata dal
+motore. Clicca origine e destinazione: la risposta dell'avversario (se la linea
+continua) arriva da sola; se il tema chiede il matto, **ogni matto vale** anche
+se diverso dalla soluzione ufficiale. Da loggato i progressi (risolto/tentato)
+si salvano e compaiono nell'elenco; i filtri per tema aiutano a esercitarsi
+mirato.
+
 ### Statistiche avanzate e mosse geniali
 Dalla scheda giocatore, «📊 **Statistiche avanzate**» apre il cruscotto: per ogni
 gioco punti, Elo, vinte/patte/perse e **serie di vittorie** (migliore e in

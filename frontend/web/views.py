@@ -401,6 +401,55 @@ def user_stats(request, user_id):
     )
 
 
+def puzzles_list(request):
+    """Catalogo dei puzzle: filtri, progressi (se loggati), generazione dai blunder."""
+    token = request.session.get("auth_token")
+    if request.method == "POST" and "generate" in request.POST:
+        if not token:
+            messages.error(request, _t("Accedi per generare i puzzle dai tuoi errori."))
+        else:
+            try:
+                out = api.puzzles_generate(token)
+                messages.success(
+                    request,
+                    _t("Creati %(n)s puzzle dai tuoi errori.") % {"n": out["created"]},
+                )
+            except api.ApiError as exc:
+                messages.error(request, str(exc))
+        return redirect("puzzles")
+    theme = request.GET.get("theme") or None
+    data = _safe(
+        request, lambda: api.list_puzzles(token, theme=theme), default={"puzzles": [], "themes": []}
+    )
+    return render(
+        request,
+        "web/puzzles.html",
+        {"data": data, "sel_theme": theme or ""},
+    )
+
+
+def puzzle_play(request, puzzle_id):
+    puzzle = _safe(request, lambda: api.get_puzzle(puzzle_id))
+    if puzzle is None:
+        return redirect("puzzles")
+    return render(request, "web/puzzle_play.html", {"p": puzzle, "ui": _play_ui_strings()})
+
+
+def puzzle_attempt_json(request, puzzle_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST richiesto"}, status=405)
+    token = request.session.get("auth_token")
+    try:
+        step = int(request.POST.get("step", "0"))
+        return JsonResponse(
+            api.puzzle_attempt(puzzle_id, step, request.POST.get("move", ""), token)
+        )
+    except api.ApiError as exc:
+        return JsonResponse({"error": str(exc)}, status=exc.status or 502)
+    except ValueError:
+        return JsonResponse({"error": "step non valido"}, status=400)
+
+
 def arena(request):
     """Arena IA: classifica Elo dei concorrenti e tornei IA-vs-IA.
 

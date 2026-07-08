@@ -230,6 +230,49 @@ class TournamentGame(Base):
     session: Mapped[GameSession | None] = relationship()
 
 
+class Puzzle(Base):
+    """Puzzle: posizione + linea di soluzione verificata, con tema e difficoltà.
+
+    ``solution_json`` è la LINEA COMPLETA in UCI: le mosse del solutore agli
+    indici pari, le risposte (forzate) dell'avversario ai dispari. ``source``:
+    "manual" (autoriale, dal seed) o "auto" (generato dai blunder delle partite
+    analizzate — ``source_session_id``/``source_ply`` puntano al momento esatto).
+    """
+
+    __tablename__ = "puzzles"
+    __table_args__ = (UniqueConstraint("source_session_id", "source_ply", name="uq_puzzle_origin"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    game_id: Mapped[int] = mapped_column(Integer, ForeignKey("games.id"))
+    fen: Mapped[str] = mapped_column(String)
+    solution_json: Mapped[str] = mapped_column(String)  # lista UCI (JSON)
+    theme: Mapped[str] = mapped_column(String)  # "matto in 1" | "colpo vincente" | …
+    difficulty: Mapped[int] = mapped_column(Integer, default=2)  # 1 facile … 5 duro
+    source: Mapped[str] = mapped_column(String, default="manual")  # manual | auto
+    source_session_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("game_sessions.id"))
+    source_ply: Mapped[int | None] = mapped_column(Integer)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
+
+    game: Mapped[Game] = relationship()
+
+
+class PuzzleAttempt(Base):
+    """Progresso di un giocatore su un puzzle: risolto sì/no e tentativi."""
+
+    __tablename__ = "puzzle_attempts"
+    __table_args__ = (UniqueConstraint("user_id", "puzzle_id", name="uq_user_puzzle"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    puzzle_id: Mapped[int] = mapped_column(Integer, ForeignKey("puzzles.id"))
+    solved: Mapped[bool] = mapped_column(Boolean, default=False)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+
+    user: Mapped[User] = relationship()
+    puzzle: Mapped[Puzzle] = relationship()
+
+
 class GroupProposal(Base):
     """Proposta di fondazione di un gruppo: si fonda al raggiungimento dei voti."""
 

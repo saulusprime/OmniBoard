@@ -3,6 +3,50 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-08 — Sistema PUZZLE (la primitiva della sezione Visione)
+
+**Richiesta (utente):** implementiamo il sistema puzzle.
+
+**Dati** (migrazione **0010**): `puzzles` (game_id, fen, `solution_json` =
+LINEA UCI con solutore agli indici pari e risposte forzate ai dispari, theme,
+difficulty 1-5, source manual|auto, source_session_id+source_ply con vincolo di
+unicità = dedup della generazione) e `puzzle_attempts` (user, puzzle, solved,
+attempts).
+
+**Modulo `app/puzzles.py`:**
+
+- `seed_puzzles`: 5 matti in 1 autoriali (incluso uno col NERO al tratto e uno
+  a due matti), VERIFICATI col motore all'inserimento (linea legale + matto per
+  il solutore); idempotente per FEN (arriva anche ai DB già seminati). Chiamata
+  dal lifespan. NB: il primo tentativo di posizione «a matto alternativo» era
+  SBAGLIATO (Ra1+ con fuga in b8): i seed vanno verificati, mai fidarsi della
+  memoria scacchistica.
+- `generate_from_games`: per ogni «??» delle analisi in cache, la posizione
+  DOPO il blunder → confutazione dal motore locale (0,8s, jitter 0); tema da
+  ciò che ottiene (matto in 1 / colpo vincente / punisci l'errore), difficoltà
+  1-3 (blunder enormi = più facili); salta il blunder all'ultima semimossa.
+- `check_attempt` STATELESS: (step, mossa) → rigioca fen+solution[:step],
+  confronta; alla mossa FINALE un **matto alternativo è accettato** (se c'è
+  matto, ogni matto vale); ritorna reply (risposta dell'avversario dalla
+  linea) + vista aggiornata (board+playable).
+
+**API** `/puzzles`: lista (filtri tema/difficoltà; progressi con X-Auth-Token,
+None da anonimi), dettaglio con vista giocabile (`legal_moves_view`), attempt
+(registra tentativi/solved se loggato), `POST /generate` (401 senza login,
+genera dai PROPRI blunder).
+
+**Frontend**: «Puzzle» in navbar; elenco con filtro tema, stelle di difficoltà,
+origine, stato, pulsante «Genera dai tuoi errori»; player dedicato (scacchiera
+condivisa + frameBoard, VISTA DAL LATO DEL SOLUTORE, click-click con
+destinazioni evidenziate, feedback aria-live, riprova). Bilingue IT/EN.
+
+**Test (+5, 270 verdi):** seed presente e verificato, dettaglio+soluzione con
+vista finale senza mosse, matto alternativo accettato E mossa non-matto
+rifiutata all'ultimo passo, progressi con token (anonimo = None), generazione
+dai «??» (2 creati, giocabili, dedup al secondo giro, 401 anonimo).
+
+---
+
 ## 2026-07-08 — Mosse geniali: badge 💎 (sacrificio), filtri, salto moviola
 
 **Richiesta (utente):** i raffinamenti della raccolta mosse geniali.

@@ -27,6 +27,13 @@ urlpatterns = [
         name="proposal_vote",
     ),
     path("classifiche/", views.rankings, name="rankings"),
+    path("puzzle/", views.puzzles_list, name="puzzles"),
+    path("puzzle/<int:puzzle_id>/", views.puzzle_play, name="puzzle_play"),
+    path(
+        "puzzle/<int:puzzle_id>/tentativo.json",
+        views.puzzle_attempt_json,
+        name="puzzle_attempt_json",
+    ),
     path("arena/", views.arena, name="arena"),
     path("arena/tornei/<int:tournament_id>/", views.arena_tournament, name="arena_tournament"),
     path(

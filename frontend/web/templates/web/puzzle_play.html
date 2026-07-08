@@ -1,0 +1,125 @@
+{% extends "web/base.html" %}
+{% load i18n %}
+{% block title %}{% trans 'Puzzle' %} #{{ p.id }}{% endblock %}
+{% block content %}
+{% include "web/board_css.html" %}
+{{ p|json_script:"puzzle-data" }}
+{{ ui|json_script:"ui-strings" }}
+
+<div class="card">
+  <h1>🧩 {% trans 'Puzzle' %} #{{ p.id }}
+    <span class="muted" style="font-size:.7em;">{{ p.theme }} ·
+      {% for _ in "x"|rjust:p.difficulty %}★{% endfor %}</span></h1>
+  <div id="pz-turn" class="muted" aria-live="polite"></div>
+  <div id="boardarea"></div>
+  <p id="pz-feedback" style="min-height:26px; font-weight:600;" aria-live="polite"></p>
+  <p>
+    <a class="btn secondary" href="{% url 'puzzles' %}">← {% trans 'Tutti i puzzle' %}</a>
+    <button class="btn secondary" id="pz-retry" type="button" style="display:none;">
+      ↺ {% trans 'Riprova' %}</button>
+  </p>
+</div>
+
+<script>
+(() => {
+  const P = JSON.parse(document.getElementById("puzzle-data").textContent);
+  const T = JSON.parse(document.getElementById("ui-strings").textContent);
+  const ATTEMPT_URL = "{% url 'puzzle_attempt_json' p.id %}";
+  const CSRF = "{{ csrf_token }}";
+  const rows = P.rows, cols = P.cols;
+  const cellPx = fitCellPx(46, cols, true);
+  const PIECE_SCALE = 0.83;
+  const WHITE_SET = "♔♕♖♗♘♙", BLACK_SET = "♚♛♜♝♞♟";
+  const SOLID = { "♔": "♚", "♕": "♛", "♖": "♜", "♗": "♝", "♘": "♞", "♙": "♟" };
+
+  let board = P.board.slice();
+  let playable = P.playable || [];
+  let step = P.step;
+  let solved = false;
+  let selected = null;
+
+  const area = document.getElementById("boardarea");
+  const turnEl = document.getElementById("pz-turn");
+  const fb = document.getElementById("pz-feedback");
+  turnEl.textContent = (P.to_move === "white" ? T.white : T.black) + " → " + T.turn_of;
+
+  const grid = document.createElement("div");
+  grid.className = "board t-classico";
+  grid.id = "grid";
+  grid.style.gridTemplateColumns = `repeat(${cols}, ${cellPx}px)`;
+  grid.style.gridTemplateRows = `repeat(${rows}, ${cellPx}px)`;
+  for (let i = 0; i < rows * cols; i++) {
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "cell " + (((Math.floor(i / cols) + i % cols) % 2) ? "csq-d" : "csq-l");
+    el.dataset.bi = i;
+    el.style.fontSize = cellPx * PIECE_SCALE + "px";
+    el.addEventListener("click", () => onCell(i));
+    grid.appendChild(el);
+  }
+  area.appendChild(frameBoard(grid, "chess", rows, cols, cellPx, "classico", P.to_move === "black"));
+  render();
+
+  function pieceClass(v) {
+    if (!v) return null;
+    return WHITE_SET.includes(v) ? "x" : BLACK_SET.includes(v) ? "o" : null;
+  }
+
+  function render() {
+    const dests = selected !== null
+      ? new Set(playable.filter((m) => m.from === selected).map((m) => m.to)) : new Set();
+    for (let i = 0; i < board.length; i++) {
+      const el = grid.children[i];
+      const v = board[i];
+      el.textContent = v ? (SOLID[v] || v) : "";
+      el.classList.remove("x", "o", "sel", "dest");
+      const pc = pieceClass(v);
+      if (pc) el.classList.add(pc);
+      if (i === selected) el.classList.add("sel");
+      if (dests.has(i)) el.classList.add("dest");
+      el.disabled = solved;
+    }
+  }
+
+  async function onCell(i) {
+    if (solved) return;
+    if (selected !== null) {
+      const opts = playable.filter((m) => m.from === selected && m.to === i);
+      if (opts.length) { await attempt(opts[0].id); return; }
+    }
+    selected = playable.some((m) => m.from === i) ? i : null;
+    render();
+  }
+
+  async function attempt(moveId) {
+    const res = await fetch(ATTEMPT_URL, {
+      method: "POST",
+      headers: { "X-CSRFToken": CSRF, "Content-Type": "application/x-www-form-urlencoded" },
+      body: `step=${step}&move=${encodeURIComponent(moveId)}`,
+    });
+    const d = await res.json();
+    if (d.error) { fb.textContent = "⚠️ " + d.error; return; }
+    selected = null;
+    if (!d.correct) {
+      fb.textContent = "❌ {% trans 'Non è la mossa giusta: riprova.' %}";
+      fb.style.color = "#e05a4e";
+      render();
+      return;
+    }
+    if (d.view) { board = d.view.board.slice(); playable = d.view.playable || []; step = d.view.step; }
+    if (d.solved) {
+      solved = true;
+      fb.textContent = "🎉 {% trans 'Risolto! Bella mossa.' %}";
+      fb.style.color = "#3fb950";
+      document.getElementById("pz-retry").style.display = "";
+    } else {
+      fb.textContent = "✅ {% trans 'Giusto! Continua…' %}";
+      fb.style.color = "#3fb950";
+    }
+    render();
+  }
+
+  document.getElementById("pz-retry").addEventListener("click", () => location.reload());
+})();
+</script>
+{% endblock %}

@@ -397,11 +397,18 @@
 
 ### Primitive mancanti (prerequisiti condivisi)
 
-- [ ] ⭐ **Sistema PUZZLE** (posizione + soluzione + verifica col motore, tag per
-  apertura/tema, generazione anche automatica dai blunder delle partite analizzate) —
-  sblocca: tilt-breaker (coach), Gatekeeper (repertoire), Puzzle Story (UGC).
-  Nota: il PLAYER esiste già — il motore del tutorial (`lessons/`) è di fatto un
-  lettore di puzzle a passi; manca la primitiva dati + l'esecuzione libera.
+- [x] ⭐ **Sistema PUZZLE** (`app/puzzles.py`, tabelle `puzzles` +
+  `puzzle_attempts`, migrazione 0010) — FEN + **linea di soluzione UCI**
+  (solutore agli indici pari, risposte forzate ai dispari), tema e difficoltà.
+  **Seed autoriale verificato** (5 matti in 1, controllati col motore
+  all'inserimento; idempotente per FEN) + **generazione automatica dai
+  blunder** delle partite analizzate (posizione dopo il «??» → confutazione
+  del motore locale a 0,8s; temi matto/colpo vincente/punisci l'errore;
+  dedup per partita+semimossa). Verifica STATELESS dei tentativi con **matto
+  alternativo accettato**; progressi per utente (tentativi/risolto) con token,
+  giocabile anche da anonimi. Pagina «Puzzle» in navbar (filtri tema, pulsante
+  «genera dai tuoi errori») + player click-click sulla scacchiera condivisa.
+  Bilingue IT/EN. → Sbloccati: tilt-breaker, Gatekeeper, Puzzle Story.
 - [ ] **Valuta virtuale** (guadagnata con puzzle/partite/lezioni; mai convertibile in
   denaro) — serve a: pronostici watch party, ricompense creator, mentorship.
 - [ ] **Presenza spettatori per partita** (chi sta guardando la sessione N; riusa
