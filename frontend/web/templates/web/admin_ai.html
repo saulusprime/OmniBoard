@@ -1,14 +1,10 @@
 {% extends "web/base.html" %}
-{% block title %}Super admin — Provider IA{% endblock %}
+{% load i18n %}
+{% block title %}{% trans 'Super admin — Provider IA' %}{% endblock %}
 {% block content %}
 <div class="card">
-  <h1>🔌 Provider IA</h1>
-  <p class="muted">Configura qui i token verso uno o più servizi di IA (Qwen, Claude, …)
-  invece di modificare il file <code>.env</code>. Scegli il provider <strong>attivo</strong>:
-  l'avversario IA userà quello (se ha un token valido), altrimenti gioca in locale. Per
-  salvare serve il <strong>token super admin</strong> (variabile <code>ADMIN_TOKEN</code> del
-  server). Il token del provider non viene mai rimostrato: se è già impostato compare
-  «configurato».</p>
+  <h1>🔌 {% trans 'Provider IA' %}</h1>
+  <p class="muted">{% blocktrans %}Configura qui i token verso uno o più servizi di IA. Scegli il provider <strong>attivo</strong>: l'avversario IA userà quello (se ha un token valido), altrimenti gioca in locale. Il token del provider non viene mai rimostrato.{% endblocktrans %}</p>
 
   {% if providers %}
   <form method="post" novalidate>{% csrf_token %}
@@ -20,30 +16,30 @@
       <p>
         <label>
           <input type="radio" name="active" value="{{ p.code }}" {% if p.code == active %}checked{% endif %}>
-          Provider attivo
+          {% trans 'Provider attivo' %}
         </label>
       </p>
       <p>
-        <label>Endpoint (base URL){% if p.kind == 'anthropic' %} — vuoto = predefinito{% endif %}</label>
+        <label>{% trans 'Endpoint (base URL)' %}{% if p.kind == 'anthropic' %} — {% trans 'vuoto = predefinito' %}{% endif %}</label>
         <input type="text" name="{{ p.code }}__base_url" value="{{ p.base_url }}">
       </p>
       <p>
-        <label>Modello</label>
+        <label>{% trans 'Modello' %}</label>
         <input type="text" name="{{ p.code }}__model" value="{{ p.model }}">
       </p>
       <p>
         <label>Token / API key
-          {% if p.key_unreadable %}<span class="pill" style="background:#7a2e2e;">da reinserire (chiave cambiata)</span>
-          {% elif p.has_key %}<span class="pill">configurato (cifrato)</span>{% endif %}
+          {% if p.key_unreadable %}<span class="pill" style="background:#7a2e2e;">{% trans 'da reinserire (chiave cambiata)' %}</span>
+          {% elif p.has_key %}<span class="pill">{% trans 'configurato (cifrato)' %}</span>{% endif %}
           {% if p.breaker.open %}<span class="pill" style="background:#7a5a2e;"
-            title="Troppi errori consecutivi: chiamate remote sospese">⛔ sospeso ~{{ p.breaker.retry_in_s }}s</span>{% endif %}
+            title="{% trans 'Troppi errori consecutivi: chiamate remote sospese' %}">⛔ {% trans 'sospeso' %} ~{{ p.breaker.retry_in_s }}s</span>{% endif %}
         </label>
         <input type="password" name="{{ p.code }}__api_key" autocomplete="off"
-               placeholder="{% if p.has_key %}lascia vuoto per non modificare{% else %}incolla il token{% endif %}">
+               placeholder="{% if p.has_key %}{% trans 'lascia vuoto per non modificare' %}{% else %}{% trans 'incolla il token' %}{% endif %}">
       </p>
       <p>
         <button class="btn secondary" type="submit" name="test_provider" value="{{ p.code }}">
-          Verifica connessione
+          {% trans 'Verifica connessione' %}
         </button>
       </p>
     </div>
@@ -52,22 +48,22 @@
     <p>
       <label>
         <input type="radio" name="active" value="" {% if not active %}checked{% endif %}>
-        Nessuno — usa solo il giocatore locale
+        {% trans 'Nessuno — usa solo il giocatore locale' %}
       </label>
     </p>
 
     <div style="margin-top:14px; max-width:360px;">
-      <label for="admin_token">Token super admin</label>
+      <label for="admin_token">{% trans 'Token super admin' %}</label>
       <input type="password" id="admin_token" name="admin_token" autocomplete="off"
              placeholder="ADMIN_TOKEN del server">
     </div>
     <p style="margin-top:14px;">
-      <button class="btn" type="submit">Salva</button>
-      <a class="btn secondary" href="{% url 'admin' %}">Parametri</a>
+      <button class="btn" type="submit">{% trans 'Salva' %}</button>
+      <a class="btn secondary" href="{% url 'admin' %}">{% trans 'Parametri' %}</a>
     </p>
   </form>
   {% else %}
-  <p class="muted">Impossibile caricare i provider (backend non raggiungibile?).</p>
+  <p class="muted">{% trans 'Impossibile caricare i provider (backend non raggiungibile?)' %}</p>
   {% endif %}
 </div>
 {% endblock %}

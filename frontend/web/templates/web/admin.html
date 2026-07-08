@@ -1,19 +1,17 @@
 {% extends "web/base.html" %}
-{% block title %}Super admin — Parametri{% endblock %}
+{% load i18n %}
+{% block title %}{% trans 'Super admin — Parametri' %}{% endblock %}
 {% block content %}
 <div class="card">
-  <h1>⚙️ Super admin — Parametri di programma</h1>
-  <p class="muted">Tutti i parametri configurabili dell'applicazione. Modifica i valori e salva
-  inserendo il <strong>token super admin</strong> (variabile <code>ADMIN_TOKEN</code> del
-  server).</p>
-  <p><a class="btn secondary" href="{% url 'admin_ai' %}">🔌 Provider IA (token Qwen, Claude, …)</a></p>
+  <h1>⚙️ {% trans 'Super admin — Parametri di programma' %}</h1>
+  <p class="muted">{% blocktrans %}Tutti i parametri configurabili dell'applicazione. Modifica i valori e salva inserendo il <strong>token super admin</strong>.{% endblocktrans %}</p>
+  <p><a class="btn secondary" href="{% url 'admin_ai' %}">🔌 {% trans 'Provider IA' %}</a></p>
 
   {% if pending %}
-  <h2>📝 Richieste di registrazione in attesa ({{ pending|length }})</h2>
-  <p class="muted">Solo il super admin accetta un nuovo giocatore: finché la richiesta
-  non è approvata, il login è negato. «Respingi» elimina la richiesta.</p>
+  <h2>📝 {% trans 'Richieste di registrazione in attesa' %} ({{ pending|length }})</h2>
+  <p class="muted">{% trans "Solo il super admin accetta un nuovo giocatore: finché la richiesta non è approvata, il login è negato. «Respingi» elimina la richiesta." %}</p>
   <table>
-    <tr><th>Alias</th><th>Nome</th><th>Email</th><th style="width:34%;">Azione</th></tr>
+    <tr><th>{% trans 'Alias' %}</th><th>{% trans 'Nome' %}</th><th>Email</th><th style="width:34%;">{% trans 'Azione' %}</th></tr>
     {% for u in pending %}
     <tr>
       <td><strong>{{ u.alias }}</strong></td>
@@ -22,12 +20,12 @@
       <td>
         <form method="post" style="display:flex; gap:8px; align-items:center;">
           {% csrf_token %}
-          <input type="password" name="admin_token" placeholder="Token super admin"
+          <input type="password" name="admin_token" placeholder="{% trans 'Token super admin' %}"
                  autocomplete="off" style="max-width:180px;">
           <button class="btn" type="submit" name="approve_user" value="{{ u.id }}"
-                  style="padding:6px 12px;">Approva</button>
+                  style="padding:6px 12px;">{% trans 'Approva' %}</button>
           <button class="btn secondary" type="submit" name="reject_user" value="{{ u.id }}"
-                  style="padding:6px 12px;">Respingi</button>
+                  style="padding:6px 12px;">{% trans 'Respingi' %}</button>
         </form>
       </td>
     </tr>
@@ -36,19 +34,19 @@
   {% endif %}
 
   {% if tts %}
-  <h2>🔊 Voce sintetica (TTS)</h2>
+  <h2>🔊 {% trans 'Voce sintetica (TTS)' %}</h2>
   <p class="muted">Sintesi locale su CPU, una voce per lingua (parametri nella categoria
   «Voce» qui sotto): <strong>italiano con Piper</strong>, <strong>inglese con
   KittenTTS</strong>. I WAV finiscono in cache su disco: ogni frase si sintetizza una
   volta sola. Servirà alla sezione di istruzione guidata.</p>
   <table>
-    <tr><th>Lingua</th><th>Motore</th><th>Voce</th><th>Stato</th><th>Anteprima</th></tr>
+    <tr><th>{% trans 'Lingua' %}</th><th>{% trans 'Motore' %}</th><th>{% trans 'Voce' %}</th><th>{% trans 'Stato' %}</th><th>{% trans 'Anteprima' %}</th></tr>
     {% for lang, info in tts.langs.items %}
     <tr>
       <td><strong>{{ lang|upper }}</strong></td>
       <td>{{ info.engine|default:"?" }}</td>
       <td>{{ info.voice }}</td>
-      <td>{% if info.available %}<span class="pill">pronto</span>
+      <td>{% if info.available %}<span class="pill">{% trans 'pronto' %}</span>
           <span class="muted" style="font-size:.8rem;">{{ info.detail }}</span>
           {% else %}<span class="muted">✗ {{ info.detail }}</span>{% endif %}</td>
       <td>{% if info.available and tts.enabled %}
@@ -64,16 +62,16 @@
   {% endif %}
 
   {% if sparring %}
-  <h2>🥊 Sparring — quanto è forte il motore interno?</h2>
+  <h2>🥊 {% trans 'Sparring — quanto è forte il motore interno?' %}</h2>
   <p class="muted">Il motore interno gioca contro <strong>Stockfish a Elo simulato
   noto</strong> (colori alternati); dal punteggio si stima l'Elo del motore. Poche
   partite = margine ampio. Il match gira in background: ricarica la pagina per
   aggiornare lo stato.</p>
   {% if sparring.status == 'running' %}
-  <p><span class="pill">in corso</span> partita {{ sparring.games|length|add:"1" }}
+  <p><span class="pill">{% trans 'in corso' %}</span> partita {{ sparring.games|length|add:"1" }}
   di {{ sparring.games_total }} contro {{ sparring.level }}…</p>
   {% elif sparring.status == 'done' %}
-  <p><strong>Risultato:</strong> {{ sparring.score }} contro {{ sparring.level }}
+  <p><strong>{% trans 'Risultato:' %}</strong> {{ sparring.score }} contro {{ sparring.level }}
   ({{ sparring.base_elo }} Elo) — {{ sparring.wins }}V {{ sparring.draws }}P
   {{ sparring.losses }}S →
   <span class="pill">Elo stimato ≈ {{ sparring.elo_estimate }} ± {{ sparring.elo_margin }}</span></p>
@@ -84,7 +82,7 @@
   {% if sparring.status != 'running' %}
   <form method="post" style="display:flex; gap:10px; align-items:end; flex-wrap:wrap;">
     {% csrf_token %}
-    <div><label>Avversario</label>
+    <div><label>{% trans 'Avversario' %}</label>
       <select name="sparring_level">
         <option value="atena">Atena (2700)</option>
         <option value="apollo">Apollo (2350)</option>
@@ -92,13 +90,13 @@
         <option value="hermes" selected>Hermes (1700)</option>
         <option value="pan">Pan (1400)</option>
       </select></div>
-    <div style="max-width:110px;"><label>Partite</label>
+    <div style="max-width:110px;"><label>{% trans 'Partite' %}</label>
       <input type="number" name="sparring_games" value="4" min="1" max="20"></div>
-    <div style="max-width:130px;"><label>Motore ms/mossa</label>
+    <div style="max-width:130px;"><label>{% trans 'Motore ms/mossa' %}</label>
       <input type="number" name="sparring_ms" value="300" min="50" max="5000"></div>
-    <div style="max-width:200px;"><label>Token super admin</label>
+    <div style="max-width:200px;"><label>{% trans 'Token super admin' %}</label>
       <input type="password" name="admin_token" autocomplete="off"></div>
-    <button class="btn" type="submit" name="start_sparring" value="1">Avvia sparring</button>
+    <button class="btn" type="submit" name="start_sparring" value="1">{% trans 'Avvia sparring' %}</button>
   </form>
   {% endif %}
   {% endif %}
@@ -109,15 +107,15 @@
     {% for g in gruppi %}
       <h2>{{ g.grouper }}</h2>
       <table>
-        <tr><th style="width:55%;">Parametro</th><th>Valore</th></tr>
+        <tr><th style="width:55%;">{% trans 'Parametro' %}</th><th>{% trans 'Valore' %}</th></tr>
         {% for s in g.list %}
         <tr>
           <td>{{ s.label }}<br><span class="muted" style="font-size:.8rem;">{{ s.key }} (default: {{ s.default }})</span></td>
           <td>
             {% if s.type == 'bool' %}
               <select name="{{ s.key }}">
-                <option value="true" {% if s.value %}selected{% endif %}>Sì</option>
-                <option value="false" {% if not s.value %}selected{% endif %}>No</option>
+                <option value="true" {% if s.value %}selected{% endif %}>{% trans 'Sì' %}</option>
+                <option value="false" {% if not s.value %}selected{% endif %}>{% trans 'No' %}</option>
               </select>
             {% elif s.type == 'int' or s.type == 'float' %}
               <input type="number" {% if s.type == 'float' %}step="any"{% endif %}
@@ -132,19 +130,19 @@
     {% endfor %}
 
     <div style="margin-top:18px; max-width:360px;">
-      <label for="admin_token">Token super admin</label>
+      <label for="admin_token">{% trans 'Token super admin' %}</label>
       <input type="password" id="admin_token" name="admin_token"
              placeholder="ADMIN_TOKEN del server" autocomplete="off">
     </div>
     <p style="margin-top:14px;">
-      <button class="btn" type="submit">Salva parametri</button>
+      <button class="btn" type="submit">{% trans 'Salva parametri' %}</button>
       <button class="btn secondary" type="submit" name="test_stockfish" value="1">
-        Verifica Stockfish
+        {% trans 'Verifica Stockfish' %}
       </button>
     </p>
   </form>
   {% else %}
-  <p class="muted">Impossibile caricare i parametri (backend non raggiungibile?).</p>
+  <p class="muted">{% trans 'Impossibile caricare i parametri (backend non raggiungibile?)' %}</p>
   {% endif %}
 </div>
 {% endblock %}

@@ -1,22 +1,20 @@
 {% extends "web/base.html" %}
-{% block title %}Risultati IA vs IA{% endblock %}
+{% load i18n %}
+{% block title %}{% trans 'Risultati IA vs IA' %}{% endblock %}
 {% block content %}
 <div class="card" style="max-width:560px;">
-  <h1>IA vs IA — {{ r.count }} partite</h1>
-  <p class="muted">Riepilogo di {{ r.count }} partite di Tris giocate consecutivamente
-  dall'IA contro sé stessa.</p>
+  <h1>{% blocktrans with count=r.count %}IA vs IA — {{ count }} partite{% endblocktrans %}</h1>
+  <p class="muted">{% blocktrans with count=r.count %}Riepilogo di {{ count }} partite giocate consecutivamente dall'IA contro sé stessa.{% endblocktrans %}</p>
   <table>
-    <tr><th>Esito</th><th>Partite</th></tr>
-    <tr><td>Vittorie X</td><td>{{ r.x_wins }}</td></tr>
-    <tr><td>Vittorie O</td><td>{{ r.o_wins }}</td></tr>
-    <tr><td>Patte</td><td>{{ r.draws }}</td></tr>
+    <tr><th>{% trans 'Esito' %}</th><th>{% trans 'Partite' %}</th></tr>
+    <tr><td>{% trans 'Vittorie X' %}</td><td>{{ r.x_wins }}</td></tr>
+    <tr><td>{% trans 'Vittorie O' %}</td><td>{{ r.o_wins }}</td></tr>
+    <tr><td>{% trans 'Patte' %}</td><td>{{ r.draws }}</td></tr>
   </table>
-  <p class="muted" style="margin-top:14px;">Nota: con il giocatore locale (minimax) il Tris a
-  gioco perfetto finisce sempre in patta; le differenze emergono se l'IA è meno che ottimale
-  (es. risposte di Qwen).</p>
+  <p class="muted" style="margin-top:14px;">{% trans "Nota: con il giocatore locale il Tris a gioco perfetto finisce sempre in patta; le differenze emergono se l'IA è meno che ottimale." %}</p>
   <p>
-    <a class="btn" href="{% url 'play_setup' %}">Nuova partita</a>
-    <a class="btn secondary" href="{% url 'home' %}">Home</a>
+    <a class="btn" href="{% url 'play_setup' %}">{% trans 'Nuova partita' %}</a>
+    <a class="btn secondary" href="{% url 'home' %}">{% trans 'Home' %}</a>
   </p>
 </div>
 {% endblock %}

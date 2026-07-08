@@ -1,29 +1,28 @@
 {% extends "web/base.html" %}
+{% load i18n %}
 {% block title %}{{ u.alias }}{% endblock %}
 {% block content %}
 <div class="card">
-  <h1>{{ u.alias }} <span class="pill">{{ u.universal_points }} pt universali</span></h1>
+  <h1>{{ u.alias }} <span class="pill">{{ u.universal_points }} {% trans 'pt universali' %}</span></h1>
   <p class="muted">{{ u.first_name }} {{ u.last_name }} · {{ u.email }}<br>
   {{ u.nationality|default:"—" }}{% if u.region %} / {{ u.region }}{% endif %}</p>
-  <a class="btn secondary" href="{% url 'users_list' %}">← Tutti i giocatori</a>
+  <a class="btn secondary" href="{% url 'users_list' %}">← {% trans 'Tutti i giocatori' %}</a>
 </div>
 
 <div class="card">
-  <h2>🎨 Opzioni giocatore</h2>
-  <p class="muted">Preferenze estetiche personali: il <strong>tema</strong> di scacchiera e
-  pezzi (usato in scacchi e dama) e la <strong>forma del tuo segno</strong> nel Tris.
-  Il tavolo del Backgammon non si personalizza: è quello classico con le punte.</p>
+  <h2>🎨 {% trans 'Opzioni giocatore' %}</h2>
+  <p class="muted">{% blocktrans %}Preferenze estetiche personali: il <strong>tema</strong> di scacchiera e pezzi (scacchi e dama) e la <strong>forma del tuo segno</strong> nel Tris.{% endblocktrans %}</p>
   <form method="post" novalidate>{% csrf_token %}
     {{ prefs_form.as_p }}
-    <button class="btn" type="submit" name="save_prefs" value="1">Salva opzioni</button>
+    <button class="btn" type="submit" name="save_prefs" value="1">{% trans 'Salva opzioni' %}</button>
   </form>
 </div>
 
 <div class="card">
-  <h2>Punteggi per gioco</h2>
+  <h2>{% trans 'Punteggi per gioco' %}</h2>
   {% if u.scores %}
   <table>
-    <tr><th>Gioco</th><th>Punti</th><th>Partite</th><th>Vinte</th><th>Patte</th><th>Perse</th></tr>
+    <tr><th>{% trans 'Gioco' %}</th><th>{% trans 'Punti' %}</th><th>{% trans 'Partite' %}</th><th>{% trans 'Vinte' %}</th><th>{% trans 'Patte' %}</th><th>{% trans 'Perse' %}</th></tr>
     {% for s in u.scores %}
     <tr>
       <td>{{ s.game_name }}</td><td>{{ s.points }}</td><td>{{ s.matches_played }}</td>
@@ -32,36 +31,34 @@
     {% endfor %}
   </table>
   {% else %}
-  <p class="muted">Nessuna partita giocata.</p>
+  <p class="muted">{% trans 'Nessuna partita giocata.' %}</p>
   {% endif %}
 </div>
 
 {% if chess and chess.games %}
 <div class="card">
-  <h2>♟️ Profilo scacchistico <span class="muted" style="font-size:.8rem;">(usato dall'IA)</span></h2>
-  <p class="muted">Su {{ chess.games }} partite analizzate — vittorie {{ chess.win_rate }},
-  patte {{ chess.draw_rate }}, sconfitte {{ chess.loss_rate }}; durata media
-  {{ chess.avg_plies }} semimosse.</p>
+  <h2>♟️ {% trans 'Profilo scacchistico' %} <span class="muted" style="font-size:.8rem;">({% trans "usato dall'IA" %})</span></h2>
+  <p class="muted">{% blocktrans with games=chess.games wr=chess.win_rate dr=chess.draw_rate lr=chess.loss_rate ap=chess.avg_plies %}Su {{ games }} partite — vittorie {{ wr }}, patte {{ dr }}, sconfitte {{ lr }}; durata media {{ ap }} semimosse.{% endblocktrans %}</p>
 
   {% if chess.biases %}
-  <h3>Bias ricorrenti</h3>
+  <h3>{% trans 'Bias ricorrenti' %}</h3>
   <ul>{% for b in chess.biases %}
     <li><strong>{{ b.label }}</strong> — {{ b.detail }}
-      <span class="muted">({{ b.games }} partite, {{ b.share }})</span></li>
+      <span class="muted">({{ b.games }} {% trans 'partite' %}, {{ b.share }})</span></li>
   {% endfor %}</ul>
   {% endif %}
   {% if chess.weaknesses %}
-  <h3 style="margin-bottom:6px;">Debolezze individuate</h3>
+  <h3 style="margin-bottom:6px;">{% trans 'Debolezze individuate' %}</h3>
   <ul>{% for w in chess.weaknesses %}<li>{{ w }}</li>{% endfor %}</ul>
   {% else %}
-  <p class="muted">Nessuna debolezza marcata (o partite insufficienti per concludere).</p>
+  <p class="muted">{% trans 'Nessuna debolezza marcata (o partite insufficienti per concludere).' %}</p>
   {% endif %}
 
   {% if chess.openings %}
   <details style="margin-top:8px;">
-    <summary class="muted">Aperture giocate ({{ chess.openings|length }})</summary>
+    <summary class="muted">{% trans 'Aperture giocate' %} ({{ chess.openings|length }})</summary>
     <table style="margin-top:8px;">
-      <tr><th>Apertura</th><th>Partite</th><th>Rendimento</th></tr>
+      <tr><th>{% trans 'Apertura' %}</th><th>{% trans 'Partite' %}</th><th>{% trans 'Rendimento' %}</th></tr>
       {% for o in chess.openings %}
       <tr><td>{{ o.name }}</td><td>{{ o.games }}</td><td>{{ o.score }}</td></tr>
       {% endfor %}
@@ -70,37 +67,32 @@
   {% endif %}
 
   {% if chess.accuracy %}
-  <h3 style="margin-bottom:6px;">Precisione (stima delle blunder, analisi motore)</h3>
-  <p class="muted">Su {{ chess.accuracy.games_analyzed }} partite analizzate
-  ({{ chess.accuracy.moves }} mosse): perdita media
-  <strong>{{ chess.accuracy.acpl }}</strong> centipedoni/mossa ·
-  blunder <strong>{{ chess.accuracy.blunders }}</strong>
-  ({{ chess.accuracy.blunders_per_game }} a partita) ·
-  errori {{ chess.accuracy.errors }} · imprecisioni {{ chess.accuracy.inaccuracies }}.</p>
+  <h3 style="margin-bottom:6px;">{% trans 'Precisione (stima delle blunder, analisi motore)' %}</h3>
+  <p class="muted">{% blocktrans with ga=chess.accuracy.games_analyzed mv=chess.accuracy.moves acpl=chess.accuracy.acpl bl=chess.accuracy.blunders bpg=chess.accuracy.blunders_per_game er=chess.accuracy.errors im=chess.accuracy.inaccuracies %}Su {{ ga }} partite analizzate ({{ mv }} mosse): perdita media <strong>{{ acpl }}</strong> centipedoni/mossa · blunder <strong>{{ bl }}</strong> ({{ bpg }} a partita) · errori {{ er }} · imprecisioni {{ im }}.{% endblocktrans %}</p>
   {% endif %}
   <form method="post" style="margin-top:8px;">{% csrf_token %}
     <button class="btn secondary" type="submit" name="analyze_history" value="1">
-      🔬 Analizza lo storico (stima blunder)</button>
+      🔬 {% trans 'Analizza lo storico (stima blunder)' %}</button>
   </form>
 
   <p class="muted" style="margin-top:10px;font-size:.8rem;">
-    Stile IA adattato: aggressività {{ chess.style.aggression }}, contempt {{ chess.style.contempt }}.
+    {% blocktrans with ag=chess.style.aggression ct=chess.style.contempt %}Stile IA adattato: aggressività {{ ag }}, contempt {{ ct }}.{% endblocktrans %}
   </p>
 </div>
 {% endif %}
 
 <div class="card">
-  <h2>Storico partite</h2>
+  <h2>{% trans 'Storico partite' %}</h2>
   {% if history %}
     {% for h in history %}
     <div class="card" style="margin:0 0 12px;">
-      <strong>{{ h.game_name }}</strong> — vs {{ h.opponent }}
-      {% if h.result == 'win' %}<span class="pill">Vittoria</span>
-      {% elif h.result == 'draw' %}<span class="pill">Patta</span>
-      {% else %}<span class="muted">Sconfitta</span>{% endif %}
-      <div class="muted">lato {{ h.your_side|upper }} · {{ h.date }}</div>
+      <strong>{{ h.game_name }}</strong> — {% trans 'vs' %} {{ h.opponent }}
+      {% if h.result == 'win' %}<span class="pill">{% trans 'Vittoria' %}</span>
+      {% elif h.result == 'draw' %}<span class="pill">{% trans 'Patta' %}</span>
+      {% else %}<span class="muted">{% trans 'Sconfitta' %}</span>{% endif %}
+      <div class="muted">{% trans 'lato' %} {{ h.your_side|upper }} · {{ h.date }}</div>
       <details style="margin-top:8px;">
-        <summary class="muted">Log mosse ({{ h.moves|length }})</summary>
+        <summary class="muted">{% trans 'Log mosse' %} ({{ h.moves|length }})</summary>
         <ol style="margin:8px 0 0;">
           {% for m in h.moves %}<li>{{ m.player }} → {{ m.notation }}{% if m.note %} <span style="color:var(--accent);">📝 {{ m.note }}</span>{% endif %}</li>{% endfor %}
         </ol>
@@ -108,7 +100,7 @@
     </div>
     {% endfor %}
   {% else %}
-  <p class="muted">Nessuna partita conclusa nello storico.</p>
+  <p class="muted">{% trans 'Nessuna partita conclusa nello storico.' %}</p>
   {% endif %}
 </div>
 {% endblock %}

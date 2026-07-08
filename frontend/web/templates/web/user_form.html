@@ -1,13 +1,14 @@
 {% extends "web/base.html" %}
-{% block title %}Richiesta di registrazione{% endblock %}
+{% load i18n %}
+{% block title %}{% trans 'Richiesta di registrazione' %}{% endblock %}
 {% block content %}
 <div class="card" style="max-width:540px;">
-  <h1>📝 Richiesta di registrazione</h1>
-  <p class="muted">La richiesta sarà valutata da un <strong>super admin</strong>: solo dopo l'approvazione potrai accedere con alias (o email) e password. La password viene salvata soltanto come hash.</p>
+  <h1>📝 {% trans 'Richiesta di registrazione' %}</h1>
+  <p class="muted">{% blocktrans %}La richiesta sarà valutata da un <strong>super admin</strong>: solo dopo l'approvazione potrai accedere con alias (o email) e password. La password viene salvata soltanto come hash.{% endblocktrans %}</p>
   <form method="post" novalidate>{% csrf_token %}
     {{ form.as_p }}
-    <button class="btn" type="submit">Invia richiesta</button>
-    <a class="btn secondary" href="{% url 'users_list' %}">Annulla</a>
+    <button class="btn" type="submit">{% trans 'Invia richiesta' %}</button>
+    <a class="btn secondary" href="{% url 'users_list' %}">{% trans 'Annulla' %}</a>
   </form>
 </div>
 {% endblock %}

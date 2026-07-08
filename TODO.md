@@ -276,9 +276,17 @@
   (67 stringhe, .po+.mo in `frontend/locale/`). Restano da marcare le pagine
   secondarie (home, community, arena, admin, lezioni — contenuti inclusi) e i
   messaggi del backend: v. voce sotto.
-- [ ] **i18n (seconde tranche)** — template rimanenti (home, community, arena,
-  admin, schede giocatore), messaggi d'errore del backend FastAPI, contenuti
-  delle lezioni (`lessons/`), nomi delle aperture.
+- [x] **i18n (seconda tranche)** — TUTTI i template rimanenti marcati (home,
+  community, arena+torneo, classifiche, giocatori/scheda, gruppi, admin,
+  admin IA, lezioni indice+player, form, batch), JS incluso (polling della
+  community e del torneo, feedback delle lezioni — stringhe rese dal template);
+  catalogo EN completo: ~170 msgid tradotti, voci FUZZY di msgmerge corrette a
+  mano (una «No»→«First name» inclusa), .mo compilato; smoke test su 12 pagine
+  IT/EN. L'interfaccia è ora interamente bilingue.
+- [ ] **i18n (dati)** — messaggi d'errore del backend FastAPI (detail delle
+  eccezioni), contenuti delle lezioni (`lessons/`), nomi delle aperture,
+  etichette dei parametri admin (settings_service): richiede i18n lato backend
+  (Accept-Language + cataloghi propri).
 
 ## Sicurezza / DevOps
 
