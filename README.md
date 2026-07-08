@@ -5,9 +5,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENCE.md)
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
-[![Status](https://img.shields.io/badge/stato-base%20documentale-orange.svg)](#stato-del-progetto)
+[![Status](https://img.shields.io/badge/stato-in%20sviluppo%20attivo-brightgreen.svg)](#stato-del-progetto)
 
-> **Ultimo aggiornamento:** 2026-06-28 — *Login provider IA (Qwen, Claude, OpenAI) configurabili da super admin; quattro giochi giocabili (Tris, Forza 4, Dama, Scacchi).*
+> **Ultimo aggiornamento:** 2026-07-08 — *Cinque giochi giocabili; scacchi FIDE-completi con analisi/coach/puzzle; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile; 271 test.*
 
 ---
 
@@ -32,7 +32,7 @@
 
 ## Visione
 
-**Scacchi** è una piattaforma web open source per giocare in **due** a giochi da tavolo a
+**OmniBoard** è una piattaforma web open source per giocare in **due** a giochi da tavolo a
 turni. L'idea portante è un **motore di gioco astratto** che modella in modo generico stato,
 mosse legali e condizioni di vittoria: ogni gioco concreto (scacchi, dama, ecc.) è un
 *plugin* che implementa questo modello. Aggiungere un nuovo gioco significa scrivere le sue
@@ -44,37 +44,38 @@ prospettiva, anche quelli con **nodi del caso** (dadi) come backgammon e ludo.
 
 ## Caratteristiche principali
 
-- ♟️ **Motore astratto unico** condiviso da tutti i giochi (logica pura, testabile, senza I/O).
-- 🎲 **Deterministico + stocastico**: i *nodi del caso* previsti dal modello sono realtà —
-  il **Backgammon** è giocabile (i dadi li tira il server, arbitro imparziale); Ludo in arrivo.
-- 🌐 **Esperienza web** con interfaccia grafica della scacchiera e gioco in tempo reale.
-- 👤 **Anagrafica giocatori** e profili.
-- 📊 **Statistiche di gioco** per giocatore e per gioco (partite, vittorie, ranking).
-- 🧩 **Architettura a servizi**: presentazione (Django) separata dalla logica/API (FastAPI).
-- 🤖 **Tre tipi di avversario** per ogni lato della partita: **umano**, **Stockfish** (motore
-  NNUE via protocollo UCI, con forza configurabile: Skill Level, Elo simulato, tempo per
-  mossa) e **IA via API** multi-provider (**Qwen**, **Claude/Anthropic**, **OpenAI**, token
-  configurati dalla pagina «Provider IA» del super admin, salvati lato server). I tipi non
-  umani ripiegano sul **giocatore locale** se non configurati o irraggiungibili: la partita
-  non si blocca mai.
-- ♟️ **Scacchi completi** (arrocco, en passant, promozione, matto/stallo) con **libro di
-  aperture** (Italiana, Siciliana, Scozzese, Spagnola…): l'apertura viene riconosciuta e l'IA
-  la segue.
-- 🧠 **Motore scacchi forte**: ricerca alpha-beta con *iterative deepening*, *transposition
-  table*, *quiescence* (niente pezzi regalati) e valutazione posizionale ricca; trova matti e
-  combinazioni forzate. Budget di tempo per mossa configurabile.
-- 🕵️ **Modello dell'avversario**: l'IA analizza lo **storico** delle partite del giocatore
-  (aperture, fragilità tattica, tendenza alla patta, finali) per individuarne schemi e debolezze
-  e **adatta** il proprio stile (più aggressiva con chi crolla, anti-patta con chi pareggia).
-- 📜 **Log delle mosse** di ogni partita, salvato nello **storico di entrambi i giocatori**.
-- 🛠️ **Tutto parametrizzabile** da un'interfaccia **super admin**: punteggi, regole gruppi,
-  registrazione utenti, ritardo IA, limiti, ecc. (protetta da token).
+- ♟️ **Motore astratto unico** condiviso da tutti i giochi (logica pura, testabile, senza I/O);
+  nodi del caso inclusi: il **Backgammon** è vivo, i dadi li tira il server.
+- 🤖 **Quattro tipi di avversario** per lato: umano (stesso schermo o **a distanza**),
+  **motore locale a livelli** (Maestro→Novizio, con errori "umani" calibrati), **Stockfish**
+  (processo persistente, preset Zeus→Pan) e **IA via API** multi-provider (Claude, Gemini,
+  Grok, Qwen, OpenAI — token **cifrati** nel DB, **circuit breaker** sulle chiamate, ripiego
+  locale: la partita non si blocca mai). Mosse IA in una **coda di lavoro** con pool limitato
+  e ripresa automatica al riavvio.
+- ♟️ **Scacchi FIDE-completi** (arrocco, en passant, promozione con dialog grafico, patta per
+  ripetizione/posizione morta, abbandono e patta d'accordo, orologio Blitz/Rapid/Classical/
+  FIDE con bandierina art. 6.9) — motore con alpha-beta, quiescence+SEE, PVS, aspiration,
+  finali dedicati e **pondering**; **libro aperture** interno/PGN/**Polyglot** con
+  apertura-bersaglio dal profilo avversario; **posizione iniziale da FEN** ed **export PGN**.
+- 🔬 **Analisi e coaching**: analisi post-partita Stockfish con moviola/note/grafico,
+  **badge di qualità** per mossa (💎 sacrifici geniali inclusi), commentatore LLM,
+  «**Spiegami questa mossa**», hint per principianti, **anti-tilt** e bias cognitivi misurati.
+- 🧩 **Puzzle**: matti autoriali verificati + generazione **dai blunder delle tue partite**,
+  progressi per utente, matto alternativo accettato.
+- 📈 **Gamification**: **rating Elo** per gioco con **stagioni** (K adattivo FIDE), punti,
+  classifiche globali/nazionali/regionali, **Arena IA** (Elo dei concorrenti IA + **tornei**
+  round-robin), **statistiche avanzate** (serie, esiti, cadenze, colori) e raccolta delle
+  **mosse geniali** con screenshot.
+- 🌐 **Community**: registrazione approvata dal super admin, login a token, presenza online,
+  sfide a distanza, gruppi con fondazione per voto.
+- 🎓 **Istruzione guidata** («Impara») con lezioni passo-passo e **TTS** multilingua.
+- 🖥️ **UI curata**: scacchiera da torneo con coordinate, drag&drop, temi, rotazione,
+  pezzi catturati; **responsive mobile**; **accessibile** (tastiera + ARIA); **bilingue
+  IT/EN** su tutto lo stack (backend compreso).
+- 🛠️ **Tutto parametrizzabile** dall'interfaccia **super admin** (protetta da token).
 - 🔓 **Open source** con licenza [MIT](./LICENCE.md).
 
 ## Giochi supportati
-
-Lo stato di implementazione è indicativo della *roadmap*; in questa fase il repository
-contiene la sola base documentale.
 
 | Gioco        | Tipo                 | Stato        |
 |--------------|----------------------|--------------|
@@ -170,18 +171,19 @@ Scacchi/
 │   │   ├── outcome.py   #   esito di una partita (Outcome)
 │   │   └── registry.py  #   registro dei giochi disponibili
 │   ├── tictactoe/       # Tris: game.py (regole) + state.py (stato)
-│   ├── (ogni gioco segue lo stesso schema)
-├── backgammon/      # Backgammon: primo gioco stocastico (nodi del caso)
-│   ├── connect4/        # Forza 4: game.py + state.py
-│   ├── draughts/        # Dama italiana: game.py + state.py
+│   ├── connect4/        # Forza 4 (ogni gioco segue lo stesso schema)
+│   ├── backgammon/      # Backgammon: primo gioco stocastico (nodi del caso)
+│   ├── draughts/        # Dama italiana: regole FID + motore dedicato (engine.py)
 │   ├── chess/           # Scacchi:
 │   │   ├── game.py      #   regole (classe Chess)
 │   │   ├── state.py     #   stato immutabile (ChessState)
 │   │   ├── board.py     #   scacchiera: costanti e funzioni di base
-│   │   ├── engine.py    #   motore di ricerca (alpha-beta, quiescence, TT)
+│   │   ├── engine.py    #   ricerca (alpha-beta, quiescence+SEE, PVS, TT, finali)
 │   │   ├── context.py   #   contesto di ricerca (SearchContext)
 │   │   ├── errors.py    #   eccezioni del motore (TimeUp)
-│   │   └── openings.py  #   libro delle aperture
+│   │   ├── openings.py  #   libro delle aperture interno
+│   │   ├── pgn.py       #   parser + scrittore SAN/PGN
+│   │   └── polyglot.py  #   libri di aperture Polyglot (.bin)
 │   └── tests/           # test del motore e dei giochi
 │
 ├── backend/             # servizio FastAPI + accesso al database
@@ -189,12 +191,16 @@ Scacchi/
 │       ├── main.py      # app FastAPI (migrazioni + seed + router)
 │       ├── models.py    # modelli SQLAlchemy (utenti, giochi, punteggi, gruppi)
 │       ├── schemas.py   # schemi Pydantic
-│       ├── gameplay.py  # svolgimento partite + worker IA in background
+│       ├── gameplay.py  # svolgimento partite (+ jobqueue.py: coda mosse IA)
 │       ├── opponents/   # avversari non umani, un modulo per tipo:
-│       │   ├── api_ai.py     #   IA via API (Qwen, Claude, OpenAI, …)
-│       │   ├── stockfish.py  #   motore Stockfish via protocollo UCI
-│       │   └── local.py      #   giocatore locale di ripiego (sempre disponibile)
-│       └── routers/     # users, games, groups, matches, rankings, sessions, admin
+│       │   ├── api_ai.py     #   IA via API (con circuit breaker)
+│       │   ├── stockfish.py  #   motore Stockfish via protocollo UCI (persistente)
+│       │   └── local.py      #   motore locale a livelli (ripiego sempre disponibile)
+│       ├── (un modulo per sistema: analysis, commentary, insights, puzzles,
+│       │    rating, ai_arena, tilt, ponder, i18n+catalog_en, token_crypto, …)
+│       ├── migrations/  # Alembic (0001…0010)
+│       └── routers/     # users, auth, games, groups, sessions, rankings,
+│                        #   arena, puzzles, admin, community, lessons, tts
 │
 └── frontend/            # progetto Django (presentazione, nessun DB proprio)
     ├── omniboard_web/     # settings, urls, wsgi/asgi
@@ -223,9 +229,6 @@ Il database è pensato per raccogliere, nel rispetto della normativa (vedi nota 
 - Python 3.12+
 - PostgreSQL (in produzione) — SQLite è sufficiente per lo sviluppo
 - (Frontend) un browser moderno
-
-> Le istruzioni dettagliate di installazione e avvio verranno aggiunte qui non appena lo
-> scaffold del codice sarà presente.
 
 ## Avvio rapido
 
@@ -292,16 +295,15 @@ Configurazione tramite `.env` (vedi `.env.example`).
 
 ## Stato del progetto
 
-🟢 **Quattro giochi giocabili.** Backend FastAPI e frontend Django girano end-to-end: si possono
-creare giocatori, fondare gruppi tramite voto, consultare le classifiche e **giocare a Tris,
-Forza 4, Dama italiana e Scacchi** (umano vs umano in locale, umano vs IA, IA vs IA — con la possibilità di simulare **N partite
-consecutive** IA-vs-IA, es. 100). L'IA può usare un **provider remoto** (Qwen, Claude o OpenAI),
-con token configurabili dalla pagina super admin «Provider IA», e ripiega sul giocatore locale
-ottimale; la sua mossa appare con un piccolo ritardo e animazione. Ogni partita ha un **log delle mosse**
-(widget in pagina) salvato nello **storico di entrambi i giocatori**. A fine partita i punteggi
-si aggiornano in automatico. I parametri di programma (punteggi, regole, ecc.) sono modificabili
-da un'**interfaccia super admin**. Mancano autenticazione dei giocatori, gioco a distanza in
-tempo reale e gli altri giochi.
+🟢 **Cinque giochi giocabili, piattaforma completa in sviluppo attivo.** Backend FastAPI e
+frontend Django girano end-to-end: autenticazione con approvazione del super admin, partite
+in locale e **a distanza**, cinque giochi (Tris, Forza 4, Dama italiana, Scacchi,
+Backgammon), quattro tipi di avversario con ripiego locale, analisi e coaching per gli
+scacchi, puzzle, rating Elo con stagioni, Arena IA con tornei, statistiche avanzate,
+interfaccia **bilingue IT/EN**, **accessibile** e **responsive**. Suite di **271 test**
+(motore + backend + frontend) eseguita a ogni passo; schema DB governato da migrazioni
+Alembic (0001…0010). Il backlog vivo è in [TODO.md](./TODO.md); lo storico dei lavori in
+[HANDOFF.md](./HANDOFF.md).
 
 ## Documentazione correlata
 

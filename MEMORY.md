@@ -657,8 +657,13 @@ maggiore, cubo del raddoppio, gammon/backgammon.
 
 ## Questioni aperte
 
-- Strategia di autenticazione tra Django e FastAPI (sessione vs token): da definire allo
-  scaffold del backend.
-- Scelta tra Django template + Canvas e un approccio più ricco lato client per la scacchiera.
-- Formato di notazione delle mosse da persistere (specifico per gioco vs generico).
-- ORM lato backend (SQLAlchemy) e gestione migrazioni con Alembic: da confermare.
+> Aggiornate al 2026-07-08 (le storiche — auth, notazione, ORM/Alembic, rendering
+> scacchiera — sono tutte RISOLTE: v. milestone sopra).
+
+- **Multi-processo/produzione**: SQLite→Postgres, coda mosse IA su SKIP LOCKED o
+  Redis/RQ (interfaccia già pronta in `jobqueue.py`), TOKENS_KEY fissa in .env.
+- **WebSocket** al posto del polling (mosse live, presenza, tornei).
+- **i18n (contenuti)**: traduzione editoriale delle lezioni; lingue oltre l'inglese.
+- **Rate limiting + CORS espliciti** e **audit log** delle operazioni super admin.
+- **Retro-etichettatura 💎**: le partite analizzate PRIMA del badge sacrificio non
+  hanno diamanti (servirebbe un re-scan batch dei badge).

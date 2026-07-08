@@ -417,8 +417,8 @@
   denaro) — serve a: pronostici watch party, ricompense creator, mentorship.
 - [ ] **Presenza spettatori per partita** (chi sta guardando la sessione N; riusa
   l'infrastruttura heartbeat della community) — serve a: watch party, heatmap, OBS.
-- [ ] **Rating Elo** (già in backlog) — prerequisito di «partita classificata»
-  (Gatekeeper) e del matchmaking (blocco/suggerimento tilt).
+- [x] **Rating Elo** — FATTO (v. sezione gamification: `rating.py`, stagioni,
+  K FIDE): il prerequisito di «partita classificata» e matchmaking è pronto.
 
 ### 1. AI Coach «umano» e psicologico ⭐ (il più vicino a ciò che abbiamo)
 

@@ -3,6 +3,46 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-08 — CHECKPOINT anti-compattazione (fotografia dello stato)
+
+**Richiesta (utente):** refresh di tutti i doc (HANDOFF, MEMORY, README, TODO,
+memoria persistente) contro le perdite da auto-compact del contesto.
+
+**Stato del progetto OmniBoard (già «Scacchi») a questa data:**
+
+- **271 test verdi** (pytest dalla root, ~100s); ruff pulito; migrazioni Alembic
+  0001…0010 (upgrade automatico all'avvio; dev-DB `backend/omniboard.db`).
+- **5 giochi giocabili**: Tris, Forza 4, Dama (FID completa + motore dedicato),
+  Scacchi (FIDE-completi: v. tabella conformità in MANUAL), Backgammon.
+- **Avversari**: umano (hotseat/remoto), motore locale a 5 livelli, Stockfish
+  persistente (preset divinità), provider IA (Claude/Gemini/Grok/Qwen/OpenAI —
+  token CIFRATI, circuit breaker, ripiego locale). Mosse IA in CODA (jobqueue,
+  pool `ai.workers`, recovery al riavvio). Pondering scacchi (TT condivisa).
+- **Scacchi — condotto completo**: orologi+bandierina 6.9, FEN iniziale, PGN
+  export (SAN writer), libro interno/PGN/Polyglot + apertura-bersaglio, analisi
+  Stockfish, moviola+note+?ply, GIF/PNG, hint principianti, badge qualità
+  (💎 sacrificio via SEE), commentatore LLM, «Spiegami questa mossa», profilo
+  avversario in cache con bias, anti-tilt (avviso soft + blocco admin).
+- **Gamification**: Elo umano per gioco+stagione (K FIDE), Arena IA (Elo dei
+  concorrenti + tornei round-robin), PUZZLE (seed verificato + generazione dai
+  blunder), Statistiche avanzate (serie, esiti, cadenze, colori, badge) +
+  raccolta mosse geniali con screenshot e filtri.
+- **Piattaforma**: auth con approvazione admin, community/sfide/heartbeat,
+  gruppi a voto, lezioni «Impara»+TTS (it=Piper opzionale GPL, en=Kitten),
+  i18n IT/EN COMPLETA (frontend .po + backend catalog_en via Accept-Language),
+  accessibilità (tastiera+ARIA), responsive, scacchiera da torneo (drag&drop,
+  rotazione, catture, promozione grafica).
+- **Ambiente**: CLT macOS rotti → avvio manuale (uvicorn/manage.py, v. memoria
+  persistente); Stockfish 18 in PATH; gettext presente; repo
+  github.com/saulusprime/OmniBoard (cartella locale ancora ~/Sviluppo/Scacchi).
+
+**Refresh eseguiti**: README (badge, caratteristiche, struttura, stato), MEMORY
+(«Questioni aperte» riscritte: le storiche erano tutte risolte), memoria
+persistente riscritta allo stato corrente, questo checkpoint. TODO già vivo e
+aggiornato per-step.
+
+---
+
 ## 2026-07-08 — Prestazioni per cadenza
 
 **Richiesta (utente):** prestazioni per cadenza.
