@@ -251,7 +251,16 @@
   (4) coordinate già nella cornice da torneo; (5) **pezzi catturati** sotto la
   scacchiera con bilancio materiale (+n; dama: conteggio pedine; nascosto nelle
   partite da FEN, corredo non standard).
-- [ ] **Responsive mobile** e accessibilità (navigazione da tastiera, ARIA).
+- [x] **Responsive mobile** — media query globali in base.html (spazi compatti,
+  nav fitta ma completa, TABELLE SCORREVOLI in orizzontale, input ≥16px anti-zoom
+  iOS); **`fitCellPx` condiviso** in board_css.html: la casella si restringe per
+  far entrare scacchiera+cornice nello schermo (play e lezioni); in partita la
+  scacchiera si RIMISURA al resize/rotazione (debounce 200ms, mai a metà di un
+  drag); cornice sottile sotto i 480px (coordinate conservate); log mosse e
+  colonna laterale impilati su telefono. Il drag&drop era già touch (pointer
+  events + touch-action:none).
+- [ ] **Accessibilità**: navigazione da tastiera, ARIA (scorporata dal punto
+  responsive, fatto il 2026-07-08).
 - [ ] **i18n** — testi in file di traduzione (oggi tutto hardcoded in italiano).
 
 ## Sicurezza / DevOps

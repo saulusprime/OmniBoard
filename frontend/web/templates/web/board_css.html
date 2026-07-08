@@ -100,6 +100,13 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
   .bc span { display:flex; align-items:center; justify-content:center; }
   .bc-h { flex-direction:row; height:26px; }
   .bc-v { flex-direction:column; width:26px; }
+  /* Su schermi stretti la cornice si fa sottile (le coordinate restano). */
+  @media (max-width: 480px) {
+    .bc-h { height:17px; }
+    .bc-v { width:17px; }
+    .bc { font-size:10px; }
+    .bframe .board { outline-offset:2px; }
+  }
   .t-classico { --bframe:#0b0f14; --binlay:#4a5a6d; --bcoord:#8fa1b3; }
   .t-legno { --bframe:#7a4a2b; --binlay:#ecd9b0; --bcoord:#ecd9b0; }
   .t-smeraldo { --bframe:#3e4f30; --binlay:#d8dcb5; --bcoord:#e5e8c8; }
@@ -127,6 +134,15 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
   // Cornice da torneo attorno alla griglia (scacchi e dama). Ritorna l'elemento
   // da inserire nella pagina: la griglia stessa per i giochi senza cornice.
   // La vista è sempre col Bianco in basso: traversa 8 in alto, colonna A a sinistra.
+  // Lato di casella che tiene la scacchiera DENTRO lo schermo (telefoni):
+  // dal lato "base" del desktop si scende fino a far entrare colonne + cornice
+  // nella larghezza utile. Stima del contorno prudente (wrap+card+cornice).
+  function fitCellPx(base, cols, framed) {
+    const chrome = 80 + (framed ? 62 : 0);
+    const avail = Math.max(120, document.documentElement.clientWidth - chrome);
+    return Math.max(18, Math.min(base, Math.floor(avail / cols)));
+  }
+
   function frameBoard(grid, moveType, rows, cols, cellPx, theme, flipped) {
     if (moveType !== "chess" && moveType !== "draughts") return grid;
     const frame = document.createElement("div");

@@ -594,6 +594,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   sulla griglia (bottoni ♛♜♝♞ con classi .cell → colori tema gratis; Esc/fuori
   = annulla; tasti q/r/b/n); resolvePromotion nei due chiamanti; guardia dama
   (percorsi equivalenti ≠ promozione). Solo frontend, 241 verdi.
+- **2026-07-08** — **Responsive mobile**: media query base.html (nav compatta,
+  tabelle scorrevoli, anti-zoom iOS), fitCellPx condiviso (scacchiera che entra
+  nello schermo, play+lezioni), rimisura al resize con guardie busy/drag,
+  cornice sottile ≤480px. Accessibilità (tastiera/ARIA) scorporata nel TODO.
+  Solo frontend, 241 verdi.
 
 ## Questioni aperte
 

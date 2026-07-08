@@ -5,6 +5,35 @@
 
 ---
 
+## 2026-07-08 — Responsive mobile
+
+**Richiesta (utente):** responsive mobile. (La voce TODO includeva anche
+l'accessibilità tastiera/ARIA: SCORPORATA, resta in lista.)
+
+- **base.html**: media query ≤700px — wrap/card/nav compatti (la nav resta a
+  capo con TUTTE le voci: niente hamburger, scelta documentata), `table {
+  display:block; overflow-x:auto }` (classifiche/community/arena scorrono
+  invece di spaccare il layout), titoli e bottoni ridotti; input a 1rem (≥16px:
+  iOS non zooma sui form).
+- **`fitCellPx(base, cols, framed)`** condiviso in board_css.html: dal lato
+  desktop (46/56/88) si scende finché colonne+cornice entrano nella larghezza
+  utile (stima prudente del contorno wrap+card+cornice; minimo 18px — il
+  backgammon a 15 colonne resta giocabile su un 375px). Usato da play.html e
+  learn_lesson.html.
+- **Rimisura in partita**: listener `resize` (debounce 200ms) → se il lato
+  cambia si ricostruisce griglia+cornice; MAI a metà di un drag o di una mossa
+  (`busy`/`drag` guardie). Le lezioni si misurano al caricamento.
+- **Cornice sottile ≤480px** (bande 26→17px, coordinate 10px, filetto più
+  vicino): le coordinate restano leggibili senza mangiare schermo.
+- play.html ≤700px: `.side` a piena larghezza (log sotto la scacchiera),
+  movelog/commento più bassi. Il layout `.play`/`.lesson` era già flex-wrap;
+  il drag&drop era già touch (pointer events + `touch-action:none`).
+
+**Verifiche:** node --check su play/lezioni/board_css, manage.py check,
+241 test verdi (solo frontend).
+
+---
+
 ## 2026-07-08 — Promozione con dialog grafico
 
 **Richiesta (utente):** promozione con dialog grafico (al posto di

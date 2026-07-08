@@ -46,6 +46,23 @@
            background:#555; vertical-align:middle; }
     .dot.on { background:#3fb950; box-shadow:0 0 4px #3fb950; }
     .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; }
+    /* ----- Responsive mobile -----
+       Sotto i 700px: spazi compatti, nav più fitta (resta a capo: niente
+       hamburger, tutte le voci raggiungibili), TABELLE SCORREVOLI in orizzontale
+       (classifiche/community/arena non spaccano il layout), titoli ridotti.
+       Gli input restano a 1rem (>=16px): iOS non zooma sui form. */
+    @media (max-width: 700px) {
+      .wrap { padding:0 10px; }
+      main { padding:14px 0 40px; }
+      .card { padding:12px; }
+      nav { gap:8px 12px; min-height:0; padding:8px 0; font-size:.92rem; }
+      nav .brand { font-size:1.1rem; }
+      table { display:block; overflow-x:auto; }
+      th, td { padding:6px 8px; }
+      h1 { font-size:1.35rem; }
+      h2 { font-size:1.1rem; }
+      .btn { padding:8px 12px; font-size:.95rem; }
+    }
   </style>
 </head>
 <body>
