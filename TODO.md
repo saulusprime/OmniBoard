@@ -225,7 +225,18 @@
 
 ## Piattaforma e gamification
 
-- [ ] **Rating Elo/Glicko** al posto dello schema punti provvisorio (3/1/0); stagioni.
+- [x] **Rating Elo** (`app/rating.py`, tabella `ratings`, migrazione 0009) —
+  Elo classico con **K adattivo stile FIDE** (40 sotto le 30 partite =
+  «provvisorio», 20 fino a 2400, 10 oltre), per (giocatore, gioco, **stagione**).
+  Si aggiorna SOLO sulle partite umano-vs-umano (pool pulito: le IA hanno il
+  loro pool nell'arena; contro le IA restano i punti 3/1/0, che sopravvivono
+  come misura di attività). **Stagioni** dal parametro `elo.season`: cambiarlo
+  fa ripartire tutti da 1500, lo storico resta interrogabile
+  (`/rankings/elo/{game}?season=`). Classifica Elo nella pagina Classifiche
+  (con picco e flag «?» provvisorio) e card «Rating Elo» nella scheda
+  giocatore. Bugfix scovato dai test: `score_for` senza flush duplicava la
+  riga punti con lo stesso utente su entrambi i lati (autoflush=False).
+  Glicko rinviato: il K adattivo copre il caso «nuovo giocatore» senza RD.
 - [ ] **Tornei** — eliminazione diretta e gironi, con tabellone.
 - [ ] **Gruppi**: ruoli (admin/membro), inviti, espulsioni; classifiche per gruppo;
   sfide gruppo-vs-gruppo.

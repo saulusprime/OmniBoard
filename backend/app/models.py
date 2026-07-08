@@ -142,6 +142,34 @@ class Score(Base):
     game = relationship("Game", back_populates="scores")
 
 
+class Rating(Base):
+    """Rating Elo di un GIOCATORE UMANO in un gioco, per stagione.
+
+    Pool pulito: si aggiorna SOLO sulle partite umano-vs-umano concluse (le
+    partite contro le IA non lo toccano — le IA hanno il loro pool nell'arena;
+    mescolare i due distorcerebbe entrambi). K adattivo stile FIDE (vedi
+    ``rating.py``); ``season`` arriva dal parametro ``elo.season``: cambiarlo
+    apre una stagione nuova (le righe vecchie restano come storico).
+    """
+
+    __tablename__ = "ratings"
+    __table_args__ = (UniqueConstraint("user_id", "game_id", "season", name="uq_user_game_season"),)
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
+    season = Column(String, default="", nullable=False)
+    elo = Column(Float, default=1500.0, nullable=False)
+    peak_elo = Column(Float, default=1500.0, nullable=False)
+    games = Column(Integer, default=0, nullable=False)
+    wins = Column(Integer, default=0, nullable=False)
+    draws = Column(Integer, default=0, nullable=False)
+    losses = Column(Integer, default=0, nullable=False)
+
+    user = relationship("User")
+    game = relationship("Game")
+
+
 class AiRating(Base):
     """Rating Elo di un CONCORRENTE IA in un gioco (classifica delle IA).
 

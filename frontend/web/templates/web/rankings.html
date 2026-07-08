@@ -46,6 +46,27 @@
     <button class="btn" type="submit">{% trans 'Mostra' %}</button>
   </form>
 
+  {% if elo_rank and elo_rank.rows %}
+  <h3 style="margin-top:18px;">{% trans 'Rating Elo' %} <span class="muted"
+      style="font-size:.8rem;">({% trans 'stagione' %} {{ elo_rank.season }})</span></h3>
+  <table>
+    <tr><th>#</th><th>{% trans 'Giocatore' %}</th><th>Elo</th><th>{% trans 'Picco' %}</th>
+        <th>{% trans 'Partite' %}</th><th>V/P/S</th></tr>
+    {% for e in elo_rank.rows %}
+    <tr>
+      <td>{{ e.rank }}</td>
+      <td><a href="{% url 'user_detail' e.user_id %}">{{ e.alias }}</a>
+        {% if e.provisional %}<span class="muted" title="{% trans 'Rating provvisorio (meno di 30 partite)' %}">?</span>{% endif %}</td>
+      <td><strong>{{ e.elo }}</strong></td>
+      <td>{{ e.peak_elo }}</td>
+      <td>{{ e.games }}</td>
+      <td>{{ e.wins }}/{{ e.draws }}/{{ e.losses }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="muted" style="font-size:.8rem;">{% trans "L'Elo si aggiorna solo nelle partite fra due giocatori umani; contro le IA valgono i punti." %}</p>
+  {% endif %}
+
   {% if game_rank is not None %}
     {% if game_rank %}
     <table style="margin-top:16px;">

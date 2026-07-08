@@ -237,10 +237,17 @@ def user_detail(request, user_id):
         )
     history = _safe(request, lambda: api.get_user_history(user_id), default=[])
     chess = _safe(request, lambda: api.get_chess_profile(user_id), default=None)
+    ratings = _safe(request, lambda: api.get_user_ratings(user_id), default=None)
     return render(
         request,
         "web/user_detail.html",
-        {"u": user, "history": history, "chess": chess, "prefs_form": prefs_form},
+        {
+            "ratings": ratings,
+            "u": user,
+            "history": history,
+            "chess": chess,
+            "prefs_form": prefs_form,
+        },
     )
 
 
@@ -314,12 +321,15 @@ def rankings(request):
     country = request.GET.get("country") or None
     region = request.GET.get("region") or None
     game_rank = None
+    elo_rank = None
     if game_code:
         game_rank = _safe(
             request,
             lambda: api.game_ranking(game_code, scope, country, region),
             default=[],
         )
+        # Classifica Elo (rating di forza, stagione corrente): affianca i punti.
+        elo_rank = _safe(request, lambda: api.elo_ranking(game_code), default=None)
     return render(
         request,
         "web/rankings.html",
@@ -327,6 +337,7 @@ def rankings(request):
             "games": games,
             "universal": universal,
             "game_rank": game_rank,
+            "elo_rank": elo_rank,
             "sel_game": game_code,
             "scope": scope,
             "country": country or "",

@@ -45,6 +45,13 @@ SETTINGS_DEFS = [
         "label": "Finestra di presenza online (secondi dall'ultimo heartbeat)",
     },
     {
+        "key": "elo.season",
+        "type": "str",
+        "default": "2026",
+        "category": "Punteggio",
+        "label": "Stagione Elo corrente (cambiarla apre una stagione nuova)",
+    },
+    {
         "key": "scoring.points_win",
         "type": "float",
         "default": 3.0,

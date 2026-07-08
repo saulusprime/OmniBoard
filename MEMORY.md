@@ -615,6 +615,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   alla frontiera con regex per le debolezze parametrizzate); api_client
   inoltra la lingua. Trappola: `for _ in` ombreggia `_`. Resta «i18n
   (contenuti)» (lezioni). 247 verdi.
+- **2026-07-08** — **Rating Elo umano**: `rating.py` + tabella `ratings`
+  (migrazione 0009), K adattivo FIDE (40/20/10, provvisorio <30), solo partite
+  umano-vs-umano (pool separato dall'arena IA), stagioni via `elo.season`
+  (storico con ?season=); classifica in pagina Classifiche + card nella scheda.
+  Bugfix: score_for senza flush duplicava scores (autoflush=False). 253 verdi.
 
 ## Questioni aperte
 
