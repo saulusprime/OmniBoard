@@ -1,9 +1,9 @@
 # Licenza
 
-Il progetto **Scacchi** è distribuito con licenza **MIT**.
+Il progetto **OmniBoard** è distribuito con licenza **MIT**.
 
 > Nota: il nome del titolare del copyright qui sotto è un segnaposto
-> (`Scacchi Project Contributors`). Sostituiscilo con il tuo nome o quello della tua
+> (`OmniBoard Project Contributors`). Sostituiscilo con il tuo nome o quello della tua
 > organizzazione prima della pubblicazione, se lo desideri.
 
 ---
@@ -13,7 +13,7 @@ Il progetto **Scacchi** è distribuito con licenza **MIT**.
 ```text
 MIT License
 
-Copyright (c) 2026 Scacchi Project Contributors
+Copyright (c) 2026 OmniBoard Project Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ SOFTWARE.
 > la piattaforma raccoglie dati dei giocatori ed è destinata alla pubblicazione sul web.
 
 La licenza MIT regola l'uso del **software**, non il trattamento dei **dati degli utenti**.
-Poiché Scacchi raccoglie anagrafica giocatori e statistiche di gioco, prima della
+Poiché OmniBoard raccoglie anagrafica giocatori e statistiche di gioco, prima della
 pubblicazione online occorrerà predisporre:
 
 - una **informativa privacy** che indichi quali dati vengono raccolti (username, email,

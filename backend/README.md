@@ -1,6 +1,6 @@
 # Backend — FastAPI
 
-API e logica della piattaforma Scacchi: anagrafica giocatori, gruppi (con fondazione
+API e logica della piattaforma OmniBoard: anagrafica giocatori, gruppi (con fondazione
 tramite voto), punteggi per gioco, classifiche (universale e per gioco).
 
 ## Avvio (sviluppo)

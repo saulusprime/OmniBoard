@@ -11,7 +11,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./scacchi.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./omniboard.db")
 
 # SQLite richiede check_same_thread=False per essere usato dal server; il timeout è il
 # busy-timeout in secondi (il worker IA in background scrive da un altro thread).

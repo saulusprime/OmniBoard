@@ -1,9 +1,9 @@
 {% extends "web/base.html" %}
 {% load i18n %}
-{% block title %}{% trans 'Scacchi — Piattaforma di giochi da tavolo' %}{% endblock %}
+{% block title %}{% trans 'OmniBoard — Piattaforma di giochi da tavolo' %}{% endblock %}
 {% block content %}
 <div class="card">
-  <h1>♟ Scacchi</h1>
+  <h1>♟ OmniBoard</h1>
   <p class="muted">{% trans "Gioca a scacchi e ad altri giochi da tavolo a turni — dama, tris, forza 4 — tramite un unico motore. Registrati, sfida gli altri giocatori e scala le classifiche." %}</p>
   <p>
     <a class="btn" href="{% url 'play_setup' %}">{% trans 'Nuova partita' %}</a>

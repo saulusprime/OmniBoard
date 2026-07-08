@@ -8,7 +8,7 @@ import os
 
 import django
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "scacchi_web.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "omniboard_web.settings")
 django.setup()
 
 from django.test import Client  # noqa: E402
@@ -23,4 +23,4 @@ def test_home_renders_even_if_backend_down():
     # SERVER_NAME="localhost" è in ALLOWED_HOSTS (il test client userebbe "testserver").
     response = Client().get("/", SERVER_NAME="localhost")
     assert response.status_code == 200
-    assert b"Scacchi" in response.content
+    assert b"OmniBoard" in response.content

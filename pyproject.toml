@@ -1,4 +1,4 @@
-# Configurazione di tooling per la piattaforma Scacchi (lint PEP8 + test).
+# Configurazione di tooling per la piattaforma OmniBoard (lint PEP8 + test).
 
 [tool.ruff]
 line-length = 100

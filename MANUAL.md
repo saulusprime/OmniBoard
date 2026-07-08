@@ -1,6 +1,6 @@
 # MANUAL — Manuale dei giochi e dell'applicazione
 
-> Manuale d'uso della piattaforma **Scacchi** e regolamento di ogni gioco integrato.
+> Manuale d'uso della piattaforma **OmniBoard** e regolamento di ogni gioco integrato.
 > Ogni nuovo gioco aggiunto alla piattaforma va documentato qui seguendo il
 > [modello per nuovi giochi](#modello-per-nuovi-giochi).
 >

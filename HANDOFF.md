@@ -3,6 +3,37 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-08 — Rinomina del progetto: Scacchi → OmniBoard
+
+**Richiesta (utente):** rinominare il progetto in «OmniBoard», ovunque, GitHub
+compreso.
+
+**Attenzione semantica**: «Scacchi» è ANCHE il nome italiano del gioco — il
+gioco `chess` si chiama ancora «Scacchi» nel catalogo, nel MANUAL e in tutte le
+frasi «di scacchi»: intoccati. Rinominato solo il PROGETTO.
+
+- **GitHub**: `gh repo rename OmniBoard` → https://github.com/saulusprime/OmniBoard
+  (redirect automatico dal vecchio nome); remote aggiornato a
+  `git@github.com:saulusprime/OmniBoard.git`.
+- **Package Django**: `scacchi_web` → `omniboard_web` (git mv + riferimenti in
+  manage.py/asgi/wsgi/settings/test).
+- **Codice**: titolo FastAPI «OmniBoard API», brand navbar «♟ OmniBoard»,
+  titolo home (msgid nuovo nel .po + traduzione), default `general.site_name`
+  e fallback del tag PGN Event, heartbeat JS rinominato.
+- **Database**: default `sqlite:///./omniboard.db`; il DB di sviluppo è stato
+  COPIATO (`scacchi.db` → `omniboard.db`, il vecchio resta come backup non
+  tracciato), `.env` aggiornato, valore `general.site_name` nel DB portato a
+  «OmniBoard» (il seed preserva i valori: andava toccato a mano).
+- **Metadati**: README/MANUAL/MEMORY (titoli), LICENCE (OmniBoard Project
+  Contributors), CONTRIBUTING, pyproject, conftest prefix.
+- **NON toccati**: le voci storiche di HANDOFF/MEMORY (restano fedeli ai fatti,
+  `scacchi.db` compreso), i 5 snapshot HTML in root (artefatti di debug
+  tracciati: candidati a rimozione, decisione rinviata), la CARTELLA locale
+  `/Users/Saulus/Sviluppo/Scacchi` (rinominarla rompe i venv: shebang assoluti
+  — vedi nota per l'operatore nel report).
+
+**Verifiche**: 253 test verdi, smoke IT/EN sul brand e sul titolo tradotto.
+
 ---
 
 ## 2026-07-08 — Gamification: rating Elo dei giocatori (con stagioni)

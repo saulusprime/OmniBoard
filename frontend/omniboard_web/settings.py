@@ -1,4 +1,4 @@
-"""Impostazioni Django del frontend Scacchi.
+"""Impostazioni Django del frontend OmniBoard.
 
 Il frontend è puramente presentazione: NON possiede dati di dominio (li legge dal
 backend FastAPI). Per questo sono disattivate le app che richiedono un database
@@ -49,7 +49,7 @@ MIDDLEWARE = [
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 SESSION_COOKIE_HTTPONLY = True
 
-ROOT_URLCONF = "scacchi_web.urls"
+ROOT_URLCONF = "omniboard_web.urls"
 
 TEMPLATES = [
     {
@@ -67,8 +67,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "scacchi_web.wsgi.application"
-ASGI_APPLICATION = "scacchi_web.asgi.application"
+WSGI_APPLICATION = "omniboard_web.wsgi.application"
+ASGI_APPLICATION = "omniboard_web.asgi.application"
 
 # Database di riserva (non usato dalla logica: il dominio vive nel backend).
 DATABASES = {

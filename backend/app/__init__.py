@@ -1,4 +1,4 @@
-"""Backend FastAPI della piattaforma Scacchi."""
+"""Backend FastAPI della piattaforma OmniBoard."""
 
 import sys
 from pathlib import Path
