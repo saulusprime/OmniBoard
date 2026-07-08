@@ -131,3 +131,55 @@ def test_brilliancy_against_ai_shows_ai_label():
         gem = next(g for g in gems if g["ply"] == 1 and g["session_id"] == sid)
         assert "Novizio" in gem["opponent"]  # etichetta del concorrente IA
         assert gem["result"] == "loss"
+
+
+def test_sacrifice_detection_via_see():
+    """💎: la mossa forte che OFFRE materiale si riconosce con la SEE."""
+    from types import SimpleNamespace
+
+    from app.commentary import _is_sacrifice
+
+    from engine import get_game
+
+    game = get_game("chess")
+    # Donna prende un pedone DIFESO: dopo Qxe5, dxe5 vince ~8 pedoni netti.
+    fake = SimpleNamespace(start_fen="4k3/8/3p4/4p2Q/8/8/8/4K3 w - - 0 1")
+    assert _is_sacrifice(game, fake, ["h5e5"]) is True
+    # Donna prende un pedone INDIFESO: nessun attaccante sulla casa → non è un sacrificio.
+    fake2 = SimpleNamespace(start_fen="4k3/8/8/4p2Q/8/8/8/4K3 w - - 0 1")
+    assert _is_sacrifice(game, fake2, ["h5e5"]) is False
+    # Storico non ricostruibile: prudente, mai un badge sbagliato.
+    assert _is_sacrifice(game, fake, ["a1a8"]) is False
+
+
+def test_classify_diamond_badge():
+    from app.commentary import _classify
+
+    sym, label = _classify(0, is_best=True, capture=True, retreat=False, sacrifice=True)
+    assert sym == "💎" and "sacrificio" in label
+    # Anche una quasi-migliore col sacrificio è geniale...
+    assert _classify(20, is_best=False, capture=True, retreat=False, sacrifice=True)[0] == "💎"
+    # ...ma un sacrificio SBAGLIATO resta un blunder.
+    assert _classify(250, is_best=False, capture=True, retreat=False, sacrifice=True)[0] == "🤡"
+
+
+def test_diamond_in_brilliancies_with_piece_filter_fields():
+    with TestClient(app) as client:
+        u1, u2 = _user(client, "ins_h"), _user(client, "ins_i")
+        sid = _fools_mate(client, u1["id"], u2["id"])
+        db = SessionLocal()
+        try:
+            session = db.get(GameSession, sid)
+            moves = json.loads(session.moves_json)
+            moves[3]["quality"] = {"symbol": "💎", "label": "geniale (sacrificio)", "loss": 0}
+            session.moves_json = json.dumps(moves)
+            db.commit()
+        finally:
+            db.close()
+        gems = client.get(f"/users/{u2['id']}/brilliancies").json()["brilliancies"]
+        gem = next(g for g in gems if g["ply"] == 4 and g["session_id"] == sid)
+        assert gem["symbol"] == "💎"
+        assert gem["piece"] == "Q"  # Qd8-h4#: campo per i filtri della galleria
+        st = client.get(f"/users/{u2['id']}/insights").json()
+        assert st["chess"]["badges"]["💎"] >= 1
+        assert st["chess"]["brilliancies"] >= st["chess"]["badges"]["💎"]

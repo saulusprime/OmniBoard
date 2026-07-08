@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-08 19:44+0200\n"
+"POT-Creation-Date: 2026-07-08 20:46+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1202,19 +1202,19 @@ msgstr "Adapted AI style: aggression %(ag)s, contempt %(ct)s."
 msgid "Storico partite"
 msgstr "Game history"
 
-#: web/templates/web/user_detail.html:107 web/templates/web/user_stats.html:75
+#: web/templates/web/user_detail.html:107 web/templates/web/user_stats.html:90
 msgid "vs"
 msgstr "vs"
 
-#: web/templates/web/user_detail.html:108 web/templates/web/user_stats.html:76
+#: web/templates/web/user_detail.html:108 web/templates/web/user_stats.html:91
 msgid "Vittoria"
 msgstr "Win"
 
-#: web/templates/web/user_detail.html:109 web/templates/web/user_stats.html:76
+#: web/templates/web/user_detail.html:109 web/templates/web/user_stats.html:91
 msgid "Patta"
 msgstr "Draw"
 
-#: web/templates/web/user_detail.html:110 web/templates/web/user_stats.html:76
+#: web/templates/web/user_detail.html:110 web/templates/web/user_stats.html:91
 msgid "Sconfitta"
 msgstr "Loss"
 
@@ -1252,15 +1252,15 @@ msgstr "Send request"
 msgid ""
 "Aggregato delle partite concluse e delle analisi già calcolate; più partite "
 "analizzi, più il quadro si arricchisce."
-msgstr "Aggregate of finished games and already-computed analyses; the more games you analyse, the richer the picture."
+msgstr ""
+"Aggregate of finished games and already-computed analyses; the more games "
+"you analyse, the richer the picture."
 
 #: web/templates/web/user_stats.html:8
-#| msgid "da giocare"
 msgid "Scheda giocatore"
 msgstr "Player card"
 
 #: web/templates/web/user_stats.html:10
-#| msgid "Punteggi per gioco"
 msgid "Per gioco"
 msgstr "By game"
 
@@ -1269,7 +1269,6 @@ msgid "Serie migliore"
 msgstr "Best streak"
 
 #: web/templates/web/user_stats.html:13
-#| msgid "in corso"
 msgid "Serie in corso"
 msgstr "Current streak"
 
@@ -1278,14 +1277,11 @@ msgid "Scacchi in profondità"
 msgstr "Chess in depth"
 
 #: web/templates/web/user_stats.html:33
-#, fuzzy, python-format
-#| msgid ""
-#| "Su %(games)s partite — vittorie %(wr)s, patte %(dr)s, sconfitte %(lr)s; "
-#| "durata media %(ap)s semimosse."
+#, python-format
 msgid "Su %(n)s partite — durata media %(ap)s semimosse."
 msgstr "Over %(n)s games — average length %(ap)s plies."
-"Over %(games)s games — wins %(wr)s, draws %(dr)s, losses %(lr)s; average "
-"length %(ap)s plies."
+"Over %(n)s games — average length %(ap)s plies.Over %(games)s games — wins "
+"%(wr)s, draws %(dr)s, losses %(lr)s; average length %(ap)s plies."
 
 #: web/templates/web/user_stats.html:35
 #, python-format
@@ -1305,7 +1301,6 @@ msgid "Nero"
 msgstr "Black"
 
 #: web/templates/web/user_stats.html:47
-#| msgid "Storico partite"
 msgid "Come finiscono le partite"
 msgstr "How games end"
 
@@ -1318,7 +1313,6 @@ msgid "tempo"
 msgstr "time"
 
 #: web/templates/web/user_stats.html:51
-#| msgid "Abbandona"
 msgid "abbandono"
 msgstr "resignation"
 
@@ -1327,7 +1321,6 @@ msgid "patta d’accordo"
 msgstr "draw by agreement"
 
 #: web/templates/web/user_stats.html:53
-#| msgid "Lezione"
 msgid "ripetizione"
 msgstr "repetition"
 
@@ -1343,21 +1336,68 @@ msgstr "Brilliant moves"
 msgid ""
 "Le tue mosse «da maestro» secondo il motore: lo scatto della posizione, "
 "l’avversario e il collegamento alla moviola."
-msgstr "Your “masterful” moves according to the engine: a snapshot of the position, the opponent and a link to the replay viewer."
+msgstr ""
+"Your “masterful” moves according to the engine: a snapshot of the position, "
+"the opponent and a link to the replay viewer."
+
+#: web/templates/web/user_stats.html:68
+msgid "Tutte"
+msgstr "All"
+
+#: web/templates/web/user_stats.html:69
+msgid "Sacrifici"
+msgstr "Sacrifices"
+
+#: web/templates/web/user_stats.html:70
+msgid "Da maestro"
+msgstr "Masterful"
+
+#: web/templates/web/user_stats.html:71
+msgid "Filtra per pezzo"
+msgstr "Filter by piece"
 
 #: web/templates/web/user_stats.html:73
+msgid "Ogni pezzo"
+msgstr "Any piece"
+
+#: web/templates/web/user_stats.html:74
+msgid "Donna"
+msgstr "Queen"
+
+#: web/templates/web/user_stats.html:75
+msgid "Torre"
+msgstr "Rook"
+
+#: web/templates/web/user_stats.html:76
+msgid "Alfiere"
+msgstr "Bishop"
+
+#: web/templates/web/user_stats.html:77
+msgid "Cavallo"
+msgstr "Knight"
+
+#: web/templates/web/user_stats.html:78
+msgid "Re"
+msgstr "King"
+
+#: web/templates/web/user_stats.html:79
+msgid "Pedone"
+msgstr "Pawn"
+
+#: web/templates/web/user_stats.html:88
 msgid "semimossa"
 msgstr "half-move"
 
-#: web/templates/web/user_stats.html:79
+#: web/templates/web/user_stats.html:94
 msgid "Apri la moviola"
 msgstr "Open the replay viewer"
 
-#: web/templates/web/user_stats.html:85
+#: web/templates/web/user_stats.html:124
 msgid ""
 "Ancora nessuna mossa da maestro: gioca (con i badge di qualità attivi) e "
 "torna qui."
-msgstr "No masterful moves yet: play (with quality badges enabled) and come back."
+msgstr ""
+"No masterful moves yet: play (with quality badges enabled) and come back."
 
 #: web/templates/web/users_list.html:7
 msgid "Richiedi registrazione"

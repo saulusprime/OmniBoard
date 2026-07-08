@@ -1194,7 +1194,15 @@
     pgReady = true;
     document.getElementById("postgame").style.display = "block";
     fetch(REPLAY_URL).then((r) => r.json()).then((d) => {
-      if (d.boards) { replayBoards = d.boards; replayAt = d.boards.length - 1; replayUi(); }
+      if (d.boards) {
+        replayBoards = d.boards;
+        // ?ply=N nell'URL: la moviola si apre ESATTAMENTE su quella semimossa
+        // (i link della raccolta «mosse geniali» arrivano qui).
+        const wanted = Number(new URLSearchParams(location.search).get("ply"));
+        replayAt = Number.isInteger(wanted) && wanted >= 1 && wanted < d.boards.length
+          ? wanted : d.boards.length - 1;
+        gotoPly(replayAt);
+      }
     }).catch(() => {});
     // Un'analisi già calcolata in passato si ricarica da sola.
     fetch(ANALYSIS_URL).then((r) => r.json()).then((d) => {

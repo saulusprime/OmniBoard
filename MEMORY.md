@@ -640,6 +640,10 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   avversario/esito/data), `GET /sessions/{id}/board.png?ply=` (render_png dal
   renderer GIF), pagina `/giocatori/<id>/statistiche/` con galleria. 💎
   sacrifici e salto moviola ?ply= restano nel TODO. 262 verdi.
+- **2026-07-08** — **Mosse geniali, raffinamenti**: badge 💎 (sacrificio) via
+  replay + SEE avversaria ≥200cp (commentary._is_sacrifice, solo su perdita
+  ≤30); filtri galleria tipo+pezzo; moviola ?ply=N. Emoji nei sorgenti:
+  replace per riga (variation selector). 265 verdi.
 
 ## Questioni aperte
 

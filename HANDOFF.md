@@ -3,6 +3,33 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-08 — Mosse geniali: badge 💎 (sacrificio), filtri, salto moviola
+
+**Richiesta (utente):** i raffinamenti della raccolta mosse geniali.
+
+- **💎 «geniale (sacrificio)»** — il badge che 🌟 non sapeva dare: mossa
+  quasi-ottimale (perdita ≤30cp) che OFFRE materiale. Rilevazione statica in
+  `commentary._is_sacrifice`: replay della partita col motore puro (economico,
+  FEN di partenza compresa), poi **SEE dell'avversario sulla casa d'arrivo**
+  (`engine._least_attacker` + `_see`): se catturare il pezzo appena mosso vale
+  ≥2 pedoni netti, il materiale è davvero in offerta. Il check si paga SOLO
+  quando può fare la differenza (perdita ≤30) e ogni dubbio → False.
+  `_classify(sacrifice=…)`: 💎 prima di 🌟, mai sui pasticci (blunder vince).
+- **Insights**: 💎 di prima classe (BRILLIANT = {💎,🌟}, badges con 💎,
+  `brilliancies` somma entrambi; ATTENZIONE emoji: il replace byte-a-byte
+  fallisce sui variation selector — edit per riga).
+- **Galleria**: filtri combinabili per TIPO (💎/🌟) e per PEZZO (nuovo campo
+  `piece` dalla notazione; arrocco = Re), client-side; ogni card mostra il suo
+  simbolo.
+- **Moviola a semimossa**: `?ply=N` nell'URL della partita → maybePostGame apre
+  la moviola ESATTAMENTE lì; i link della raccolta lo usano.
+
+**Test (+3, 265 verdi):** SEE su pedone difeso/indifeso + storico non
+ricostruibile, _classify (💎 su best e quasi-best, 🤡 sul sacrificio sbagliato),
+💎 nella raccolta con campi symbol/piece e conteggi.
+
+---
+
 ## 2026-07-08 — Statistiche avanzate + raccolta mosse geniali con screenshot
 
 **Richiesta (utente):** pagina delle statistiche avanzate e raccolta delle

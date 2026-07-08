@@ -64,23 +64,62 @@
   <h2>🌟 {% trans 'Mosse geniali' %} <span class="pill">{{ gems|length }}</span></h2>
   <p class="muted">{% trans 'Le tue mosse «da maestro» secondo il motore: lo scatto della posizione, l’avversario e il collegamento alla moviola.' %}</p>
   {% if gems %}
-  <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:14px;">
+  <p id="gem-filters">
+    <button class="btn" type="button" data-f="*">{% trans 'Tutte' %}</button>
+    <button class="btn secondary" type="button" data-f="s:💎">💎 {% trans 'Sacrifici' %}</button>
+    <button class="btn secondary" type="button" data-f="s:🌟">🌟 {% trans 'Da maestro' %}</button>
+    <select id="gem-piece" aria-label="{% trans 'Filtra per pezzo' %}"
+            style="width:auto; padding:6px 8px;">
+      <option value="*">{% trans 'Ogni pezzo' %}</option>
+      <option value="Q">{% trans 'Donna' %}</option>
+      <option value="R">{% trans 'Torre' %}</option>
+      <option value="B">{% trans 'Alfiere' %}</option>
+      <option value="N">{% trans 'Cavallo' %}</option>
+      <option value="K">{% trans 'Re' %}</option>
+      <option value="P">{% trans 'Pedone' %}</option>
+    </select>
+  </p>
+  <div id="gem-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:14px;">
     {% for g in gems %}
-    <div class="card" style="margin:0;">
+    <div class="card gem" style="margin:0;" data-symbol="{{ g.symbol }}" data-piece="{{ g.piece }}">
       <img src="{{ backend_url }}/sessions/{{ g.session_id }}/board.png?ply={{ g.ply }}"
            alt="{{ g.notation }}" style="width:100%; border-radius:8px;" loading="lazy">
-      <p style="margin:8px 0 2px;"><strong>{{ g.notation }}</strong> 🌟
+      <p style="margin:8px 0 2px;"><strong>{{ g.notation }}</strong> {{ g.symbol }}
         <span class="muted">({% trans 'semimossa' %} {{ g.ply }})</span></p>
       <p class="muted" style="margin:0; font-size:.85rem;">
         {% trans 'vs' %} {{ g.opponent }} —
         {% if g.result == 'win' %}{% trans 'Vittoria' %}{% elif g.result == 'draw' %}{% trans 'Patta' %}{% else %}{% trans 'Sconfitta' %}{% endif %}
         {% if g.date %}· {{ g.date|slice:":10" }}{% endif %}</p>
       <p style="margin:8px 0 0;">
-        <a class="btn secondary" href="{% url 'play' g.session_id %}">{% trans 'Apri la moviola' %}</a>
+        <a class="btn secondary" href="{% url 'play' g.session_id %}?ply={{ g.ply }}">{% trans 'Apri la moviola' %}</a>
       </p>
     </div>
     {% endfor %}
   </div>
+  <script>
+    // Filtri della galleria: per tipo di badge e per pezzo (combinabili).
+    (function () {
+      let sym = "*";
+      const pieceSel = document.getElementById("gem-piece");
+      function apply() {
+        const piece = pieceSel.value;
+        document.querySelectorAll("#gem-grid .gem").forEach((el) => {
+          const okS = sym === "*" || el.dataset.symbol === sym;
+          const okP = piece === "*" || el.dataset.piece === piece;
+          el.style.display = okS && okP ? "" : "none";
+        });
+      }
+      document.querySelectorAll("#gem-filters button").forEach((b) => {
+        b.addEventListener("click", () => {
+          sym = b.dataset.f === "*" ? "*" : b.dataset.f.slice(2);
+          document.querySelectorAll("#gem-filters button").forEach(
+            (x) => x.classList.toggle("secondary", x !== b));
+          apply();
+        });
+      });
+      pieceSel.addEventListener("change", apply);
+    })();
+  </script>
   {% else %}
   <p class="muted">{% trans 'Ancora nessuna mossa da maestro: gioca (con i badge di qualità attivi) e torna qui.' %}</p>
   {% endif %}

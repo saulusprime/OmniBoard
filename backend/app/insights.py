@@ -9,12 +9,11 @@ Aggrega SOLO materia prima già in casa (mai lavoro del motore qui):
   patta d'accordo/ripetizione);
 - conteggio dei **badge di qualità** sulle PROPRIE mosse (🌟👍⚔️🐔🤔😬🤡,
   assegnati dal commentatore in ``moves_json``);
-- la raccolta delle **mosse geniali**: le proprie mosse col badge 🌟
-  («da maestro»), con avversario, data e aggancio alla moviola. Lo «screenshot»
-  è ``GET /sessions/{id}/board.png?ply=N`` (renderer Pillow della GIF).
-
-Nota dal TODO: il badge 💎 «geniale» (mossa migliore CHE sacrifica materiale)
-non esiste ancora — quando arriverà, la raccolta lo includerà accanto ai 🌟.
+- la raccolta delle **mosse geniali**: le proprie mosse coi badge 💎 («geniale,
+  sacrificio» — mossa forte che OFFRE materiale, misurato con la SEE del motore)
+  e 🌟 («da maestro»), con avversario, data, pezzo (per i filtri della galleria)
+  e aggancio alla moviola sulla semimossa esatta. Lo «screenshot» è
+  ``GET /sessions/{id}/board.png?ply=N`` (renderer Pillow della GIF).
 """
 
 from __future__ import annotations
@@ -28,8 +27,8 @@ from . import ai_arena, models, profile_cache, rating
 from .i18n import _
 
 CHESS_CODE = "chess"
-BADGE_SYMBOLS = ("🌟", "👍", "⚔️", "🐔", "🤔", "😬", "🤡")
-BRILLIANT = "🌟"
+BADGE_SYMBOLS = ("💎", "🌟", "👍", "⚔️", "🐔", "🤔", "😬", "🤡")
+BRILLIANT = ("💎", "🌟")  # geniali (sacrificio) e da maestro
 
 
 def _user_sessions(db: Session, user_id: int, game_code: str | None = None):
@@ -133,13 +132,13 @@ def build(db: Session, user_id: int) -> dict | None:
             "accuracy": profile.get("accuracy"),
             "finish_reasons": finish_reasons,
             "badges": badges,
-            "brilliancies": badges.get(BRILLIANT, 0),
+            "brilliancies": sum(badges.get(s, 0) for s in BRILLIANT),
         },
     }
 
 
 def brilliancies(db: Session, user_id: int, limit: int = 30) -> list[dict]:
-    """Le mosse col badge 🌟 giocate DALL'UTENTE, dalla più recente.
+    """Le mosse coi badge 💎/🌟 giocate DALL'UTENTE, dalla più recente.
 
     Ogni voce porta ciò che serve alla galleria: notazione, avversario, data,
     la semimossa per lo screenshot (``board.png?ply=``) e per aprire la moviola
@@ -150,14 +149,22 @@ def brilliancies(db: Session, user_id: int, limit: int = 30) -> list[dict]:
         mark = "X" if s.x_user_id == user_id else "O"
         for move in json.loads(s.moves_json or "[]"):
             quality = move.get("quality")
-            if not quality or quality.get("symbol") != BRILLIANT:
+            if not quality or quality.get("symbol") not in BRILLIANT:
                 continue
             if move.get("player") != mark:
                 continue
+            notation = move.get("notation") or ""
+            piece = (
+                notation[0]
+                if notation[:1] in "KQRBN"
+                else ("K" if notation.startswith("O-O") else "P")
+            )
             out.append(
                 {
                     "session_id": s.id,
                     "ply": move.get("ply"),
+                    "symbol": quality.get("symbol"),
+                    "piece": piece,
                     "notation": move.get("notation"),
                     "uci": move.get("id"),
                     "label": quality.get("label"),

@@ -366,10 +366,15 @@
   (`GET /sessions/{id}/board.png?ply=N`, renderer Pillow della GIF riusato,
   cache 1h), avversario (alias umano o etichetta del concorrente IA), esito,
   data e link alla partita/moviola (`insights.brilliancies`).
-- [ ] Raccolta mosse geniali — raffinamenti: badge 💎 «geniale» (mossa migliore
-  CHE sacrifica materiale: 🌟 non distingue i sacrifici), filtri per
-  pezzo/tema, salto della moviola ESATTAMENTE alla semimossa (?ply= nell'URL
-  della partita).
+- [x] Raccolta mosse geniali — raffinamenti: (1) **badge 💎 «geniale
+  (sacrificio)»** — mossa quasi-ottimale (perdita ≤30cp) che OFFRE materiale:
+  `commentary._is_sacrifice` rigioca la mossa col motore puro e misura con la
+  **SEE** quanto l'avversario vince catturando il pezzo appena mosso (soglia ≥2
+  pedoni netti; prudente su ogni dubbio); (2) **filtri della galleria** per
+  tipo (💎/🌟) e per pezzo (campo `piece` dalle notazioni, arrocco = Re);
+  (3) **salto della moviola** esattamente alla semimossa (`?ply=N` nell'URL
+  della partita, usato dai link della raccolta). 💎 è di prima classe in
+  insights (BRILLIANT, badges, conteggio).
 - [ ] **Prestazioni per cadenza**: rendimento e precisione separati per
   blitz/rapid/classical/FIDE (`tc_category` già persistita per sessione).
 - [ ] **Valutazione per i quattro aspetti del gioco** — aperture, tattica, strategia,

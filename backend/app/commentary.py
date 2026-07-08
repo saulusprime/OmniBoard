@@ -36,7 +36,9 @@ _running: set[tuple[int, int]] = set()
 _lock = threading.Lock()
 
 
-def _classify(loss: int, *, is_best: bool, capture: bool, retreat: bool) -> tuple[str, str]:
+def _classify(
+    loss: int, *, is_best: bool, capture: bool, retreat: bool, sacrifice: bool = False
+) -> tuple[str, str]:
     """(simbolo, etichetta) della mossa dal punto di vista di chi l'ha giocata."""
     if loss >= 200:
         return "🤡", "blunder"
@@ -46,6 +48,10 @@ def _classify(loss: int, *, is_best: bool, capture: bool, retreat: bool) -> tupl
         return "🐔", "codarda"  # ripiega E perde terreno: la ritirata timida
     if loss >= 50:
         return "🤔", "imprecisa"
+    if sacrifice and loss <= 30:
+        # Mossa forte CHE offre materiale: la genialità vera (🌟 non distingue
+        # i sacrifici). Il materiale offerto è misurato staticamente (SEE).
+        return "💎", "geniale (sacrificio)"
     if is_best and loss <= 5:
         return "🌟", "da maestro"
     if capture and loss < 30:
@@ -86,6 +92,37 @@ def _run(session_id: int) -> None:
         pass
     finally:
         db.close()
+
+
+def _is_sacrifice(game, session, history: list[str]) -> bool:
+    """L'ultima mossa OFFRE materiale? (SEE dell'avversario sulla casa d'arrivo).
+
+    Si rigioca la partita col motore puro (economico) fino alla mossa appena
+    giocata; poi la Static Exchange Evaluation dice quanto l'avversario può
+    vincere catturando il pezzo appena mosso, ricatture comprese: ≥ 2 pedoni
+    netti = materiale davvero in offerta. Prudente: ogni dubbio → False.
+    """
+    try:
+        from engine.chess.engine import _least_attacker, _see
+
+        state = game.from_fen(session.start_fen) if session.start_fen else game.initial_state()
+        for uci in history[:-1]:
+            mv = next((m for m in game.legal_moves(state) if game.move_id(m) == uci), None)
+            if mv is None:
+                return False
+            state = game.apply(state, mv)
+        last = next((m for m in game.legal_moves(state) if game.move_id(m) == history[-1]), None)
+        if last is None:
+            return False
+        after = game.apply(state, last)
+        dest = last[1]
+        occ = {sq: piece for sq, piece in enumerate(after.board) if piece is not None}
+        attacker = _least_attacker(occ, dest, after.current)  # tocca all'avversario
+        if attacker is None:
+            return False  # il pezzo mosso non è nemmeno attaccato
+        return _see(after.board, (attacker[0], dest, None)) >= 200
+    except Exception:  # noqa: BLE001 - il badge non deve mai rompere la partita
+        return False
 
 
 def _tag_and_comment(db, session, moves: list, ply: int) -> None:
@@ -130,11 +167,16 @@ def _tag_and_comment(db, session, moves: list, ply: int) -> None:
     retreat = len(uci) >= 4 and (
         (int(uci[3]) < int(uci[1])) if mover_white else (int(uci[3]) > int(uci[1]))
     )
+    is_best = bool(best_before) and uci == best_before
+    # Il controllo del sacrificio (replay + SEE) si paga solo quando può fare
+    # la differenza: mossa quasi-ottimale, mai sui pasticci.
+    sacrifice = loss <= 30 and _is_sacrifice(get_game("chess"), session, history)
     symbol, label = _classify(
         max(0, int(loss)),
-        is_best=bool(best_before) and uci == best_before,
+        is_best=is_best,
         capture="x" in notation or "+" in notation,
         retreat=retreat,
+        sacrifice=sacrifice,
     )
     moves[-1]["quality"] = {"symbol": symbol, "label": label, "loss": max(0, int(loss))}
 

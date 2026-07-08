@@ -246,9 +246,10 @@ gioco punti, Elo, vinte/patte/perse e **serie di vittorie** (migliore e in
 corso); per gli scacchi il rendimento per colore, la precisione dalle analisi,
 **come finiscono le tue partite** (matto, tempo, abbandono, accordo,
 ripetizione) e il conteggio dei badge di qualità. In fondo, la **raccolta delle
-mosse geniali**: ogni tua mossa «da maestro» (🌟) con lo **scatto della
-posizione**, l'avversario, l'esito e il collegamento alla partita per rivederla
-in moviola.
+mosse geniali**: ogni tua mossa 💎 «geniale» (una mossa forte che **sacrifica
+materiale**, riconosciuta dal motore) o 🌟 «da maestro», con lo **scatto della
+posizione**, l'avversario, l'esito e il collegamento che apre la moviola
+**esattamente su quella semimossa**; filtri per tipo e per pezzo.
 
 ### Anti-tilt e bias ricorrenti
 Se stai infilando **sconfitte rapide una dietro l'altra** (o perdi giocando
