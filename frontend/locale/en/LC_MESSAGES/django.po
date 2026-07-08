@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-08 20:46+0200\n"
+"POT-Creation-Date: 2026-07-08 21:05+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -205,7 +205,7 @@ msgstr "Reject"
 msgid "Voce sintetica (TTS)"
 msgstr "Speech synthesis (TTS)"
 
-#: web/templates/web/admin.html:43 web/templates/web/base.html:84
+#: web/templates/web/admin.html:43 web/templates/web/base.html:85
 msgid "Lingua"
 msgstr "Language"
 
@@ -218,7 +218,7 @@ msgid "Voce"
 msgstr "Voice"
 
 #: web/templates/web/admin.html:43 web/templates/web/arena.html:35
-#: web/templates/web/groups.html:31
+#: web/templates/web/groups.html:31 web/templates/web/puzzles.html:31
 msgid "Stato"
 msgstr "Status"
 
@@ -368,7 +368,7 @@ msgid "Impossibile caricare i provider (backend non raggiungibile?)"
 msgstr "Could not load providers (backend unreachable?)"
 
 #: web/templates/web/arena.html:3 web/templates/web/arena.html:6
-#: web/templates/web/arena_tournament.html:11 web/templates/web/base.html:77
+#: web/templates/web/arena_tournament.html:11 web/templates/web/base.html:78
 msgid "Arena IA"
 msgstr "AI Arena"
 
@@ -514,7 +514,7 @@ msgid "Home"
 msgstr "Home"
 
 #: web/templates/web/base.html:72 web/templates/web/community.html:41
-#: web/templates/web/community.html:83
+#: web/templates/web/community.html:83 web/templates/web/puzzles.html:42
 msgid "Gioca"
 msgstr "Play"
 
@@ -522,34 +522,40 @@ msgstr "Play"
 msgid "Impara"
 msgstr "Learn"
 
-#: web/templates/web/base.html:74 web/templates/web/users_list.html:3
+#: web/templates/web/base.html:74 web/templates/web/puzzle_play.html:3
+#: web/templates/web/puzzle_play.html:10 web/templates/web/puzzles.html:3
+#: web/templates/web/puzzles.html:6
+msgid "Puzzle"
+msgstr "Puzzles"
+
+#: web/templates/web/base.html:75 web/templates/web/users_list.html:3
 #: web/templates/web/users_list.html:6
 msgid "Giocatori"
 msgstr "Players"
 
-#: web/templates/web/base.html:75 web/templates/web/groups.html:3
+#: web/templates/web/base.html:76 web/templates/web/groups.html:3
 #: web/templates/web/groups.html:6
 msgid "Gruppi"
 msgstr "Groups"
 
-#: web/templates/web/base.html:76 web/templates/web/rankings.html:3
+#: web/templates/web/base.html:77 web/templates/web/rankings.html:3
 msgid "Classifiche"
 msgstr "Rankings"
 
-#: web/templates/web/base.html:78 web/templates/web/match_form.html:3
+#: web/templates/web/base.html:79 web/templates/web/match_form.html:3
 #: web/templates/web/match_form.html:6
 msgid "Registra partita"
 msgstr "Record game"
 
-#: web/templates/web/base.html:79
+#: web/templates/web/base.html:80
 msgid "Community"
 msgstr "Community"
 
-#: web/templates/web/base.html:101
+#: web/templates/web/base.html:102
 msgid "Esci"
 msgstr "Log out"
 
-#: web/templates/web/base.html:104 web/templates/web/community.html:31
+#: web/templates/web/base.html:105 web/templates/web/community.html:31
 #: web/templates/web/learn_index.html:8 web/templates/web/learn_lesson.html:40
 #: web/templates/web/login.html:3 web/templates/web/login.html:6
 #: web/templates/web/login.html:10
@@ -953,7 +959,7 @@ msgstr "This page requires JavaScript to play."
 msgid "Commento"
 msgstr "Commentary"
 
-#: web/templates/web/play.html:97
+#: web/templates/web/play.html:97 web/templates/web/puzzles.html:30
 msgid "Mosse"
 msgstr "Moves"
 
@@ -1013,6 +1019,75 @@ msgstr ""
 #: web/templates/web/play_setup.html:18
 msgid "Inizia a giocare"
 msgstr "Start playing"
+
+#: web/templates/web/puzzle_play.html:17
+msgid "Tutti i puzzle"
+msgstr "All puzzles"
+
+#: web/templates/web/puzzle_play.html:19
+#| msgid "Approva"
+msgid "Riprova"
+msgstr "Retry"
+
+#: web/templates/web/puzzle_play.html:104
+msgid "Non è la mossa giusta: riprova."
+msgstr "Not the right move: try again."
+
+#: web/templates/web/puzzle_play.html:112
+msgid "Risolto! Bella mossa."
+msgstr "Solved! Nice move."
+
+#: web/templates/web/puzzle_play.html:116
+msgid "Giusto! Continua…"
+msgstr "Correct! Keep going…"
+
+#: web/templates/web/puzzles.html:7
+msgid ""
+"Trova la mossa giusta: matti autoriali e posizioni generate dai blunder "
+"delle partite analizzate. Accedi per salvare i progressi."
+msgstr "Find the right move: authored mates and positions generated from the blunders of analysed games. Log in to save your progress."
+
+#: web/templates/web/puzzles.html:11 web/templates/web/puzzles.html:29
+msgid "Tema"
+msgstr "Theme"
+
+#: web/templates/web/puzzles.html:13
+#| msgid "Tutte"
+msgid "Tutti"
+msgstr "All"
+
+#: web/templates/web/puzzles.html:24
+msgid "Genera puzzle dai tuoi errori (partite analizzate)"
+msgstr "Generate puzzles from your mistakes (analysed games)"
+
+#: web/templates/web/puzzles.html:29
+msgid "Difficoltà"
+msgstr "Difficulty"
+
+#: web/templates/web/puzzles.html:30
+msgid "Origine"
+msgstr "Source"
+
+#: web/templates/web/puzzles.html:38
+msgid "dai tuoi errori"
+msgstr "from your mistakes"
+
+#: web/templates/web/puzzles.html:38
+msgid "autoriale"
+msgstr "authored"
+
+#: web/templates/web/puzzles.html:39
+msgid "risolto"
+msgstr "solved"
+
+#: web/templates/web/puzzles.html:40
+#| msgid "Stato"
+msgid "tentato"
+msgstr "attempted"
+
+#: web/templates/web/puzzles.html:45
+msgid "Nessun puzzle nel catalogo."
+msgstr "No puzzles in the catalogue."
 
 #: web/templates/web/rankings.html:6
 msgid "Classifica universale"
@@ -1280,8 +1355,9 @@ msgstr "Chess in depth"
 #, python-format
 msgid "Su %(n)s partite — durata media %(ap)s semimosse."
 msgstr "Over %(n)s games — average length %(ap)s plies."
-"Over %(n)s games — average length %(ap)s plies.Over %(games)s games — wins "
-"%(wr)s, draws %(dr)s, losses %(lr)s; average length %(ap)s plies."
+"Over %(n)s games — average length %(ap)s plies.Over %(n)s games — average "
+"length %(ap)s plies.Over %(games)s games — wins %(wr)s, draws %(dr)s, losses "
+"%(lr)s; average length %(ap)s plies."
 
 #: web/templates/web/user_stats.html:35
 #, python-format

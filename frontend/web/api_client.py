@@ -76,6 +76,35 @@ def get_user_ratings(user_id):
     return _request("GET", f"/users/{user_id}/ratings")
 
 
+# ----- Puzzle -----
+def list_puzzles(token=None, theme=None, difficulty=None):
+    headers = {"X-Auth-Token": token} if token else {}
+    params = {}
+    if theme:
+        params["theme"] = theme
+    if difficulty:
+        params["difficulty"] = difficulty
+    return _request("GET", "/puzzles", headers=headers, params=params)
+
+
+def get_puzzle(puzzle_id, step=0):
+    return _request("GET", f"/puzzles/{puzzle_id}", params={"step": step})
+
+
+def puzzle_attempt(puzzle_id, step, move, token=None):
+    headers = {"X-Auth-Token": token} if token else {}
+    return _request(
+        "POST",
+        f"/puzzles/{puzzle_id}/attempt",
+        json={"step": step, "move": move},
+        headers=headers,
+    )
+
+
+def puzzles_generate(token):
+    return _request("POST", "/puzzles/generate", headers={"X-Auth-Token": token})
+
+
 # ----- Arena IA (classifica dei concorrenti e tornei) -----
 def arena_identities():
     return _request("GET", "/arena/identities")

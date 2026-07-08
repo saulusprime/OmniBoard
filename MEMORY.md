@@ -644,6 +644,12 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   replay + SEE avversaria ≥200cp (commentary._is_sacrifice, solo su perdita
   ≤30); filtri galleria tipo+pezzo; moviola ?ply=N. Emoji nei sorgenti:
   replace per riga (variation selector). 265 verdi.
+- **2026-07-08** — **Sistema PUZZLE** (primitiva Visione): tabelle
+  puzzles/puzzle_attempts (migr. 0010), seed autoriale verificato col motore
+  (idempotente per FEN), generazione dai «??» (confutazione motore 0,8s,
+  dedup partita+semimossa), check_attempt stateless con matto alternativo,
+  pagina elenco+player. Sblocca tilt-breaker/Gatekeeper/Puzzle Story.
+  270 verdi.
 
 ## Questioni aperte
 

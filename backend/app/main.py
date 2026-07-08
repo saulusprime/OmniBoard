@@ -12,6 +12,7 @@ from . import i18n, jobqueue, settings_service
 from .ai_providers import seed_providers
 from .database import SessionLocal
 from .db_migrate import run_migrations
+from .puzzles import seed_puzzles
 from .routers import (
     admin,
     arena,
@@ -22,6 +23,7 @@ from .routers import (
     groups,
     lessons,
     matches,
+    puzzles,
     rankings,
     sessions,
     tts,
@@ -41,6 +43,7 @@ async def lifespan(app: FastAPI):
         seed_games(db)
         seed_settings(db)
         seed_providers(db)
+        seed_puzzles(db)  # matti autoriali (solo a catalogo vuoto, verificati)
         # Coda delle mosse IA: pool limitato + RIPRESA delle partite rimaste al
         # turno dell'IA (prima restavano ferme finché un client non le guardava).
         if os.getenv("AI_ASYNC", "1") != "0":
@@ -82,6 +85,7 @@ app.include_router(matches.router)
 app.include_router(sessions.router)
 app.include_router(rankings.router)
 app.include_router(arena.router)
+app.include_router(puzzles.router)
 app.include_router(admin.router)
 app.include_router(config.router)
 app.include_router(tts.router)

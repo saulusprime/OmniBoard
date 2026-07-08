@@ -1,0 +1,49 @@
+{% extends "web/base.html" %}
+{% load i18n %}
+{% block title %}{% trans 'Puzzle' %}{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>🧩 {% trans 'Puzzle' %}</h1>
+  <p class="muted">{% trans 'Trova la mossa giusta: matti autoriali e posizioni generate dai blunder delle partite analizzate. Accedi per salvare i progressi.' %}</p>
+
+  <form method="get" style="display:flex; gap:10px; align-items:end; flex-wrap:wrap;">
+    <div style="min-width:180px;">
+      <label>{% trans 'Tema' %}</label>
+      <select name="theme" onchange="this.form.submit()">
+        <option value="">{% trans 'Tutti' %}</option>
+        {% for t in data.themes %}
+        <option value="{{ t }}" {% if t == sel_theme %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+
+  {% if auth_user %}
+  <form method="post" style="margin-top:10px;">{% csrf_token %}
+    <button class="btn secondary" type="submit" name="generate" value="1">
+      🔧 {% trans 'Genera puzzle dai tuoi errori (partite analizzate)' %}</button>
+  </form>
+  {% endif %}
+
+  <table style="margin-top:14px;">
+    <tr><th>#</th><th>{% trans 'Tema' %}</th><th>{% trans 'Difficoltà' %}</th>
+        <th>{% trans 'Mosse' %}</th><th>{% trans 'Origine' %}</th>
+        <th>{% trans 'Stato' %}</th><th></th></tr>
+    {% for p in data.puzzles %}
+    <tr>
+      <td>{{ p.id }}</td>
+      <td>{{ p.theme }}</td>
+      <td>{% for _ in "x"|rjust:p.difficulty %}★{% endfor %}</td>
+      <td>{{ p.steps }}</td>
+      <td>{% if p.source == 'auto' %}{% trans 'dai tuoi errori' %}{% else %}{% trans 'autoriale' %}{% endif %}</td>
+      <td>{% if p.solved %}<span class="pill">✓ {% trans 'risolto' %}</span>
+          {% elif p.solved is not None %}<span class="muted">{% trans 'tentato' %}</span>
+          {% else %}<span class="muted">—</span>{% endif %}</td>
+      <td><a class="btn" href="{% url 'puzzle_play' p.id %}">{% trans 'Gioca' %}</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7" class="muted">{% trans 'Nessun puzzle nel catalogo.' %}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}
