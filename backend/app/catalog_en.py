@@ -125,6 +125,7 @@ CATALOG_EN = {
     "Nimzo-Indiana (Rubinstein)": "Nimzo-Indian (Rubinstein)",
     "Nimzo-Indiana classica": "Classical Nimzo-Indian",
     "Nome del sito": "Site name",
+    "Worker delle mosse IA (partite calcolate in parallelo; le altre aspettano)": "AI move workers (games computed in parallel; the rest wait)",
     "Stagione Elo corrente (cambiarla apre una stagione nuova)": "Current Elo season (changing it starts a new season)",
     "Non sei il giocatore al tratto in questa partita": "You are not the player to move in this game",
     "Numero massimo di partite consecutive (batch IA-vs-IA)": "Maximum number of consecutive games (AI-vs-AI batch)",

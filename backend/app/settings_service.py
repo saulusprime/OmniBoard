@@ -108,6 +108,13 @@ SETTINGS_DEFS = [
         "label": "Mosse IA in background (il client si aggiorna da solo; no = calcolo in linea)",
     },
     {
+        "key": "ai.workers",
+        "type": "int",
+        "default": 2,
+        "category": "IA",
+        "label": "Worker delle mosse IA (partite calcolate in parallelo; le altre aspettano)",
+    },
+    {
         "key": "ai.watch_pace_ms",
         "type": "int",
         "default": 1000,

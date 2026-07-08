@@ -3,6 +3,43 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-08 — Coda di lavoro per le mosse IA (e perché NON RabbitMQ)
+
+**Richiesta (utente):** la coda di lavoro per la mossa IA; «ha senso RabbitMQ?».
+
+**Valutazione RabbitMQ — no, motivata:**
+
+1. il **DB è già lo stato durevole**: una sessione `in_progress` col tratto
+   all'IA È il job pendente; un broker sarebbe una SECONDA fonte di verità da
+   riconciliare (job perso ↔ partita ferma);
+2. processo singolo su SQLite: broker Erlang + consumer + serializzazione =
+   footprint operativo senza guadagno a questa scala;
+3. quando si passerà a più processi/host (e quindi a Postgres), i candidati
+   naturali sono **Postgres `SKIP LOCKED`** o Redis/RQ — RabbitMQ ripaga solo
+   con semantiche di routing/fan-out che non abbiamo. `jobqueue.py` è
+   l'INTERFACCIA dietro cui infilare quel trasporto (enqueue/snapshot restano).
+
+**Implementato** (`app/jobqueue.py`): coda in-process con pool LIMITATO —
+
+- worker `ai.workers` (nuovo parametro, default 2): prima N partite IA = N
+  thread di motore in concorrenza per la CPU; ora le eccedenti ASPETTANO;
+- `enqueue` idempotente (pending+active dedup: il polling non crea tempeste);
+  `is_scheduled` alimenta lo spinner del client (gameplay.is_running delega);
+- **`recovery_scan` al lifespan**: al riavvio le partite rimaste al turno
+  dell'IA ripartono DA SOLE (prima: solo quando un client le guardava);
+- errori contati e worker mai abbattuto (auto-ripristino via GET invariato);
+- `GET /admin/jobs`: worker, coda, attivi, done/errors;
+- `_process` iniettabile (i test del cap bloccano i worker con un fake);
+- AI_ASYNC=0: la coda non parte, tutto sincrono (test deterministici);
+- il runner dei TORNEI resta sequenziale per design (advance_ai diretto).
+
+**Test (+5, 258 verdi):** dedup, cap (attivi ≤ worker, il resto in coda),
+mossa asincrona giocata dal pool su partita vera, recovery dopo «riavvio»
+simulato (con worker bloccati nel setup: sono thread di processo e l'ordine
+dei test è casuale), snapshot admin.
+
+---
+
 ## 2026-07-08 — Tipizzazione SQLAlchemy 2.0 dei modelli
 
 **Richiesta (utente):** la tipizzazione SQLAlchemy 2.0.

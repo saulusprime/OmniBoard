@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from . import i18n
+from . import i18n, jobqueue, settings_service
 from .ai_providers import seed_providers
 from .database import SessionLocal
 from .db_migrate import run_migrations
@@ -39,10 +41,19 @@ async def lifespan(app: FastAPI):
         seed_games(db)
         seed_settings(db)
         seed_providers(db)
+        # Coda delle mosse IA: pool limitato + RIPRESA delle partite rimaste al
+        # turno dell'IA (prima restavano ferme finché un client non le guardava).
+        if os.getenv("AI_ASYNC", "1") != "0":
+            jobqueue.start(int(settings_service.get(db, "ai.workers")))
+            resumed = jobqueue.recovery_scan(db)
+            if resumed:
+                logger.info("Coda IA: riprese %s partite al turno dell'IA", resumed)
     finally:
         db.close()
     yield
 
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="OmniBoard API",

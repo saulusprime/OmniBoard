@@ -630,6 +630,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   nelle annotazioni (attenzione ai nullable per omissione); tipi SQL espliciti;
   `alembic check` = zero differenze. Dev-DB ristampato a 0009 (il reload aveva
   applicato l'ID autogenerato pre-rinomina). 253 verdi.
+- **2026-07-08** — **Coda mosse IA**: `jobqueue.py` (pool limitato ai.workers=2,
+  enqueue idempotente, recovery_scan al lifespan — il DB è lo stato durevole
+  dei job, GET /admin/jobs). **ADR: RabbitMQ scartato** (seconda fonte di
+  verità + footprint; a multi-processo → Postgres SKIP LOCKED o Redis/RQ
+  dietro la stessa interfaccia). 258 verdi.
 
 ## Questioni aperte
 

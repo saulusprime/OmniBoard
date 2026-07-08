@@ -189,6 +189,13 @@ posizione non può essere già conclusa). **X resta il Bianco**: se la FEN dà i
 tratto al Nero, la prima mossa spetta al lato O. Moviola, analisi, commento,
 Stockfish e patta per ripetizione ripartono tutti dalla posizione data.
 
+### Le mosse dell'IA e la coda di lavoro
+Le mosse dell'IA si calcolano in una **coda con pochi worker** (parametro
+`ai.workers`, default 2): se molte partite aspettano l'IA nello stesso momento,
+si mettono in fila invece di rallentarsi a vicenda. Al **riavvio del server**
+le partite rimaste al turno dell'IA ripartono da sole. Il super admin può
+osservare la coda su `GET /admin/jobs`.
+
 ### Rating Elo e stagioni
 Ogni giocatore ha un **rating Elo per gioco** (partenza 1500), aggiornato alla
 fine di ogni partita **fra due giocatori umani** — contro le IA il rating non si

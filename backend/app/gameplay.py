@@ -18,7 +18,6 @@ import json
 import logging
 import os
 import random
-import threading
 import time
 from datetime import datetime, timezone
 
@@ -27,13 +26,9 @@ from sqlalchemy.orm import Session
 from engine import get_game
 
 from . import ai_providers, chess_profile, models, opponents, services, settings_service
-from .database import SessionLocal
 from .opponents import stockfish
 
 logger = logging.getLogger(__name__)
-
-_running_lock = threading.Lock()
-_running: set[int] = set()
 
 
 # ----- Stato e log mosse -----
@@ -549,8 +544,10 @@ def async_enabled(db: Session) -> bool:
 
 
 def is_running(session_id: int) -> bool:
-    with _running_lock:
-        return session_id in _running
+    """La sessione ha lavoro IA in coda o in corso (spinner «l'IA pensa»)."""
+    from . import jobqueue
+
+    return jobqueue.is_scheduled(session_id)
 
 
 def schedule_ai(db: Session, session: models.GameSession, sync_fallback: bool = True) -> None:
@@ -570,27 +567,10 @@ def schedule_ai(db: Session, session: models.GameSession, sync_fallback: bool = 
         if sync_fallback:
             advance_ai(db, game, session)
         return
-    with _running_lock:
-        if session.id in _running:
-            return
-        _running.add(session.id)
-    threading.Thread(target=_worker, args=(session.id,), daemon=True).start()
+    # Coda di lavoro con pool LIMITATO (vedi jobqueue.py): niente più un thread
+    # per sessione; l'enqueue è idempotente (il polling non crea doppioni).
+    from . import jobqueue
 
-
-def _worker(session_id: int) -> None:
-    """Corpo del thread: sessione DB propria, mai eccezioni fuori.
-
-    In caso d'errore la partita resta al turno dell'IA: il successivo GET dello stato
-    riprogramma il calcolo (auto-ripristino, vale anche dopo un riavvio del server).
-    """
-    db = SessionLocal()
-    try:
-        session = db.get(models.GameSession, session_id)
-        if session and session.status == "in_progress":
-            advance_ai(db, get_game(session.game.code), session)
-    except Exception:  # noqa: BLE001 - il worker non deve abbattere il processo
-        logger.exception("Errore del worker IA sulla sessione %s", session_id)
-    finally:
-        db.close()
-        with _running_lock:
-            _running.discard(session_id)
+    if not jobqueue.started():
+        jobqueue.start(int(settings_service.get(db, "ai.workers")))
+    jobqueue.enqueue(session.id)

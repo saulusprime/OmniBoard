@@ -324,8 +324,18 @@
 - [ ] **CI GitHub Actions**: verificare che il workflow esegua davvero ruff+pytest sul
   codice attuale (nato in fase doc-only); aggiungere coverage.
 - [ ] **Docker Compose** (backend + frontend + PostgreSQL) per sviluppo e deploy.
-- [ ] **Mossa IA**: coda di lavoro vera (es. worker dedicato) se si passa a più processi —
-  l'attuale scheduling in-process presuppone un singolo worker.
+- [x] **Mossa IA: coda di lavoro** (`app/jobqueue.py`) — pool di worker
+  LIMITATO (`ai.workers`, default 2) al posto del thread-per-sessione: N
+  partite IA non aprono più N motori in concorrenza, le eccedenti aspettano.
+  Enqueue idempotente (il polling non duplica), **ripresa al riavvio**
+  (`recovery_scan` al lifespan: le partite al turno dell'IA ripartono da sole —
+  prima restavano ferme finché un client non le guardava), introspezione
+  `GET /admin/jobs` (worker/code/contatori). **RabbitMQ valutato e scartato**:
+  il DB è già lo stato durevole dei job (una sessione in_progress col tratto
+  all'IA È il job; un broker sarebbe una seconda fonte di verità), footprint
+  operativo ingiustificato su processo singolo+SQLite; a più processi/host la
+  strada naturale è Postgres SKIP LOCKED o Redis/RQ dietro la STESSA
+  interfaccia (enqueue/snapshot restano, cambia il trasporto).
 
 ## Già completati (storico recente)
 

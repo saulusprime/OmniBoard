@@ -12,7 +12,7 @@ import secrets
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import ai_providers, schemas, settings_service, sparring
+from .. import ai_providers, jobqueue, schemas, settings_service, sparring
 from ..database import get_db
 from ..opponents import stockfish
 
@@ -26,6 +26,12 @@ def require_admin(x_admin_token: str = Header(default="", alias="X-Admin-Token")
     # Confronto in tempo costante: evita di rivelare il token tramite timing attack.
     if not secrets.compare_digest(x_admin_token, expected):
         raise HTTPException(status_code=401, detail="Token super admin non valido")
+
+
+@router.get("/jobs")
+def job_queue_status():
+    """Introspezione della coda delle mosse IA: worker, code, contatori."""
+    return jobqueue.snapshot()
 
 
 @router.get("/settings")
