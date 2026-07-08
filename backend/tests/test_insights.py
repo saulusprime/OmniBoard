@@ -183,3 +183,48 @@ def test_diamond_in_brilliancies_with_piece_filter_fields():
         st = client.get(f"/users/{u2['id']}/insights").json()
         assert st["chess"]["badges"]["💎"] >= 1
         assert st["chess"]["brilliancies"] >= st["chess"]["badges"]["💎"]
+
+
+def test_performance_by_cadence():
+    """by_cadence separa senza-orologio e blitz, con ACPL dalle analisi in cache."""
+    with TestClient(app) as client:
+        u1, u2 = _user(client, "cad_a"), _user(client, "cad_b")
+        _fools_mate(client, u1["id"], u2["id"])  # senza orologio
+        blitz = client.post(
+            "/sessions",
+            json={
+                "game_code": "chess",
+                "x": {"type": "human", "user_id": u1["id"]},
+                "o": {"type": "human", "user_id": u2["id"]},
+                "time_category": "blitz",
+                "time_base_min": 5,
+            },
+        ).json()["id"]
+        for uci in FOOLS_MATE:
+            client.post(f"/sessions/{blitz}/move", json={"move": uci})
+        # Analisi FINTA sulla partita blitz: ACPL del vincitore u2 (lato o) = 50.
+        db = SessionLocal()
+        try:
+            session = db.get(GameSession, blitz)
+            session.analysis_json = json.dumps(
+                {
+                    "status": "done",
+                    "evals": [
+                        {"ply": 1, "by": "x", "loss": 100},
+                        {"ply": 2, "by": "o", "loss": 0},
+                        {"ply": 3, "by": "x", "loss": 900},
+                        {"ply": 4, "by": "o", "loss": 100},
+                    ],
+                }
+            )
+            db.commit()
+        finally:
+            db.close()
+        st = client.get(f"/users/{u2['id']}/insights").json()
+        cadences = {c["category"]: c for c in st["chess"]["by_cadence"]}
+        assert cadences["none"]["games"] == 1 and cadences["none"]["wins"] == 1
+        assert cadences["none"]["acpl"] is None  # nessuna analisi
+        assert cadences["blitz"]["games"] == 1 and cadences["blitz"]["analyzed"] == 1
+        assert cadences["blitz"]["acpl"] == 50.0  # (0 + 100) / 2 mosse proprie
+        # L'ordine di presentazione parte da "none".
+        assert st["chess"]["by_cadence"][0]["category"] == "none"

@@ -650,6 +650,10 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   dedup partita+semimossa), check_attempt stateless con matto alternativo,
   pagina elenco+player. Sblocca tilt-breaker/Gatekeeper/Puzzle Story.
   270 verdi.
+- **2026-07-08** — **Prestazioni per cadenza**: insights.by_cadence
+  (tc_category, V/P/S + ACPL proprie mosse, ordine fisso) + tabella nelle
+  Statistiche. Trappola .po: msgstr multiriga + regex a riga singola =
+  traduzioni concatenate. 271 verdi.
 
 ## Questioni aperte
 

@@ -3,6 +3,27 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-08 — Prestazioni per cadenza
+
+**Richiesta (utente):** prestazioni per cadenza.
+
+- `insights.build` → `chess.by_cadence`: raggruppa le sessioni per
+  `tc_category` (None = «senza orologio»); per cadenza partite/V/P/S, contatore
+  delle analizzate e **ACPL delle sole proprie mosse** (perdite tetto-ate a
+  1000 come nel profilo; None dove non c'è analisi). Ordine di presentazione
+  fisso none→blitz→rapid→classical→fide, solo cadenze giocate.
+- Tabella «Prestazioni per cadenza» nella pagina Statistiche avanzate (IT/EN).
+- **Trappola .po scoperta**: riempire `msgstr ""` con un regex a RIGA SINGOLA
+  su un'entry MULTIRIGA lascia le righe di continuazione → traduzioni
+  concatenate fantasma a ogni giro. L'entry «Su %(n)s partite…» era triplicata:
+  ripulita con un sub sull'INTERO blocco.
+
+**Test (+1, 271 verdi):** partita senza orologio + partita blitz con analisi
+finta → gruppi separati, ACPL 50 calcolato sulle sole mosse del giocatore,
+None senza analisi, ordine da «none».
+
+---
+
 ## 2026-07-08 — Sistema PUZZLE (la primitiva della sezione Visione)
 
 **Richiesta (utente):** implementiamo il sistema puzzle.

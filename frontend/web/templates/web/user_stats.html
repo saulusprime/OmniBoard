@@ -44,6 +44,23 @@
   </table>
   {% endif %}
 
+  {% if st.chess.by_cadence %}
+  <h3>{% trans 'Prestazioni per cadenza' %}</h3>
+  <table>
+    <tr><th>{% trans 'Cadenza' %}</th><th>{% trans 'Partite' %}</th><th>V/P/S</th>
+        <th>{% trans 'Analizzate' %}</th><th>{% trans 'Precisione (ACPL)' %}</th></tr>
+    {% for c in st.chess.by_cadence %}
+    <tr>
+      <td>{% if c.category == 'none' %}{% trans 'Senza orologio' %}{% elif c.category == 'fide' %}FIDE{% else %}{{ c.category|capfirst }}{% endif %}</td>
+      <td>{{ c.games }}</td>
+      <td>{{ c.wins }}/{{ c.draws }}/{{ c.losses }}</td>
+      <td>{{ c.analyzed }}</td>
+      <td>{% if c.acpl is not None %}<strong>{{ c.acpl }}</strong>{% else %}<span class="muted">—</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
   <h3>{% trans 'Come finiscono le partite' %}</h3>
   <p>
     ♚ {% trans 'scacco matto' %}: <strong>{{ st.chess.finish_reasons.mate }}</strong> ·
