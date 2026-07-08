@@ -925,7 +925,7 @@
     const to = cell && cell.dataset.bi !== undefined ? Number(cell.dataset.bi) : null;
     const opts = to !== null ? playableFrom(from).filter((m) => m.to === to) : [];
     if (opts.length === 1) { applyMove(opts[0]); return; }
-    if (opts.length > 1) { applyMove(choosePromotion(opts)); return; }
+    if (opts.length > 1) { resolvePromotion(opts); return; }
     if (to === from) { renderCells(new Set()); return; }  // rimesso giù: resta selezionato
     selected = null;           // rilascio fuori bersaglio: si annulla
     renderCells(new Set());
@@ -965,10 +965,62 @@
   }
 
   function choosePromotion(opts) {
-    const ans = (window.prompt(
-      "Promozione: q = Donna, r = Torre, b = Alfiere, n = Cavallo", "q"
-    ) || "q").toLowerCase().trim();
-    return opts.find((m) => m.id.endsWith(ans)) || opts.find((m) => m.id.endsWith("q")) || opts[0];
+    // Dialog GRAFICO di promozione: i quattro pezzi cliccabili nei colori del
+    // lato che muove, sopra la scacchiera. Click fuori dal pannello (o Esc)
+    // ANNULLA la mossa; i tasti q/r/b/n scelgono da tastiera. Ritorna una
+    // Promise con la mossa scelta, o null se annullata.
+    return new Promise((resolve) => {
+      const grid = document.getElementById("grid");
+      const GLYPH = { q: "♛", r: "♜", b: "♝", n: "♞" };
+      const LABEL = { q: "Donna", r: "Torre", b: "Alfiere", n: "Cavallo" };
+      const overlay = document.createElement("div");
+      overlay.className = "promo-overlay";
+      const panel = document.createElement("div");
+      panel.className = "promo-panel";
+      const done = (mv) => {
+        overlay.remove();
+        document.removeEventListener("keydown", onKey);
+        resolve(mv);
+      };
+      const onKey = (ev) => {
+        if (ev.key === "Escape") { done(null); return; }
+        const mv = opts.find((m) => m.id.endsWith(ev.key.toLowerCase()));
+        if (mv) done(mv);
+      };
+      for (const suffix of ["q", "r", "b", "n"]) {
+        const mv = opts.find((m) => m.id.endsWith(suffix));
+        if (!mv) continue;
+        const b = document.createElement("button");
+        b.type = "button";
+        // Classe "cell" + casa chiara: eredita i colori del TEMA per il lato
+        // al tratto (le regole .t-… .cell.x/.o valgono anche qui).
+        b.className = "cell csq-l " + current;
+        b.textContent = GLYPH[suffix];
+        b.title = LABEL[suffix];
+        b.style.width = b.style.height = cellPx + "px";
+        b.style.fontSize = cellPx * PIECE_SCALE + "px";
+        b.addEventListener("click", (ev) => { ev.stopPropagation(); done(mv); });
+        panel.appendChild(b);
+      }
+      panel.addEventListener("click", (ev) => ev.stopPropagation());
+      overlay.addEventListener("click", () => done(null));  // fuori = annulla
+      overlay.appendChild(panel);
+      grid.appendChild(overlay);
+      document.addEventListener("keydown", onKey);
+    });
+  }
+
+  function resolvePromotion(opts) {
+    // Più mosse sulla stessa destinazione: negli scacchi è una PROMOZIONE (si
+    // apre il dialog); nella dama sono percorsi di presa equivalenti per le
+    // priorità FID (già filtrati): si gioca il primo, come da sempre.
+    if (moveType !== "chess") { applyMove(opts[0]); return; }
+    // Esito del dialog: mossa scelta → si gioca; annullato → si deseleziona.
+    choosePromotion(opts).then((mv) => {
+      if (mv) { applyMove(mv); return; }
+      selected = null;
+      renderCells(new Set());
+    });
   }
 
   function onSelect(i) {
@@ -977,7 +1029,7 @@
     if (selected !== null) {
       const opts = playableFrom(selected).filter((m) => m.to === i);
       if (opts.length === 1) { applyMove(opts[0]); return; }
-      if (opts.length > 1) { applyMove(choosePromotion(opts)); return; }
+      if (opts.length > 1) { resolvePromotion(opts); return; }
     }
     selected = playableFrom(i).length > 0 ? i : null;
     renderCells(new Set());

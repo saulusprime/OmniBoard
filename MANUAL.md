@@ -159,7 +159,10 @@ distanza vede la scacchiera dal proprio lato, e il pulsante «🔄 Ruota» la gi
 qualsiasi momento (le coordinate seguono la vista); sotto la scacchiera il pannello
 **pezzi catturati** con il bilancio materiale (+n per chi è avanti; nella dama il
 conteggio delle pedine). Nelle partite iniziate da FEN il pannello catture resta
-nascosto (il corredo di partenza non è quello standard).
+nascosto (il corredo di partenza non è quello standard). Quando un pedone
+promuove, la scelta del pezzo avviene in un **pannello grafico** sopra la
+scacchiera (donna, torre, alfiere, cavallo nei colori del tuo tema): clicca il
+pezzo, oppure premi q/r/b/n; un clic fuori dal pannello (o Esc) annulla la mossa.
 
 ### Partire da una posizione (FEN)
 Al setup di una partita di scacchi puoi incollare una **FEN** nel campo «Posizione

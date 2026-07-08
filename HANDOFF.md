@@ -5,6 +5,30 @@
 
 ---
 
+## 2026-07-08 — Promozione con dialog grafico
+
+**Richiesta (utente):** promozione con dialog grafico (al posto di
+`window.prompt`).
+
+- `choosePromotion` è ora una **Promise**: overlay sulla griglia
+  (`.promo-overlay`, z-index sopra flyer e ghost) con pannello di quattro
+  bottoni ♛♜♝♞ — classe `.cell csq-l` + lato al tratto, così i COLORI DEL TEMA
+  arrivano dalle regole esistenti (`.t-… .cell.x/.o`) senza CSS nuovo per i
+  pezzi. Click fuori dal pannello o Esc = ANNULLA (la mossa non parte, il pezzo
+  resta selezionato→deselezionato); tasti q/r/b/n scelgono da tastiera.
+- Chiamanti adeguati al flusso asincrono con `resolvePromotion(opts)`: click
+  (`onSelect`) e drag&drop (pointerup).
+- **Guardia dama**: più mosse sulla stessa destinazione nella dama sono
+  PERCORSI DI PRESA equivalenti (già filtrati dalle priorità FID), non
+  promozioni → si gioca il primo come da sempre (senza la guardia il dialog
+  sarebbe comparso VUOTO: i suffissi q/r/b/n non esistono negli id della dama).
+- L'overlay vive dentro la griglia: `renderCells` tocca solo `children[0..63]`
+  (come i flyer), quindi un eventuale ridisegno non lo distrugge.
+
+**Verifiche:** node --check, manage.py check, 241 test verdi (solo frontend).
+
+---
+
 ## 2026-07-07 — Scacchiera migliore: drag&drop, ultima mossa, rotazione, catture
 
 **Richiesta (utente):** drag&drop, evidenzia ultima mossa, orientamento dal lato

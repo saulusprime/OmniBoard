@@ -81,6 +81,14 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
                filter:drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
   .dragghost.x { color:#e8eaed; }
   .dragghost.o { color:#d9a441; }
+  /* Dialog grafico di promozione: pannello sopra la scacchiera, un bottone per
+     pezzo (i colori del lato che muove arrivano dalle regole tema .cell.x/.o). */
+  .promo-overlay { position:absolute; inset:0; background:rgba(0,0,0,.45); z-index:12;
+                   display:flex; align-items:center; justify-content:center; }
+  .promo-panel { display:flex; gap:6px; padding:10px; background:var(--bframe, #1a222c);
+                 border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.55); }
+  .promo-panel .cell { border-radius:8px; cursor:pointer; }
+  .promo-panel .cell:hover { outline:2px solid var(--accent); }
   /* Pezzi catturati a lato della scacchiera (+ bilancio materiale). */
   .captured { font-size:1rem; margin:6px 0; }
   .captured .who { font-weight:600; }

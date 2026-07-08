@@ -234,7 +234,12 @@
 
 ## Frontend / UX
 
-- [ ] **Promozione con dialog grafico** (oggi `window.prompt`).
+- [x] **Promozione con dialog grafico** — pannello sopra la scacchiera coi
+  quattro pezzi cliccabili nei colori del TEMA del lato che muove (♛♜♝♞, classi
+  `.cell` riusate); click fuori o Esc ANNULLA la mossa (deseleziona), tasti
+  q/r/b/n da tastiera; `choosePromotion` è ora una Promise (chiamanti click e
+  drag&drop adeguati); nella dama più percorsi sulla stessa destinazione NON
+  aprono il dialog (equivalenti FID: si gioca il primo, come prima).
 - [x] **Scacchiera migliore** — (1) **drag&drop** coi pointer events (tap
   origine→destinazione intatto; ghost del pezzo, promozione al rilascio, click
   post-drop soppresso, `touch-action:none` nella cornice); (2) **ultima mossa

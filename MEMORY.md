@@ -590,6 +590,10 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   moviola), rotazione via CSS `order` (DOM in ordine di scacchiera: flyer/badge
   intatti; auto-flip Nero remoto + 🔄; coordinate che seguono), pannello catture
   con bilancio (+n; nascosto da FEN). Solo frontend, 241 verdi.
+- **2026-07-08** — **Promozione grafica**: choosePromotion → Promise + overlay
+  sulla griglia (bottoni ♛♜♝♞ con classi .cell → colori tema gratis; Esc/fuori
+  = annulla; tasti q/r/b/n); resolvePromotion nei due chiamanti; guardia dama
+  (percorsi equivalenti ≠ promozione). Solo frontend, 241 verdi.
 
 ## Questioni aperte
 
