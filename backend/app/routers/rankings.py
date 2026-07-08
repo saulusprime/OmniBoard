@@ -7,8 +7,9 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from .. import models, schemas
+from .. import models, rating, schemas
 from ..database import get_db
+from ..i18n import _
 
 router = APIRouter(prefix="/rankings", tags=["rankings"])
 
@@ -23,6 +24,25 @@ def _entry(rank: int, user: models.User, points: float) -> schemas.RankingEntry:
         region=user.region,
         points=points,
     )
+
+
+@router.get("/elo/{game_code}")
+def elo_ranking(
+    game_code: str,
+    season: str | None = Query(default=None),
+    limit: int = Query(default=100, le=1000),
+    db: Session = Depends(get_db),
+):
+    """Classifica Elo dei giocatori umani nel gioco (stagione corrente o indicata)."""
+    game = db.query(models.Game).filter_by(code=game_code).first()
+    if not game:
+        raise HTTPException(status_code=404, detail=_("Gioco non trovato"))
+    current = season if season is not None else rating.season(db)
+    return {
+        "game_code": game_code,
+        "season": current,
+        "rows": rating.leaderboard(db, game.id, current, limit),
+    }
 
 
 @router.get("/universal", response_model=list[schemas.RankingEntry])

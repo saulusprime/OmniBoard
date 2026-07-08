@@ -8,7 +8,7 @@ import re
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import analysis, models, profile_cache, schemas, settings_service, tilt, user_prefs
+from .. import analysis, models, profile_cache, rating, schemas, settings_service, tilt, user_prefs
 from ..database import get_db
 from ..i18n import _
 from ..security import hash_password
@@ -199,6 +199,15 @@ def _translate_profile(profile: dict) -> dict:
     out["openings"] = [{**o, "name": _(o["name"])} for o in profile.get("openings") or []]
     out["weakest_openings"] = [_(n) for n in profile.get("weakest_openings") or []]
     return out
+
+
+@router.get("/{user_id}/ratings")
+def user_ratings(user_id: int, db: Session = Depends(get_db)):
+    """Rating Elo del giocatore per gioco (stagione corrente)."""
+    if db.get(models.User, user_id) is None:
+        raise HTTPException(status_code=404, detail=_("Utente non trovato"))
+    current = rating.season(db)
+    return {"season": current, "ratings": rating.for_user(db, user_id, current)}
 
 
 @router.get("/{user_id}/tilt")

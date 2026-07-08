@@ -25,6 +25,10 @@ def score_for(db: Session, user_id: int, game_id: int) -> models.Score:
             losses=0,
         )
         db.add(score)
+        # Flush subito: con autoflush=False una seconda award nello stesso giro
+        # (stesso utente su entrambi i lati) non vedrebbe la riga pendente e ne
+        # creerebbe un duplicato (IntegrityError sull'unicità utente+gioco).
+        db.flush()
     return score
 
 
@@ -67,6 +71,11 @@ def finalize_session(db: Session, session: "models.GameSession") -> None:
             award(db, o_uid, gid, "win")
         if x_uid:
             award(db, x_uid, gid, "loss")
+
+    # Rating Elo dei giocatori umani (partite umano-vs-umano; K adattivo).
+    from . import rating
+
+    rating.update_pair(db, session)
 
     # Classifica delle IA: le partite IA-vs-IA aggiornano l'Elo dei concorrenti
     # (import locale: ai_arena usa il motore e i cataloghi degli avversari).

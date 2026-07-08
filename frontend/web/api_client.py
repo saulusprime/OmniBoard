@@ -60,6 +60,14 @@ def explain_move(session_id, ply: int):
     return _request("POST", f"/sessions/{session_id}/explain", json={"ply": ply})
 
 
+def elo_ranking(game_code):
+    return _request("GET", f"/rankings/elo/{game_code}")
+
+
+def get_user_ratings(user_id):
+    return _request("GET", f"/users/{user_id}/ratings")
+
+
 # ----- Arena IA (classifica dei concorrenti e tornei) -----
 def arena_identities():
     return _request("GET", "/arena/identities")

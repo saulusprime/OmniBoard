@@ -189,6 +189,17 @@ posizione non può essere già conclusa). **X resta il Bianco**: se la FEN dà i
 tratto al Nero, la prima mossa spetta al lato O. Moviola, analisi, commento,
 Stockfish e patta per ripetizione ripartono tutti dalla posizione data.
 
+### Rating Elo e stagioni
+Ogni giocatore ha un **rating Elo per gioco** (partenza 1500), aggiornato alla
+fine di ogni partita **fra due giocatori umani** — contro le IA il rating non si
+muove (le IA hanno la loro classifica nell'Arena; restano i punti). Il K è
+adattivo come nella prassi FIDE: nelle prime 30 partite il rating si assesta in
+fretta (K=40, marcato «?» = provvisorio), poi si stabilizza (K=20, e K=10 sopra
+i 2400). La pagina **Classifiche** mostra la graduatoria Elo del gioco scelto
+(con il picco personale); la scheda giocatore riporta i tuoi rating. Il super
+admin può aprire una **nuova stagione** cambiando il parametro `elo.season`:
+tutti ripartono da 1500 e le stagioni passate restano consultabili.
+
 ### Arena IA: classifica dei concorrenti e tornei
 La pagina «**Arena IA**» risponde alla domanda *quale IA gioca meglio?* Ogni
 concorrente IA (livelli del motore locale, preset di Stockfish, provider remoti)

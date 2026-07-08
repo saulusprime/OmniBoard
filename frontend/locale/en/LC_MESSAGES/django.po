@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-08 18:36+0200\n"
+"POT-Creation-Date: 2026-07-08 19:03+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -40,7 +40,7 @@ msgid "Nazionalità"
 msgstr "Nationality"
 
 #: web/forms.py:34 web/templates/web/rankings.html:45
-#: web/templates/web/rankings.html:52 web/templates/web/users_list.html:10
+#: web/templates/web/rankings.html:73 web/templates/web/users_list.html:10
 msgid "Regione"
 msgstr "Region"
 
@@ -95,6 +95,7 @@ msgstr "Your Tic-tac-toe mark"
 #: web/forms.py:140 web/forms.py:214 web/templates/web/arena.html:35
 #: web/templates/web/arena.html:56 web/templates/web/community.html:34
 #: web/templates/web/rankings.html:29 web/templates/web/user_detail.html:25
+#: web/templates/web/user_detail.html:42
 msgid "Gioco"
 msgstr "Game"
 
@@ -163,7 +164,9 @@ msgstr "Super admin — Application settings"
 msgid ""
 "Tutti i parametri configurabili dell'applicazione. Modifica i valori e salva "
 "inserendo il <strong>token super admin</strong>."
-msgstr "All configurable application settings. Edit the values and save by entering the <strong>super admin token</strong>."
+msgstr ""
+"All configurable application settings. Edit the values and save by entering "
+"the <strong>super admin token</strong>."
 
 #: web/templates/web/admin.html:8 web/templates/web/admin_ai.html:6
 msgid "Provider IA"
@@ -177,10 +180,11 @@ msgstr "Pending registration requests"
 msgid ""
 "Solo il super admin accetta un nuovo giocatore: finché la richiesta non è "
 "approvata, il login è negato. «Respingi» elimina la richiesta."
-msgstr "Only the super admin accepts a new player: until the request is approved, login is denied. “Reject” deletes the request."
+msgstr ""
+"Only the super admin accepts a new player: until the request is approved, "
+"login is denied. “Reject” deletes the request."
 
 #: web/templates/web/admin.html:14
-#| msgid "Regione"
 msgid "Azione"
 msgstr "Action"
 
@@ -235,7 +239,6 @@ msgid "in corso"
 msgstr "running"
 
 #: web/templates/web/admin.html:74
-#| msgid "Risultato"
 msgid "Risultato:"
 msgstr "Result:"
 
@@ -246,8 +249,9 @@ msgstr "Opponent"
 #: web/templates/web/admin.html:93 web/templates/web/arena.html:17
 #: web/templates/web/arena.html:35 web/templates/web/arena_tournament.html:15
 #: web/templates/web/arena_tournament.html:29
-#: web/templates/web/batch_result.html:9 web/templates/web/user_detail.html:25
-#: web/templates/web/user_detail.html:61
+#: web/templates/web/batch_result.html:9 web/templates/web/rankings.html:54
+#: web/templates/web/user_detail.html:25 web/templates/web/user_detail.html:42
+#: web/templates/web/user_detail.html:78
 msgid "Partite"
 msgstr "Games"
 
@@ -272,7 +276,6 @@ msgid "Sì"
 msgstr "Yes"
 
 #: web/templates/web/admin.html:118
-#| msgid "Nome"
 msgid "No"
 msgstr "No"
 
@@ -298,7 +301,11 @@ msgid ""
 "<strong>attivo</strong>: l'avversario IA userà quello (se ha un token "
 "valido), altrimenti gioca in locale. Il token del provider non viene mai "
 "rimostrato."
-msgstr "Configure the tokens for one or more AI services here. Choose the <strong>active</strong> provider: the AI opponent will use it (if it has a valid token), otherwise it plays locally. Provider tokens are never shown again."
+msgstr ""
+"Configure the tokens for one or more AI services here. Choose the "
+"<strong>active</strong> provider: the AI opponent will use it (if it has a "
+"valid token), otherwise it plays locally. Provider tokens are never shown "
+"again."
 
 #: web/templates/web/admin_ai.html:19
 msgid "Provider attivo"
@@ -349,7 +356,6 @@ msgid "Nessuno — usa solo il giocatore locale"
 msgstr "None — use the local player only"
 
 #: web/templates/web/admin_ai.html:61
-#| msgid "Salva nota"
 msgid "Salva"
 msgstr "Save"
 
@@ -372,10 +378,13 @@ msgid ""
 "aggiorna il <strong>rating Elo</strong> del concorrente (partenza 1500); le "
 "partite contro gli umani non contano. I tornei qui sotto sono il modo più "
 "rapido di alimentare la classifica."
-msgstr "Which AI plays best? Every finished <strong>AI-vs-AI</strong> game updates the competitor's <strong>Elo rating</strong> (starting at 1500); games against humans don't count. The tournaments below are the quickest way to feed the ranking."
+msgstr ""
+"Which AI plays best? Every finished <strong>AI-vs-AI</strong> game updates "
+"the competitor's <strong>Elo rating</strong> (starting at 1500); games "
+"against humans don't count. The tournaments below are the quickest way to "
+"feed the ranking."
 
 #: web/templates/web/arena.html:9
-#| msgid "Classifiche"
 msgid "Classifica"
 msgstr "Ranking"
 
@@ -387,7 +396,9 @@ msgstr "Competitor"
 msgid ""
 "Nessuna partita IA-vs-IA ancora giocata in questo gioco: crea un torneo per "
 "iniziare la classifica."
-msgstr "No AI-vs-AI games played in this game yet: create a tournament to start the ranking."
+msgstr ""
+"No AI-vs-AI games played in this game yet: create a tournament to start the "
+"ranking."
 
 #: web/templates/web/arena.html:33
 msgid "Tornei"
@@ -426,7 +437,11 @@ msgid ""
 "colori invertiti. Le partite si giocano una alla volta in background e "
 "restano nello storico. Nota: un concorrente non configurato gioca col "
 "ripiego locale."
-msgstr "Pick 2 to 8 competitors: each pair plays one game (the first listed moves first); with “double round” the reversed-colour game too. Games are played one at a time in the background and stay in the history. Note: an unconfigured competitor plays with the local fallback."
+msgstr ""
+"Pick 2 to 8 competitors: each pair plays one game (the first listed moves "
+"first); with “double round” the reversed-colour game too. Games are played "
+"one at a time in the background and stay in the history. Note: an "
+"unconfigured competitor plays with the local fallback."
 
 #: web/templates/web/arena.html:64
 msgid "Nome (opzionale)"
@@ -449,7 +464,7 @@ msgid "Avvia il torneo"
 msgstr "Start the tournament"
 
 #: web/templates/web/arena_tournament.html:9
-#: web/templates/web/user_detail.html:47
+#: web/templates/web/user_detail.html:64
 msgid "partite"
 msgstr "games"
 
@@ -458,13 +473,12 @@ msgid "andata e ritorno"
 msgstr "double round"
 
 #: web/templates/web/arena_tournament.html:13
-#| msgid "Classifiche"
 msgid "Classifica del girone"
 msgstr "Round-robin standings"
 
 #: web/templates/web/arena_tournament.html:15
-#: web/templates/web/rankings.html:10 web/templates/web/rankings.html:52
-#: web/templates/web/user_detail.html:25
+#: web/templates/web/rankings.html:10 web/templates/web/rankings.html:73
+#: web/templates/web/user_detail.html:42
 msgid "Punti"
 msgstr "Points"
 
@@ -556,7 +570,8 @@ msgstr "AI vs AI — %(count)s games"
 msgid ""
 "Riepilogo di %(count)s partite giocate consecutivamente dall'IA contro sé "
 "stessa."
-msgstr "Summary of %(count)s games played back-to-back by the AI against itself."
+msgstr ""
+"Summary of %(count)s games played back-to-back by the AI against itself."
 
 #: web/templates/web/batch_result.html:10
 msgid "Vittorie X"
@@ -566,7 +581,7 @@ msgstr "X wins"
 msgid "Vittorie O"
 msgstr "O wins"
 
-#: web/templates/web/batch_result.html:12 web/templates/web/user_detail.html:25
+#: web/templates/web/batch_result.html:12 web/templates/web/user_detail.html:42
 msgid "Patte"
 msgstr "Draws"
 
@@ -574,11 +589,12 @@ msgstr "Draws"
 msgid ""
 "Nota: con il giocatore locale il Tris a gioco perfetto finisce sempre in "
 "patta; le differenze emergono se l'IA è meno che ottimale."
-msgstr "Note: with the local player, perfectly played Tic-tac-toe always ends in a draw; differences emerge if the AI is less than optimal."
+msgstr ""
+"Note: with the local player, perfectly played Tic-tac-toe always ends in a "
+"draw; differences emerge if the AI is less than optimal."
 
 #: web/templates/web/batch_result.html:16 web/templates/web/home.html:9
 #: web/templates/web/play_setup.html:3 web/templates/web/play_setup.html:14
-#| msgid "Registra partita"
 msgid "Nuova partita"
 msgstr "New game"
 
@@ -587,16 +603,17 @@ msgid ""
 "Chi è connesso adesso, con il punteggio complessivo su tutti i giochi. Con "
 "«Sfida» crei una <strong>partita a distanza</strong>: tu e lo sfidato "
 "giocate ognuno dal proprio dispositivo. L'elenco si aggiorna da solo."
-msgstr "Who is online right now, with the overall score across all games. “Challenge” creates a <strong>remote game</strong>: you and your opponent each play from your own device. The list refreshes by itself."
+msgstr ""
+"Who is online right now, with the overall score across all games. "
+"“Challenge” creates a <strong>remote game</strong>: you and your opponent "
+"each play from your own device. The list refreshes by itself."
 
 #: web/templates/web/community.html:9
-#| msgid "Giocatori"
 msgid "Giocatori online"
 msgstr "Players online"
 
 #: web/templates/web/community.html:11 web/templates/web/rankings.html:10
-#: web/templates/web/rankings.html:52
-#| msgid "Giocatore O"
+#: web/templates/web/rankings.html:53 web/templates/web/rankings.html:73
 msgid "Giocatore"
 msgstr "Player"
 
@@ -654,7 +671,9 @@ msgid ""
 "Il proponente vota automaticamente a favore. Quando i voti a favore "
 "raggiungono la soglia indicata, il gruppo viene fondato e i votanti ne "
 "diventano membri."
-msgstr "The proposer automatically votes in favour. When the votes in favour reach the threshold, the group is founded and the voters become members."
+msgstr ""
+"The proposer automatically votes in favour. When the votes in favour reach "
+"the threshold, the group is founded and the voters become members."
 
 #: web/templates/web/group_propose.html:10
 msgid "Crea proposta"
@@ -672,7 +691,6 @@ msgid ""
 msgstr "Founding a group requires a proposal approved by at least two players."
 
 #: web/templates/web/groups.html:12
-#| msgid "Gruppi"
 msgid "Gruppi fondati"
 msgstr "Founded groups"
 
@@ -681,7 +699,6 @@ msgid "Membri:"
 msgstr "Members:"
 
 #: web/templates/web/groups.html:18
-#| msgid "Giocatore O"
 msgid "fondatore"
 msgstr "founder"
 
@@ -698,7 +715,6 @@ msgid "Voti"
 msgstr "Votes"
 
 #: web/templates/web/groups.html:31 web/templates/web/groups.html:43
-#| msgid "Vota come"
 msgid "Vota"
 msgstr "Vote"
 
@@ -719,14 +735,16 @@ msgid ""
 "Gioca a scacchi e ad altri giochi da tavolo a turni — dama, tris, forza 4 — "
 "tramite un unico motore. Registrati, sfida gli altri giocatori e scala le "
 "classifiche."
-msgstr "Play chess and other turn-based board games — draughts, tic-tac-toe, connect four — on a single engine. Register, challenge other players and climb the rankings."
+msgstr ""
+"Play chess and other turn-based board games — draughts, tic-tac-toe, connect "
+"four — on a single engine. Register, challenge other players and climb the "
+"rankings."
 
 #: web/templates/web/home.html:10
 msgid "Crea un giocatore"
 msgstr "Create a player"
 
 #: web/templates/web/home.html:11
-#| msgid "Classifiche"
 msgid "Vedi le classifiche"
 msgstr "See the rankings"
 
@@ -758,19 +776,19 @@ msgstr "Learn to play"
 msgid ""
 "Lezioni guidate passo per passo: posizioni preimpostate sulla scacchiera, "
 "mosse da provare con verifica immediata e spiegazioni lette ad alta voce."
-msgstr "Step-by-step guided lessons: preset positions on the board, moves to try with instant checking and explanations read aloud."
+msgstr ""
+"Step-by-step guided lessons: preset positions on the board, moves to try "
+"with instant checking and explanations read aloud."
 
 #: web/templates/web/learn_index.html:8
 msgid "per salvare i tuoi progressi e riprendere da dove eri rimasto."
 msgstr "to save your progress and pick up where you left off."
 
 #: web/templates/web/learn_index.html:13
-#| msgid "Regione"
 msgid "Lezione"
 msgstr "Lesson"
 
 #: web/templates/web/learn_index.html:13
-#| msgid "Password"
 msgid "Passi"
 msgstr "Steps"
 
@@ -796,7 +814,6 @@ msgid "Riprendi"
 msgstr "Resume"
 
 #: web/templates/web/learn_index.html:25
-#| msgid "Inizio"
 msgid "Inizia"
 msgstr "Start"
 
@@ -830,7 +847,6 @@ msgid "per salvare i progressi"
 msgstr "to save your progress"
 
 #: web/templates/web/learn_lesson.html:118
-#| msgid "Password"
 msgid "Passo"
 msgstr "Step"
 
@@ -867,7 +883,10 @@ msgid ""
 "Entra con il tuo alias (o l'email) e la password scelta alla registrazione. "
 "Se la tua richiesta non è ancora stata approvata dal super admin, l'accesso "
 "verrà negato con un avviso."
-msgstr "Log in with your alias (or email) and the password you chose at registration. If your request has not been approved by the super admin yet, access will be denied with a notice."
+msgstr ""
+"Log in with your alias (or email) and the password you chose at "
+"registration. If your request has not been approved by the super admin yet, "
+"access will be denied with a notice."
 
 #: web/templates/web/login.html:12
 msgid "Non hai un account?"
@@ -881,10 +900,11 @@ msgstr "Request registration"
 msgid ""
 "Registra il risultato di una partita: i punteggi dei due giocatori per il "
 "gioco scelto verranno aggiornati (vittoria +3, patta +1)."
-msgstr "Record the result of a game: the two players' scores for the chosen game will be updated (win +3, draw +1)."
+msgstr ""
+"Record the result of a game: the two players' scores for the chosen game "
+"will be updated (win +3, draw +1)."
 
 #: web/templates/web/match_form.html:10
-#| msgid "Registra partita"
 msgid "Registra"
 msgstr "Record"
 
@@ -981,14 +1001,19 @@ msgid ""
 "due sullo stesso schermo, imposta entrambi i lati come «Umano». Per gli "
 "<strong>scacchi</strong> puoi attivare l'<strong>orologio di gioco</strong> "
 "e la <strong>posizione iniziale FEN</strong>."
-msgstr "Choose the <strong>game</strong> and who plays <strong>X</strong> (moves first) and <strong>O</strong>. Each side can be a <strong>human</strong> player, an <strong>AI via API</strong>, the tiered <strong>local engine</strong> or <strong>Stockfish</strong>. To play together on the same screen, set both sides to “Human”. For <strong>chess</strong> you can enable the <strong>game clock</strong> and a <strong>starting FEN position</strong>."
+msgstr ""
+"Choose the <strong>game</strong> and who plays <strong>X</strong> (moves "
+"first) and <strong>O</strong>. Each side can be a <strong>human</strong> "
+"player, an <strong>AI via API</strong>, the tiered <strong>local engine</"
+"strong> or <strong>Stockfish</strong>. To play together on the same screen, "
+"set both sides to “Human”. For <strong>chess</strong> you can enable the "
+"<strong>game clock</strong> and a <strong>starting FEN position</strong>."
 
 #: web/templates/web/play_setup.html:18
 msgid "Inizia a giocare"
 msgstr "Start playing"
 
 #: web/templates/web/rankings.html:6
-#| msgid "Classifiche"
 msgid "Classifica universale"
 msgstr "Universal ranking"
 
@@ -997,8 +1022,7 @@ msgid "Somma dei punti ottenuti da ogni giocatore su tutti i giochi."
 msgstr "Sum of the points earned by each player across all games."
 
 #: web/templates/web/rankings.html:10 web/templates/web/rankings.html:44
-#: web/templates/web/rankings.html:52
-#| msgid "Nazionalità"
+#: web/templates/web/rankings.html:73
 msgid "Nazione"
 msgstr "Country"
 
@@ -1007,7 +1031,6 @@ msgid "Classifica ancora vuota."
 msgstr "Ranking still empty."
 
 #: web/templates/web/rankings.html:26
-#| msgid "Classifiche"
 msgid "Classifica per gioco"
 msgstr "Ranking by game"
 
@@ -1020,12 +1043,10 @@ msgid "Globale"
 msgstr "Global"
 
 #: web/templates/web/rankings.html:40
-#| msgid "Nazionalità"
 msgid "Nazionale"
 msgstr "National"
 
 #: web/templates/web/rankings.html:41
-#| msgid "Regione"
 msgid "Regionale"
 msgstr "Regional"
 
@@ -1037,7 +1058,30 @@ msgstr "e.g. Lazio"
 msgid "Mostra"
 msgstr "Show"
 
-#: web/templates/web/rankings.html:62
+#: web/templates/web/rankings.html:50 web/templates/web/user_detail.html:23
+msgid "Rating Elo"
+msgstr "Elo rating"
+
+#: web/templates/web/rankings.html:51 web/templates/web/user_detail.html:23
+#| msgid "Regione"
+msgid "stagione"
+msgstr "season"
+
+#: web/templates/web/rankings.html:53 web/templates/web/user_detail.html:25
+msgid "Picco"
+msgstr "Peak"
+
+#: web/templates/web/rankings.html:59 web/templates/web/user_detail.html:29
+msgid "Rating provvisorio (meno di 30 partite)"
+msgstr "Provisional rating (fewer than 30 games)"
+
+#: web/templates/web/rankings.html:67
+msgid ""
+"L'Elo si aggiorna solo nelle partite fra due giocatori umani; contro le IA "
+"valgono i punti."
+msgstr "Elo updates only in games between two human players; against AIs the points apply."
+
+#: web/templates/web/rankings.html:83
 msgid "Nessun punteggio per questo filtro."
 msgstr "No scores for this filter."
 
@@ -1046,7 +1090,6 @@ msgid "pt universali"
 msgstr "universal pts"
 
 #: web/templates/web/user_detail.html:9
-#| msgid "Giocatori"
 msgid "Tutti i giocatori"
 msgstr "All players"
 
@@ -1058,120 +1101,125 @@ msgstr "Player options"
 msgid ""
 "Preferenze estetiche personali: il <strong>tema</strong> di scacchiera e "
 "pezzi (scacchi e dama) e la <strong>forma del tuo segno</strong> nel Tris."
-msgstr "Personal appearance preferences: the board and piece <strong>theme</strong> (chess and draughts) and the <strong>shape of your mark</strong> in Tic-tac-toe."
+msgstr ""
+"Personal appearance preferences: the board and piece <strong>theme</strong> "
+"(chess and draughts) and the <strong>shape of your mark</strong> in Tic-tac-"
+"toe."
 
 #: web/templates/web/user_detail.html:17
-#| msgid "Salva nota"
 msgid "Salva opzioni"
 msgstr "Save options"
 
-#: web/templates/web/user_detail.html:22
+#: web/templates/web/user_detail.html:39
 msgid "Punteggi per gioco"
 msgstr "Scores by game"
 
-#: web/templates/web/user_detail.html:25
+#: web/templates/web/user_detail.html:42
 msgid "Vinte"
 msgstr "Won"
 
-#: web/templates/web/user_detail.html:25
+#: web/templates/web/user_detail.html:42
 msgid "Perse"
 msgstr "Lost"
 
-#: web/templates/web/user_detail.html:34
+#: web/templates/web/user_detail.html:51
 msgid "Nessuna partita giocata."
 msgstr "No games played."
 
-#: web/templates/web/user_detail.html:40
-#| msgid "Orologio (solo scacchi)"
+#: web/templates/web/user_detail.html:57
 msgid "Profilo scacchistico"
 msgstr "Chess profile"
 
-#: web/templates/web/user_detail.html:40
+#: web/templates/web/user_detail.html:57
 msgid "usato dall'IA"
 msgstr "used by the AI"
 
-#: web/templates/web/user_detail.html:41
+#: web/templates/web/user_detail.html:58
 #, python-format
 msgid ""
 "Su %(games)s partite — vittorie %(wr)s, patte %(dr)s, sconfitte %(lr)s; "
 "durata media %(ap)s semimosse."
-msgstr "Over %(games)s games — wins %(wr)s, draws %(dr)s, losses %(lr)s; average length %(ap)s plies."
+msgstr ""
+"Over %(games)s games — wins %(wr)s, draws %(dr)s, losses %(lr)s; average "
+"length %(ap)s plies."
 
-#: web/templates/web/user_detail.html:44
+#: web/templates/web/user_detail.html:61
 msgid "Bias ricorrenti"
 msgstr "Recurring biases"
 
-#: web/templates/web/user_detail.html:51
+#: web/templates/web/user_detail.html:68
 msgid "Debolezze individuate"
 msgstr "Identified weaknesses"
 
-#: web/templates/web/user_detail.html:54
+#: web/templates/web/user_detail.html:71
 msgid "Nessuna debolezza marcata (o partite insufficienti per concludere)."
 msgstr "No marked weaknesses (or not enough games to tell)."
 
-#: web/templates/web/user_detail.html:59
+#: web/templates/web/user_detail.html:76
 msgid "Aperture giocate"
 msgstr "Openings played"
 
-#: web/templates/web/user_detail.html:61
+#: web/templates/web/user_detail.html:78
 msgid "Apertura"
 msgstr "Opening"
 
-#: web/templates/web/user_detail.html:61
-#| msgid "Suggerimento"
+#: web/templates/web/user_detail.html:78
 msgid "Rendimento"
 msgstr "Performance"
 
-#: web/templates/web/user_detail.html:70
+#: web/templates/web/user_detail.html:87
 msgid "Precisione (stima delle blunder, analisi motore)"
 msgstr "Accuracy (blunder estimate, engine analysis)"
 
-#: web/templates/web/user_detail.html:71
+#: web/templates/web/user_detail.html:88
 #, python-format
 msgid ""
 "Su %(ga)s partite analizzate (%(mv)s mosse): perdita media <strong>%(acpl)s</"
 "strong> centipedoni/mossa · blunder <strong>%(bl)s</strong> (%(bpg)s a "
 "partita) · errori %(er)s · imprecisioni %(im)s."
-msgstr "Over %(ga)s analysed games (%(mv)s moves): average loss <strong>%(acpl)s</strong> centipawns/move · blunders <strong>%(bl)s</strong> (%(bpg)s per game) · mistakes %(er)s · inaccuracies %(im)s."
+msgstr ""
+"Over %(ga)s analysed games (%(mv)s moves): average loss <strong>%(acpl)s</"
+"strong> centipawns/move · blunders <strong>%(bl)s</strong> (%(bpg)s per "
+"game) · mistakes %(er)s · inaccuracies %(im)s."
 
-#: web/templates/web/user_detail.html:75
+#: web/templates/web/user_detail.html:92
 msgid "Analizza lo storico (stima blunder)"
 msgstr "Analyse history (blunder estimate)"
 
-#: web/templates/web/user_detail.html:79
+#: web/templates/web/user_detail.html:96
 #, python-format
 msgid "Stile IA adattato: aggressività %(ag)s, contempt %(ct)s."
 msgstr "Adapted AI style: aggression %(ag)s, contempt %(ct)s."
 
-#: web/templates/web/user_detail.html:85
+#: web/templates/web/user_detail.html:102
 msgid "Storico partite"
 msgstr "Game history"
 
-#: web/templates/web/user_detail.html:89
+#: web/templates/web/user_detail.html:106
 msgid "vs"
 msgstr "vs"
 
-#: web/templates/web/user_detail.html:90
+#: web/templates/web/user_detail.html:107
 msgid "Vittoria"
 msgstr "Win"
 
-#: web/templates/web/user_detail.html:91
+#: web/templates/web/user_detail.html:108
 msgid "Patta"
 msgstr "Draw"
 
-#: web/templates/web/user_detail.html:92
+#: web/templates/web/user_detail.html:109
 msgid "Sconfitta"
 msgstr "Loss"
 
-#: web/templates/web/user_detail.html:93
+#: web/templates/web/user_detail.html:110
 msgid "lato"
 msgstr "side"
 
-#: web/templates/web/user_detail.html:95
+#: web/templates/web/user_detail.html:112
 msgid "Log mosse"
 msgstr "Move log"
 
-#: web/templates/web/user_detail.html:103
+#: web/templates/web/user_detail.html:120
 msgid "Nessuna partita conclusa nello storico."
 msgstr "No finished games in the history."
 
@@ -1184,7 +1232,10 @@ msgid ""
 "La richiesta sarà valutata da un <strong>super admin</strong>: solo dopo "
 "l'approvazione potrai accedere con alias (o email) e password. La password "
 "viene salvata soltanto come hash."
-msgstr "Your request will be reviewed by a <strong>super admin</strong>: only after approval will you be able to log in with alias (or email) and password. The password is stored only as a hash."
+msgstr ""
+"Your request will be reviewed by a <strong>super admin</strong>: only after "
+"approval will you be able to log in with alias (or email) and password. The "
+"password is stored only as a hash."
 
 #: web/templates/web/user_form.html:10
 msgid "Invia richiesta"

@@ -5,6 +5,42 @@
 
 ---
 
+## 2026-07-08 — Gamification: rating Elo dei giocatori (con stagioni)
+
+**Richiesta (utente):** la gamification, partendo dal rating Elo/Glicko.
+
+**Scelte di design:**
+
+- **Elo con K adattivo FIDE** (40 sotto 30 partite → «provvisorio», 20 fino a
+  2400, 10 oltre) invece di Glicko: il K alto iniziale copre il caso «nuovo
+  giocatore» senza portarsi dietro RD/volatilità; coerente con l'arena.
+- **Pool pulito**: si aggiorna SOLO su partite umano-vs-umano (hotseat comprese,
+  come i punti). Le partite contro le IA non toccano l'Elo umano: il pool IA
+  vive nell'arena e mescolare i due distorcerebbe entrambi. I punti 3/1/0
+  restano come misura di attività (l'Elo è la misura di forza).
+- **Stagioni**: chiave (utente, gioco, stagione) col parametro `elo.season`;
+  cambiarlo fa ripartire da 1500, lo storico resta (`?season=` sull'endpoint).
+
+**Implementazione**: `app/rating.py` (k_factor/expected/update_pair/leaderboard/
+for_user, peak_elo tracciato), tabella `ratings` (migrazione **0009**), aggancio
+in `services.finalize_session` (vale per OGNI tipo di conclusione), endpoint
+`GET /rankings/elo/{game}` e `GET /users/{id}/ratings`, sezione «Rating Elo»
+nella pagina Classifiche e card nella scheda giocatore (i18n IT/EN complete,
+frontend .po + catalogo backend per l'etichetta del parametro).
+
+**Bugfix preesistente scovato dai test**: con lo STESSO utente su entrambi i
+lati, `score_for` creava due righe `scores` per la stessa coppia utente+gioco
+(IntegrityError): il sessionmaker ha `autoflush=False`, quindi la seconda
+`award` non vedeva la riga pendente della prima → `db.flush()` dopo l'add.
+
+**Test (+6, 253 verdi):** fasce del K e expected, partita vera → 1520/1480 con
+somma conservata e peak corretto, partite vs IA non toccano l'Elo, stesso
+utente sui due lati ignorato (rating) e senza duplicati (punti), classifica
+ordinata + cambio stagione (fresh 1500, storico interrogabile), 404 su gioco
+ignoto.
+
+---
+
 ## 2026-07-08 — i18n (dati): il backend risponde nella lingua del client
 
 **Richiesta (utente):** il punto «i18n (dati)».

@@ -18,6 +18,23 @@
   </form>
 </div>
 
+{% if ratings and ratings.ratings %}
+<div class="card">
+  <h2>📈 {% trans 'Rating Elo' %} <span class="muted" style="font-size:.8rem;">({% trans 'stagione' %} {{ ratings.season }})</span></h2>
+  <table>
+    <tr><th>{% trans 'Gioco' %}</th><th>Elo</th><th>{% trans 'Picco' %}</th><th>{% trans 'Partite' %}</th></tr>
+    {% for r in ratings.ratings %}
+    <tr>
+      <td>{{ r.game_name }}</td>
+      <td><strong>{{ r.elo }}</strong>{% if r.provisional %} <span class="muted" title="{% trans 'Rating provvisorio (meno di 30 partite)' %}">?</span>{% endif %}</td>
+      <td>{{ r.peak_elo }}</td>
+      <td>{{ r.games }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
 <div class="card">
   <h2>{% trans 'Punteggi per gioco' %}</h2>
   {% if u.scores %}
