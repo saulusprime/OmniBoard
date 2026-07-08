@@ -312,8 +312,13 @@
 
 ## Sicurezza / DevOps
 
-- [ ] **Tipizzazione SQLAlchemy 2.0** (`Mapped[]`/`mapped_column`) nei modelli: zittisce i
-  falsi positivi di mypy sugli attributi `Column[...]` (il progetto linta con ruff).
+- [x] **Tipizzazione SQLAlchemy 2.0** — `Base(DeclarativeBase)` e TUTTI i
+  modelli in stile `Mapped[]`/`mapped_column` (relazioni comprese:
+  `Mapped[list[...]]`, `Mapped[User | None]` con foreign_keys). Tipi SQL
+  espliciti conservati; nullabilità resa fedele nelle annotazioni, comprese le
+  colonne nullable «per omissione» (created_at & co.). Prova di identità dello
+  schema: **`alembic check` → nessuna operazione** (nessuna migrazione
+  generata). 253 test verdi.
 - [ ] **Rate limiting** sulle API pubbliche; configurazione **CORS** esplicita.
 - [ ] **Audit log** delle operazioni super admin.
 - [ ] **CI GitHub Actions**: verificare che il workflow esegua davvero ruff+pytest sul
