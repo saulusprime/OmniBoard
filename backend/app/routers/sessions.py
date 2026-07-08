@@ -460,7 +460,7 @@ def export_pgn(session_id: int, db: Session = Depends(get_db)):
 
     result = {"x": "1-0", "o": "0-1", "draw": "1/2-1/2"}.get(session.winner or "", "*")
     tags = [
-        ("Event", str(settings_service.get(db, "general.site_name") or "Scacchi")),
+        ("Event", str(settings_service.get(db, "general.site_name") or "OmniBoard")),
         ("Site", f"partita {session.id}"),
         ("Date", session.created_at.strftime("%Y.%m.%d") if session.created_at else "????.??.??"),
         ("Round", "-"),

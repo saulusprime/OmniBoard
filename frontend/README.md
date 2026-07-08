@@ -33,6 +33,6 @@ Apri <http://127.0.0.1:8001/>. L'URL del backend si configura con `BACKEND_API_U
 ```text
 frontend/
 ├── manage.py
-├── scacchi_web/        # progetto Django (settings, urls, wsgi/asgi)
+├── omniboard_web/        # progetto Django (settings, urls, wsgi/asgi)
 └── web/                # app: views, forms, api_client, urls, templates
 ```

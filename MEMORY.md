@@ -1,6 +1,6 @@
 # MEMORY — Diario tecnico e decisioni architetturali
 
-> Diario tecnico del progetto **Scacchi**: andamento, traguardi, dettagli architetturali e
+> Diario tecnico del progetto **OmniBoard** (già «Scacchi»): andamento, traguardi, dettagli architetturali e
 > scelte tecniche con le relative motivazioni. Complementare a [HANDOFF.md](./HANDOFF.md)
 > (che è il registro cronologico delle sessioni). Le decisioni rilevanti sono annotate come
 > *ADR* (Architecture Decision Record).
@@ -620,6 +620,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   umano-vs-umano (pool separato dall'arena IA), stagioni via `elo.season`
   (storico con ?season=); classifica in pagina Classifiche + card nella scheda.
   Bugfix: score_for senza flush duplicava scores (autoflush=False). 253 verdi.
+- **2026-07-08** — **Rinomina: Scacchi → OmniBoard** (progetto, non il gioco):
+  repo GitHub `saulusprime/OmniBoard` (redirect dal vecchio), package
+  `omniboard_web`, brand/titoli/API/site_name/PGN Event, DB `omniboard.db`
+  (copia; .env aggiornato). Cartella locale invariata (venv con shebang
+  assoluti). 253 verdi.
 
 ## Questioni aperte
 

@@ -45,7 +45,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Scacchi API",
+    title="OmniBoard API",
     description="Backend della piattaforma di giochi da tavolo a turni.",
     version="0.1.0",
     lifespan=lifespan,

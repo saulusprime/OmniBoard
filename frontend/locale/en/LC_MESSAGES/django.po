@@ -727,8 +727,8 @@ msgid "Nessuna proposta in corso."
 msgstr "No open proposals."
 
 #: web/templates/web/home.html:3
-msgid "Scacchi — Piattaforma di giochi da tavolo"
-msgstr "Scacchi — Board game platform"
+msgid "OmniBoard — Piattaforma di giochi da tavolo"
+msgstr "OmniBoard — Board game platform"
 
 #: web/templates/web/home.html:7
 msgid ""

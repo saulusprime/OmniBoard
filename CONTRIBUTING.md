@@ -1,6 +1,6 @@
-# Come contribuire a Scacchi
+# Come contribuire a OmniBoard
 
-Grazie per l'interesse verso **Scacchi**! I contributi sono benvenuti: codice, nuovi giochi,
+Grazie per l'interesse verso **OmniBoard**! I contributi sono benvenuti: codice, nuovi giochi,
 documentazione, traduzioni, segnalazioni di bug e idee.
 
 ## Prima di iniziare

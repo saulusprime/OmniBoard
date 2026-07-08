@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Scacchi{% endblock %}</title>
+  <title>{% block title %}OmniBoard{% endblock %}</title>
   <style>
     :root {
       --bg:#0f1419; --panel:#1b232d; --accent:#d9a441; --text:#e8eaed;
@@ -67,7 +67,7 @@
 </head>
 <body>
   <header><div class="wrap"><nav aria-label="{% trans 'Navigazione principale' %}">
-    <a class="brand" href="{% url 'home' %}">♟ Scacchi</a>
+    <a class="brand" href="{% url 'home' %}">♟ OmniBoard</a>
     <a href="{% url 'home' %}">{% trans "Home" %}</a>
     <a href="{% url 'play_setup' %}">{% trans "Gioca" %}</a>
     <a href="{% url 'learn_index' %}">{% trans "Impara" %}</a>
@@ -116,7 +116,7 @@
   <script>
     // Heartbeat di presenza: ogni chiamata rinnova il badge "online" del giocatore
     // e aggiorna il badge del punteggio complessivo in navbar (gamification).
-    async function scacchiHeartbeat() {
+    async function omniboardHeartbeat() {
       try {
         const res = await fetch("{% url 'community_json' %}");
         if (!res.ok) return;
@@ -127,8 +127,8 @@
         if (pts && data.me) pts.textContent = data.me.universal_points + " pt";
       } catch (e) { /* backend momentaneamente giù: il badge resta com'è */ }
     }
-    scacchiHeartbeat();
-    setInterval(scacchiHeartbeat, 30000);
+    omniboardHeartbeat();
+    setInterval(omniboardHeartbeat, 30000);
   </script>
   {% endif %}
 </body>

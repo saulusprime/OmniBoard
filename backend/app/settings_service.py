@@ -19,7 +19,7 @@ SETTINGS_DEFS = [
     {
         "key": "general.site_name",
         "type": "str",
-        "default": "Scacchi",
+        "default": "OmniBoard",
         "category": "Generale",
         "label": "Nome del sito",
     },

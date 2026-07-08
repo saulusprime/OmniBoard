@@ -1,4 +1,4 @@
-# Scacchi — Piattaforma universale per giochi da tavolo a turni
+# OmniBoard — Piattaforma universale per giochi da tavolo a turni
 
 > Gioca a **scacchi** e a tutti gli altri giochi da tavolo a **turni e a informazione perfetta**
 > (dama, tris, forza 4, …) tramite un unico motore astratto, direttamente dal browser.
@@ -197,7 +197,7 @@ Scacchi/
 │       └── routers/     # users, games, groups, matches, rankings, sessions, admin
 │
 └── frontend/            # progetto Django (presentazione, nessun DB proprio)
-    ├── scacchi_web/     # settings, urls, wsgi/asgi
+    ├── omniboard_web/     # settings, urls, wsgi/asgi
     └── web/             # views, forms, api_client (HTTP→backend), templates
 ```
 
@@ -255,7 +255,7 @@ python frontend/manage.py runserver 8001
 ```
 
 Apri <http://127.0.0.1:8001/>. All'avvio il backend applica da solo le **migrazioni
-Alembic** (`backend/migrations/`) portando lo schema SQLite (`backend/scacchi.db`)
+Alembic** (`backend/migrations/`) portando lo schema SQLite (`backend/omniboard.db`)
 all'ultima revisione, e popola il catalogo dei giochi. Un cambio di schema non richiede
 più di ricreare il database: `make migration m="descrizione"` genera la revisione dai
 modelli e il riavvio la applica (oppure `make migrate`). Il frontend non usa database.

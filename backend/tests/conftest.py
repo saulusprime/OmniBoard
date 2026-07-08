@@ -8,7 +8,7 @@ import os
 import tempfile
 from pathlib import Path
 
-_tmp_dir = tempfile.mkdtemp(prefix="scacchi-test-")
+_tmp_dir = tempfile.mkdtemp(prefix="omniboard-test-")
 os.environ["DATABASE_URL"] = f"sqlite:///{Path(_tmp_dir) / 'test.db'}"
 os.environ["ADMIN_TOKEN"] = "test-admin"
 # Cache TTS isolata: i test non toccano (e non riusano) la cache di sviluppo.

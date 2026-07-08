@@ -13,7 +13,7 @@ Casi gestiti da :func:`run_migrations`:
 - database dell'era ``create_all`` (nessuna tabella ``alembic_version``): se lo
   schema corrisponde alla baseline (revisione 0001) viene ADOTTATO con uno
   ``stamp`` e da lì in poi migrato normalmente; se è più vecchio ci si ferma
-  con un errore chiaro (in sviluppo: eliminare ``backend/scacchi.db``).
+  con un errore chiaro (in sviluppo: eliminare ``backend/omniboard.db``).
 """
 
 from __future__ import annotations
@@ -55,7 +55,7 @@ def _adopt_legacy_db_if_needed(url: str) -> None:
             raise RuntimeError(
                 "Il database esistente precede le migrazioni Alembic e non "
                 "corrisponde alla baseline (revisione 0001): in sviluppo "
-                "eliminarlo e riavviare (rm backend/scacchi.db)."
+                "eliminarlo e riavviare (rm backend/omniboard.db)."
             )
     finally:
         engine.dispose()
