@@ -604,6 +604,10 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   i18n Django (LocaleMiddleware, selettore IT/EN in nav, stringhe JS via
   views._play_ui_strings → json_script, label form gettext_lazy, catalogo EN
   67 msgid compilato). Seconda tranche (pagine secondarie/backend) nel TODO.
+- **2026-07-08** — **i18n tranche 2**: tutti i template marcati (JS compreso,
+  pattern generici anti-collisione HTML/JS), catalogo EN ~170 msgid, fuzzy di
+  msgmerge corretti (gettext li ignora a runtime!), smoke 12 pagine IT/EN.
+  UI interamente bilingue; resta «i18n (dati)» (backend/lezioni/aperture).
   241 verdi.
 
 ## Questioni aperte
