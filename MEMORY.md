@@ -625,6 +625,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   `omniboard_web`, brand/titoli/API/site_name/PGN Event, DB `omniboard.db`
   (copia; .env aggiornato). Cartella locale invariata (venv con shebang
   assoluti). 253 verdi.
+- **2026-07-08** — **SQLAlchemy 2.0 tipizzato**: DeclarativeBase +
+  Mapped[]/mapped_column ovunque (relazioni tipizzate); nullabilità fedele
+  nelle annotazioni (attenzione ai nullable per omissione); tipi SQL espliciti;
+  `alembic check` = zero differenze. Dev-DB ristampato a 0009 (il reload aveva
+  applicato l'ID autogenerato pre-rinomina). 253 verdi.
 
 ## Questioni aperte
 

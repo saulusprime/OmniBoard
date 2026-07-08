@@ -3,6 +3,30 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-08 — Tipizzazione SQLAlchemy 2.0 dei modelli
+
+**Richiesta (utente):** la tipizzazione SQLAlchemy 2.0.
+
+- `database.py`: `Base(DeclarativeBase)` al posto di `declarative_base()`.
+- `models.py` riscritto in stile tipizzato: `Mapped[T]` + `mapped_column(...)`
+  su tutte le colonne, relazioni tipizzate (`Mapped[list[Score]]`,
+  `Mapped[User | None]` con `foreign_keys=[...]`), vincoli e docstring intatti.
+- **Fedeltà dello schema** (il punto delicato): nello stile 2.0 la nullabilità
+  segue l'ANNOTAZIONE (`T | None` = nullable) — e molte colonne storiche sono
+  nullable «per omissione» (created_at/updated_at, Game.is_stochastic,
+  GroupProposal.status/threshold, GroupMembership.role/joined_at): annotate
+  `| None` apposta. Tipi SQL lasciati ESPLICITI (String(16), Float, DateTime…)
+  così la DDL non dipende dalla type-map.
+- **Prova di identità**: `alembic check` → «No new upgrade operations
+  detected». Nota: il check ha scovato il dev-DB stampato con l'ID autogenerato
+  originale della 0009 (586e7d23e6a1, applicata dal reload del server prima
+  della rinomina del file) → `alembic_version` riallineata a 0009 in
+  omniboard.db e nel backup scacchi.db.
+
+**Verifiche:** 253 test verdi, ruff ok, nessuna migrazione generata.
+
+---
+
 ## 2026-07-08 — Rinomina del progetto: Scacchi → OmniBoard
 
 **Richiesta (utente):** rinominare il progetto in «OmniBoard», ovunque, GitHub
