@@ -1,0 +1,287 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-08 18:22+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+#: web/forms.py:29
+msgid "Nome"
+msgstr "First name"
+
+#: web/forms.py:30
+msgid "Cognome"
+msgstr "Last name"
+
+#: web/forms.py:31
+msgid "Alias"
+msgstr "Alias"
+
+#: web/forms.py:32
+msgid "Email"
+msgstr "Email"
+
+#: web/forms.py:33
+msgid "Nazionalità"
+msgstr "Nationality"
+
+#: web/forms.py:34
+msgid "Regione"
+msgstr "Region"
+
+#: web/forms.py:35 web/forms.py:47
+msgid "Password"
+msgstr "Password"
+
+#: web/forms.py:36
+msgid "Conferma password"
+msgstr "Confirm password"
+
+#: web/forms.py:46
+msgid "Alias o email"
+msgstr "Alias or email"
+
+#: web/forms.py:51
+msgid "Nome del gruppo"
+msgstr "Group name"
+
+#: web/forms.py:52
+msgid "Proponente"
+msgstr "Proposer"
+
+#: web/forms.py:53
+msgid "Voti a favore necessari"
+msgstr "Votes in favour required"
+
+#: web/forms.py:61
+msgid "Vota come"
+msgstr "Vote as"
+
+#: web/forms.py:63
+msgid "Voto"
+msgstr "Vote"
+
+#: web/forms.py:64
+msgid "A favore"
+msgstr "In favour"
+
+#: web/forms.py:64
+msgid "Contrario"
+msgstr "Against"
+
+#: web/forms.py:91
+msgid "Tema scacchiera e pezzi (scacchi e dama)"
+msgstr "Board and piece theme (chess and draughts)"
+
+#: web/forms.py:93
+msgid "Il tuo segno nel Tris"
+msgstr "Your Tic-tac-toe mark"
+
+#: web/forms.py:138 web/forms.py:212
+msgid "Gioco"
+msgstr "Game"
+
+#: web/forms.py:139
+msgid "Giocatore X (primo a muovere)"
+msgstr "Player X (moves first)"
+
+#: web/forms.py:140
+msgid "Utente per X"
+msgstr "User for X"
+
+#: web/forms.py:141
+msgid "Giocatore O"
+msgstr "Player O"
+
+#: web/forms.py:142
+msgid "Utente per O"
+msgstr "User for O"
+
+#: web/forms.py:146
+msgid ""
+"Partita a distanza (ogni giocatore dal proprio dispositivo, serve l'accesso)"
+msgstr ""
+
+#: web/forms.py:150
+msgid "Orologio (solo scacchi)"
+msgstr "Clock (chess only)"
+
+#: web/forms.py:153
+msgid "Minuti a testa (vuoto = default della categoria)"
+msgstr "Minutes per side (empty = category default)"
+
+#: web/forms.py:159
+msgid "Incremento Fischer (secondi a mossa; non per FIDE)"
+msgstr "Fischer increment (seconds per move; not for FIDE)"
+
+#: web/forms.py:169
+msgid "Posizione iniziale FEN (solo scacchi, vuoto = standard)"
+msgstr "Starting position FEN (chess only, empty = standard)"
+
+#: web/forms.py:176
+msgid "Partite consecutive (solo se entrambi IA)"
+msgstr "Consecutive games (only if both sides are AI)"
+
+#: web/forms.py:213
+msgid "Giocatore A"
+msgstr "Player A"
+
+#: web/forms.py:214
+msgid "Giocatore B"
+msgstr "Player B"
+
+#: web/forms.py:216
+msgid "Risultato"
+msgstr "Result"
+
+#: web/templates/web/base.html:69
+msgid "Navigazione principale"
+msgstr "Main navigation"
+
+#: web/templates/web/base.html:71
+msgid "Home"
+msgstr "Home"
+
+#: web/templates/web/base.html:72
+msgid "Gioca"
+msgstr "Play"
+
+#: web/templates/web/base.html:73
+msgid "Impara"
+msgstr "Learn"
+
+#: web/templates/web/base.html:74
+msgid "Giocatori"
+msgstr "Players"
+
+#: web/templates/web/base.html:75
+msgid "Gruppi"
+msgstr "Groups"
+
+#: web/templates/web/base.html:76
+msgid "Classifiche"
+msgstr "Rankings"
+
+#: web/templates/web/base.html:77
+msgid "Arena IA"
+msgstr "AI Arena"
+
+#: web/templates/web/base.html:78
+msgid "Registra partita"
+msgstr "Record game"
+
+#: web/templates/web/base.html:79
+msgid "Community"
+msgstr "Community"
+
+#: web/templates/web/base.html:84
+msgid "Lingua"
+msgstr "Language"
+
+#: web/templates/web/base.html:101
+msgid "Esci"
+msgstr "Log out"
+
+#: web/templates/web/base.html:104
+msgid "Accedi"
+msgstr "Log in"
+
+#: web/templates/web/play.html:52 web/templates/web/play.html:55
+msgid "umano"
+msgstr "human"
+
+#: web/templates/web/play.html:69
+msgid "L'IA sta pensando…"
+msgstr "The AI is thinking…"
+
+#: web/templates/web/play.html:72
+msgid "Suggerimento"
+msgstr "Hint"
+
+#: web/templates/web/play.html:74
+msgid "Ruota"
+msgstr "Flip"
+
+#: web/templates/web/play.html:76
+msgid "Offri patta"
+msgstr "Offer draw"
+
+#: web/templates/web/play.html:78
+msgid "Abbandona"
+msgstr "Resign"
+
+#: web/templates/web/play.html:83
+msgid "Ti è stata offerta la patta:"
+msgstr "You have been offered a draw:"
+
+#: web/templates/web/play.html:85
+msgid "Accetta"
+msgstr "Accept"
+
+#: web/templates/web/play.html:87
+msgid "Rifiuta"
+msgstr "Decline"
+
+#: web/templates/web/play.html:90
+msgid "Questa pagina richiede JavaScript per giocare."
+msgstr "This page requires JavaScript to play."
+
+#: web/templates/web/play.html:94
+msgid "Commento"
+msgstr "Commentary"
+
+#: web/templates/web/play.html:97
+msgid "Mosse"
+msgstr "Moves"
+
+#: web/templates/web/play.html:105
+msgid "Inizio"
+msgstr "Start"
+
+#: web/templates/web/play.html:106
+msgid "Indietro"
+msgstr "Back"
+
+#: web/templates/web/play.html:108
+msgid "Avanti"
+msgstr "Forward"
+
+#: web/templates/web/play.html:109
+msgid "Fine"
+msgstr "End"
+
+#: web/templates/web/play.html:112
+msgid "Nota su questa mossa…"
+msgstr "Note on this move…"
+
+#: web/templates/web/play.html:115
+msgid "Salva nota"
+msgstr "Save note"
+
+#: web/templates/web/play.html:118
+msgid "Spiegami questa mossa"
+msgstr "Explain this move"
+
+#: web/templates/web/play.html:125
+msgid "Analizza la partita"
+msgstr "Analyse the game"
+
+#: web/templates/web/play.html:127
+msgid "Esporta PGN"
+msgstr "Export PGN"
+
+#: web/templates/web/play.html:131
+msgid "Esporta GIF"
+msgstr "Export GIF"

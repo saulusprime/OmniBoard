@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{% load i18n %}<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="utf-8">
@@ -66,18 +66,30 @@
   </style>
 </head>
 <body>
-  <header><div class="wrap"><nav>
+  <header><div class="wrap"><nav aria-label="{% trans 'Navigazione principale' %}">
     <a class="brand" href="{% url 'home' %}">♟ Scacchi</a>
-    <a href="{% url 'home' %}">Home</a>
-    <a href="{% url 'play_setup' %}">Gioca</a>
-    <a href="{% url 'learn_index' %}">Impara</a>
-    <a href="{% url 'users_list' %}">Giocatori</a>
-    <a href="{% url 'groups' %}">Gruppi</a>
-    <a href="{% url 'rankings' %}">Classifiche</a>
-    <a href="{% url 'arena' %}">Arena IA</a>
-    <a href="{% url 'match_create' %}">Registra partita</a>
-    <a href="{% url 'community' %}">Community</a>
+    <a href="{% url 'home' %}">{% trans "Home" %}</a>
+    <a href="{% url 'play_setup' %}">{% trans "Gioca" %}</a>
+    <a href="{% url 'learn_index' %}">{% trans "Impara" %}</a>
+    <a href="{% url 'users_list' %}">{% trans "Giocatori" %}</a>
+    <a href="{% url 'groups' %}">{% trans "Gruppi" %}</a>
+    <a href="{% url 'rankings' %}">{% trans "Classifiche" %}</a>
+    <a href="{% url 'arena' %}">{% trans "Arena IA" %}</a>
+    <a href="{% url 'match_create' %}">{% trans "Registra partita" %}</a>
+    <a href="{% url 'community' %}">{% trans "Community" %}</a>
     <a href="{% url 'admin' %}">Admin</a>
+    <form method="post" action="{% url 'set_language' %}" style="margin:0;">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <select name="language" onchange="this.form.submit()" aria-label="{% trans 'Lingua' %}"
+              style="width:auto; padding:4px 6px; font-size:.85rem;">
+        {% get_current_language as CUR %}
+        {% get_available_languages as LANGS %}
+        {% for code, name in LANGS %}
+        <option value="{{ code }}" {% if code == CUR %}selected{% endif %}>{{ code|upper }}</option>
+        {% endfor %}
+      </select>
+    </form>
     {% if auth_user %}
       <a href="{% url 'user_detail' auth_user.id %}">
         <span class="dot" id="nav-dot" title="Presenza online"></span>
@@ -86,10 +98,10 @@
       </a>
       <form method="post" action="{% url 'logout' %}" style="margin:0;">{% csrf_token %}
         <button class="btn secondary" type="submit"
-                style="padding:4px 12px; font-size:.85rem;">Esci</button>
+                style="padding:4px 12px; font-size:.85rem;">{% trans "Esci" %}</button>
       </form>
     {% else %}
-      <a href="{% url 'login' %}">Accedi</a>
+      <a href="{% url 'login' %}">{% trans "Accedi" %}</a>
     {% endif %}
   </nav></div></header>
   <main><div class="wrap">

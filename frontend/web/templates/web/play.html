@@ -1,4 +1,5 @@
 {% extends "web/base.html" %}
+{% load i18n %}
 {% block title %}{{ s.game_name }} — partita {{ s.id }}{% endblock %}
 {% block content %}
 {% include "web/board_css.html" %}
@@ -42,57 +43,58 @@
 </style>
 
 {{ s|json_script:"session-data" }}
+{{ ui|json_script:"ui-strings" }}
 
 <div class="card">
   <h1>{{ s.game_name }}</h1>
   <p class="muted">
     <strong>X</strong>: {{ s.players.x.alias|default:"IA" }}
-    ({% if s.players.x.type == 'stockfish' %}Stockfish{% if s.players.x.level_label %} — {{ s.players.x.level_label }}{% endif %}{% elif s.players.x.type == 'ai' %}IA{% if s.players.x.provider_label %} — {{ s.players.x.provider_label }}{% elif s.players.x.level_label %} — {{ s.players.x.level_label }}{% else %} via API{% endif %}{% else %}umano{% endif %})
+    ({% if s.players.x.type == 'stockfish' %}Stockfish{% if s.players.x.level_label %} — {{ s.players.x.level_label }}{% endif %}{% elif s.players.x.type == 'ai' %}IA{% if s.players.x.provider_label %} — {{ s.players.x.provider_label }}{% elif s.players.x.level_label %} — {{ s.players.x.level_label }}{% else %} via API{% endif %}{% else %}{% trans "umano" %}{% endif %})
     &nbsp;·&nbsp;
     <strong>O</strong>: {{ s.players.o.alias|default:"IA" }}
-    ({% if s.players.o.type == 'stockfish' %}Stockfish{% if s.players.o.level_label %} — {{ s.players.o.level_label }}{% endif %}{% elif s.players.o.type == 'ai' %}IA{% if s.players.o.provider_label %} — {{ s.players.o.provider_label }}{% elif s.players.o.level_label %} — {{ s.players.o.level_label }}{% else %} via API{% endif %}{% else %}umano{% endif %})
+    ({% if s.players.o.type == 'stockfish' %}Stockfish{% if s.players.o.level_label %} — {{ s.players.o.level_label }}{% endif %}{% elif s.players.o.type == 'ai' %}IA{% if s.players.o.provider_label %} — {{ s.players.o.provider_label }}{% elif s.players.o.level_label %} — {{ s.players.o.level_label }}{% else %} via API{% endif %}{% else %}{% trans "umano" %}{% endif %})
   </p>
 
   <div class="play">
     <div>
-      <div id="turninfo"></div>
+      <div id="turninfo" aria-live="polite"></div>
       <div id="clocks">
         <span class="clock" id="clock-x">X --:--</span>
         <span class="clock" id="clock-o">O --:--</span>
       </div>
       <div id="opening" class="muted"></div>
-      <div id="statusline" class="muted"></div>
+      <div id="statusline" class="muted" aria-live="polite"></div>
       <div id="boardarea"></div>
       <div id="captured" class="captured muted" style="display:none;"></div>
-      <div id="thinking">L'IA sta pensando…</div>
+      <div id="thinking" role="status" aria-live="polite">{% trans "L'IA sta pensando…" %}</div>
       <p style="margin:8px 0 0;">
         <button class="btn secondary" id="btn-hint" type="button"
-                style="padding:4px 12px; font-size:.85rem;">💡 Suggerimento</button>
+                style="padding:4px 12px; font-size:.85rem;">💡 {% trans "Suggerimento" %}</button>
         <button class="btn secondary" id="btn-flip" type="button" style="padding:4px 12px;
-                font-size:.85rem; display:none;" title="Ruota la scacchiera">🔄 Ruota</button>
+                font-size:.85rem; display:none;" title="Ruota la scacchiera">🔄 {% trans "Ruota" %}</button>
         <button class="btn secondary" id="btn-draw" type="button"
-                style="padding:4px 12px; font-size:.85rem;">½ Offri patta</button>
+                style="padding:4px 12px; font-size:.85rem;">½ {% trans "Offri patta" %}</button>
         <button class="btn secondary" id="btn-resign" type="button"
-                style="padding:4px 12px; font-size:.85rem;">🏳️ Abbandona</button>
-        <span id="hint-text" class="muted" style="font-size:.85rem;"></span>
+                style="padding:4px 12px; font-size:.85rem;">🏳️ {% trans "Abbandona" %}</button>
+        <span id="hint-text" class="muted" style="font-size:.85rem;" aria-live="polite"></span>
       </p>
-      <p id="draw-banner" style="display:none; margin:8px 0 0; color:var(--accent);
+      <p id="draw-banner" role="alert" style="display:none; margin:8px 0 0; color:var(--accent);
                                  font-weight:600;">
-        Ti è stata offerta la patta:
+        {% trans "Ti è stata offerta la patta:" %}
         <button class="btn" id="btn-draw-accept" type="button"
-                style="padding:4px 12px; font-size:.85rem;">Accetta</button>
+                style="padding:4px 12px; font-size:.85rem;">{% trans "Accetta" %}</button>
         <button class="btn secondary" id="btn-draw-decline" type="button"
-                style="padding:4px 12px; font-size:.85rem;">Rifiuta</button>
+                style="padding:4px 12px; font-size:.85rem;">{% trans "Rifiuta" %}</button>
       </p>
       <div id="aisource" class="muted" style="font-size:.85rem;"></div>
-      <noscript><p class="muted">Questa pagina richiede JavaScript per giocare.</p></noscript>
+      <noscript><p class="muted">{% trans "Questa pagina richiede JavaScript per giocare." %}</p></noscript>
     </div>
     <div class="side">
       <div id="commentary-box" style="display:none;">
-        <h2>🎙️ Commento</h2>
+        <h2>🎙️ {% trans "Commento" %}</h2>
         <ul id="commentary"></ul>
       </div>
-      <h2>Mosse</h2>
+      <h2>{% trans "Mosse" %}</h2>
       <ol class="movelog" id="movelog"></ol>
       <div id="postgame" style="display:none; margin-top:14px;">
         <h2>🎬 Moviola</h2>
@@ -100,33 +102,33 @@
         (o clicca una mossa nel log) e annota le posizioni: le note restano
         nello storico della partita.</p>
         <div class="pg-nav">
-          <button class="btn secondary" id="pg-first" type="button" title="Inizio">⏮</button>
-          <button class="btn secondary" id="pg-prev" type="button" title="Indietro">◀</button>
+          <button class="btn secondary" id="pg-first" type="button" title="{% trans 'Inizio' %}" aria-label="{% trans 'Inizio' %}">⏮</button>
+          <button class="btn secondary" id="pg-prev" type="button" title="{% trans 'Indietro' %}" aria-label="{% trans 'Indietro' %}">◀</button>
           <span id="plypos" class="muted"></span>
-          <button class="btn secondary" id="pg-next" type="button" title="Avanti">▶</button>
-          <button class="btn secondary" id="pg-last" type="button" title="Fine">⏭</button>
+          <button class="btn secondary" id="pg-next" type="button" title="{% trans 'Avanti' %}" aria-label="{% trans 'Avanti' %}">▶</button>
+          <button class="btn secondary" id="pg-last" type="button" title="{% trans 'Fine' %}" aria-label="{% trans 'Fine' %}">⏭</button>
         </div>
         <div style="margin-top:8px;">
-          <textarea id="noteinput" rows="2" placeholder="Nota su questa mossa…"
+          <textarea id="noteinput" rows="2" placeholder="{% trans 'Nota su questa mossa…' %}"
                     style="width:100%;"></textarea>
           <button class="btn secondary" id="notesave" type="button"
-                  style="margin-top:4px;">💾 Salva nota</button>
+                  style="margin-top:4px;">💾 {% trans "Salva nota" %}</button>
           {% if s.game_code == 'chess' %}
           <button class="btn secondary" id="explainbtn" type="button"
-                  style="margin-top:4px;">🎓 Spiegami questa mossa</button>
-          <div id="explaintext" class="muted"
+                  style="margin-top:4px;">🎓 {% trans "Spiegami questa mossa" %}</button>
+          <div id="explaintext" class="muted" aria-live="polite"
                style="font-size:.9rem; margin-top:6px; display:none;"></div>
           {% endif %}
         </div>
         <p style="margin-top:10px;">
           {% if s.game_code == 'chess' %}
-          <button class="btn" id="btn-analyze" type="button">🔬 Analizza la partita</button>
+          <button class="btn" id="btn-analyze" type="button">🔬 {% trans "Analizza la partita" %}</button>
           <a class="btn secondary" id="pgn-link"
-             href="{{ backend_url }}/sessions/{{ s.id }}/pgn" download>📄 Esporta PGN</a>
+             href="{{ backend_url }}/sessions/{{ s.id }}/pgn" download>📄 {% trans "Esporta PGN" %}</a>
           {% endif %}
           {% if s.move_type != 'backgammon' %}
           <a class="btn secondary" id="gif-link"
-             href="{{ backend_url }}/sessions/{{ s.id }}/gif" download>🎞️ Esporta GIF</a>
+             href="{{ backend_url }}/sessions/{{ s.id }}/gif" download>🎞️ {% trans "Esporta GIF" %}</a>
           {% endif %}
         </p>
         <div id="an-status" class="muted" style="font-size:.85rem;"></div>
@@ -146,6 +148,7 @@
 <script>
 (function () {
   const SESSION = JSON.parse(document.getElementById("session-data").textContent);
+  const T = JSON.parse(document.getElementById("ui-strings").textContent);
   const MOVE_URL = "{% url 'play_move_json' s.id %}";
   const STATE_URL = "{% url 'play_state_json' s.id %}";
   const CSRF = "{{ csrf_token }}";
@@ -225,6 +228,7 @@
       for (let c = 0; c < cols; c++) {
         const b = document.createElement("button");
         b.className = "colbtn"; b.textContent = "▼"; b.dataset.col = c;
+        b.setAttribute("aria-label", T.drop_col + " " + (c + 1));
         b.addEventListener("click", () => onColumn(c));
         head.appendChild(b);
       }
@@ -232,6 +236,34 @@
     }
     const grid = document.createElement("div");
     grid.className = "board"; grid.id = "grid";
+    grid.setAttribute("role", "group");
+    grid.setAttribute("aria-label", T.board);
+    // Navigazione da TASTIERA: una sola casella nel giro dei Tab (roving
+    // tabindex), le frecce spostano il fuoco seguendo la VISTA (rotazione
+    // compresa); Invio/Spazio agiscono come il clic (bottoni nativi).
+    grid.addEventListener("keydown", (ev) => {
+      if (!ev.key.startsWith("Arrow")) return;
+      const el = document.activeElement;
+      if (!el || el.parentElement !== grid || el.dataset.bi === undefined) return;
+      ev.preventDefault();
+      const N = rows * cols;
+      let vi = flipped ? N - 1 - Number(el.dataset.bi) : Number(el.dataset.bi);
+      const dc = ev.key === "ArrowLeft" ? -1 : ev.key === "ArrowRight" ? 1 : 0;
+      const dr = ev.key === "ArrowUp" ? -1 : ev.key === "ArrowDown" ? 1 : 0;
+      let vr = Math.floor(vi / cols), vc = vi % cols;
+      // Nella dama le case chiare non sono bottoni: si prosegue nella stessa
+      // direzione finché si atterra su una casella giocabile.
+      for (let step = 0; step < Math.max(rows, cols); step++) {
+        vr += dr; vc += dc;
+        if (vr < 0 || vr >= rows || vc < 0 || vc >= cols) return;
+        const bi = flipped ? N - 1 - (vr * cols + vc) : vr * cols + vc;
+        const target = grid.children[bi];
+        if (target && target.tagName === "BUTTON") {
+          el.tabIndex = -1; target.tabIndex = 0; target.focus();
+          return;
+        }
+      }
+    });
     // Tema del giocatore (scacchi/dama) oppure tavolo classico del backgammon.
     if (moveType === "chess" || moveType === "draughts") grid.classList.add("t-" + THEME);
     if (moveType === "backgammon") grid.classList.add("bg-board");
@@ -250,6 +282,9 @@
       }
       el.className = "cell";
       el.dataset.bi = i;  // indice di scacchiera (il drag&drop legge questo)
+      if (el.tagName === "BUTTON") {
+        el.tabIndex = grid.querySelector("button") ? -1 : 0;  // roving tabindex
+      }
       if (flipped) el.style.order = rows * cols - 1 - i;  // vista dal lato del Nero
       if (moveType === "chess" || moveType === "draughts") {
         el.addEventListener("pointerdown", (ev) => dragStart(ev, i));
@@ -324,6 +359,23 @@
     return [];
   }
 
+  function cellName(i) {
+    const r = Math.floor(i / cols), c = i % cols;
+    if (moveType === "chess" || moveType === "draughts") {
+      return String.fromCharCode(97 + c) + (rows - r);  // coordinate algebriche
+    }
+    return T.row + " " + (r + 1) + ", " + T.column + " " + (c + 1);
+  }
+
+  function ariaFor(i, v) {
+    // "e4, pedone bianco" / "riga 2, colonna 3, vuota" — per gli screen reader.
+    if (!v) return cellName(i) + ", " + T.empty_square;
+    const name = T.pieces[v.slice(-1)];
+    if (!name) return cellName(i) + ", " + v;  // Tris: X/O come sono
+    const count = v.length > 1 ? v.slice(0, -1) + "× " : "";  // backgammon: "5●"
+    return cellName(i) + ", " + count + name;
+  }
+
   function renderCells(animate) {
     const grid = document.getElementById("grid");
     const dests = selected !== null ? new Set(playableFrom(selected).map((m) => m.to)) : new Set();
@@ -334,6 +386,10 @@
       el.textContent = v ? displayOf(v) : "";
       el.classList.remove("x", "o", "sel", "dest", "pop", "lastmv");
       if (lastmv.has(i)) el.classList.add("lastmv");
+      if (el.tagName === "BUTTON") {
+        el.setAttribute("aria-label", ariaFor(i, v));
+        if (isSelect) el.setAttribute("aria-pressed", i === selected ? "true" : "false");
+      }
       const pc = pieceClass(v);
       if (pc) el.classList.add(pc);
       if (moveType === "cell") el.disabled = v !== null || status !== "in_progress" || !canAct();
@@ -675,7 +731,7 @@
   function maybeWatch(session) {
     if (waitingOpponent(session)) {
       thinking.textContent = session.current_is_ai
-        ? "L'IA sta pensando…" : "In attesa della mossa dell'avversario…";
+        ? T.thinking_ai : T.waiting_opponent;
       thinking.style.display = "block";
       watchAi(AI_DELAY);
     } else {
@@ -761,18 +817,18 @@
     updateClock(session);
     const el = document.getElementById("turninfo");
     if (session.status === "finished") {
-      const perTempo = session.finish_reason === "time" ? " (tempo scaduto)"
-        : session.finish_reason === "repetition" ? " (triplice ripetizione)"
-        : session.finish_reason === "resign" ? " (per abbandono)"
-        : session.finish_reason === "agreement" ? " (patta d'accordo)" : "";
+      const perTempo = session.finish_reason === "time" ? " " + T.by_time
+        : session.finish_reason === "repetition" ? " " + T.by_repetition
+        : session.finish_reason === "resign" ? " " + T.by_resign
+        : session.finish_reason === "agreement" ? " " + T.by_agreement : "";
       el.innerHTML = session.winner === "draw"
-        ? '<span class="pill">Patta' + perTempo + "</span>"
-        : '<span class="pill">Ha vinto ' + session.winner.toUpperCase() + perTempo + "</span>";
+        ? '<span class="pill">' + T.draw + perTempo + "</span>"
+        : '<span class="pill">' + T.won_by + " " + session.winner.toUpperCase() + perTempo + "</span>";
     } else {
-      el.innerHTML = "Tocca a: <strong>" + current.toUpperCase() + "</strong>" +
-        (session.current_is_ai ? " (IA)" : "");
+      el.innerHTML = T.turn_of + " <strong>" + current.toUpperCase() + "</strong>" +
+        (session.current_is_ai ? " " + T.ai_suffix : "");
     }
-    document.getElementById("opening").textContent = session.opening ? "Apertura: " + session.opening : "";
+    document.getElementById("opening").textContent = session.opening ? T.opening + " " + session.opening : "";
     // Riga di stato specifica del gioco (es. i dadi da giocare nel backgammon).
     document.getElementById("statusline").textContent = session.status_line || "";
     // Trasparenza: chi ha giocato davvero l'ultima mossa IA (utile per verificare che
@@ -825,7 +881,7 @@
       thinking.style.display = "none";
       busy = false;
       await resync();
-      alert(err.message || "Mossa non valida");
+      alert(err.message || T.invalid_move);
     }
   }
 
@@ -856,9 +912,9 @@
         diff += CHESS_VALUE[w] * (lostB - lostW);  // >0 = Bianco avanti
       }
       rows_ = [
-        `<span class="who">Bianco:</span> ${wTook || "—"}` +
+        `<span class="who">${T.white}:</span> ${wTook || "—"}` +
           (diff > 0 ? ` <strong>+${diff}</strong>` : ""),
-        `<span class="who">Nero:</span> ${bTook || "—"}` +
+        `<span class="who">${T.black}:</span> ${bTook || "—"}` +
           (diff < 0 ? ` <strong>+${-diff}</strong>` : ""),
       ];
     } else {
@@ -866,8 +922,8 @@
         + (count[side === 0 ? "⛁" : "⛃"] || 0);
       const wTook = 12 - men(1), bTook = 12 - men(0);
       rows_ = [
-        `<span class="who">Bianco:</span> ${wTook ? "⛂×" + wTook : "—"}`,
-        `<span class="who">Nero:</span> ${bTook ? "⛀×" + bTook : "—"}`,
+        `<span class="who">${T.white}:</span> ${wTook ? "⛂×" + wTook : "—"}`,
+        `<span class="who">${T.black}:</span> ${bTook ? "⛀×" + bTook : "—"}`,
       ];
     }
     box.innerHTML = "⚔️ " + rows_.join(" &nbsp;·&nbsp; ");
@@ -994,9 +1050,12 @@
     return new Promise((resolve) => {
       const grid = document.getElementById("grid");
       const GLYPH = { q: "♛", r: "♜", b: "♝", n: "♞" };
-      const LABEL = { q: "Donna", r: "Torre", b: "Alfiere", n: "Cavallo" };
+      const LABEL = T.promo_labels;
       const overlay = document.createElement("div");
       overlay.className = "promo-overlay";
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.setAttribute("aria-label", T.promotion);
       const panel = document.createElement("div");
       panel.className = "promo-panel";
       const done = (mv) => {
@@ -1028,6 +1087,8 @@
       overlay.addEventListener("click", () => done(null));  // fuori = annulla
       overlay.appendChild(panel);
       grid.appendChild(overlay);
+      const first = panel.querySelector("button");
+      if (first) first.focus();  // screen reader e tastiera entrano nel dialog
       document.addEventListener("keydown", onKey);
     });
   }
@@ -1065,7 +1126,7 @@
     const res = await fetch(HINT_URL, { method: "POST", headers: { "X-CSRFToken": CSRF } });
     const d = await res.json();
     if (d.error) { label.textContent = d.error; return; }
-    label.textContent = "Suggerimento: " + d.notation;
+    label.textContent = T.hint_prefix + " " + d.notation;
     // Evidenzia la mossa suggerita sulla scacchiera (origine/destinazione o cella).
     const grid = document.getElementById("grid");
     const pm = pmoves.find((m) => m.id === d.move);
@@ -1096,7 +1157,7 @@
   }
 
   document.getElementById("btn-resign").addEventListener("click", () => {
-    if (window.confirm("Abbandonare la partita?")) endgame("resign");
+    if (window.confirm(T.confirm_resign)) endgame("resign");
   });
   document.getElementById("btn-draw").addEventListener("click", () => endgame("draw", "offer"));
   document.getElementById("btn-draw-accept")
@@ -1182,7 +1243,7 @@
     const out = document.getElementById("explaintext");
     explainBtn.disabled = true;
     out.style.display = "block";
-    out.textContent = "🎓 Sto guardando la posizione…";
+    out.textContent = "🎓 " + T.explain_busy;
     try {
       const res = await fetch("{% url 'play_explain_json' s.id %}", {
         method: "POST",
@@ -1196,7 +1257,7 @@
         if (lastMoves[d.ply - 1]) lastMoves[d.ply - 1].explain = d.text;
       }
     } catch (e) {
-      out.textContent = "⚠️ Spiegazione non disponibile (backend irraggiungibile?)";
+      out.textContent = "⚠️ " + T.explain_error;
     }
     explainBtn.disabled = false;
   });
@@ -1240,7 +1301,7 @@
   const analyzeBtn = document.getElementById("btn-analyze");
   if (analyzeBtn) analyzeBtn.addEventListener("click", async () => {
     const el = document.getElementById("an-status");
-    el.textContent = "Analisi in corso… (Stockfish valuta ogni posizione)";
+    el.textContent = T.analysis_running;
     analyzeBtn.disabled = true;
     const started = await fetch(ANALYSIS_URL, { method: "POST", headers: { "X-CSRFToken": CSRF } });
     const sd = await started.json();
@@ -1250,7 +1311,7 @@
       if (d.status === "done") {
         clearInterval(poll);
         analysisData = d;
-        el.textContent = "Analisi completata: ?? = blunder, ? = errore, ?! = imprecisione.";
+        el.textContent = T.analysis_done;
         applyAnalysis();
       } else if (d.status === "failed" || d.error) {
         clearInterval(poll);

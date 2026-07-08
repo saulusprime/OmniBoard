@@ -159,7 +159,14 @@ distanza vede la scacchiera dal proprio lato, e il pulsante «🔄 Ruota» la gi
 qualsiasi momento (le coordinate seguono la vista); sotto la scacchiera il pannello
 **pezzi catturati** con il bilancio materiale (+n per chi è avanti; nella dama il
 conteggio delle pedine). Nelle partite iniziate da FEN il pannello catture resta
-nascosto (il corredo di partenza non è quello standard). L'interfaccia è **responsive**: su
+nascosto (il corredo di partenza non è quello standard). Dalla navbar puoi cambiare **lingua** (italiano/inglese: menu a tendina — la
+scelta vale per la navigazione e la pagina di gioco; le altre pagine arriveranno).
+I giochi sono **accessibili da tastiera**: Tab entra nella scacchiera, le frecce
+spostano il fuoco tra le caselle (seguono l'orientamento della vista), Invio o
+Spazio selezionano e muovono; ogni casella annuncia allo screen reader la sua
+coordinata e il pezzo che la occupa («e4, pedone bianco»), e i cambi di turno,
+gli esiti e le offerte di patta vengono annunciati automaticamente.
+L'interfaccia è **responsive**: su
 telefono la scacchiera si rimisura da sola per entrare nello schermo (anche
 ruotando il dispositivo), il log delle mosse scende sotto la scacchiera, le
 tabelle lunghe (classifiche, community, arena) scorrono in orizzontale e i
