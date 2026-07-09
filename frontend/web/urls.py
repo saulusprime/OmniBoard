@@ -71,6 +71,7 @@ urlpatterns = [
     path("partite/registra/", views.match_create, name="match_create"),
     path("gioca/", views.play_setup, name="play_setup"),
     path("partite/<int:session_id>/", views.play, name="play"),
+    path("partite/<int:session_id>/guarda/", views.watch, name="watch"),
     path("partite/<int:session_id>/mossa/", views.play_move, name="play_move"),
     path("partite/<int:session_id>/mossa.json", views.play_move_json, name="play_move_json"),
     path("partite/<int:session_id>/stato.json", views.play_state_json, name="play_state_json"),

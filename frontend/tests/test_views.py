@@ -376,3 +376,57 @@ def test_group_match_pages_render(monkeypatch):
     assert "gm_a" in html and "gm_d" in html
     assert "½–½" in html  # il tavolo 2 è finito patto
     assert "Vince «Torri»" in html
+
+
+def test_watch_page_and_live_section_render(monkeypatch):
+    """La pagina spettatore si rende (live e replay) e la community elenca le dirette."""
+    import web.api_client as api
+
+    finished = {
+        "id": 31,
+        "game_code": "chess",
+        "game_name": "Scacchi",
+        "move_type": "chess",
+        "rows": 8,
+        "cols": 8,
+        "board": [None] * 64,
+        "status": "finished",
+        "winner": "o",
+        "finish_reason": None,
+        "current": 0,
+        "clock": None,
+        "status_line": None,
+        "moves": [{"ply": 1, "id": "e2e4", "notation": "e2-e4", "player": "X"}],
+        "players": {
+            "x": {"type": "human", "user_id": 1, "alias": "sp_a"},
+            "o": {"type": "human", "user_id": 2, "alias": "sp_b"},
+        },
+    }
+    monkeypatch.setattr(api, "get_session", lambda sid: finished)
+    html = Client().get("/partite/31/guarda/", SERVER_NAME="localhost").content.decode()
+    assert "modalità spettatore" in html
+    assert "Riproduci" in html  # i controlli del replay animato
+    assert "Apri come giocatore" in html
+
+    monkeypatch.setattr(api, "community_online", lambda: {"online": []})
+    monkeypatch.setattr(
+        api,
+        "community_live",
+        lambda: {
+            "live": [
+                {
+                    "session_id": 31,
+                    "game_code": "chess",
+                    "game_name": "Scacchi",
+                    "x_label": "sp_a",
+                    "o_label": "sp_b",
+                    "plies": 12,
+                    "tc_category": "blitz",
+                    "ai_only": False,
+                }
+            ]
+        },
+    )
+    html = Client().get("/community/", SERVER_NAME="localhost").content.decode()
+    assert "Partite in diretta" in html
+    assert "sp_a — sp_b" in html and "Guarda" in html

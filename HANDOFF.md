@@ -3,6 +3,47 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-09 — Spettatori delle partite live e replay animato
+
+**Richiesta (utente):** «Spettatori delle partite live e replay animato»
+(ultima voce della sezione community del TODO).
+
+**Backend — una sola aggiunta** (`GET /community/live`): l'elenco delle
+partite in corso GUARDABILI. Criterio di sicurezza: solo le partite a
+DISTANZA (`remote=True` — le azioni richiedono il token del giocatore al
+tratto, uno spettatore non può interferire) e le IA-vs-IA (l'Arena in
+diretta); le HOTSEAT restano fuori (nessuna protezione sulle mosse).
+Etichette dei lati: alias umano o identità Arena. Il resto ESISTEVA già:
+`GET /sessions/{id}` (vista pubblica per il polling) e
+`GET /sessions/{id}/replay` (tutte le posizioni, `_replay_boards`).
+
+**Frontend — pagina spettatore** (`/partite/<id>/guarda/`, `watch.html`):
+scacchiera di SOLA LETTURA (div, niente bottoni; classi copiate dal client di
+play: csq/dark/bgp per scacchi/dama/backgammon, `SOLID_GLYPH`, `pieceClass`
+sull'ultimo carattere per il backgammon), etichette dei lati, riga di stato
+con orologio (mm:ss) e `status_line` (i dadi). Due modalità nella stessa
+pagina:
+
+- **diretta** (in_progress): polling di `stato.json` ogni 3s, evidenza
+  dell'ultima mossa (mappatura UCI→casa solo per gli scacchi); alla fine
+  passa da sola al replay;
+- **replay animato** (finished): fotogrammi da `replay.json`, controlli
+  ⏮ ◀ ▶(auto)/⏸ ▶︎ ⏭ + velocità (lenta/normale/veloce) + slider; si parte
+  dalla posizione finale (come la moviola); a fine corsa il Play riparte
+  dall'inizio.
+
+**Community**: sezione «Partite in diretta» (resa server + aggiornamento nel
+polling esistente: `community.json` ora porta anche `live`); pulsante
+«👁 Guarda». Nella pagina di gioco, fra gli export post-partita, il link
+«🎬 Replay animato» apre la stessa pagina spettatore.
+
+**Test (287 verdi, +2)**: backend — la hotseat NON compare fra le dirette, la
+sfida accettata sì (con alias e semimosse), a partita finita esce e la
+moviola ha semimosse+1 posizioni; frontend — resa della pagina spettatore
+(controlli replay) e della sezione dirette in community.
+
+---
+
 ## 2026-07-09 — Sfide gruppo-vs-gruppo (squadre a tavoliere multiplo)
 
 **Richiesta (utente):** «Sfide gruppo-vs-gruppo» (la voce del TODO rinviata al

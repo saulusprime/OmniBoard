@@ -25,6 +25,27 @@
   </table>
 </div>
 
+<div class="card">
+  <h2>👁 {% trans 'Partite in diretta' %}</h2>
+  <p class="muted">{% trans 'Guarda le partite a distanza in corso e i duelli fra IA, in sola lettura. A partita finita la stessa pagina diventa il replay animato.' %}</p>
+  <table>
+    <tr><th>{% trans 'Gioco' %}</th><th>{% trans 'Giocatori' %}</th>
+        <th>{% trans 'Semimosse' %}</th><th></th></tr>
+    <tbody id="live-list">
+    {% for l in live %}
+    <tr>
+      <td>{{ l.game_name }}{% if l.ai_only %} <span class="pill">IA</span>{% endif %}{% if l.tc_category %} <span class="muted">({{ l.tc_category }})</span>{% endif %}</td>
+      <td>{{ l.x_label }} — {{ l.o_label }}</td>
+      <td>{{ l.plies }}</td>
+      <td><a class="btn secondary" href="{% url 'watch' l.session_id %}">👁 {% trans 'Guarda' %}</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4" class="muted">{% trans 'Nessuna partita in diretta in questo momento.' %}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
 {% if auth_user %}
 {% if challenges.incoming or challenges.outgoing %}
 <div class="card">
@@ -134,6 +155,20 @@
     ).join("");
   }
 
+  function renderLive(list) {
+    const tb = document.getElementById("live-list");
+    if (!tb) return;
+    if (!list.length) {
+      tb.innerHTML = '<tr><td colspan="4" class="muted">{% trans 'Nessuna partita in diretta in questo momento.' %}</td></tr>';
+      return;
+    }
+    tb.innerHTML = list.map((l) =>
+      `<tr><td>${esc(l.game_name)}${l.ai_only ? ' <span class="pill">IA</span>' : ""}${l.tc_category ? ` <span class="muted">(${esc(l.tc_category)})</span>` : ""}</td>` +
+      `<td>${esc(l.x_label)} — ${esc(l.o_label)}</td><td>${l.plies}</td>` +
+      `<td><a class="btn secondary" href="/partite/${l.session_id}/guarda/">👁 {% trans 'Guarda' %}</a></td></tr>`
+    ).join("");
+  }
+
   async function refreshCommunity() {
     try {
       const res = await fetch("{% url 'community_json' %}");
@@ -141,6 +176,7 @@
       const data = await res.json();
       renderOnline(data.online || []);
       renderGames(data.my_games || []);
+      renderLive(data.live || []);
     } catch (e) { /* backend momentaneamente giù: si riprova al giro dopo */ }
   }
   setInterval(refreshCommunity, 8000);

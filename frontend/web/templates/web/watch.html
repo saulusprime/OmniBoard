@@ -1,0 +1,208 @@
+{% extends "web/base.html" %}
+{% load i18n %}
+{% block title %}👁 {{ s.game_name }} #{{ session_id }}{% endblock %}
+{% block content %}
+{% include "web/board_css.html" %}
+{{ s|json_script:"watch-data" }}
+
+<div class="card">
+  <h1>👁 <span id="w-title">{{ s.game_name }}</span>
+    <span class="muted" style="font-size:.7em;">{% trans 'modalità spettatore' %}</span></h1>
+  <p id="w-players" style="font-weight:600; margin:4px 0;"></p>
+  <p id="w-status" class="muted" aria-live="polite" style="min-height:22px;"></p>
+  <div id="boardarea"></div>
+
+  <div id="w-replay" style="display:none; margin-top:12px;">
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+      <button class="btn secondary" id="rp-first" type="button" title="{% trans 'Inizio' %}">⏮</button>
+      <button class="btn secondary" id="rp-prev" type="button" title="{% trans 'Indietro' %}">◀</button>
+      <button class="btn" id="rp-play" type="button">▶ {% trans 'Riproduci' %}</button>
+      <button class="btn secondary" id="rp-next" type="button" title="{% trans 'Avanti' %}">▶︎</button>
+      <button class="btn secondary" id="rp-last" type="button" title="{% trans 'Fine' %}">⏭</button>
+      <select id="rp-speed" aria-label="{% trans 'Velocità' %}" style="width:auto; padding:6px 8px;">
+        <option value="2000">{% trans 'lenta' %}</option>
+        <option value="1000" selected>{% trans 'normale' %}</option>
+        <option value="450">{% trans 'veloce' %}</option>
+      </select>
+      <span id="rp-pos" class="pill"></span>
+      <strong id="rp-notation" style="min-width:80px;"></strong>
+    </div>
+    <input id="rp-slider" type="range" min="0" value="0"
+           style="width:100%; margin-top:8px;" aria-label="{% trans 'Posizione della moviola' %}">
+  </div>
+
+  <p style="margin-top:12px;">
+    <a class="btn secondary" href="{% url 'community' %}">← Community</a>
+    <a class="btn secondary" href="{% url 'play' session_id %}">{% trans 'Apri come giocatore' %}</a>
+  </p>
+</div>
+
+<script>
+(() => {
+  const S = JSON.parse(document.getElementById("watch-data").textContent);
+  const STATE_URL = "{% url 'play_state_json' session_id %}";
+  const REPLAY_URL = "{% url 'play_replay_json' session_id %}";
+  const rows = S.rows, cols = S.cols, moveType = S.move_type;
+  const cellPx = fitCellPx(46, cols, moveType === "chess" || moveType === "draughts");
+  const PIECE_SCALE = 0.83;
+  const WHITE_SET = "X⛀⛁♔♕♖♗♘♙○", BLACK_SET = "O⛂⛃♚♛♜♝♞♟●";
+  const SOLID_GLYPH = { "♔": "♚", "♕": "♛", "♖": "♜", "♗": "♝", "♘": "♞", "♙": "♟",
+                        "⛀": "⛂", "⛁": "⛃", "○": "●" };
+  const isDark = (i) => ((Math.floor(i / cols) + i % cols) % 2) === 1;
+
+  function pieceClass(v) {
+    if (!v) return null;
+    const c = String(v).slice(-1);
+    if (WHITE_SET.includes(c)) return "x";
+    if (BLACK_SET.includes(c)) return "o";
+    return null;
+  }
+  function displayOf(v) {
+    if (!v) return "";
+    let out = "";
+    for (const ch of String(v)) out += SOLID_GLYPH[ch] || ch;
+    return out;
+  }
+
+  // Scacchiera di sola lettura (niente bottoni: lo spettatore guarda).
+  const area = document.getElementById("boardarea");
+  const grid = document.createElement("div");
+  grid.className = "board t-classico";
+  grid.id = "grid";
+  grid.style.gridTemplateColumns = `repeat(${cols}, ${cellPx}px)`;
+  grid.style.gridTemplateRows = `repeat(${rows}, ${cellPx}px)`;
+  for (let i = 0; i < rows * cols; i++) {
+    const el = document.createElement("div");
+    el.className = "cell";
+    if (moveType === "chess") el.classList.add(isDark(i) ? "csq-d" : "csq-l");
+    if (moveType === "draughts") el.classList.add(isDark(i) ? "dark" : "light");
+    if (moveType === "backgammon") {
+      const r = Math.floor(i / cols), c = i % cols;
+      if (c < 12) {
+        el.classList.add("bgp", r === 0 ? "bgp-top" : "bgp-bot");
+        el.classList.add((r + c) % 2 === 0 ? "bgp-a" : "bgp-b");
+      } else if (c === 12) el.classList.add("bgbar");
+      else el.classList.add("bgoff");
+    }
+    el.style.fontSize = (cellPx * PIECE_SCALE) + "px";
+    grid.appendChild(el);
+  }
+  area.appendChild(frameBoard(grid, moveType, rows, cols, cellPx, "classico", false));
+
+  function render(board, marks) {
+    for (let i = 0; i < rows * cols; i++) {
+      const el = grid.children[i];
+      const v = board[i];
+      el.textContent = displayOf(v);
+      el.classList.remove("x", "o", "lastmv");
+      const pc = pieceClass(v);
+      if (pc) el.classList.add(pc);
+      if (marks && marks.has(i)) el.classList.add("lastmv");
+    }
+  }
+
+  // Evidenzia l'ultima mossa (solo scacchi: l'id UCI si mappa sulle case).
+  function chessSquares(uci) {
+    if (moveType !== "chess" || !/^[a-h][1-8][a-h][1-8]/.test(uci || "")) return null;
+    const idx = (sq) => (8 - Number(sq[1])) * 8 + (sq.charCodeAt(0) - 97);
+    return new Set([idx(uci.slice(0, 2)), idx(uci.slice(2, 4))]);
+  }
+
+  function sideLabel(p) {
+    return p.alias || p.level_label || p.level || (p.type === "human" ? "?" : p.type);
+  }
+  document.getElementById("w-players").textContent =
+    sideLabel(S.players.x) + "  —  " + sideLabel(S.players.o);
+
+  const fmt = (ms) => {
+    const s = Math.max(0, Math.round(ms / 1000));
+    return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+  };
+
+  function statusText(view) {
+    if (view.status === "finished") {
+      if (view.winner === "draw") return "{% trans 'Patta.' %}";
+      const who = view.winner === "x" ? sideLabel(S.players.x) : sideLabel(S.players.o);
+      return "🏆 " + who;
+    }
+    let txt = "{% trans 'Al tratto:' %} " +
+      (view.current === 0 ? sideLabel(S.players.x) : sideLabel(S.players.o));
+    if (view.clock) txt += ` · ⏱ ${fmt(view.clock.x_ms)} — ${fmt(view.clock.o_ms)}`;
+    if (view.status_line) txt += " · " + view.status_line;
+    return txt;
+  }
+
+  // ----- Diretta: polling finché la partita è in corso -----
+  let liveTimer = null;
+  async function refresh() {
+    try {
+      const res = await fetch(STATE_URL);
+      if (!res.ok) return;
+      const view = await res.json();
+      const last = (view.moves || [])[view.moves.length - 1];
+      render(view.board, last ? chessSquares(last.id) : null);
+      document.getElementById("w-status").textContent = statusText(view);
+      if (view.status === "finished") {
+        clearInterval(liveTimer);
+        setupReplay();
+      }
+    } catch (e) { /* backend momentaneamente giù: si riprova al giro dopo */ }
+  }
+
+  // ----- Replay animato (partita finita): frame dalla moviola del backend -----
+  let boards = null, at = 0, playing = null;
+  const moves = S.moves || [];
+
+  function show(i) {
+    at = Math.max(0, Math.min(i, boards.length - 1));
+    const rec = at > 0 ? moves[at - 1] : null;
+    render(boards[at], rec ? chessSquares(rec.id) : null);
+    document.getElementById("rp-pos").textContent = at + "/" + (boards.length - 1);
+    document.getElementById("rp-notation").textContent = rec ? rec.notation || "" : "—";
+    document.getElementById("rp-slider").value = at;
+    if (playing && at >= boards.length - 1) pause();
+  }
+  function pause() {
+    clearInterval(playing);
+    playing = null;
+    document.getElementById("rp-play").textContent = "▶ {% trans 'Riproduci' %}";
+  }
+  function play() {
+    if (at >= boards.length - 1) at = 0;  // ripartire dall'inizio a fine corsa
+    const speed = Number(document.getElementById("rp-speed").value);
+    playing = setInterval(() => show(at + 1), speed);
+    document.getElementById("rp-play").textContent = "⏸ {% trans 'Pausa' %}";
+    show(at);
+  }
+
+  async function setupReplay() {
+    try {
+      const res = await fetch(REPLAY_URL);
+      if (!res.ok) return;
+      boards = (await res.json()).boards;
+    } catch (e) { return; }
+    const bar = document.getElementById("w-replay");
+    bar.style.display = "";
+    const slider = document.getElementById("rp-slider");
+    slider.max = boards.length - 1;
+    document.getElementById("rp-first").addEventListener("click", () => { pause(); show(0); });
+    document.getElementById("rp-prev").addEventListener("click", () => { pause(); show(at - 1); });
+    document.getElementById("rp-next").addEventListener("click", () => { pause(); show(at + 1); });
+    document.getElementById("rp-last").addEventListener("click", () => { pause(); show(boards.length - 1); });
+    document.getElementById("rp-play").addEventListener("click", () => (playing ? pause() : play()));
+    document.getElementById("rp-speed").addEventListener("change", () => { if (playing) { pause(); play(); } });
+    slider.addEventListener("input", () => { pause(); show(Number(slider.value)); });
+    show(boards.length - 1);  // si parte dalla posizione finale, come la moviola
+  }
+
+  render(S.board, null);
+  document.getElementById("w-status").textContent = statusText(S);
+  if (S.status === "in_progress") {
+    refresh();
+    liveTimer = setInterval(refresh, 3000);
+  } else {
+    setupReplay();
+  }
+})();
+</script>
+{% endblock %}
