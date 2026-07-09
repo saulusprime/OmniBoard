@@ -1,0 +1,111 @@
+{% extends "web/base.html" %}
+{% load i18n %}
+{% block title %}{{ g.name }} — {% trans 'Gruppo' %}{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>👥 {{ g.name }}</h1>
+  <p class="muted"><a href="{% url 'groups' %}">← {% trans 'Tutti i gruppi' %}</a></p>
+
+  <h2>{% trans 'Membri' %}</h2>
+  <table>
+    <tr><th>{% trans 'Giocatore' %}</th><th>{% trans 'Ruolo' %}</th>
+        {% if my_role == 'founder' or my_role == 'admin' %}<th style="width:320px;">{% trans 'Gestione' %}</th>{% endif %}</tr>
+    {% for m in g.members %}
+    <tr>
+      <td><a href="{% url 'user_detail' m.user_id %}">{{ m.alias }}</a></td>
+      <td>{% if m.role == 'founder' %}👑 {% trans 'fondatore' %}{% elif m.role == 'admin' %}🛡 admin{% else %}{% trans 'membro' %}{% endif %}</td>
+      {% if my_role == 'founder' or my_role == 'admin' %}
+      <td>
+        {% if m.role != 'founder' %}
+        <form method="post" action="{% url 'group_action' g.id %}" style="display:inline-flex; gap:6px;">{% csrf_token %}
+          <input type="hidden" name="user_id" value="{{ m.user_id }}">
+          {% if my_role == 'founder' %}
+          <input type="hidden" name="role" value="{% if m.role == 'admin' %}member{% else %}admin{% endif %}">
+          <button class="btn secondary" type="submit" name="action" value="role">
+            {% if m.role == 'admin' %}⬇ {% trans 'Degrada' %}{% else %}⬆ {% trans 'Promuovi admin' %}{% endif %}</button>
+          {% endif %}
+          <button class="btn secondary" type="submit" name="action" value="remove">✕ {% trans 'Espelli' %}</button>
+        </form>
+        {% else %}—{% endif %}
+      </td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+
+  {% if my_role and my_role != 'founder' %}
+  <form method="post" action="{% url 'group_action' g.id %}" style="margin-top:10px;">{% csrf_token %}
+    <input type="hidden" name="user_id" value="{{ auth_user.id }}">
+    <button class="btn secondary" type="submit" name="action" value="remove">🚪 {% trans 'Lascia il gruppo' %}</button>
+  </form>
+  {% endif %}
+
+  {% if my_role == 'founder' or my_role == 'admin' %}
+  <h3>{% trans 'Invita un giocatore' %}</h3>
+  <form method="post" action="{% url 'group_action' g.id %}" style="display:flex; gap:10px; align-items:end; flex-wrap:wrap;">{% csrf_token %}
+    <div style="min-width:220px;">
+      <label>{% trans 'Giocatore' %}</label>
+      <select name="user_id">
+        {% for u in invitable %}<option value="{{ u.id }}">{{ u.alias }}</option>{% endfor %}
+      </select>
+    </div>
+    <button class="btn" type="submit" name="action" value="invite">✉️ {% trans 'Invita' %}</button>
+  </form>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>🏆 {% trans 'Classifica del gruppo' %}</h2>
+  <form method="get" style="display:flex; gap:10px; align-items:end; flex-wrap:wrap;">
+    <div style="min-width:180px;">
+      <label>{% trans 'Gioco' %}</label>
+      <select name="game" onchange="this.form.submit()">
+        <option value="">{% trans 'Complessiva' %}</option>
+        {% for game in games %}
+        <option value="{{ game.code }}" {% if game.code == sel_game %}selected{% endif %}>{{ game.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+  <table style="margin-top:10px;">
+    <tr><th>#</th><th>{% trans 'Giocatore' %}</th>
+        {% if sel_game %}<th>{% trans 'Punti' %}</th><th>V/P/S</th><th>Elo</th>
+        {% else %}<th>{% trans 'Punteggio complessivo' %}</th>{% endif %}</tr>
+    {% for r in ranking %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>{{ r.alias }}{% if r.role == 'founder' %} 👑{% endif %}</td>
+      {% if sel_game %}
+      <td><strong>{{ r.points }}</strong></td>
+      <td>{{ r.wins }}/{{ r.draws }}/{{ r.losses }}</td>
+      <td>{% if r.elo %}{{ r.elo }}{% else %}—{% endif %}</td>
+      {% else %}
+      <td><strong>{{ r.universal_points }}</strong></td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="card">
+  <h2>⚔️ {% trans 'Tornei del gruppo' %}</h2>
+  {% if tournaments %}
+  <table>
+    <tr><th>{% trans 'Nome' %}</th><th>{% trans 'Gioco' %}</th><th>{% trans 'Formato' %}</th>
+        <th>{% trans 'Stato' %}</th><th></th></tr>
+    {% for t in tournaments %}
+    <tr>
+      <td>{{ t.name }}</td>
+      <td>{{ t.game_name }}</td>
+      <td>{% if t.format == 'knockout' %}{% trans 'eliminazione' %}{% else %}{% trans 'girone' %}{% endif %}</td>
+      <td>{{ t.status }}</td>
+      <td><a class="btn secondary" href="{% url 'tournament_detail' t.id %}">{% trans 'Apri' %}</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">{% trans 'Nessun torneo del gruppo: organizzane uno dalla pagina Tornei.' %}</p>
+  {% endif %}
+  <p style="margin-top:10px;"><a class="btn" href="{% url 'tournaments' %}">→ {% trans 'Organizza un torneo' %}</a></p>
+</div>
+{% endblock %}

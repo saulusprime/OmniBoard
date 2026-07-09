@@ -8,15 +8,30 @@
   <p><a class="btn" href="{% url 'group_propose' %}">+ {% trans 'Proponi un gruppo' %}</a></p>
 </div>
 
+{% if my_invites %}
+<div class="card">
+  <h2>✉️ {% trans 'Inviti per te' %}</h2>
+  {% for inv in my_invites %}
+  <form method="post" action="{% url 'group_invite_respond' inv.id %}"
+        style="display:flex; gap:10px; align-items:center; margin:6px 0;">{% csrf_token %}
+    <span>{% blocktrans with g=inv.group_name who=inv.invited_by_alias %}«{{ g }}» ti invita (da {{ who }}).{% endblocktrans %}</span>
+    <button class="btn" type="submit" name="accept" value="1">{% trans 'Accetta' %}</button>
+    <button class="btn secondary" type="submit" name="accept" value="0">{% trans 'Rifiuta' %}</button>
+  </form>
+  {% endfor %}
+</div>
+{% endif %}
+
 <div class="card">
   <h2>{% trans 'Gruppi fondati' %}</h2>
   {% if groups %}
     {% for g in groups %}
     <div class="card" style="margin:0 0 12px;">
-      <strong>{{ g.name }}</strong>
+      <strong><a href="{% url 'group_detail' g.id %}">{{ g.name }}</a></strong>
       <div class="muted">{% trans 'Membri:' %}
         {% for m in g.members %}{{ m.alias }}{% if m.role == 'founder' %} ({% trans 'fondatore' %}){% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
       </div>
+      <p style="margin:8px 0 0;"><a class="btn secondary" href="{% url 'group_detail' g.id %}">{% trans 'Scheda del gruppo' %}</a></p>
     </div>
     {% endfor %}
   {% else %}

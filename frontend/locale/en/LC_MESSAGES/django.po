@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-08 21:38+0200\n"
+"POT-Creation-Date: 2026-07-09 20:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,9 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: web/forms.py:29 web/templates/web/admin.html:14
-#: web/templates/web/groups.html:31 web/templates/web/users_list.html:10
+#: web/templates/web/group_detail.html:94 web/templates/web/groups.html:46
+#: web/templates/web/tournaments.html:13 web/templates/web/tournaments.html:50
+#: web/templates/web/users_list.html:10
 msgid "Nome"
 msgstr "First name"
 
@@ -94,8 +96,11 @@ msgstr "Your Tic-tac-toe mark"
 
 #: web/forms.py:140 web/forms.py:214 web/templates/web/arena.html:35
 #: web/templates/web/arena.html:56 web/templates/web/community.html:34
-#: web/templates/web/rankings.html:29 web/templates/web/user_detail.html:26
-#: web/templates/web/user_detail.html:43 web/templates/web/user_stats.html:12
+#: web/templates/web/group_detail.html:61
+#: web/templates/web/group_detail.html:94 web/templates/web/rankings.html:29
+#: web/templates/web/tournaments.html:17 web/templates/web/tournaments.html:50
+#: web/templates/web/user_detail.html:26 web/templates/web/user_detail.html:43
+#: web/templates/web/user_stats.html:12
 msgid "Gioco"
 msgstr "Game"
 
@@ -205,7 +210,7 @@ msgstr "Reject"
 msgid "Voce sintetica (TTS)"
 msgstr "Speech synthesis (TTS)"
 
-#: web/templates/web/admin.html:43 web/templates/web/base.html:85
+#: web/templates/web/admin.html:43 web/templates/web/base.html:86
 msgid "Lingua"
 msgstr "Language"
 
@@ -218,7 +223,8 @@ msgid "Voce"
 msgstr "Voice"
 
 #: web/templates/web/admin.html:43 web/templates/web/arena.html:35
-#: web/templates/web/groups.html:31 web/templates/web/puzzles.html:31
+#: web/templates/web/group_detail.html:95 web/templates/web/groups.html:46
+#: web/templates/web/puzzles.html:31 web/templates/web/tournaments.html:51
 msgid "Stato"
 msgstr "Status"
 
@@ -234,7 +240,9 @@ msgstr "ready"
 msgid "Sparring — quanto è forte il motore interno?"
 msgstr "Sparring — how strong is the internal engine?"
 
-#: web/templates/web/admin.html:71 web/templates/web/groups.html:36
+#: web/templates/web/admin.html:71 web/templates/web/groups.html:51
+#: web/templates/web/tournament_detail.html:11
+#: web/templates/web/tournaments.html:59
 msgid "in corso"
 msgstr "running"
 
@@ -250,6 +258,7 @@ msgstr "Opponent"
 #: web/templates/web/arena.html:35 web/templates/web/arena_tournament.html:15
 #: web/templates/web/arena_tournament.html:29
 #: web/templates/web/batch_result.html:9 web/templates/web/rankings.html:54
+#: web/templates/web/tournament_detail.html:43
 #: web/templates/web/user_detail.html:26 web/templates/web/user_detail.html:43
 #: web/templates/web/user_detail.html:79 web/templates/web/user_stats.html:41
 #: web/templates/web/user_stats.html:50
@@ -369,7 +378,7 @@ msgid "Impossibile caricare i provider (backend non raggiungibile?)"
 msgstr "Could not load providers (backend unreachable?)"
 
 #: web/templates/web/arena.html:3 web/templates/web/arena.html:6
-#: web/templates/web/arena_tournament.html:11 web/templates/web/base.html:78
+#: web/templates/web/arena_tournament.html:11 web/templates/web/base.html:79
 msgid "Arena IA"
 msgstr "AI Arena"
 
@@ -401,16 +410,19 @@ msgstr ""
 "No AI-vs-AI games played in this game yet: create a tournament to start the "
 "ranking."
 
-#: web/templates/web/arena.html:33
+#: web/templates/web/arena.html:33 web/templates/web/base.html:77
+#: web/templates/web/tournaments.html:3
 msgid "Tornei"
 msgstr "Tournaments"
 
-#: web/templates/web/arena.html:35
+#: web/templates/web/arena.html:35 web/templates/web/tournament_detail.html:3
 msgid "Torneo"
 msgstr "Tournament"
 
 #: web/templates/web/arena.html:40 web/templates/web/arena_tournament.html:8
 #: web/templates/web/arena_tournament.html:61
+#: web/templates/web/tournament_detail.html:11
+#: web/templates/web/tournaments.html:60
 msgid "concluso"
 msgstr "finished"
 
@@ -460,7 +472,7 @@ msgstr "Double round"
 msgid "Concorrenti"
 msgstr "Competitors"
 
-#: web/templates/web/arena.html:77
+#: web/templates/web/arena.html:77 web/templates/web/tournament_detail.html:32
 msgid "Avvia il torneo"
 msgstr "Start the tournament"
 
@@ -470,15 +482,19 @@ msgid "partite"
 msgstr "games"
 
 #: web/templates/web/arena_tournament.html:10
+#: web/templates/web/tournament_detail.html:10
 msgid "andata e ritorno"
 msgstr "double round"
 
 #: web/templates/web/arena_tournament.html:13
+#: web/templates/web/tournament_detail.html:75
 msgid "Classifica del girone"
 msgstr "Round-robin standings"
 
 #: web/templates/web/arena_tournament.html:15
-#: web/templates/web/rankings.html:10 web/templates/web/rankings.html:73
+#: web/templates/web/group_detail.html:72 web/templates/web/rankings.html:10
+#: web/templates/web/rankings.html:73
+#: web/templates/web/tournament_detail.html:77
 #: web/templates/web/user_detail.html:43 web/templates/web/user_stats.html:12
 msgid "Punti"
 msgstr "Points"
@@ -498,6 +514,7 @@ msgstr "Result"
 
 #: web/templates/web/arena_tournament.html:38
 #: web/templates/web/arena_tournament.html:68
+#: web/templates/web/tournament_detail.html:59
 msgid "da giocare"
 msgstr "to be played"
 
@@ -516,6 +533,7 @@ msgstr "Home"
 
 #: web/templates/web/base.html:72 web/templates/web/community.html:41
 #: web/templates/web/community.html:83 web/templates/web/puzzles.html:42
+#: web/templates/web/tournament_detail.html:62
 msgid "Gioca"
 msgstr "Play"
 
@@ -539,24 +557,24 @@ msgstr "Players"
 msgid "Gruppi"
 msgstr "Groups"
 
-#: web/templates/web/base.html:77 web/templates/web/rankings.html:3
+#: web/templates/web/base.html:78 web/templates/web/rankings.html:3
 msgid "Classifiche"
 msgstr "Rankings"
 
-#: web/templates/web/base.html:79 web/templates/web/match_form.html:3
+#: web/templates/web/base.html:80 web/templates/web/match_form.html:3
 #: web/templates/web/match_form.html:6
 msgid "Registra partita"
 msgstr "Record game"
 
-#: web/templates/web/base.html:80
+#: web/templates/web/base.html:81
 msgid "Community"
 msgstr "Community"
 
-#: web/templates/web/base.html:102
+#: web/templates/web/base.html:103
 msgid "Esci"
 msgstr "Log out"
 
-#: web/templates/web/base.html:105 web/templates/web/community.html:31
+#: web/templates/web/base.html:106 web/templates/web/community.html:31
 #: web/templates/web/learn_index.html:8 web/templates/web/learn_lesson.html:40
 #: web/templates/web/login.html:3 web/templates/web/login.html:6
 #: web/templates/web/login.html:10
@@ -620,8 +638,11 @@ msgstr ""
 msgid "Giocatori online"
 msgstr "Players online"
 
-#: web/templates/web/community.html:11 web/templates/web/rankings.html:10
+#: web/templates/web/community.html:11 web/templates/web/group_detail.html:11
+#: web/templates/web/group_detail.html:47
+#: web/templates/web/group_detail.html:71 web/templates/web/rankings.html:10
 #: web/templates/web/rankings.html:53 web/templates/web/rankings.html:73
+#: web/templates/web/tournament_detail.html:77
 msgid "Giocatore"
 msgstr "Player"
 
@@ -650,6 +671,7 @@ msgid "per vedere le tue partite e ricevere le sfide."
 msgstr "to see your games and receive challenges."
 
 #: web/templates/web/community.html:34
+#: web/templates/web/tournament_detail.html:49
 msgid "Turno"
 msgstr "Turn"
 
@@ -668,6 +690,103 @@ msgstr "opponent"
 #: web/templates/web/community.html:44 web/templates/web/community.html:76
 msgid "Nessuna partita in corso."
 msgstr "No games in progress."
+
+#: web/templates/web/group_detail.html:3
+msgid "Gruppo"
+msgstr "Group"
+
+#: web/templates/web/group_detail.html:7
+msgid "Tutti i gruppi"
+msgstr "All groups"
+
+#: web/templates/web/group_detail.html:9
+msgid "Membri"
+msgstr "Members"
+
+#: web/templates/web/group_detail.html:11
+msgid "Ruolo"
+msgstr "Role"
+
+#: web/templates/web/group_detail.html:12
+msgid "Gestione"
+msgstr "Manage"
+
+#: web/templates/web/group_detail.html:16 web/templates/web/groups.html:32
+msgid "fondatore"
+msgstr "founder"
+
+#: web/templates/web/group_detail.html:16
+msgid "membro"
+msgstr "member"
+
+#: web/templates/web/group_detail.html:25
+msgid "Degrada"
+msgstr "Demote"
+
+#: web/templates/web/group_detail.html:25
+msgid "Promuovi admin"
+msgstr "Promote to admin"
+
+#: web/templates/web/group_detail.html:27
+msgid "Espelli"
+msgstr "Expel"
+
+#: web/templates/web/group_detail.html:39
+msgid "Lascia il gruppo"
+msgstr "Leave the group"
+
+#: web/templates/web/group_detail.html:44
+msgid "Invita un giocatore"
+msgstr "Invite a player"
+
+#: web/templates/web/group_detail.html:52
+msgid "Invita"
+msgstr "Invite"
+
+#: web/templates/web/group_detail.html:58
+msgid "Classifica del gruppo"
+msgstr "Group ranking"
+
+#: web/templates/web/group_detail.html:63
+msgid "Complessiva"
+msgstr "Overall"
+
+#: web/templates/web/group_detail.html:73
+msgid "Punteggio complessivo"
+msgstr "Overall score"
+
+#: web/templates/web/group_detail.html:91
+msgid "Tornei del gruppo"
+msgstr "Group tournaments"
+
+#: web/templates/web/group_detail.html:94 web/templates/web/tournaments.html:23
+#: web/templates/web/tournaments.html:50
+msgid "Formato"
+msgstr "Format"
+
+#: web/templates/web/group_detail.html:100
+#: web/templates/web/tournaments.html:56
+msgid "eliminazione"
+msgstr "knockout"
+
+#: web/templates/web/group_detail.html:100
+#: web/templates/web/tournaments.html:56
+msgid "girone"
+msgstr "round robin"
+
+#: web/templates/web/group_detail.html:102
+#: web/templates/web/tournaments.html:62
+msgid "Apri"
+msgstr "Open"
+
+#: web/templates/web/group_detail.html:107
+msgid "Nessun torneo del gruppo: organizzane uno dalla pagina Tornei."
+msgstr "No group tournaments: organize one from the Tournaments page."
+
+#: web/templates/web/group_detail.html:109
+#: web/templates/web/tournaments.html:10
+msgid "Organizza un torneo"
+msgstr "Organize a tournament"
 
 #: web/templates/web/group_propose.html:3
 #: web/templates/web/group_propose.html:6 web/templates/web/groups.html:8
@@ -698,39 +817,56 @@ msgid ""
 "giocatori."
 msgstr "Founding a group requires a proposal approved by at least two players."
 
-#: web/templates/web/groups.html:12
+#: web/templates/web/groups.html:13
+msgid "Inviti per te"
+msgstr "Invites for you"
+
+#: web/templates/web/groups.html:17
+#, python-format
+msgid "«%(g)s» ti invita (da %(who)s)."
+msgstr "“%(g)s” invites you (from %(who)s)."
+
+#: web/templates/web/groups.html:18 web/templates/web/play.html:85
+msgid "Accetta"
+msgstr "Accept"
+
+#: web/templates/web/groups.html:19 web/templates/web/play.html:87
+msgid "Rifiuta"
+msgstr "Decline"
+
+#: web/templates/web/groups.html:26
 msgid "Gruppi fondati"
 msgstr "Founded groups"
 
-#: web/templates/web/groups.html:17
+#: web/templates/web/groups.html:31
 msgid "Membri:"
 msgstr "Members:"
 
-#: web/templates/web/groups.html:18
-msgid "fondatore"
-msgstr "founder"
+#: web/templates/web/groups.html:34
+msgid "Scheda del gruppo"
+msgstr "Group page"
 
-#: web/templates/web/groups.html:23
+#: web/templates/web/groups.html:38
 msgid "Nessun gruppo ancora fondato."
 msgstr "No groups founded yet."
 
-#: web/templates/web/groups.html:28
+#: web/templates/web/groups.html:43
 msgid "Proposte in corso"
 msgstr "Open proposals"
 
-#: web/templates/web/groups.html:31
+#: web/templates/web/groups.html:46
 msgid "Voti"
 msgstr "Votes"
 
-#: web/templates/web/groups.html:31 web/templates/web/groups.html:43
+#: web/templates/web/groups.html:46 web/templates/web/groups.html:58
 msgid "Vota"
 msgstr "Vote"
 
-#: web/templates/web/groups.html:36
+#: web/templates/web/groups.html:51
 msgid "fondato"
 msgstr "founded"
 
-#: web/templates/web/groups.html:51
+#: web/templates/web/groups.html:66
 msgid "Nessuna proposta in corso."
 msgstr "No open proposals."
 
@@ -830,11 +966,13 @@ msgid "Nessuna lezione disponibile (backend non raggiungibile?)"
 msgstr "No lessons available (backend unreachable?)"
 
 #: web/templates/web/learn_lesson.html:31 web/templates/web/play.html:106
+#: web/views.py:822
 msgid "Indietro"
 msgstr "Back"
 
 #: web/templates/web/learn_lesson.html:32
 #: web/templates/web/learn_lesson.html:124 web/templates/web/play.html:108
+#: web/views.py:823
 msgid "Avanti"
 msgstr "Forward"
 
@@ -863,6 +1001,7 @@ msgid "di"
 msgstr "of"
 
 #: web/templates/web/learn_lesson.html:124 web/templates/web/play.html:109
+#: web/views.py:824
 msgid "Fine"
 msgstr "End"
 
@@ -920,7 +1059,7 @@ msgstr "Record"
 msgid "umano"
 msgstr "human"
 
-#: web/templates/web/play.html:69
+#: web/templates/web/play.html:69 web/views.py:768
 msgid "L'IA sta pensando…"
 msgstr "The AI is thinking…"
 
@@ -944,14 +1083,6 @@ msgstr "Resign"
 msgid "Ti è stata offerta la patta:"
 msgstr "You have been offered a draw:"
 
-#: web/templates/web/play.html:85
-msgid "Accetta"
-msgstr "Accept"
-
-#: web/templates/web/play.html:87
-msgid "Rifiuta"
-msgstr "Decline"
-
 #: web/templates/web/play.html:90
 msgid "Questa pagina richiede JavaScript per giocare."
 msgstr "This page requires JavaScript to play."
@@ -964,7 +1095,7 @@ msgstr "Commentary"
 msgid "Mosse"
 msgstr "Moves"
 
-#: web/templates/web/play.html:105
+#: web/templates/web/play.html:105 web/views.py:821
 msgid "Inizio"
 msgstr "Start"
 
@@ -1162,6 +1293,126 @@ msgstr ""
 msgid "Nessun punteggio per questo filtro."
 msgstr "No scores for this filter."
 
+#: web/templates/web/tournament_detail.html:10
+msgid "eliminazione diretta"
+msgstr "knockout"
+
+#: web/templates/web/tournament_detail.html:10
+msgid "girone all’italiana"
+msgstr "round robin"
+
+#: web/templates/web/tournament_detail.html:11
+#: web/templates/web/tournaments.html:58
+msgid "iscrizioni aperte"
+msgstr "registration open"
+
+#: web/templates/web/tournament_detail.html:12
+msgid "Tutti i tornei"
+msgstr "All tournaments"
+
+#: web/templates/web/tournament_detail.html:14
+msgid "vince il torneo!"
+msgstr "wins the tournament!"
+
+#: web/templates/web/tournament_detail.html:16
+#: web/templates/web/tournaments.html:51
+msgid "Iscritti"
+msgstr "Players"
+
+#: web/templates/web/tournament_detail.html:20
+msgid "Nessun iscritto."
+msgstr "No players registered."
+
+#: web/templates/web/tournament_detail.html:27
+msgid "Iscrivimi"
+msgstr "Sign me up"
+
+#: web/templates/web/tournament_detail.html:29
+msgid "Ritira l’iscrizione"
+msgstr "Withdraw registration"
+
+#: web/templates/web/tournament_detail.html:36
+msgid ""
+"All’avvio i seed seguono l’Elo; il tabellone si riempie di bye se gli "
+"iscritti non sono una potenza di due. In caso di patta passa chi gioca col "
+"Nero (draw odds)."
+msgstr "At start, seeds follow Elo; the bracket fills with byes if the players are not a power of two. On a draw, the player with Black advances (draw odds)."
+
+#: web/templates/web/tournament_detail.html:43
+msgid "Tabellone"
+msgstr "Bracket"
+
+#: web/templates/web/tournament_detail.html:48
+msgid "Finale"
+msgstr "Final"
+
+#: web/templates/web/tournament_detail.html:56
+msgid "bye"
+msgstr "bye"
+
+#: web/templates/web/tournament_detail.html:62
+msgid "Moviola"
+msgstr "Replay"
+
+#: web/templates/web/tournament_detail.html:78
+msgid "Giocate"
+msgstr "Played"
+
+#: web/templates/web/tournaments.html:6
+msgid "Tornei fra giocatori"
+msgstr "Tournaments between players"
+
+#: web/templates/web/tournaments.html:7
+msgid ""
+"Eliminazione diretta col tabellone o girone all’italiana: le partite "
+"compaiono in «le mie partite» degli iscritti e il torneo avanza da solo a "
+"ogni risultato."
+msgstr "Knockout with a bracket or round robin: games appear in each player’s “my games” and the tournament advances on every result."
+
+#: web/templates/web/tournaments.html:14
+msgid "Coppa del circolo"
+msgstr "Club cup"
+
+#: web/templates/web/tournaments.html:25
+msgid "Eliminazione diretta"
+msgstr "Knockout"
+
+#: web/templates/web/tournaments.html:26
+msgid "Girone all’italiana"
+msgstr "Round robin"
+
+#: web/templates/web/tournaments.html:30
+msgid "Riservato al gruppo"
+msgstr "Reserved for group"
+
+#: web/templates/web/tournaments.html:32
+msgid "Aperto a tutti"
+msgstr "Open to everyone"
+
+#: web/templates/web/tournaments.html:37
+msgid "andata e ritorno (solo girone)"
+msgstr "double round (round robin only)"
+
+#: web/templates/web/tournaments.html:39
+msgid "Crea (iscrizioni aperte)"
+msgstr "Create (registration open)"
+
+#: web/templates/web/tournaments.html:42
+msgid "Accedi per organizzare o iscriverti."
+msgstr "Log in to organize or register."
+
+#: web/templates/web/tournaments.html:47
+msgid "Tornei in corso e conclusi"
+msgstr "Ongoing and finished tournaments"
+
+#: web/templates/web/tournaments.html:51
+msgid "Vincitore"
+msgstr "Winner"
+
+#: web/templates/web/tournaments.html:67
+msgid "Ancora nessun torneo: organizza il primo."
+msgstr "No tournaments yet: organize the first one."
+
 #: web/templates/web/user_detail.html:6
 msgid "pt universali"
 msgstr "universal pts"
@@ -1277,19 +1528,20 @@ msgstr "Adapted AI style: aggression %(ag)s, contempt %(ct)s."
 msgid "Storico partite"
 msgstr "Game history"
 
-#: web/templates/web/user_detail.html:107 web/templates/web/user_stats.html:107
+#: web/templates/web/user_detail.html:107 web/templates/web/user_stats.html:152
 msgid "vs"
 msgstr "vs"
 
-#: web/templates/web/user_detail.html:108 web/templates/web/user_stats.html:108
+#: web/templates/web/user_detail.html:108 web/templates/web/user_stats.html:153
 msgid "Vittoria"
 msgstr "Win"
 
-#: web/templates/web/user_detail.html:109 web/templates/web/user_stats.html:108
+#: web/templates/web/user_detail.html:109 web/templates/web/user_stats.html:153
+#: web/views.py:773
 msgid "Patta"
 msgstr "Draw"
 
-#: web/templates/web/user_detail.html:110 web/templates/web/user_stats.html:108
+#: web/templates/web/user_detail.html:110 web/templates/web/user_stats.html:153
 msgid "Sconfitta"
 msgstr "Loss"
 
@@ -1365,11 +1617,11 @@ msgstr "Accuracy: %(acpl)s centipawns lost per move, %(bl)s blunders in total."
 msgid "Per colore"
 msgstr "By colour"
 
-#: web/templates/web/user_stats.html:42
+#: web/templates/web/user_stats.html:42 web/views.py:786
 msgid "Bianco"
 msgstr "White"
 
-#: web/templates/web/user_stats.html:43
+#: web/templates/web/user_stats.html:43 web/views.py:787
 msgid "Nero"
 msgstr "Black"
 
@@ -1382,7 +1634,6 @@ msgid "Cadenza"
 msgstr "Time control"
 
 #: web/templates/web/user_stats.html:51
-#| msgid "Analizza la partita"
 msgid "Analizzate"
 msgstr "Analysed"
 
@@ -1394,39 +1645,97 @@ msgstr "Accuracy (ACPL)"
 msgid "Senza orologio"
 msgstr "No clock"
 
-#: web/templates/web/user_stats.html:64
+#: web/templates/web/user_stats.html:66
+msgid "I quattro aspetti del gioco"
+msgstr "The four aspects of the game"
+
+#: web/templates/web/user_stats.html:67
+#, python-format
+msgid ""
+"Punteggi 0–100 dalle %(n)s partite analizzate: precisione per fase di gioco, "
+"più il libro (aperture) e i blunder puniti (tattica)."
+msgstr ""
+"Scores 0–100 from the %(n)s analyzed games: accuracy per game phase, plus "
+"opening book (openings) and punished blunders (tactics)."
+
+#: web/templates/web/user_stats.html:70
+msgid "Aperture"
+msgstr "Openings"
+
+#: web/templates/web/user_stats.html:75
+msgid "nel libro"
+msgstr "in the book"
+
+#: web/templates/web/user_stats.html:76 web/templates/web/user_stats.html:94
+#: web/templates/web/user_stats.html:103
+msgid "campione insufficiente"
+msgstr "sample too small"
+
+#: web/templates/web/user_stats.html:79
+msgid "Tattica"
+msgstr "Tactics"
+
+#: web/templates/web/user_stats.html:84
+#, python-format
+msgid "%(b)s blunder (%(pg)s a partita)"
+msgstr "%(b)s blunders (%(pg)s per game)"
+
+#: web/templates/web/user_stats.html:85
+#, python-format
+msgid "puniti %(p)s/%(o)s"
+msgstr "punished %(p)s/%(o)s"
+
+#: web/templates/web/user_stats.html:88
+msgid "Strategia"
+msgstr "Strategy"
+
+#: web/templates/web/user_stats.html:93
+#, python-format
+msgid "ACPL %(acpl)s su %(m)s mosse quiete"
+msgstr "ACPL %(acpl)s over %(m)s quiet moves"
+
+#: web/templates/web/user_stats.html:97
+msgid "Finali"
+msgstr "Endgames"
+
+#: web/templates/web/user_stats.html:102
+#, python-format
+msgid "ACPL %(acpl)s su %(m)s mosse"
+msgstr "ACPL %(acpl)s over %(m)s moves"
+
+#: web/templates/web/user_stats.html:109
 msgid "Come finiscono le partite"
 msgstr "How games end"
 
-#: web/templates/web/user_stats.html:66
+#: web/templates/web/user_stats.html:111
 msgid "scacco matto"
 msgstr "checkmate"
 
-#: web/templates/web/user_stats.html:67
+#: web/templates/web/user_stats.html:112
 msgid "tempo"
 msgstr "time"
 
-#: web/templates/web/user_stats.html:68
+#: web/templates/web/user_stats.html:113
 msgid "abbandono"
 msgstr "resignation"
 
-#: web/templates/web/user_stats.html:69
+#: web/templates/web/user_stats.html:114
 msgid "patta d’accordo"
 msgstr "draw by agreement"
 
-#: web/templates/web/user_stats.html:70
+#: web/templates/web/user_stats.html:115
 msgid "ripetizione"
 msgstr "repetition"
 
-#: web/templates/web/user_stats.html:73
+#: web/templates/web/user_stats.html:118
 msgid "I tuoi badge di qualità"
 msgstr "Your quality badges"
 
-#: web/templates/web/user_stats.html:81
+#: web/templates/web/user_stats.html:126
 msgid "Mosse geniali"
 msgstr "Brilliant moves"
 
-#: web/templates/web/user_stats.html:82
+#: web/templates/web/user_stats.html:127
 msgid ""
 "Le tue mosse «da maestro» secondo il motore: lo scatto della posizione, "
 "l’avversario e il collegamento alla moviola."
@@ -1434,59 +1743,59 @@ msgstr ""
 "Your “masterful” moves according to the engine: a snapshot of the position, "
 "the opponent and a link to the replay viewer."
 
-#: web/templates/web/user_stats.html:85
+#: web/templates/web/user_stats.html:130
 msgid "Tutte"
 msgstr "All"
 
-#: web/templates/web/user_stats.html:86
+#: web/templates/web/user_stats.html:131
 msgid "Sacrifici"
 msgstr "Sacrifices"
 
-#: web/templates/web/user_stats.html:87
+#: web/templates/web/user_stats.html:132
 msgid "Da maestro"
 msgstr "Masterful"
 
-#: web/templates/web/user_stats.html:88
+#: web/templates/web/user_stats.html:133
 msgid "Filtra per pezzo"
 msgstr "Filter by piece"
 
-#: web/templates/web/user_stats.html:90
+#: web/templates/web/user_stats.html:135
 msgid "Ogni pezzo"
 msgstr "Any piece"
 
-#: web/templates/web/user_stats.html:91
+#: web/templates/web/user_stats.html:136 web/views.py:816
 msgid "Donna"
 msgstr "Queen"
 
-#: web/templates/web/user_stats.html:92
+#: web/templates/web/user_stats.html:137 web/views.py:817
 msgid "Torre"
 msgstr "Rook"
 
-#: web/templates/web/user_stats.html:93
+#: web/templates/web/user_stats.html:138 web/views.py:818
 msgid "Alfiere"
 msgstr "Bishop"
 
-#: web/templates/web/user_stats.html:94
+#: web/templates/web/user_stats.html:139 web/views.py:819
 msgid "Cavallo"
 msgstr "Knight"
 
-#: web/templates/web/user_stats.html:95
+#: web/templates/web/user_stats.html:140
 msgid "Re"
 msgstr "King"
 
-#: web/templates/web/user_stats.html:96
+#: web/templates/web/user_stats.html:141
 msgid "Pedone"
 msgstr "Pawn"
 
-#: web/templates/web/user_stats.html:105
+#: web/templates/web/user_stats.html:150
 msgid "semimossa"
 msgstr "half-move"
 
-#: web/templates/web/user_stats.html:111
+#: web/templates/web/user_stats.html:156
 msgid "Apri la moviola"
 msgstr "Open the replay viewer"
 
-#: web/templates/web/user_stats.html:141
+#: web/templates/web/user_stats.html:186
 msgid ""
 "Ancora nessuna mossa da maestro: gioca (con i badge di qualità attivi) e "
 "torna qui."
@@ -1505,40 +1814,200 @@ msgstr "awaiting approval"
 msgid "Ancora nessun giocatore registrato."
 msgstr "No players registered yet."
 
-#: web/templates/web/user_stats.html (quattro aspetti del gioco)
-msgid "I quattro aspetti del gioco"
-msgstr "The four aspects of the game"
+#: web/views.py:366
+msgid "Invito spedito."
+msgstr "Invite sent."
 
-msgid ""
-"Punteggi 0–100 dalle %(n)s partite analizzate: precisione per fase di "
-"gioco, più il libro (aperture) e i blunder puniti (tattica)."
-msgstr ""
-"Scores 0–100 from the %(n)s analyzed games: accuracy per game phase, plus "
-"opening book (openings) and punished blunders (tactics)."
+#: web/views.py:369
+msgid "Membro rimosso dal gruppo."
+msgstr "Member removed from the group."
 
-msgid "nel libro"
-msgstr "in the book"
+#: web/views.py:374
+msgid "Ruolo aggiornato."
+msgstr "Role updated."
 
-msgid "campione insufficiente"
-msgstr "sample too small"
+#: web/views.py:389
+#, python-format
+msgid "Benvenuto nel gruppo «%(name)s»!"
+msgstr "Welcome to the group “%(name)s”!"
 
-msgid "Tattica"
-msgstr "Tactics"
+#: web/views.py:392
+msgid "Invito rifiutato."
+msgstr "Invite declined."
 
-msgid "%(b)s blunder (%(pg)s a partita)"
-msgstr "%(b)s blunders (%(pg)s per game)"
+#: web/views.py:413
+msgid "Torneo creato: le iscrizioni sono aperte."
+msgstr "Tournament created: registration is open."
 
-msgid "puniti %(p)s/%(o)s"
-msgstr "punished %(p)s/%(o)s"
+#: web/views.py:469
+msgid "Iscrizione registrata."
+msgstr "Registration recorded."
 
-msgid "Strategia"
-msgstr "Strategy"
+#: web/views.py:470
+msgid "Iscrizione ritirata."
+msgstr "Registration withdrawn."
 
-msgid "ACPL %(acpl)s su %(m)s mosse quiete"
-msgstr "ACPL %(acpl)s over %(m)s quiet moves"
+#: web/views.py:471
+msgid "Torneo avviato: le partite sono in «Community»."
+msgstr "Tournament started: games are in “Community”."
 
-msgid "Finali"
-msgstr "Endgames"
+#: web/views.py:572
+msgid "Accedi per generare i puzzle dai tuoi errori."
+msgstr "Log in to generate puzzles from your mistakes."
 
-msgid "ACPL %(acpl)s su %(m)s mosse"
-msgstr "ACPL %(acpl)s over %(m)s moves"
+#: web/views.py:578
+#, python-format
+msgid "Creati %(n)s puzzle dai tuoi errori."
+msgstr "Created %(n)s puzzles from your mistakes."
+
+#: web/views.py:769
+msgid "In attesa della mossa dell'avversario…"
+msgstr "Waiting for the opponent's move…"
+
+#: web/views.py:770
+msgid "Tocca a:"
+msgstr "To move:"
+
+#: web/views.py:771
+msgid "(IA)"
+msgstr "(AI)"
+
+#: web/views.py:772
+msgid "Ha vinto"
+msgstr "The winner is"
+
+#: web/views.py:774
+msgid "(tempo scaduto)"
+msgstr "(time forfeit)"
+
+#: web/views.py:775
+msgid "(triplice ripetizione)"
+msgstr "(threefold repetition)"
+
+#: web/views.py:776
+msgid "(per abbandono)"
+msgstr "(by resignation)"
+
+#: web/views.py:777
+msgid "(patta d'accordo)"
+msgstr "(draw by agreement)"
+
+#: web/views.py:778
+msgid "Apertura:"
+msgstr "Opening:"
+
+#: web/views.py:779
+msgid "Suggerimento:"
+msgstr "Hint:"
+
+#: web/views.py:780
+msgid "Mossa non valida"
+msgstr "Invalid move"
+
+#: web/views.py:781
+msgid "Abbandonare la partita?"
+msgstr "Resign the game?"
+
+#: web/views.py:782
+msgid "Sto guardando la posizione…"
+msgstr "Looking at the position…"
+
+#: web/views.py:783
+msgid "Spiegazione non disponibile (backend irraggiungibile?)"
+msgstr "Explanation unavailable (backend unreachable?)"
+
+#: web/views.py:784
+msgid "Analisi in corso… (Stockfish valuta ogni posizione)"
+msgstr "Analysis running… (Stockfish evaluates every position)"
+
+#: web/views.py:785
+msgid "Analisi completata: ?? = blunder, ? = errore, ?! = imprecisione."
+msgstr "Analysis complete: ?? = blunder, ? = mistake, ?! = inaccuracy."
+
+#: web/views.py:788
+msgid "Promozione"
+msgstr "Promotion"
+
+#: web/views.py:789
+msgid "Scacchiera"
+msgstr "Board"
+
+#: web/views.py:790
+msgid "vuota"
+msgstr "empty"
+
+#: web/views.py:791
+msgid "riga"
+msgstr "row"
+
+#: web/views.py:792
+msgid "colonna"
+msgstr "column"
+
+#: web/views.py:793
+msgid "Gioca nella colonna"
+msgstr "Play in column"
+
+#: web/views.py:796
+msgid "re bianco"
+msgstr "white king"
+
+#: web/views.py:797
+msgid "donna bianca"
+msgstr "white queen"
+
+#: web/views.py:798
+msgid "torre bianca"
+msgstr "white rook"
+
+#: web/views.py:799
+msgid "alfiere bianco"
+msgstr "white bishop"
+
+#: web/views.py:800
+msgid "cavallo bianco"
+msgstr "white knight"
+
+#: web/views.py:801
+msgid "pedone bianco"
+msgstr "white pawn"
+
+#: web/views.py:802
+msgid "re nero"
+msgstr "black king"
+
+#: web/views.py:803
+msgid "donna nera"
+msgstr "black queen"
+
+#: web/views.py:804
+msgid "torre nera"
+msgstr "black rook"
+
+#: web/views.py:805
+msgid "alfiere nero"
+msgstr "black bishop"
+
+#: web/views.py:806
+msgid "cavallo nero"
+msgstr "black knight"
+
+#: web/views.py:807
+msgid "pedone nero"
+msgstr "black pawn"
+
+#: web/views.py:808 web/views.py:812
+msgid "pedina bianca"
+msgstr "white man"
+
+#: web/views.py:809
+msgid "dama bianca"
+msgstr "white king"
+
+#: web/views.py:810 web/views.py:813
+msgid "pedina nera"
+msgstr "black man"
+
+#: web/views.py:811
+msgid "dama nera"
+msgstr "black king"

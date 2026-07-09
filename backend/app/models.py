@@ -340,6 +340,101 @@ class GroupMembership(Base):
     user: Mapped[User] = relationship(back_populates="memberships")
 
 
+class GroupInvite(Base):
+    """Invito a entrare in un gruppo (accettato dall'invitato, mai automatico).
+
+    Un solo invito per (gruppo, utente): un re-invito dopo un rifiuto riporta
+    la stessa riga a ``pending`` (niente tempesta di righe).
+    """
+
+    __tablename__ = "group_invites"
+    __table_args__ = (UniqueConstraint("group_id", "user_id", name="uq_group_invite"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    group_id: Mapped[int] = mapped_column(Integer, ForeignKey("groups.id"))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    invited_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    status: Mapped[str] = mapped_column(String, default="pending")  # pending|accepted|declined
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
+
+    group: Mapped[Group] = relationship()
+    user: Mapped[User] = relationship(foreign_keys=[user_id])
+    inviter: Mapped[User] = relationship(foreign_keys=[invited_by])
+
+
+class HumanTournament(Base):
+    """Torneo fra GIOCATORI UMANI: eliminazione diretta o girone all'italiana.
+
+    Le partite sono vere ``GameSession`` fra i due iscritti (compaiono in
+    «le mie partite» di entrambi, come le sfide a distanza). ``group_id``
+    opzionale = torneo riservato ai membri di un gruppo.
+    """
+
+    __tablename__ = "human_tournaments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    game_id: Mapped[int] = mapped_column(Integer, ForeignKey("games.id"))
+    name: Mapped[str] = mapped_column(String)
+    format: Mapped[str] = mapped_column(String)  # knockout | round_robin
+    double_round: Mapped[bool] = mapped_column(Boolean, default=False)  # solo girone
+    status: Mapped[str] = mapped_column(String, default="open")  # open|running|finished
+    created_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    group_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("groups.id"))
+    winner_user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"))
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
+
+    game: Mapped[Game] = relationship()
+    group: Mapped[Group | None] = relationship()
+    winner: Mapped[User | None] = relationship(foreign_keys=[winner_user_id])
+    players: Mapped[list[HumanTournamentPlayer]] = relationship(
+        back_populates="tournament", cascade="all, delete-orphan"
+    )
+    games: Mapped[list[HumanTournamentGame]] = relationship(
+        back_populates="tournament", cascade="all, delete-orphan"
+    )
+
+
+class HumanTournamentPlayer(Base):
+    """Iscritto a un torneo umano; il seed si assegna all'avvio (Elo, poi alias)."""
+
+    __tablename__ = "human_tournament_players"
+    __table_args__ = (UniqueConstraint("tournament_id", "user_id", name="uq_tournament_player"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    tournament_id: Mapped[int] = mapped_column(Integer, ForeignKey("human_tournaments.id"))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    seed: Mapped[int | None] = mapped_column(Integer)
+    joined_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
+
+    tournament: Mapped[HumanTournament] = relationship(back_populates="players")
+    user: Mapped[User] = relationship()
+
+
+class HumanTournamentGame(Base):
+    """Una partita di torneo umano: turno + accoppiamento + sessione + esito.
+
+    Nell'eliminazione diretta ``round`` parte da 1 e ``slot`` ordina il
+    tabellone; un BYE è una riga senza ``o_user_id`` con ``result="x"`` già
+    scritto (nessuna sessione). ``result`` ∈ {x, o, draw}; None = da giocare.
+    """
+
+    __tablename__ = "human_tournament_games"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    tournament_id: Mapped[int] = mapped_column(Integer, ForeignKey("human_tournaments.id"))
+    round: Mapped[int] = mapped_column(Integer, default=1)
+    slot: Mapped[int] = mapped_column(Integer, default=0)
+    x_user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    o_user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"))
+    session_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("game_sessions.id"))
+    result: Mapped[str | None] = mapped_column(String)
+
+    tournament: Mapped[HumanTournament] = relationship(back_populates="games")
+    x_user: Mapped[User] = relationship(foreign_keys=[x_user_id])
+    o_user: Mapped[User | None] = relationship(foreign_keys=[o_user_id])
+    session: Mapped[GameSession | None] = relationship()
+
+
 class GameSession(Base):
     """Partita giocabile con stato persistito.
 

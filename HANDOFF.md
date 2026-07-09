@@ -3,6 +3,71 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-09 — Gruppi (gestione) e Tornei umani
+
+**Richiesta (utente):** «sviluppiamo Gruppi e Tornei» (due voci del TODO:
+gestione gruppi con ruoli/inviti/espulsioni/classifiche; tornei a eliminazione
+diretta e gironi col tabellone).
+
+**Gestione gruppi** (`routers/groups.py`, tabella `group_invites`, migr. 0011):
+
+- ruoli founder > admin > member: solo il FOUNDER promuove/degrada gli admin
+  (`POST /groups/{id}/members/{uid}/role`); mai sul founder stesso;
+- **inviti** (mai ingressi d'ufficio): founder/admin invitano
+  (`POST /groups/{id}/invites`), l'invitato vede i pendenti
+  (`GET /groups/invites/mine`) e risponde (`POST /groups/invites/{id}/respond`).
+  UNA riga per (gruppo, utente): il re-invito dopo un rifiuto riporta la
+  stessa riga a `pending`. NB routing: i percorsi fissi `/invites/...` stanno
+  PRIMA di `/{group_id}` nel router;
+- **espulsioni/uscita** = stessa `DELETE /groups/{id}/members/{uid}`: founder
+  espelle chiunque tranne sé, admin solo i member, chiunque esce tranne il
+  founder;
+- **classifica interna** `GET /groups/{id}/ranking?game_code=`: per gioco
+  (punti + Elo stagionale) o complessiva (punteggio universale).
+
+**Tornei umani** (`human_tournaments.py` + router `/tournaments`, tabelle
+`human_tournaments`/`_players`/`_games`, migr. 0011):
+
+- ciclo `open` (iscrizioni via `join`/`leave`, tetto 16 knockout / 8 girone)
+  → `running` (avvia SOLO l'organizzatore, ≥2 iscritti) → `finished`;
+  `group_id` opzionale = riservato ai membri (anche l'organizzatore);
+- le partite sono VERE GameSession umano-vs-umano: compaiono in «le mie
+  partite» di entrambi (come le sfide a distanza) e si giocano quando si
+  vuole; il torneo avanza da solo con l'hook `record_result` in
+  `services.finalize_session` (nessun commit nel hook: transazione del
+  chiamante);
+- **eliminazione diretta**: seed dall'Elo stagionale (1500 se assente, poi
+  alias), tabellone = potenza di 2 successiva con BYE alle teste di serie
+  (riga con `o_user_id=None` e `result="x"`, senza sessione), accoppiamenti
+  classici (`_bracket_order`: 1 e 2 si trovano solo in finale), il seed
+  migliore ha il Bianco; **patta → passa il Nero** (draw odds, compensa il
+  colore);
+- **girone all'italiana**: tutte le partite create all'avvio (andata/ritorno
+  con `double_round`), classifica coi punti di piattaforma, spareggio punti →
+  vittorie → alias.
+
+**Frontend**: navbar «Tornei»; pagina lista+organizzazione (`tournaments.html`),
+dettaglio con TABELLONE a colonne per turno (bye, 1–0/½–½, link Gioca/Moviola)
+e classifica del girone (`tournament_detail.html`); scheda gruppo
+(`group_detail.html`: membri con gestione ruoli/espulsioni, invito, classifica
+interna, tornei del gruppo); banner «Inviti per te» in `groups.html`.
+
+**i18n — fix strutturale**: le stringhe di `views.py` usavano l'alias `_t`,
+che xgettext NON riconosce → non erano MAI state estratte nel .po (le UI di
+play erano state aggiunte a mano). Rinominato in `_` (nessuna ombra: il
+vecchio F823 era in run_batch, già risolto con `_game_n`): ora makemessages
+estrae tutto. Sciolti 41 fuzzy (con le solite traduzioni copiate sbagliate) e
+riempite ~60 voci con uno script per BLOCCHI interi (trappola msgstr
+multiriga); `msgfmt` pulito. Catalogo backend: +24 voci in `catalog_en.py`.
+
+**Test (277 verdi, +4)**: gestione gruppi end-to-end (403/409 sui permessi,
+re-invito, classifica); knockout a 3 con bye + patta d'accordo → draw odds →
+il Nero in finale → vincitore; girone a 3 con abbandoni mirati e classifica
+ordinata; torneo riservato al gruppo (403 per gli esterni); resa delle pagine
+frontend (tabellone con «Finale», bye, scheda gruppo).
+
+---
+
 ## 2026-07-09 — Valutazione per i quattro aspetti del gioco (Insights)
 
 **Richiesta (utente):** «Valutazione per i quattro aspetti del gioco» (voce del

@@ -86,3 +86,102 @@ def test_user_stats_renders_four_aspects(monkeypatch):
     assert "48.3" in html
     assert "quiet moves" in html
     assert "sample too small" in html
+
+
+def test_tournaments_and_group_pages_render(monkeypatch):
+    """Le pagine Tornei (lista+tabellone) e la scheda gruppo si rendono."""
+    import web.api_client as api
+
+    games = [{"code": "chess", "name": "Scacchi", "playable": True}]
+    t_detail = {
+        "id": 7,
+        "name": "Coppa Lampo",
+        "game_code": "chess",
+        "game_name": "Scacchi",
+        "format": "knockout",
+        "double_round": False,
+        "status": "finished",
+        "created_by": 1,
+        "group_id": None,
+        "group_name": None,
+        "winner": "kt_c",
+        "max_players": 16,
+        "players": [
+            {"user_id": 1, "alias": "kt_a", "seed": 1},
+            {"user_id": 2, "alias": "kt_b", "seed": 2},
+            {"user_id": 3, "alias": "kt_c", "seed": 3},
+        ],
+        "rounds": [
+            {
+                "round": 1,
+                "games": [
+                    {
+                        "slot": 0,
+                        "x_user_id": 1,
+                        "x_alias": "kt_a",
+                        "o_user_id": None,
+                        "o_alias": None,
+                        "session_id": None,
+                        "result": "x",
+                    },
+                    {
+                        "slot": 1,
+                        "x_user_id": 2,
+                        "x_alias": "kt_b",
+                        "o_user_id": 3,
+                        "o_alias": "kt_c",
+                        "session_id": 11,
+                        "result": "draw",
+                    },
+                ],
+            },
+            {
+                "round": 2,
+                "games": [
+                    {
+                        "slot": 0,
+                        "x_user_id": 1,
+                        "x_alias": "kt_a",
+                        "o_user_id": 3,
+                        "o_alias": "kt_c",
+                        "session_id": 12,
+                        "result": "o",
+                    },
+                ],
+            },
+        ],
+    }
+    monkeypatch.setattr(api, "list_games", lambda: games)
+    monkeypatch.setattr(api, "list_groups", lambda: [])
+    monkeypatch.setattr(api, "list_human_tournaments", lambda *a, **k: {"tournaments": [t_detail]})
+    monkeypatch.setattr(api, "human_tournament", lambda tid: t_detail)
+
+    html = Client().get("/tornei/", SERVER_NAME="localhost").content.decode()
+    assert "Coppa Lampo" in html and "kt_c" in html
+
+    html = Client().get("/tornei/7/", SERVER_NAME="localhost").content.decode()
+    assert "Finale" in html  # l'ultimo turno del tabellone
+    assert "bye" in html  # il seed 1 passa il primo turno senza giocare
+    assert "vince il torneo" in html
+
+    group = {
+        "id": 3,
+        "name": "Circolo",
+        "created_at": "2026-07-09T10:00:00",
+        "members": [
+            {"user_id": 1, "alias": "grp_a", "role": "founder"},
+            {"user_id": 2, "alias": "grp_b", "role": "member"},
+        ],
+    }
+    monkeypatch.setattr(api, "group_detail", lambda gid: group)
+    monkeypatch.setattr(
+        api,
+        "group_ranking",
+        lambda gid, code=None: {
+            "ranking": [{"user_id": 1, "alias": "grp_a", "role": "founder", "universal_points": 9}]
+        },
+    )
+    monkeypatch.setattr(api, "list_users", lambda: [])
+    html = Client().get("/gruppi/3/", SERVER_NAME="localhost").content.decode()
+    assert "Circolo" in html and "fondatore" in html
+    assert "Classifica del gruppo" in html

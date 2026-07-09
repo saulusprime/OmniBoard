@@ -84,6 +84,13 @@ def finalize_session(db: Session, session: "models.GameSession") -> None:
 
         ai_arena.record_result(db, session)
 
+    # Tornei umani: se la sessione appartiene a una partita di torneo, scrive
+    # l'esito e fa avanzare tabellone o girone (commit del chiamante).
+    if x_uid and o_uid:
+        from . import human_tournaments
+
+        human_tournaments.record_result(db, session)
+
     # La partita conclusa cambia il profilo scacchistico dei giocatori umani:
     # si butta la voce in cache (ricostruita al prossimo uso).
     if session.game and session.game.code == "chess":

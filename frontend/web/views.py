@@ -5,7 +5,7 @@ from __future__ import annotations
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
-from django.utils.translation import gettext as _t
+from django.utils.translation import gettext as _
 
 from . import api_client as api
 from .forms import (
@@ -255,10 +255,17 @@ def groups(request):
     groups_ = _safe(request, api.list_groups, default=[])
     proposals = _safe(request, api.list_proposals, default=[])
     users = _safe(request, api.list_users, default=[])
+    token = request.session.get("auth_token")
+    my_invites = _safe(request, lambda: api.my_group_invites(token), default=[]) if token else []
     return render(
         request,
         "web/groups.html",
-        {"groups": groups_, "proposals": proposals, "vote_form": VoteForm(users=users)},
+        {
+            "groups": groups_,
+            "proposals": proposals,
+            "vote_form": VoteForm(users=users),
+            "my_invites": my_invites,
+        },
     )
 
 
@@ -311,6 +318,156 @@ def proposal_vote(request, proposal_id):
     else:
         messages.error(request, "Dati del voto non validi.")
     return redirect("groups")
+
+
+def group_detail(request, group_id):
+    """Scheda del gruppo: membri con ruoli, gestione, classifica interna, tornei."""
+    group = _safe(request, lambda: api.group_detail(group_id))
+    if group is None:
+        return redirect("groups")
+    game_code = request.GET.get("game") or ""
+    ranking = _safe(request, lambda: api.group_ranking(group_id, game_code or None), default={})
+    games = [g for g in _safe(request, api.list_games, default=[]) if g.get("playable")]
+    tournaments = _safe(request, lambda: api.list_human_tournaments(group_id=group_id), default={})
+    users = _safe(request, api.list_users, default=[])
+    member_ids = {m["user_id"] for m in group["members"]}
+    my_role = None
+    if request.session.get("auth_user"):
+        me = request.session["auth_user"]["id"]
+        my_role = next((m["role"] for m in group["members"] if m["user_id"] == me), None)
+    return render(
+        request,
+        "web/group_detail.html",
+        {
+            "g": group,
+            "ranking": (ranking or {}).get("ranking", []),
+            "games": games,
+            "sel_game": game_code,
+            "tournaments": (tournaments or {}).get("tournaments", []),
+            "invitable": [u for u in users if u["id"] not in member_ids],
+            "my_role": my_role,
+        },
+    )
+
+
+def group_action(request, group_id):
+    """Azioni di gestione del gruppo (POST): invita, espelli/esci, cambia ruolo."""
+    if request.method != "POST":
+        return redirect("group_detail", group_id=group_id)
+    token = request.session.get("auth_token")
+    action = request.POST.get("action")
+    try:
+        if action == "invite":
+            api.group_invite(group_id, request.POST.get("user_id"), token)
+            messages.success(request, _("Invito spedito."))
+        elif action == "remove":
+            api.remove_group_member(group_id, request.POST.get("user_id"), token)
+            messages.success(request, _("Membro rimosso dal gruppo."))
+        elif action == "role":
+            api.change_group_role(
+                group_id, request.POST.get("user_id"), request.POST.get("role"), token
+            )
+            messages.success(request, _("Ruolo aggiornato."))
+    except api.ApiError as exc:
+        messages.error(request, str(exc))
+    return redirect("group_detail", group_id=group_id)
+
+
+def group_invite_respond(request, invite_id):
+    """Risposta dell'invitato (POST): accetta o rifiuta l'invito al gruppo."""
+    if request.method == "POST":
+        token = request.session.get("auth_token")
+        accept = request.POST.get("accept") == "1"
+        try:
+            out = api.respond_group_invite(invite_id, accept, token)
+            if accept:
+                messages.success(
+                    request, _("Benvenuto nel gruppo «%(name)s»!") % {"name": out["group_name"]}
+                )
+            else:
+                messages.success(request, _("Invito rifiutato."))
+        except api.ApiError as exc:
+            messages.error(request, str(exc))
+    return redirect("groups")
+
+
+def tournaments_page(request):
+    """Tornei fra giocatori: elenco e organizzazione (eliminazione o girone)."""
+    token = request.session.get("auth_token")
+    if request.method == "POST":
+        data = {
+            "game_code": request.POST.get("game_code", "chess"),
+            "name": request.POST.get("name", "").strip(),
+            "format": request.POST.get("format", "knockout"),
+            "double_round": request.POST.get("double_round") == "on",
+        }
+        if request.POST.get("group_id"):
+            data["group_id"] = int(request.POST["group_id"])
+        try:
+            created = api.create_human_tournament(data, token)
+            api.tournament_action(created["id"], "join", token)  # chi organizza gioca
+            messages.success(request, _("Torneo creato: le iscrizioni sono aperte."))
+            return redirect("tournament_detail", tournament_id=created["id"])
+        except api.ApiError as exc:
+            messages.error(request, str(exc))
+    games = [g for g in _safe(request, api.list_games, default=[]) if g.get("playable")]
+    data = _safe(
+        request,
+        lambda: api.list_human_tournaments(request.GET.get("game") or None),
+        default={},
+    )
+    groups_ = _safe(request, api.list_groups, default=[])
+    me = (request.session.get("auth_user") or {}).get("id")
+    my_groups = [g for g in groups_ if any(m["user_id"] == me for m in g.get("members", []))]
+    return render(
+        request,
+        "web/tournaments.html",
+        {
+            "tournaments": (data or {}).get("tournaments", []),
+            "games": games,
+            "sel_game": request.GET.get("game") or "",
+            "my_groups": my_groups,
+        },
+    )
+
+
+def tournament_detail(request, tournament_id):
+    """Tabellone (eliminazione) o classifica (girone), con iscrizione e avvio."""
+    try:
+        t = api.human_tournament(tournament_id)
+    except api.ApiError as exc:
+        messages.error(request, str(exc))
+        return redirect("tournaments")
+    me = (request.session.get("auth_user") or {}).get("id")
+    return render(
+        request,
+        "web/tournament_detail.html",
+        {
+            "t": t,
+            "joined": any(p["user_id"] == me for p in t["players"]),
+            "is_creator": me == t["created_by"],
+            "me": me,
+        },
+    )
+
+
+def tournament_action(request, tournament_id):
+    """Iscrizione, ritiro o avvio del torneo (POST)."""
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action in ("join", "leave", "start"):
+            token = request.session.get("auth_token")
+            try:
+                api.tournament_action(tournament_id, action, token)
+                done = {
+                    "join": _("Iscrizione registrata."),
+                    "leave": _("Iscrizione ritirata."),
+                    "start": _("Torneo avviato: le partite sono in «Community»."),
+                }
+                messages.success(request, done[action])
+            except api.ApiError as exc:
+                messages.error(request, str(exc))
+    return redirect("tournament_detail", tournament_id=tournament_id)
 
 
 def rankings(request):
@@ -406,13 +563,13 @@ def puzzles_list(request):
     token = request.session.get("auth_token")
     if request.method == "POST" and "generate" in request.POST:
         if not token:
-            messages.error(request, _t("Accedi per generare i puzzle dai tuoi errori."))
+            messages.error(request, _("Accedi per generare i puzzle dai tuoi errori."))
         else:
             try:
                 out = api.puzzles_generate(token)
                 messages.success(
                     request,
-                    _t("Creati %(n)s puzzle dai tuoi errori.") % {"n": out["created"]},
+                    _("Creati %(n)s puzzle dai tuoi errori.") % {"n": out["created"]},
                 )
             except api.ApiError as exc:
                 messages.error(request, str(exc))
@@ -602,63 +759,63 @@ def _play_ui_strings():
     """Stringhe della pagina di gioco usate DAL JAVASCRIPT, tradotte qui
     (gettext le vede, il template le passa con json_script)."""
     return {
-        "thinking_ai": _t("L'IA sta pensando…"),
-        "waiting_opponent": _t("In attesa della mossa dell'avversario…"),
-        "turn_of": _t("Tocca a:"),
-        "ai_suffix": _t("(IA)"),
-        "won_by": _t("Ha vinto"),
-        "draw": _t("Patta"),
-        "by_time": _t("(tempo scaduto)"),
-        "by_repetition": _t("(triplice ripetizione)"),
-        "by_resign": _t("(per abbandono)"),
-        "by_agreement": _t("(patta d'accordo)"),
-        "opening": _t("Apertura:"),
-        "hint_prefix": _t("Suggerimento:"),
-        "invalid_move": _t("Mossa non valida"),
-        "confirm_resign": _t("Abbandonare la partita?"),
-        "explain_busy": _t("Sto guardando la posizione…"),
-        "explain_error": _t("Spiegazione non disponibile (backend irraggiungibile?)"),
-        "analysis_running": _t("Analisi in corso… (Stockfish valuta ogni posizione)"),
-        "analysis_done": _t("Analisi completata: ?? = blunder, ? = errore, ?! = imprecisione."),
-        "white": _t("Bianco"),
-        "black": _t("Nero"),
-        "promotion": _t("Promozione"),
-        "board": _t("Scacchiera"),
-        "empty_square": _t("vuota"),
-        "row": _t("riga"),
-        "column": _t("colonna"),
-        "drop_col": _t("Gioca nella colonna"),
+        "thinking_ai": _("L'IA sta pensando…"),
+        "waiting_opponent": _("In attesa della mossa dell'avversario…"),
+        "turn_of": _("Tocca a:"),
+        "ai_suffix": _("(IA)"),
+        "won_by": _("Ha vinto"),
+        "draw": _("Patta"),
+        "by_time": _("(tempo scaduto)"),
+        "by_repetition": _("(triplice ripetizione)"),
+        "by_resign": _("(per abbandono)"),
+        "by_agreement": _("(patta d'accordo)"),
+        "opening": _("Apertura:"),
+        "hint_prefix": _("Suggerimento:"),
+        "invalid_move": _("Mossa non valida"),
+        "confirm_resign": _("Abbandonare la partita?"),
+        "explain_busy": _("Sto guardando la posizione…"),
+        "explain_error": _("Spiegazione non disponibile (backend irraggiungibile?)"),
+        "analysis_running": _("Analisi in corso… (Stockfish valuta ogni posizione)"),
+        "analysis_done": _("Analisi completata: ?? = blunder, ? = errore, ?! = imprecisione."),
+        "white": _("Bianco"),
+        "black": _("Nero"),
+        "promotion": _("Promozione"),
+        "board": _("Scacchiera"),
+        "empty_square": _("vuota"),
+        "row": _("riga"),
+        "column": _("colonna"),
+        "drop_col": _("Gioca nella colonna"),
         # Nomi dei pezzi per le etichette ARIA delle caselle (screen reader).
         "pieces": {
-            "♔": _t("re bianco"),
-            "♕": _t("donna bianca"),
-            "♖": _t("torre bianca"),
-            "♗": _t("alfiere bianco"),
-            "♘": _t("cavallo bianco"),
-            "♙": _t("pedone bianco"),
-            "♚": _t("re nero"),
-            "♛": _t("donna nera"),
-            "♜": _t("torre nera"),
-            "♝": _t("alfiere nero"),
-            "♞": _t("cavallo nero"),
-            "♟": _t("pedone nero"),
-            "⛀": _t("pedina bianca"),
-            "⛁": _t("dama bianca"),
-            "⛂": _t("pedina nera"),
-            "⛃": _t("dama nera"),
-            "○": _t("pedina bianca"),
-            "●": _t("pedina nera"),
+            "♔": _("re bianco"),
+            "♕": _("donna bianca"),
+            "♖": _("torre bianca"),
+            "♗": _("alfiere bianco"),
+            "♘": _("cavallo bianco"),
+            "♙": _("pedone bianco"),
+            "♚": _("re nero"),
+            "♛": _("donna nera"),
+            "♜": _("torre nera"),
+            "♝": _("alfiere nero"),
+            "♞": _("cavallo nero"),
+            "♟": _("pedone nero"),
+            "⛀": _("pedina bianca"),
+            "⛁": _("dama bianca"),
+            "⛂": _("pedina nera"),
+            "⛃": _("dama nera"),
+            "○": _("pedina bianca"),
+            "●": _("pedina nera"),
         },
         "promo_labels": {
-            "q": _t("Donna"),
-            "r": _t("Torre"),
-            "b": _t("Alfiere"),
-            "n": _t("Cavallo"),
+            "q": _("Donna"),
+            "r": _("Torre"),
+            "b": _("Alfiere"),
+            "n": _("Cavallo"),
         },
-        "nav_first": _t("Inizio"),
-        "nav_prev": _t("Indietro"),
-        "nav_next": _t("Avanti"),
-        "nav_last": _t("Fine"),
+        "nav_first": _("Inizio"),
+        "nav_prev": _("Indietro"),
+        "nav_next": _("Avanti"),
+        "nav_last": _("Fine"),
     }
 
 

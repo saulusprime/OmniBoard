@@ -1,0 +1,70 @@
+{% extends "web/base.html" %}
+{% load i18n %}
+{% block title %}{% trans 'Tornei' %}{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>⚔️ {% trans 'Tornei fra giocatori' %}</h1>
+  <p class="muted">{% trans 'Eliminazione diretta col tabellone o girone all’italiana: le partite compaiono in «le mie partite» degli iscritti e il torneo avanza da solo a ogni risultato.' %}</p>
+
+  {% if auth_user %}
+  <h3>{% trans 'Organizza un torneo' %}</h3>
+  <form method="post" style="display:flex; gap:12px; align-items:end; flex-wrap:wrap;">{% csrf_token %}
+    <div style="min-width:180px;">
+      <label>{% trans 'Nome' %}</label>
+      <input name="name" required maxlength="60" placeholder="{% trans 'Coppa del circolo' %}">
+    </div>
+    <div>
+      <label>{% trans 'Gioco' %}</label>
+      <select name="game_code">
+        {% for g in games %}<option value="{{ g.code }}">{{ g.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>{% trans 'Formato' %}</label>
+      <select name="format">
+        <option value="knockout">{% trans 'Eliminazione diretta' %}</option>
+        <option value="round_robin">{% trans 'Girone all’italiana' %}</option>
+      </select>
+    </div>
+    <div>
+      <label>{% trans 'Riservato al gruppo' %}</label>
+      <select name="group_id">
+        <option value="">{% trans 'Aperto a tutti' %}</option>
+        {% for g in my_groups %}<option value="{{ g.id }}">{{ g.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <label style="display:flex; gap:6px; align-items:center;">
+      <input type="checkbox" name="double_round" style="width:auto;"> {% trans 'andata e ritorno (solo girone)' %}
+    </label>
+    <button class="btn" type="submit">+ {% trans 'Crea (iscrizioni aperte)' %}</button>
+  </form>
+  {% else %}
+  <p class="muted">{% trans 'Accedi per organizzare o iscriverti.' %}</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>{% trans 'Tornei in corso e conclusi' %}</h2>
+  {% if tournaments %}
+  <table>
+    <tr><th>{% trans 'Nome' %}</th><th>{% trans 'Gioco' %}</th><th>{% trans 'Formato' %}</th>
+        <th>{% trans 'Iscritti' %}</th><th>{% trans 'Stato' %}</th><th>{% trans 'Vincitore' %}</th><th></th></tr>
+    {% for t in tournaments %}
+    <tr>
+      <td>{{ t.name }}{% if t.group_name %} <span class="pill">{{ t.group_name }}</span>{% endif %}</td>
+      <td>{{ t.game_name }}</td>
+      <td>{% if t.format == 'knockout' %}{% trans 'eliminazione' %}{% else %}{% trans 'girone' %}{% if t.double_round %} ×2{% endif %}{% endif %}</td>
+      <td>{{ t.players|length }}/{{ t.max_players }}</td>
+      <td>{% if t.status == 'open' %}<span class="pill">{% trans 'iscrizioni aperte' %}</span>
+          {% elif t.status == 'running' %}{% trans 'in corso' %}
+          {% else %}{% trans 'concluso' %}{% endif %}</td>
+      <td>{% if t.winner %}🏆 {{ t.winner }}{% else %}—{% endif %}</td>
+      <td><a class="btn secondary" href="{% url 'tournament_detail' t.id %}">{% trans 'Apri' %}</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">{% trans 'Ancora nessun torneo: organizza il primo.' %}</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -237,9 +237,18 @@
   giocatore. Bugfix scovato dai test: `score_for` senza flush duplicava la
   riga punti con lo stesso utente su entrambi i lati (autoflush=False).
   Glicko rinviato: il K adattivo copre il caso «nuovo giocatore» senza RD.
-- [ ] **Tornei** — eliminazione diretta e gironi, con tabellone.
-- [ ] **Gruppi**: ruoli (admin/membro), inviti, espulsioni; classifiche per gruppo;
-  sfide gruppo-vs-gruppo.
+- [x] **Tornei umani** — `human_tournaments.py` + `/tournaments` (2026-07-09):
+  eliminazione diretta (seed dall'Elo, bye alle teste di serie, accoppiamenti
+  classici, patta → passa il Nero/draw odds) e girone all'italiana (anche
+  andata/ritorno). Partite = vere sessioni in «le mie partite»; avanzamento
+  automatico via hook in `finalize_session`; pagina con tabellone a colonne.
+  Tornei riservabili a un gruppo.
+- [x] **Gruppi — gestione** (2026-07-09): ruoli founder/admin/member (solo il
+  founder li cambia), inviti con accettazione dell'invitato (re-invito riusa
+  la riga), espulsioni/uscita con permessi graduati, classifica interna per
+  gioco (punti+Elo) o complessiva. Scheda gruppo nel frontend + banner inviti.
+- [ ] **Sfide gruppo-vs-gruppo** (squadre a tavoliere multiplo): rinviate —
+  prerequisito naturale: più utenti attivi per gruppo.
 - [ ] **Spettatori** delle partite live e **replay animato** dallo storico mosse.
 - [ ] **Notifiche/inviti a giocare** tra utenti.
 

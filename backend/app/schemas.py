@@ -148,6 +148,29 @@ class GroupOut(BaseModel):
     members: list[MembershipOut] = []
 
 
+class InviteCreate(BaseModel):
+    user_id: int
+
+
+class InviteRespond(BaseModel):
+    accept: bool = True
+
+
+class InviteOut(BaseModel):
+    id: int
+    group_id: int
+    group_name: str
+    user_id: int
+    alias: str
+    invited_by_alias: str
+    status: str
+    created_at: Optional[datetime] = None
+
+
+class RoleChange(BaseModel):
+    role: str  # admin | member
+
+
 # ----- Partite e punteggi -----
 class MatchResult(BaseModel):
     game_code: str

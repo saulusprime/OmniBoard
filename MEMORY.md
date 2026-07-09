@@ -662,6 +662,16 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   minimo. Riquadri con barre nelle Statistiche, bilingue (occhio: l10n IT
   rende 48.3 → «48,3» nei template). In apertura di sessione: fix
   alembic_version stantia (0ea7a8c15601 → 0010, trappola rinomina). 273 verdi.
+- **2026-07-09** — **Gruppi (gestione) e Tornei umani** (migr. 0011): inviti
+  con accettazione (riga unica per gruppo+utente, re-invito → pending), ruoli
+  founder/admin/member, espulsioni graduate, classifica interna;
+  human_tournaments.py — knockout (seed da Elo, bye, bracket classico, patta
+  → passa il Nero/draw odds) e girone; partite = vere GameSession, hook
+  record_result in finalize_session (senza commit), pagine Tornei col
+  tabellone. FIX I18N STRUTTURALE: l'alias `_t` non è keyword di xgettext →
+  le stringhe di views.py non venivano MAI estratte; rinominato in `_`
+  (ora makemessages estrae tutto; 41 fuzzy sciolti, ~60 voci riempite per
+  blocchi interi). 277 verdi.
 
 ## Questioni aperte
 

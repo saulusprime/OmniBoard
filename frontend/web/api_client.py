@@ -213,6 +213,76 @@ def vote_proposal(proposal_id, data: dict):
     return _request("POST", f"/groups/proposals/{proposal_id}/vote", json=data)
 
 
+def group_detail(group_id):
+    return _request("GET", f"/groups/{group_id}")
+
+
+def group_ranking(group_id, game_code=None):
+    params = {"game_code": game_code} if game_code else {}
+    return _request("GET", f"/groups/{group_id}/ranking", params=params)
+
+
+def group_invite(group_id, user_id, token):
+    return _request(
+        "POST",
+        f"/groups/{group_id}/invites",
+        json={"user_id": int(user_id)},
+        headers={"X-Auth-Token": token},
+    )
+
+
+def my_group_invites(token):
+    return _request("GET", "/groups/invites/mine", headers={"X-Auth-Token": token})
+
+
+def respond_group_invite(invite_id, accept, token):
+    return _request(
+        "POST",
+        f"/groups/invites/{invite_id}/respond",
+        json={"accept": bool(accept)},
+        headers={"X-Auth-Token": token},
+    )
+
+
+def remove_group_member(group_id, user_id, token):
+    return _request(
+        "DELETE", f"/groups/{group_id}/members/{user_id}", headers={"X-Auth-Token": token}
+    )
+
+
+def change_group_role(group_id, user_id, role, token):
+    return _request(
+        "POST",
+        f"/groups/{group_id}/members/{user_id}/role",
+        json={"role": role},
+        headers={"X-Auth-Token": token},
+    )
+
+
+# ----- Tornei umani -----
+def list_human_tournaments(game_code=None, group_id=None):
+    params = {}
+    if game_code:
+        params["game_code"] = game_code
+    if group_id:
+        params["group_id"] = group_id
+    return _request("GET", "/tournaments", params=params)
+
+
+def human_tournament(tournament_id):
+    return _request("GET", f"/tournaments/{tournament_id}")
+
+
+def create_human_tournament(data: dict, token):
+    return _request("POST", "/tournaments", json=data, headers={"X-Auth-Token": token})
+
+
+def tournament_action(tournament_id, action, token):
+    return _request(
+        "POST", f"/tournaments/{tournament_id}/{action}", headers={"X-Auth-Token": token}
+    )
+
+
 # ----- Partite -----
 def record_match(data: dict):
     return _request("POST", "/matches", json=data)

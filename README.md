@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![Status](https://img.shields.io/badge/stato-in%20sviluppo%20attivo-brightgreen.svg)](#stato-del-progetto)
 
-> **Ultimo aggiornamento:** 2026-07-09 — *Cinque giochi giocabili; scacchi FIDE-completi con analisi/coach/puzzle; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile; 273 test.*
+> **Ultimo aggiornamento:** 2026-07-09 — *Cinque giochi giocabili; scacchi FIDE-completi con analisi/coach/puzzle; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile; 277 test.*
 
 ---
 
@@ -68,7 +68,10 @@ prospettiva, anche quelli con **nodi del caso** (dadi) come backgammon e ludo.
   del gioco**: aperture/tattica/strategia/finali) e raccolta delle
   **mosse geniali** con screenshot.
 - 🌐 **Community**: registrazione approvata dal super admin, login a token, presenza online,
-  sfide a distanza, gruppi con fondazione per voto.
+  sfide a distanza, **gruppi** con fondazione per voto e gestione completa (ruoli
+  founder/admin/member, inviti, espulsioni, classifica interna), **tornei fra giocatori**
+  a eliminazione diretta (tabellone con seed dall'Elo e bye) o girone all'italiana,
+  anche riservati a un gruppo.
 - 🎓 **Istruzione guidata** («Impara») con lezioni passo-passo e **TTS** multilingua.
 - 🖥️ **UI curata**: scacchiera da torneo con coordinate, drag&drop, temi, rotazione,
   pezzi catturati; **responsive mobile**; **accessibile** (tastiera + ARIA); **bilingue
@@ -301,7 +304,7 @@ frontend Django girano end-to-end: autenticazione con approvazione del super adm
 in locale e **a distanza**, cinque giochi (Tris, Forza 4, Dama italiana, Scacchi,
 Backgammon), quattro tipi di avversario con ripiego locale, analisi e coaching per gli
 scacchi, puzzle, rating Elo con stagioni, Arena IA con tornei, statistiche avanzate,
-interfaccia **bilingue IT/EN**, **accessibile** e **responsive**. Suite di **273 test**
+interfaccia **bilingue IT/EN**, **accessibile** e **responsive**. Suite di **277 test**
 (motore + backend + frontend) eseguita a ogni passo; schema DB governato da migrazioni
 Alembic (0001…0010). Il backlog vivo è in [TODO.md](./TODO.md); lo storico dei lavori in
 [HANDOFF.md](./HANDOFF.md).

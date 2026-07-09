@@ -1,0 +1,91 @@
+{% extends "web/base.html" %}
+{% load i18n %}
+{% block title %}{{ t.name }} — {% trans 'Torneo' %}{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>⚔️ {{ t.name }}
+    {% if t.group_name %}<span class="pill">{{ t.group_name }}</span>{% endif %}</h1>
+  <p class="muted">
+    {{ t.game_name }} ·
+    {% if t.format == 'knockout' %}{% trans 'eliminazione diretta' %}{% else %}{% trans 'girone all’italiana' %}{% if t.double_round %} ({% trans 'andata e ritorno' %}){% endif %}{% endif %} ·
+    {% if t.status == 'open' %}{% trans 'iscrizioni aperte' %}{% elif t.status == 'running' %}{% trans 'in corso' %}{% else %}{% trans 'concluso' %}{% endif %}
+    — <a href="{% url 'tournaments' %}">← {% trans 'Tutti i tornei' %}</a></p>
+
+  {% if t.winner %}<p style="font-size:1.1rem;">🏆 <strong>{{ t.winner }}</strong> {% trans 'vince il torneo!' %}</p>{% endif %}
+
+  <h3>{% trans 'Iscritti' %} ({{ t.players|length }}/{{ t.max_players }})</h3>
+  <p>
+    {% for p in t.players %}
+    <span class="pill">{% if p.seed %}{{ p.seed }}. {% endif %}{{ p.alias }}</span>
+    {% empty %}<span class="muted">{% trans 'Nessun iscritto.' %}</span>
+    {% endfor %}
+  </p>
+
+  {% if auth_user and t.status == 'open' %}
+  <form method="post" action="{% url 'tournament_action' t.id %}" style="display:flex; gap:10px;">{% csrf_token %}
+    {% if not joined %}
+    <button class="btn" type="submit" name="action" value="join">{% trans 'Iscrivimi' %}</button>
+    {% else %}
+    <button class="btn secondary" type="submit" name="action" value="leave">{% trans 'Ritira l’iscrizione' %}</button>
+    {% endif %}
+    {% if is_creator %}
+    <button class="btn" type="submit" name="action" value="start">▶ {% trans 'Avvia il torneo' %}</button>
+    {% endif %}
+  </form>
+  {% if t.format == 'knockout' %}
+  <p class="muted" style="margin-top:8px;">{% trans 'All’avvio i seed seguono l’Elo; il tabellone si riempie di bye se gli iscritti non sono una potenza di due. In caso di patta passa chi gioca col Nero (draw odds).' %}</p>
+  {% endif %}
+  {% endif %}
+</div>
+
+{% if t.rounds %}
+<div class="card">
+  <h2>{% if t.format == 'knockout' %}{% trans 'Tabellone' %}{% else %}{% trans 'Partite' %}{% endif %}</h2>
+  <div style="display:flex; gap:18px; overflow-x:auto; align-items:stretch;">
+    {% for r in t.rounds %}
+    <div style="min-width:230px; display:flex; flex-direction:column; justify-content:space-around; gap:10px;">
+      <h4 style="margin:0; text-align:center;">
+        {% if t.format == 'knockout' and r.games|length == 1 %}{% trans 'Finale' %}
+        {% else %}{% trans 'Turno' %} {{ r.round }}{% endif %}</h4>
+      {% for g in r.games %}
+      <div class="card" style="margin:0; padding:10px;">
+        <p style="margin:0;">
+          <strong {% if g.result == 'x' %}style="color:#3fb950;"{% endif %}>{{ g.x_alias }}</strong>
+          {% if g.o_alias %}
+          — <strong {% if g.result == 'o' or g.result == 'draw' and t.format == 'knockout' %}style="color:#3fb950;"{% endif %}>{{ g.o_alias }}</strong>
+          {% else %}<span class="muted">({% trans 'bye' %})</span>{% endif %}
+        </p>
+        <p class="muted" style="margin:6px 0 0; display:flex; gap:8px; align-items:center;">
+          {% if g.result == 'draw' %}½–½{% elif g.result == 'x' %}1–0{% elif g.result == 'o' %}0–1{% else %}{% trans 'da giocare' %}{% endif %}
+          {% if g.session_id %}
+          <a class="btn secondary" style="padding:2px 10px; font-size:.8rem;"
+             href="{% url 'play' g.session_id %}">{% if g.result %}{% trans 'Moviola' %}{% else %}{% trans 'Gioca' %}{% endif %}</a>
+          {% endif %}
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if t.standings %}
+<div class="card">
+  <h2>{% trans 'Classifica del girone' %}</h2>
+  <table>
+    <tr><th>#</th><th>{% trans 'Giocatore' %}</th><th>{% trans 'Punti' %}</th>
+        <th>V/P/S</th><th>{% trans 'Giocate' %}</th></tr>
+    {% for r in t.standings %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>{{ r.alias }}</td>
+      <td><strong>{{ r.points }}</strong></td>
+      <td>{{ r.wins }}/{{ r.draws }}/{{ r.losses }}</td>
+      <td>{{ r.games }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+{% endblock %}
