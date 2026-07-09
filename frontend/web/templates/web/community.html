@@ -61,6 +61,8 @@
          href="{% url 'play' n.session_id %}">{% trans 'Apri' %}</a>
       {% elif n.tournament_id %}<a class="btn secondary" style="padding:2px 10px; font-size:.8rem;"
          href="{% url 'tournament_detail' n.tournament_id %}">{% trans 'Apri' %}</a>
+      {% elif n.match_id %}<a class="btn secondary" style="padding:2px 10px; font-size:.8rem;"
+         href="{% url 'group_match_detail' n.match_id %}">{% trans 'Apri' %}</a>
       {% elif n.group_id %}<a class="btn secondary" style="padding:2px 10px; font-size:.8rem;"
          href="{% url 'groups' %}">{% trans 'Apri' %}</a>{% endif %}
       {% if n.created_at %}<span class="muted" style="font-size:.8rem;"> · {{ n.created_at|slice:":16" }}</span>{% endif %}

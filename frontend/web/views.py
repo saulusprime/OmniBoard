@@ -387,7 +387,7 @@ def proposal_vote(request, proposal_id):
 
 
 def group_detail(request, group_id):
-    """Scheda del gruppo: membri con ruoli, gestione, classifica interna, tornei."""
+    """Scheda del gruppo: membri, gestione, classifica, tornei e sfide di gruppo."""
     group = _safe(request, lambda: api.group_detail(group_id))
     if group is None:
         return redirect("groups")
@@ -395,7 +395,9 @@ def group_detail(request, group_id):
     ranking = _safe(request, lambda: api.group_ranking(group_id, game_code or None), default={})
     games = [g for g in _safe(request, api.list_games, default=[]) if g.get("playable")]
     tournaments = _safe(request, lambda: api.list_human_tournaments(group_id=group_id), default={})
+    matches = _safe(request, lambda: api.list_group_matches(group_id), default={}) or {}
     users = _safe(request, api.list_users, default=[])
+    all_groups = _safe(request, api.list_groups, default=[])
     member_ids = {m["user_id"] for m in group["members"]}
     my_role = None
     if request.session.get("auth_user"):
@@ -410,10 +412,62 @@ def group_detail(request, group_id):
             "games": games,
             "sel_game": game_code,
             "tournaments": (tournaments or {}).get("tournaments", []),
+            "matches": matches.get("matches", []),
+            "record": matches.get("record"),
+            "rival_groups": [x for x in all_groups if x["id"] != group_id],
             "invitable": [u for u in users if u["id"] not in member_ids],
             "my_role": my_role,
         },
     )
+
+
+def group_match_create(request, group_id):
+    """Proposta di sfida gruppo-vs-gruppo (POST dalla scheda del gruppo)."""
+    if request.method == "POST":
+        token = request.session.get("auth_token")
+        data = {
+            "game_code": request.POST.get("game_code", "chess"),
+            "challenger_group_id": group_id,
+            "opponent_group_id": int(request.POST.get("opponent_group_id") or 0),
+            "boards": int(request.POST.get("boards") or 2),
+        }
+        try:
+            api.create_group_match(data, token)
+            messages.success(
+                request, _("Sfida proposta: i manager dell'altro gruppo sono stati avvisati.")
+            )
+        except api.ApiError as exc:
+            messages.error(request, str(exc))
+    return redirect("group_detail", group_id=group_id)
+
+
+def group_match_detail(request, match_id):
+    """La sfida a squadre: tavolieri, esiti e punteggio."""
+    try:
+        m = api.group_match(match_id)
+    except api.ApiError as exc:
+        messages.error(request, str(exc))
+        return redirect("groups")
+    return render(request, "web/group_match_detail.html", {"m": m})
+
+
+def group_match_action(request, match_id):
+    """Accetta/rifiuta/ritira una sfida di gruppo (POST, manager)."""
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action in ("accept", "decline", "cancel"):
+            token = request.session.get("auth_token")
+            try:
+                api.group_match_action(match_id, action, token)
+                done = {
+                    "accept": _("Sfida accettata: formazioni schierate, si gioca!"),
+                    "decline": _("Sfida di gruppo rifiutata."),
+                    "cancel": _("Sfida di gruppo ritirata."),
+                }
+                messages.success(request, done[action])
+            except api.ApiError as exc:
+                messages.error(request, str(exc))
+    return redirect("group_match_detail", match_id=match_id)
 
 
 def group_action(request, group_id):

@@ -88,6 +88,60 @@
 </div>
 
 <div class="card">
+  <h2>🛡 {% trans 'Sfide gruppo-vs-gruppo' %}
+    {% if record and record.matches %}<span class="pill">{{ record.won }}V {{ record.drawn }}N {{ record.lost }}P</span>{% endif %}</h2>
+  <p class="muted">{% trans 'Squadre a tavoliere multiplo: le formazioni si compongono da sole con i migliori per Elo (tavolo 1 = il più forte), colori alternati, un punto a tavolo e ½ per la patta.' %}</p>
+
+  {% if my_role == 'founder' or my_role == 'admin' %}
+  {% if rival_groups %}
+  <form method="post" action="{% url 'group_match_create' g.id %}"
+        style="display:flex; gap:10px; align-items:end; flex-wrap:wrap;">{% csrf_token %}
+    <div style="min-width:180px;">
+      <label>{% trans 'Gruppo da sfidare' %}</label>
+      <select name="opponent_group_id">
+        {% for rg in rival_groups %}<option value="{{ rg.id }}">{{ rg.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>{% trans 'Gioco' %}</label>
+      <select name="game_code">
+        {% for game in games %}<option value="{{ game.code }}">{{ game.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>{% trans 'Tavolieri' %}</label>
+      <input name="boards" type="number" min="1" max="8" value="2" style="width:70px;">
+    </div>
+    <button class="btn" type="submit">🛡 {% trans 'Proponi la sfida' %}</button>
+  </form>
+  {% endif %}
+  {% endif %}
+
+  {% if matches %}
+  <table style="margin-top:12px;">
+    <tr><th>{% trans 'Sfida' %}</th><th>{% trans 'Gioco' %}</th><th>{% trans 'Tavolieri' %}</th>
+        <th>{% trans 'Punti' %}</th><th>{% trans 'Stato' %}</th><th></th></tr>
+    {% for m in matches %}
+    <tr>
+      <td>{{ m.challenger_group }} — {{ m.opponent_group }}</td>
+      <td>{{ m.game_name }}</td>
+      <td>{{ m.boards }}</td>
+      <td><strong>{{ m.points.challenger }}</strong>–<strong>{{ m.points.opponent }}</strong></td>
+      <td>{% if m.status == 'pending' %}{% trans 'in attesa' %}
+          {% elif m.status == 'running' %}{% trans 'in corso' %}
+          {% elif m.status == 'finished' %}{% if m.winner_group %}🏆 {{ m.winner_group }}{% else %}{% trans 'parità' %}{% endif %}
+          {% elif m.status == 'declined' %}{% trans 'rifiutata' %}
+          {% else %}{% trans 'ritirata' %}{% endif %}</td>
+      <td><a class="btn secondary" href="{% url 'group_match_detail' m.id %}">{% trans 'Apri' %}</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">{% trans 'Nessuna sfida di gruppo ancora.' %}</p>
+  {% endif %}
+</div>
+
+<div class="card">
   <h2>⚔️ {% trans 'Tornei del gruppo' %}</h2>
   {% if tournaments %}
   <table>

@@ -3,6 +3,54 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-09 — Sfide gruppo-vs-gruppo (squadre a tavoliere multiplo)
+
+**Richiesta (utente):** «Sfide gruppo-vs-gruppo» (la voce del TODO rinviata al
+passo sui gruppi, ora richiesta esplicitamente).
+
+**Regole** (`group_matches.py` + router `/group-matches`, tabelle
+`group_matches`/`group_match_boards`, migr. 0013):
+
+- propone un MANAGER (founder/admin) dello sfidante: gioco + tavolieri (1-8);
+  la formazione dello sfidante deve già esistere alla proposta; una sola
+  pendente per coppia (sfidante→sfidato). Rispondono i manager dello sfidato;
+- **formazioni automatiche** all'accettazione: i migliori `boards` membri per
+  Elo stagionale (a parità l'alias), tavolo 1 = il più forte contro il più
+  forte; i membri in comune ai DUE gruppi restano fuori da entrambe le
+  squadre (nessuno gioca contro sé stesso) — il requisito di organico si
+  verifica sugli ELEGGIBILI, non sugli iscritti;
+- **colori alternati**: ai tavoli dispari il primo tratto allo sfidante, ai
+  pari allo sfidato (convenzione dei match a squadre);
+- ogni tavolo è una GameSession **remote=True** — occhio nei TEST: le mosse
+  (e le offerte di patta) vogliono il token di chi muove, a differenza delle
+  sessioni dei tornei (hotseat);
+- punteggio 1/½ per tavolo; al completamento di TUTTI i tavoli (hook
+  `record_result` in `finalize_session`, senza commit) vince chi ha più
+  punti — la PARITÀ è un esito legittimo (`winner_group_id` None);
+- `record(db, group_id)` = bilancio V/N/P delle sfide concluse (badge nella
+  scheda gruppo).
+
+**Notifiche** (5 kind nuovi): team_challenge ai manager dello sfidato,
+team_declined ai manager dello sfidante, team_game a ogni giocatore schierato
+(col numero del tavolo), team_finished/team_finished_draw a tutti gli
+schierati col punteggio. `notifications.render` ora espone anche `match_id`
+per il link «Apri» (ordine dei link in community: session → tournament →
+match → group).
+
+**Frontend**: sezione «Sfide gruppo-vs-gruppo» nella scheda gruppo (badge
+bilancio V/N/P, form di proposta per i manager, elenco con punti/stato) e
+pagina della sfida (`/gruppi/sfide/<id>/`) con punteggio grande, tavolieri
+(squadre affiancate, colore fra parentesi, esito 1–0/½–½/0–1 dal punto di
+vista di X, link Gioca/Moviola) e pulsanti accetta/rifiuta/ritira.
+
+**Test (285 verdi, +3)**: flusso completo con OVERLAP (membro di entrambi i
+gruppi escluso dalle formazioni e conteggiato fuori dall'organico), permessi
+(401/403/400/409), colori alternati verificati per tavolo, matto+patta →
+0.5–1.5, verdetto e bilancio; rifiuto (con notifica) e ritiro; resa frontend
+di scheda gruppo e pagina sfida.
+
+---
+
 ## 2026-07-09 — Notifiche e inviti a giocare (sfide con accettazione)
 
 **Richiesta (utente):** «Notifiche/inviti a giocare» (voce del TODO).

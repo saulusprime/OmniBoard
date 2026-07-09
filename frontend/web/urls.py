@@ -31,6 +31,17 @@ urlpatterns = [
     path("gruppi/<int:group_id>/", views.group_detail, name="group_detail"),
     path("gruppi/<int:group_id>/azione/", views.group_action, name="group_action"),
     path(
+        "gruppi/<int:group_id>/sfide/nuova/",
+        views.group_match_create,
+        name="group_match_create",
+    ),
+    path("gruppi/sfide/<int:match_id>/", views.group_match_detail, name="group_match_detail"),
+    path(
+        "gruppi/sfide/<int:match_id>/azione/",
+        views.group_match_action,
+        name="group_match_action",
+    ),
+    path(
         "gruppi/inviti/<int:invite_id>/rispondi/",
         views.group_invite_respond,
         name="group_invite_respond",

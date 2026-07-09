@@ -26,6 +26,13 @@ _TEMPLATES = {
     "tournament_game": "Torneo «{name}»: è pronta la tua partita del turno {round}",
     "tournament_won": "Hai vinto il torneo «{name}»!",
     "tournament_finished": "Torneo «{name}» concluso: vince {alias}",
+    "team_challenge": (
+        "«{challenger}» sfida il tuo gruppo «{opponent}» a {game} ({boards} tavolieri)"
+    ),
+    "team_declined": "«{opponent}» ha rifiutato la sfida di gruppo a {game}",
+    "team_game": "Sfida di gruppo «{a}» contro «{b}»: giochi al tavolo {board}",
+    "team_finished": "Sfida di gruppo conclusa: «{winner}» batte «{loser}» {score_a}–{score_b}",
+    "team_finished_draw": "Sfida di gruppo in parità: «{a}» {score_a}–{score_b} «{b}»",
 }
 
 # Oltre questa soglia le notifiche lette più vecchie vengono potate (per utente).
@@ -67,6 +74,7 @@ def render(n: models.Notification) -> dict:
         "tournament_id": params.get("tournament_id"),
         "group_id": params.get("group_id"),
         "invite_id": params.get("invite_id"),
+        "match_id": params.get("match_id"),  # sfida gruppo-vs-gruppo
         "created_at": n.created_at.isoformat() if n.created_at else None,
     }
 

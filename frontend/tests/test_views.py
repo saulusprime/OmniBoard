@@ -295,3 +295,84 @@ def test_challenge_form_renders(monkeypatch):
     client = _logged_client()
     html = client.get("/sfide/nuova/9/", SERVER_NAME="localhost").content.decode()
     assert "rivale" in html and "Manda la sfida" in html
+
+
+def test_group_match_pages_render(monkeypatch):
+    """Scheda gruppo con sfide di squadra e pagina della sfida coi tavolieri."""
+    import web.api_client as api
+
+    match = {
+        "id": 4,
+        "game_code": "chess",
+        "game_name": "Scacchi",
+        "challenger_group_id": 3,
+        "challenger_group": "Alfieri",
+        "opponent_group_id": 5,
+        "opponent_group": "Torri",
+        "boards": 2,
+        "status": "finished",
+        "created_by": 1,
+        "points": {"challenger": 0.5, "opponent": 1.5},
+        "winner_group": "Torri",
+        "created_at": "2026-07-09T12:00:00",
+        "board_rows": [
+            {
+                "board": 1,
+                "x_user_id": 1,
+                "x_alias": "gm_a",
+                "o_user_id": 3,
+                "o_alias": "gm_c",
+                "session_id": 21,
+                "result": "o",
+            },
+            {
+                "board": 2,
+                "x_user_id": 4,
+                "x_alias": "gm_d",
+                "o_user_id": 2,
+                "o_alias": "gm_b",
+                "session_id": 22,
+                "result": "draw",
+            },
+        ],
+    }
+    group = {
+        "id": 3,
+        "name": "Alfieri",
+        "created_at": "2026-07-09T10:00:00",
+        "members": [{"user_id": 1, "alias": "gm_a", "role": "founder"}],
+    }
+    monkeypatch.setattr(api, "group_detail", lambda gid: group)
+    monkeypatch.setattr(api, "group_ranking", lambda gid, code=None: {"ranking": []})
+    monkeypatch.setattr(
+        api, "list_games", lambda: [{"code": "chess", "name": "Scacchi", "playable": True}]
+    )
+    monkeypatch.setattr(api, "list_human_tournaments", lambda **k: {"tournaments": []})
+    monkeypatch.setattr(
+        api,
+        "list_group_matches",
+        lambda gid: {
+            "matches": [match],
+            "record": {"matches": 1, "won": 0, "drawn": 0, "lost": 1},
+        },
+    )
+    monkeypatch.setattr(api, "list_users", lambda: [])
+    monkeypatch.setattr(
+        api,
+        "list_groups",
+        lambda: [
+            {"id": 3, "name": "Alfieri", "members": []},
+            {"id": 5, "name": "Torri", "members": []},
+        ],
+    )
+    monkeypatch.setattr(api, "group_match", lambda mid: match)
+
+    client = _logged_client()
+    html = client.get("/gruppi/3/", SERVER_NAME="localhost").content.decode()
+    assert "Sfide gruppo-vs-gruppo" in html
+    assert "Torri" in html and "0V 0N 1P" in html
+
+    html = client.get("/gruppi/sfide/4/", SERVER_NAME="localhost").content.decode()
+    assert "gm_a" in html and "gm_d" in html
+    assert "½–½" in html  # il tavolo 2 è finito patto
+    assert "Vince «Torri»" in html

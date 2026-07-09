@@ -435,6 +435,62 @@ class HumanTournamentGame(Base):
     session: Mapped[GameSession | None] = relationship()
 
 
+class GroupMatch(Base):
+    """Sfida GRUPPO-vs-GRUPPO a squadre su più tavolieri.
+
+    Un manager (founder/admin) dello sfidante propone; i manager dello sfidato
+    accettano o rifiutano. All'accettazione le FORMAZIONI si compongono da sole
+    (i migliori per Elo stagionale, tavolo 1 = il più forte; i membri in comune
+    ai due gruppi restano fuori da entrambe). Un punto a tavolo, ½ la patta;
+    vince il gruppo con più punti (la parità esiste). ``status``: pending |
+    running | finished | declined | cancelled.
+    """
+
+    __tablename__ = "group_matches"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    game_id: Mapped[int] = mapped_column(Integer, ForeignKey("games.id"))
+    challenger_group_id: Mapped[int] = mapped_column(Integer, ForeignKey("groups.id"))
+    opponent_group_id: Mapped[int] = mapped_column(Integer, ForeignKey("groups.id"))
+    boards: Mapped[int] = mapped_column(Integer, default=2)
+    status: Mapped[str] = mapped_column(String, default="pending")
+    created_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    winner_group_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("groups.id"))
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
+
+    game: Mapped[Game] = relationship()
+    challenger_group: Mapped[Group] = relationship(foreign_keys=[challenger_group_id])
+    opponent_group: Mapped[Group] = relationship(foreign_keys=[opponent_group_id])
+    winner_group: Mapped[Group | None] = relationship(foreign_keys=[winner_group_id])
+    board_rows: Mapped[list[GroupMatchBoard]] = relationship(
+        back_populates="match", cascade="all, delete-orphan"
+    )
+
+
+class GroupMatchBoard(Base):
+    """Un tavoliere della sfida a squadre: chi gioca, la sessione, l'esito.
+
+    ``x_user_id`` è sempre chi ha il primo tratto; ai tavoli DISPARI il Bianco
+    va allo sfidante, ai pari allo sfidato (colori alternati, convenzione dei
+    match a squadre). ``result`` ∈ {x, o, draw}; None = da giocare.
+    """
+
+    __tablename__ = "group_match_boards"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    match_id: Mapped[int] = mapped_column(Integer, ForeignKey("group_matches.id"))
+    board: Mapped[int] = mapped_column(Integer, default=1)
+    x_user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    o_user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    session_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("game_sessions.id"))
+    result: Mapped[str | None] = mapped_column(String)
+
+    match: Mapped[GroupMatch] = relationship(back_populates="board_rows")
+    x_user: Mapped[User] = relationship(foreign_keys=[x_user_id])
+    o_user: Mapped[User] = relationship(foreign_keys=[o_user_id])
+    session: Mapped[GameSession | None] = relationship()
+
+
 class GameInvite(Base):
     """Invito a giocare (sfida): la partita nasce solo quando lo sfidato ACCETTA.
 
