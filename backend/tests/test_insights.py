@@ -185,6 +185,118 @@ def test_diamond_in_brilliancies_with_piece_filter_fields():
         assert st["chess"]["brilliancies"] >= st["chess"]["badges"]["💎"]
 
 
+def test_four_aspects_evaluation():
+    """Aperture/tattica/strategia/finali dalle analisi in cache + fasi dal replay.
+
+    Partita A (26 semimosse di Giuoco Piano tranquillo): 12 mosse proprie in
+    apertura (3 nel libro), una mossa quieta di mediogioco (Bc4-b5), un blunder
+    proprio finto e un blunder avversario punito. Partita B da FEN di finale
+    (torre e re): una mossa propria in fase «finale».
+    """
+    game_a = [
+        "e2e4",
+        "e7e5",
+        "g1f3",
+        "b8c6",
+        "f1c4",
+        "f8c5",
+        "d2d3",
+        "g8f6",
+        "b1c3",
+        "d7d6",
+        "c1e3",
+        "c8e6",
+        "h2h3",
+        "h7h6",
+        "a2a3",
+        "a7a6",
+        "g2g3",
+        "g7g6",
+        "d1d2",
+        "d8d7",
+        "b2b3",
+        "b7b6",
+        "a3a4",
+        "a6a5",
+        "c4b5",
+        "e6d5",
+    ]
+    with TestClient(app) as client:
+        u1, u2 = _user(client, "asp_a"), _user(client, "asp_b")
+        sid_a = client.post(
+            "/sessions",
+            json={
+                "game_code": "chess",
+                "x": {"type": "human", "user_id": u1["id"]},
+                "o": {"type": "human", "user_id": u2["id"]},
+            },
+        ).json()["id"]
+        for uci in game_a:
+            assert client.post(f"/sessions/{sid_a}/move", json={"move": uci}).status_code == 200
+        client.post(f"/sessions/{sid_a}/resign", json={"side": "o"})
+
+        # Senza analisi in cache i quattro aspetti non esistono ancora.
+        st = client.get(f"/users/{u1['id']}/insights").json()
+        assert st["chess"]["aspects"] is None
+
+        # Partita B: finale di torre da FEN, matto in una (fase «finale»).
+        sid_b = client.post(
+            "/sessions",
+            json={
+                "game_code": "chess",
+                "x": {"type": "human", "user_id": u1["id"]},
+                "o": {"type": "human", "user_id": u2["id"]},
+                "start_fen": "6k1/5ppp/8/8/8/8/8/R3K3 w - - 0 1",
+            },
+        ).json()["id"]
+        assert client.post(f"/sessions/{sid_b}/move", json={"move": "a1a8"}).status_code == 200
+
+        # Analisi FINTE: perdita 30 ovunque tranne il blunder avversario alla
+        # semimossa 10 (punito dalla 11) e il blunder proprio alla 13.
+        db = SessionLocal()
+        try:
+            evals = []
+            for ply in range(1, len(game_a) + 1):
+                by = "x" if ply % 2 == 1 else "o"
+                loss, tag = 30, None
+                if ply == 10:
+                    loss, tag = 300, "??"
+                if ply == 13:
+                    loss, tag = 250, "??"
+                evals.append({"ply": ply, "by": by, "loss": loss, "tag": tag})
+            db.get(GameSession, sid_a).analysis_json = json.dumps(
+                {"status": "done", "evals": evals}
+            )
+            db.get(GameSession, sid_b).analysis_json = json.dumps(
+                {"status": "done", "evals": [{"ply": 1, "by": "x", "loss": 0, "tag": None}]}
+            )
+            db.commit()
+        finally:
+            db.close()
+
+        asp = client.get(f"/users/{u1['id']}/insights").json()["chess"]["aspects"]
+        assert asp["games_analyzed"] == 2
+        # Aperture: 12 mosse proprie, ACPL (11×30 + 250)/12, 3 semimosse su 12 nel libro.
+        assert asp["opening"]["moves"] == 12
+        assert asp["opening"]["acpl"] == 48.3
+        assert asp["opening"]["book_rate"] == 0.25
+        assert asp["opening"]["score"] is not None and 0 < asp["opening"]["score"] < 100
+        # Tattica: un blunder commesso, l'unica occasione avversaria è stata punita.
+        assert asp["tactics"]["blunders"] == 1
+        assert asp["tactics"]["per_game"] == 0.5
+        assert asp["tactics"]["opportunities"] == 1
+        assert asp["tactics"]["punished"] == 1
+        assert asp["tactics"]["score"] is None  # sotto le 3 partite analizzate
+        # Strategia: la sola Bc4-b5 (quieta, mediogioco); campione insufficiente.
+        assert asp["strategy"]["moves"] == 1
+        assert asp["strategy"]["acpl"] == 30.0
+        assert asp["strategy"]["score"] is None
+        # Finali: la mossa della partita da FEN, perdita zero.
+        assert asp["endgame"]["moves"] == 1
+        assert asp["endgame"]["acpl"] == 0.0
+        assert asp["endgame"]["score"] is None
+
+
 def test_performance_by_cadence():
     """by_cadence separa senza-orologio e blitz, con ACPL dalle analisi in cache."""
     with TestClient(app) as client:

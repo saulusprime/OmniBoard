@@ -61,6 +61,51 @@
   </table>
   {% endif %}
 
+  {% if st.chess.aspects %}
+  {% with va=st.chess.aspects %}
+  <h3>{% trans 'I quattro aspetti del gioco' %}</h3>
+  <p class="muted">{% blocktrans with n=va.games_analyzed %}Punteggi 0–100 dalle {{ n }} partite analizzate: precisione per fase di gioco, più il libro (aperture) e i blunder puniti (tattica).{% endblocktrans %}</p>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:14px;">
+    <div>
+      <p style="margin:0 0 4px;"><strong>📖 {% trans 'Aperture' %}</strong>
+        <span style="float:right; font-weight:700;">{% if va.opening.score is not None %}{{ va.opening.score }}{% else %}—{% endif %}</span></p>
+      <div style="height:8px; border-radius:4px; background:rgba(127,127,127,.25); overflow:hidden;">
+        <div style="height:100%; width:{{ va.opening.score|default_if_none:0 }}%; background:#3fb950;"></div></div>
+      <p class="muted" style="margin:4px 0 0; font-size:.85rem;">
+        {% if va.opening.moves %}ACPL {{ va.opening.acpl }}{% if va.opening.book_rate is not None %} · {% trans 'nel libro' %} {% widthratio va.opening.book_rate 1 100 %}%{% endif %}
+        {% else %}{% trans 'campione insufficiente' %}{% endif %}</p>
+    </div>
+    <div>
+      <p style="margin:0 0 4px;"><strong>⚔️ {% trans 'Tattica' %}</strong>
+        <span style="float:right; font-weight:700;">{% if va.tactics.score is not None %}{{ va.tactics.score }}{% else %}—{% endif %}</span></p>
+      <div style="height:8px; border-radius:4px; background:rgba(127,127,127,.25); overflow:hidden;">
+        <div style="height:100%; width:{{ va.tactics.score|default_if_none:0 }}%; background:#3fb950;"></div></div>
+      <p class="muted" style="margin:4px 0 0; font-size:.85rem;">
+        {% blocktrans with b=va.tactics.blunders pg=va.tactics.per_game %}{{ b }} blunder ({{ pg }} a partita){% endblocktrans %}
+        {% if va.tactics.opportunities %} · {% blocktrans with p=va.tactics.punished o=va.tactics.opportunities %}puniti {{ p }}/{{ o }}{% endblocktrans %}{% endif %}</p>
+    </div>
+    <div>
+      <p style="margin:0 0 4px;"><strong>♟️ {% trans 'Strategia' %}</strong>
+        <span style="float:right; font-weight:700;">{% if va.strategy.score is not None %}{{ va.strategy.score }}{% else %}—{% endif %}</span></p>
+      <div style="height:8px; border-radius:4px; background:rgba(127,127,127,.25); overflow:hidden;">
+        <div style="height:100%; width:{{ va.strategy.score|default_if_none:0 }}%; background:#3fb950;"></div></div>
+      <p class="muted" style="margin:4px 0 0; font-size:.85rem;">
+        {% if va.strategy.moves %}{% blocktrans with acpl=va.strategy.acpl m=va.strategy.moves %}ACPL {{ acpl }} su {{ m }} mosse quiete{% endblocktrans %}
+        {% else %}{% trans 'campione insufficiente' %}{% endif %}</p>
+    </div>
+    <div>
+      <p style="margin:0 0 4px;"><strong>👑 {% trans 'Finali' %}</strong>
+        <span style="float:right; font-weight:700;">{% if va.endgame.score is not None %}{{ va.endgame.score }}{% else %}—{% endif %}</span></p>
+      <div style="height:8px; border-radius:4px; background:rgba(127,127,127,.25); overflow:hidden;">
+        <div style="height:100%; width:{{ va.endgame.score|default_if_none:0 }}%; background:#3fb950;"></div></div>
+      <p class="muted" style="margin:4px 0 0; font-size:.85rem;">
+        {% if va.endgame.moves %}{% blocktrans with acpl=va.endgame.acpl m=va.endgame.moves %}ACPL {{ acpl }} su {{ m }} mosse{% endblocktrans %}
+        {% else %}{% trans 'campione insufficiente' %}{% endif %}</p>
+    </div>
+  </div>
+  {% endwith %}
+  {% endif %}
+
   <h3>{% trans 'Come finiscono le partite' %}</h3>
   <p>
     ♚ {% trans 'scacco matto' %}: <strong>{{ st.chess.finish_reasons.mate }}</strong> ·

@@ -381,10 +381,13 @@
   (— dove l'analisi manca). Tabella nella pagina Statistiche avanzate,
   bilingue. Trappola .po documentata: riempire `msgstr ""` di un'entry
   MULTIRIGA con un regex a riga singola concatena traduzioni fantasma.
-- [ ] **Valutazione per i quattro aspetti del gioco** — aperture, tattica, strategia,
-  finali — calcolabile dalle analisi per fasce di semimosse: aperture = ACPL nelle
-  prime ~12 + rendimento col libro; finali = ACPL da soglia di materiale; tattica =
-  blunder concessi/puniti; strategia = ACPL nelle mosse "quiete" centrali.
+- [x] **Valutazione per i quattro aspetti del gioco** — `insights._aspects`
+  (2026-07-09): aperture = ACPL prime ~12 mosse + aderenza al libro (pesa ¼);
+  tattica = blunder commessi + blunder avversari puniti (risposta < 100 cp);
+  strategia = ACPL delle mosse quiete del mediogioco; finali = ACPL con ≤ 6
+  pezzi non-pedone. Fasi dal replay deterministico (`_phases`, nessuna
+  ricerca); punteggi 0-100 euristici, None sotto i campioni minimi. Quattro
+  riquadri con barre nella pagina Statistiche avanzate, bilingue.
 - [ ] **Sottocategorie tattiche**: matti mancati (il motore vedeva `mate` e la mossa
   giocata non lo dà — dato già in `evaluate()`), pezzi lasciati in presa (perdita ≥
   valore del pezzo), tipi di tattiche concesse.

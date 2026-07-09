@@ -1,12 +1,16 @@
 """Statistiche avanzate del giocatore e raccolta delle «mosse geniali».
 
-Aggrega SOLO materia prima già in casa (mai lavoro del motore qui):
+Aggrega SOLO materia prima già in casa (mai RICERCA del motore qui; l'unico
+lavoro scacchistico è il replay deterministico delle mosse per riconoscere le
+fasi della partita):
 
 - punteggi e rating per gioco (``scores``/``ratings``);
 - profilo scacchistico in cache (accuracy, colori, aperture — ``profile_cache``);
 - **serie** (vittorie consecutive, migliore e corrente) per gioco;
 - distribuzione degli **esiti** delle partite di scacchi (matto/tempo/abbandono/
   patta d'accordo/ripetizione);
+- la valutazione per i **quattro aspetti** del gioco (aperture, tattica,
+  strategia, finali) dalle analisi già calcolate — v. ``_aspects``;
 - conteggio dei **badge di qualità** sulle PROPRIE mosse (🌟👍⚔️🐔🤔😬🤡,
   assegnati dal commentatore in ``moves_json``);
 - la raccolta delle **mosse geniali**: le proprie mosse coi badge 💎 («geniale,
@@ -23,12 +27,25 @@ import json
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
+from engine import get_game
+from engine.chess import openings
+
 from . import ai_arena, models, profile_cache, rating
 from .i18n import _
 
 CHESS_CODE = "chess"
 BADGE_SYMBOLS = ("💎", "🌟", "👍", "⚔️", "🐔", "🤔", "😬", "🤡")
 BRILLIANT = ("💎", "🌟")  # geniali (sacrificio) e da maestro
+
+# Fasce dei QUATTRO ASPETTI: apertura = prime ~12 mosse; finale = al più 6
+# pezzi non-pedone sulla scacchiera (re esclusi); in mezzo, il mediogioco.
+_OPENING_PLIES = 24
+_ENDGAME_PIECES = 6
+_NONPAWN_PIECES = set("♕♖♗♘♛♜♝♞")  # come appaiono in view_board
+_ASPECT_GAMES = 40  # tetto di partite rigiocate (il replay costa, l'analisi no)
+_ASPECT_MIN_MOVES = 10  # sotto questo campione il punteggio non fa testo
+_ASPECT_MIN_GAMES = 3  # campione minimo di partite per giudicare la tattica
+_PUNISH_LOSS = 100  # risposta a un blunder che "tiene" il vantaggio (cp persi)
 
 
 def _user_sessions(db: Session, user_id: int, game_code: str | None = None):
@@ -74,6 +91,168 @@ def _streaks(sessions, user_id: int) -> dict:
         else:
             current = 0
     return {"best_win_streak": best, "current_win_streak": current}
+
+
+def _phases(game, start_fen: str | None, history: list[str]) -> list[str] | None:
+    """La fase di ogni semimossa (PRIMA che sia giocata); None se non si rigioca.
+
+    Replay deterministico col motore puro: nessuna ricerca, solo la scacchiera
+    per contare i pezzi e decidere apertura/mediogioco/finale.
+    """
+    state = game.from_fen(start_fen) if start_fen else game.initial_state()
+    out: list[str] = []
+    for uci in history:
+        pieces = sum(1 for p in game.view_board(state) if p in _NONPAWN_PIECES)
+        if pieces <= _ENDGAME_PIECES:
+            out.append("endgame")
+        else:
+            out.append("opening" if len(out) < _OPENING_PLIES else "middlegame")
+        move = next((m for m in game.legal_moves(state) if game.move_id(m) == uci), None)
+        if move is None:
+            return None
+        state = game.apply(state, move)
+    return out
+
+
+def _acpl_score(acpl: float) -> int:
+    """ACPL → punteggio 0-100 (lineare: 0 cp persi a mossa = 100, da 200 in su = 0)."""
+    return round(max(0.0, 100.0 - acpl / 2))
+
+
+def _aspects(sessions, user_id: int) -> dict | None:
+    """Valutazione per i QUATTRO ASPETTI del gioco: aperture, tattica, strategia, finali.
+
+    Materia prima: la perdita per mossa delle analisi GIÀ calcolate
+    (``analysis_json``); le fasi arrivano da ``_phases``. Per aspetto:
+
+    - **aperture** — ACPL delle proprie mosse nelle prime ~12 mosse, più
+      l'aderenza al libro (quota di semimosse dentro una linea nota; solo
+      partite dalla posizione iniziale standard);
+    - **tattica** — blunder commessi e blunder avversari PUNITI (la propria
+      risposta tiene il vantaggio regalato: perdita < ``_PUNISH_LOSS``);
+    - **strategia** — ACPL delle proprie mosse QUIETE del mediogioco (né
+      catture né scacchi né promozioni: le scelte posizionali);
+    - **finali** — ACPL delle proprie mosse giocate con al più
+      ``_ENDGAME_PIECES`` pezzi (re e pedoni esclusi dal conto).
+
+    I punteggi 0-100 sono euristici (v. ``_acpl_score``); sotto i campioni
+    minimi il punteggio resta None ma i grezzi si riportano comunque.
+    ``None`` se nessuna partita del giocatore è stata analizzata.
+    """
+    game = get_game(CHESS_CODE)
+    buckets = {k: {"moves": 0, "loss": 0} for k in ("opening", "strategy", "endgame")}
+    book_moves = book_eligible = 0
+    blunders = opportunities = punished = 0
+    analyzed = 0
+    for s in reversed(sessions):  # dalla più recente, fino al tetto di replay
+        if analyzed >= _ASPECT_GAMES:
+            break
+        if not s.analysis_json:
+            continue
+        try:
+            data = json.loads(s.analysis_json)
+        except ValueError:
+            continue
+        if data.get("status") != "done" or not data.get("evals"):
+            continue
+        moves = json.loads(s.moves_json or "[]")
+        history = [m["id"] for m in moves if "id" in m]
+        phases = _phases(game, s.start_fen, history)
+        if phases is None:
+            continue
+        analyzed += 1
+        side = "x" if s.x_user_id == user_id else "o"
+        notation_by_ply = {m["ply"]: (m.get("notation") or "") for m in moves if "ply" in m}
+        evals_by_ply = {e["ply"]: e for e in data["evals"] if "ply" in e}
+        # Aderenza al libro: il prefisso noto più lungo della partita intera.
+        book_len = 0
+        if not s.start_fen:
+            for _name, line in openings.all_lines():
+                n = 0
+                for a, b in zip(history, line):
+                    if a != b:
+                        break
+                    n += 1
+                book_len = max(book_len, n)
+        for e in data["evals"]:
+            ply = e.get("ply")
+            if not ply or ply > len(phases):
+                continue
+            loss = min(int(e.get("loss") or 0), 1000)
+            phase = phases[ply - 1]
+            if e.get("by") != side:
+                # Mossa avversaria: conta solo come occasione tattica da punire.
+                if e.get("tag") == "??":
+                    reply = evals_by_ply.get(ply + 1)
+                    if reply is not None and reply.get("by") == side:
+                        opportunities += 1
+                        if min(int(reply.get("loss") or 0), 1000) < _PUNISH_LOSS:
+                            punished += 1
+                continue
+            if e.get("tag") == "??":
+                blunders += 1
+            if phase == "opening":
+                buckets["opening"]["moves"] += 1
+                buckets["opening"]["loss"] += loss
+                if not s.start_fen:
+                    book_eligible += 1
+                    if ply <= book_len:
+                        book_moves += 1
+            elif phase == "endgame":
+                buckets["endgame"]["moves"] += 1
+                buckets["endgame"]["loss"] += loss
+            elif not any(c in notation_by_ply.get(ply, "") for c in "x+#="):
+                buckets["strategy"]["moves"] += 1
+                buckets["strategy"]["loss"] += loss
+    if not analyzed:
+        return None
+
+    def _acpl(bucket: dict) -> float | None:
+        return round(bucket["loss"] / bucket["moves"], 1) if bucket["moves"] else None
+
+    acpl = {k: _acpl(b) for k, b in buckets.items()}
+    scores = {
+        k: _acpl_score(acpl[k]) if buckets[k]["moves"] >= _ASPECT_MIN_MOVES else None
+        for k in buckets
+    }
+    book_rate = round(book_moves / book_eligible, 2) if book_eligible else None
+    if scores["opening"] is not None and book_rate is not None:
+        # Il libro pesa un quarto: conoscere la teoria aiuta, la precisione decide.
+        scores["opening"] = round(0.75 * scores["opening"] + 25 * book_rate)
+    per_game = round(blunders / analyzed, 2)
+    tactics_score = None
+    if analyzed >= _ASPECT_MIN_GAMES:
+        avoid = max(0.0, 100.0 - per_game * 40)  # 0 blunder/partita = 100, 2,5+ = 0
+        if opportunities:
+            tactics_score = round((avoid + 100.0 * punished / opportunities) / 2)
+        else:
+            tactics_score = round(avoid)
+    return {
+        "games_analyzed": analyzed,
+        "opening": {
+            "moves": buckets["opening"]["moves"],
+            "acpl": acpl["opening"],
+            "book_rate": book_rate,
+            "score": scores["opening"],
+        },
+        "tactics": {
+            "blunders": blunders,
+            "per_game": per_game,
+            "opportunities": opportunities,
+            "punished": punished,
+            "score": tactics_score,
+        },
+        "strategy": {
+            "moves": buckets["strategy"]["moves"],
+            "acpl": acpl["strategy"],
+            "score": scores["strategy"],
+        },
+        "endgame": {
+            "moves": buckets["endgame"]["moves"],
+            "acpl": acpl["endgame"],
+            "score": scores["endgame"],
+        },
+    }
 
 
 def build(db: Session, user_id: int) -> dict | None:
@@ -177,6 +356,7 @@ def build(db: Session, user_id: int) -> dict | None:
                 for key in ("none", "blitz", "rapid", "classical", "fide")
                 if (row := cadences.get(key)) is not None
             ],
+            "aspects": _aspects(chess_sessions, user_id),
             "badges": badges,
             "brilliancies": sum(badges.get(s, 0) for s in BRILLIANT),
         },
