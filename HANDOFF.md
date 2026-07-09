@@ -3,6 +3,54 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-09 — Valutazione per i quattro aspetti del gioco (Insights)
+
+**Richiesta (utente):** «Valutazione per i quattro aspetti del gioco» (voce del
+TODO, sezione ricerca degli Insights). In apertura di sessione, fix di avvio:
+`alembic_version` in `omniboard.db` era rimasta all'ID autogenerato
+`0ea7a8c15601` della migrazione puzzle (trappola nota della rinomina) →
+`UPDATE` manuale a `0010`, nessuna migrazione rieseguita.
+
+**Cosa misura** (`insights._aspects`, solo partite GIÀ analizzate, tetto 40):
+
+- **Aperture** — ACPL delle proprie mosse nelle prime ~12 mosse
+  (`_OPENING_PLIES=24`), più l'aderenza al libro (`book_rate` = quota di
+  semimosse dentro la linea nota più lunga, `openings.all_lines()`; solo
+  partite dalla posizione standard). Il libro pesa un quarto del punteggio.
+- **Tattica** — blunder commessi (tag `??` propri) e blunder avversari
+  **puniti**: la propria risposta alla semimossa successiva tiene il vantaggio
+  (perdita < `_PUNISH_LOSS=100`). Punteggio = media fra «evitare» (100 −
+  40×blunder/partita) e quota di punizioni; richiede ≥3 partite analizzate.
+- **Strategia** — ACPL delle proprie mosse **quiete** del mediogioco (né
+  catture né scacchi né promozioni, dalla notazione).
+- **Finali** — ACPL delle proprie mosse giocate con al più `_ENDGAME_PIECES=6`
+  pezzi non-pedone (re esclusi) sulla scacchiera.
+
+**Fasi dal replay deterministico** (`_phases`): si rigiocano le mosse col
+motore puro SOLO per contare i pezzi (nessuna ricerca) — il docstring del
+modulo ora distingue «mai ricerca» da «replay leggero ammesso». Punteggi 0-100
+euristici via `_acpl_score` (lineare, 200 cp → 0); sotto i campioni minimi
+(`_ASPECT_MIN_MOVES=10`, `_ASPECT_MIN_GAMES=3`) il punteggio resta `None` ma i
+grezzi si riportano. Payload in `insights.build` → `chess.aspects` (None se
+niente analisi): l'endpoint `GET /users/{id}/insights` lo porta già.
+
+**Frontend**: sezione «I quattro aspetti del gioco» in `user_stats.html` — 4
+riquadri con punteggio, barra e dettaglio (ACPL, % libro, puniti m/n,
+«campione insufficiente»). i18n: 11 voci nuove in `django.po` (msgfmt ok);
+test di resa in IT **e** in EN (valida anche il `.mo`; occhio alla l10n dei
+decimali: in IT `48.3` si rende `48,3`).
+
+**Test** (273 verdi, +2): `test_four_aspects_evaluation` — partita scriptata di
+26 semimosse (Giuoco Pianissimo, verificata legale col motore PRIMA di
+scriverla nel test), blunder finti mirati (proprio a ply 13, avversario a ply
+10 punito dall'11), più una partita da FEN di finale (matto in 1) per la fase
+«finale»; `test_user_stats_renders_four_aspects` con API frontend mockate.
+Numeri attesi calcolati a mano e riscontrati: opening ACPL 48.3 su 12 mosse,
+book_rate 0.25 (libro = 6 semimosse di Partita Italiana), strategia 1 mossa
+quieta (Bc4-b5), tattica 1/1 punito.
+
+---
+
 ## 2026-07-08 — CHECKPOINT anti-compattazione (fotografia dello stato)
 
 **Richiesta (utente):** refresh di tutti i doc (HANDOFF, MEMORY, README, TODO,

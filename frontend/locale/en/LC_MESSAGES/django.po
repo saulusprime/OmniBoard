@@ -1504,3 +1504,41 @@ msgstr "awaiting approval"
 #: web/templates/web/users_list.html:22
 msgid "Ancora nessun giocatore registrato."
 msgstr "No players registered yet."
+
+#: web/templates/web/user_stats.html (quattro aspetti del gioco)
+msgid "I quattro aspetti del gioco"
+msgstr "The four aspects of the game"
+
+msgid ""
+"Punteggi 0–100 dalle %(n)s partite analizzate: precisione per fase di "
+"gioco, più il libro (aperture) e i blunder puniti (tattica)."
+msgstr ""
+"Scores 0–100 from the %(n)s analyzed games: accuracy per game phase, plus "
+"opening book (openings) and punished blunders (tactics)."
+
+msgid "nel libro"
+msgstr "in the book"
+
+msgid "campione insufficiente"
+msgstr "sample too small"
+
+msgid "Tattica"
+msgstr "Tactics"
+
+msgid "%(b)s blunder (%(pg)s a partita)"
+msgstr "%(b)s blunders (%(pg)s per game)"
+
+msgid "puniti %(p)s/%(o)s"
+msgstr "punished %(p)s/%(o)s"
+
+msgid "Strategia"
+msgstr "Strategy"
+
+msgid "ACPL %(acpl)s su %(m)s mosse quiete"
+msgstr "ACPL %(acpl)s over %(m)s quiet moves"
+
+msgid "Finali"
+msgstr "Endgames"
+
+msgid "ACPL %(acpl)s su %(m)s mosse"
+msgstr "ACPL %(acpl)s over %(m)s moves"

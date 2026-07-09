@@ -654,6 +654,14 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   (tc_category, V/P/S + ACPL proprie mosse, ordine fisso) + tabella nelle
   Statistiche. Trappola .po: msgstr multiriga + regex a riga singola =
   traduzioni concatenate. 271 verdi.
+- **2026-07-09** — **Quattro aspetti del gioco**: insights._aspects dalle
+  analisi in cache — aperture (ACPL prime ~12 mosse + libro ¼), tattica
+  (blunder commessi/puniti), strategia (ACPL mosse quiete del mediogioco),
+  finali (ACPL con ≤6 pezzi non-pedone). Fasi da replay deterministico
+  (_phases, MAI ricerca); punteggi 0-100 euristici, None sotto campione
+  minimo. Riquadri con barre nelle Statistiche, bilingue (occhio: l10n IT
+  rende 48.3 → «48,3» nei template). In apertura di sessione: fix
+  alembic_version stantia (0ea7a8c15601 → 0010, trappola rinomina). 273 verdi.
 
 ## Questioni aperte
 
