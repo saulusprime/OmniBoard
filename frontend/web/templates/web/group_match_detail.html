@@ -1,0 +1,60 @@
+{% extends "web/base.html" %}
+{% load i18n %}
+{% block title %}{{ m.challenger_group }} — {{ m.opponent_group }} · {% trans 'Sfida di gruppo' %}{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>🛡 {{ m.challenger_group }} <span class="muted">vs</span> {{ m.opponent_group }}</h1>
+  <p class="muted">{{ m.game_name }} · {{ m.boards }} {% trans 'tavolieri' %} ·
+    {% if m.status == 'pending' %}{% trans 'in attesa di risposta' %}
+    {% elif m.status == 'running' %}{% trans 'in corso' %}
+    {% elif m.status == 'finished' %}{% trans 'conclusa' %}
+    {% elif m.status == 'declined' %}{% trans 'rifiutata' %}
+    {% else %}{% trans 'ritirata' %}{% endif %}
+    — <a href="{% url 'group_detail' m.challenger_group_id %}">← {{ m.challenger_group }}</a></p>
+
+  <p style="font-size:1.3rem; margin:8px 0;">
+    <strong>{{ m.challenger_group }}</strong> {{ m.points.challenger }} —
+    {{ m.points.opponent }} <strong>{{ m.opponent_group }}</strong></p>
+  {% if m.status == 'finished' %}
+  <p style="font-size:1.05rem;">
+    {% if m.winner_group %}🏆 {% blocktrans with w=m.winner_group %}Vince «{{ w }}»!{% endblocktrans %}
+    {% else %}🤝 {% trans 'Parità: onore a entrambe le squadre.' %}{% endif %}</p>
+  {% endif %}
+
+  {% if auth_user and m.status == 'pending' %}
+  <form method="post" action="{% url 'group_match_action' m.id %}" style="display:flex; gap:10px;">{% csrf_token %}
+    <button class="btn" type="submit" name="action" value="accept">{% trans 'Accetta (manager dello sfidato)' %}</button>
+    <button class="btn secondary" type="submit" name="action" value="decline">{% trans 'Rifiuta' %}</button>
+    <button class="btn secondary" type="submit" name="action" value="cancel">{% trans 'Ritira (manager dello sfidante)' %}</button>
+  </form>
+  {% endif %}
+</div>
+
+{% if m.board_rows %}
+<div class="card">
+  <h2>{% trans 'Tavolieri' %}</h2>
+  <table>
+    <tr><th>#</th><th>{{ m.challenger_group }}</th><th></th><th>{{ m.opponent_group }}</th>
+        <th>{% trans 'Esito' %}</th><th></th></tr>
+    {% for r in m.board_rows %}
+    <tr>
+      <td>{{ r.board }}</td>
+      {% if r.board|divisibleby:2 %}
+      <td>{{ r.o_alias }} <span class="muted">({% trans 'Nero/O' %})</span></td><td>—</td>
+      <td>{{ r.x_alias }} <span class="muted">({% trans 'Bianco/X' %})</span></td>
+      {% else %}
+      <td>{{ r.x_alias }} <span class="muted">({% trans 'Bianco/X' %})</span></td><td>—</td>
+      <td>{{ r.o_alias }} <span class="muted">({% trans 'Nero/O' %})</span></td>
+      {% endif %}
+      <td>{% if r.result == 'draw' %}½–½{% elif r.result == 'x' %}1–0{% elif r.result == 'o' %}0–1{% else %}<span class="muted">{% trans 'da giocare' %}</span>{% endif %}</td>
+      <td>{% if r.session_id %}
+        <a class="btn secondary" style="padding:2px 10px; font-size:.8rem;"
+           href="{% url 'play' r.session_id %}">{% if r.result %}{% trans 'Moviola' %}{% else %}{% trans 'Gioca' %}{% endif %}</a>
+      {% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="muted" style="font-size:.85rem;">{% trans 'L’esito 1–0/0–1 è dal punto di vista di chi ha il primo tratto (X); i punti della squadra sono nel riepilogo in alto.' %}</p>
+</div>
+{% endif %}
+{% endblock %}

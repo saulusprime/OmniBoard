@@ -21,6 +21,7 @@ from .routers import (
     community,
     config,
     games,
+    group_matches,
     groups,
     lessons,
     matches,
@@ -84,6 +85,7 @@ app.include_router(auth.router)
 app.include_router(community.router)
 app.include_router(games.router)
 app.include_router(groups.router)
+app.include_router(group_matches.router)
 app.include_router(matches.router)
 app.include_router(sessions.router)
 app.include_router(rankings.router)

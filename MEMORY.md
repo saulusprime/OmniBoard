@@ -680,6 +680,15 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   navbar dal heartbeat; hook su inviti gruppo, nuovo turno e fine torneo.
   Trappola: col cookie firmato il test client Django non salva la sessione da
   solo (impostare client.cookies[SESSION_COOKIE_NAME]). 282 verdi.
+- **2026-07-09** — **Sfide gruppo-vs-gruppo** (migr. 0013): squadre a
+  tavoliere multiplo (1-8) via group_matches.py + /group-matches — propone e
+  risponde un manager; formazioni AUTOMATICHE per Elo (tavolo 1 = il più
+  forte; membri comuni ai DUE gruppi esclusi, organico contato sugli
+  eleggibili), colori alternati per tavolo, 1/½ per tavolo, parità legittima
+  (winner_group_id None); verdetto+notifiche a fine tavoli (hook in
+  finalize_session). Bilancio V/N/P nella scheda gruppo. NB: le sessioni dei
+  tavoli sono remote=True → nelle prove le mosse vogliono il token di chi
+  muove (quelle dei tornei sono hotseat). 285 verdi.
 
 ## Questioni aperte
 

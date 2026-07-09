@@ -247,8 +247,14 @@
   founder li cambia), inviti con accettazione dell'invitato (re-invito riusa
   la riga), espulsioni/uscita con permessi graduati, classifica interna per
   gioco (punti+Elo) o complessiva. Scheda gruppo nel frontend + banner inviti.
-- [ ] **Sfide gruppo-vs-gruppo** (squadre a tavoliere multiplo): rinviate —
-  prerequisito naturale: più utenti attivi per gruppo.
+- [x] **Sfide gruppo-vs-gruppo** (2026-07-09, `group_matches.py` +
+  `/group-matches`, migr. 0013): squadre a tavoliere multiplo (1-8) — propone
+  e risponde un manager; formazioni AUTOMATICHE per Elo (tavolo 1 = il più
+  forte, membri comuni ai due gruppi esclusi), colori alternati per tavolo,
+  1/½ punti a tavolo, parità legittima; verdetto e notifiche al termine di
+  tutti i tavoli (hook in finalize_session). Bilancio V/N/P nella scheda
+  gruppo, pagina della sfida coi tavolieri. Le sessioni sono remote=True:
+  ogni mossa vuole il token di chi muove.
 - [ ] **Spettatori** delle partite live e **replay animato** dallo storico mosse.
 - [x] **Notifiche/inviti a giocare** (2026-07-09): sfide come INVITI
   (`/challenges`, migr. 0012) — lo sfidante sceglie gioco/lato/cadenza

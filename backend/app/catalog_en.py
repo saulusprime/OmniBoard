@@ -259,4 +259,16 @@ CATALOG_EN = {
     "Torneo «{name}»: è pronta la tua partita del turno {round}": "Tournament “{name}”: your round {round} game is ready",
     "Hai vinto il torneo «{name}»!": "You won the tournament “{name}”!",
     "Torneo «{name}» concluso: vince {alias}": "Tournament “{name}” finished: {alias} wins",
+    # Sfide gruppo-vs-gruppo
+    "Sfida di gruppo non trovata": "Group match not found",
+    "Un gruppo non può sfidare sé stesso": "A group cannot challenge itself",
+    "I tavolieri vanno da {lo} a {hi}": "Boards must be between {lo} and {hi}",
+    "C'è già una sfida in attesa": "There is already a pending match",
+    "Il tuo gruppo non ha abbastanza membri per {n} tavolieri": "Your group does not have enough members for {n} boards",
+    "Formazioni incomplete per {n} tavolieri": "Incomplete lineups for {n} boards",
+    "«{challenger}» sfida il tuo gruppo «{opponent}» a {game} ({boards} tavolieri)": "“{challenger}” challenges your group “{opponent}” to {game} ({boards} boards)",
+    "«{opponent}» ha rifiutato la sfida di gruppo a {game}": "“{opponent}” declined the group match at {game}",
+    "Sfida di gruppo «{a}» contro «{b}»: giochi al tavolo {board}": "Group match “{a}” vs “{b}”: you play on board {board}",
+    "Sfida di gruppo conclusa: «{winner}» batte «{loser}» {score_a}–{score_b}": "Group match finished: “{winner}” beats “{loser}” {score_a}–{score_b}",
+    "Sfida di gruppo in parità: «{a}» {score_a}–{score_b} «{b}»": "Group match drawn: “{a}” {score_a}–{score_b} “{b}”",
 }

@@ -259,6 +259,24 @@ def change_group_role(group_id, user_id, role, token):
     )
 
 
+# ----- Sfide gruppo-vs-gruppo -----
+def list_group_matches(group_id=None):
+    params = {"group_id": group_id} if group_id else {}
+    return _request("GET", "/group-matches", params=params)
+
+
+def group_match(match_id):
+    return _request("GET", f"/group-matches/{match_id}")
+
+
+def create_group_match(data: dict, token):
+    return _request("POST", "/group-matches", json=data, headers={"X-Auth-Token": token})
+
+
+def group_match_action(match_id, action, token):
+    return _request("POST", f"/group-matches/{match_id}/{action}", headers={"X-Auth-Token": token})
+
+
 # ----- Notifiche e sfide (inviti a giocare) -----
 def notifications_list(token):
     return _request("GET", "/notifications", headers={"X-Auth-Token": token})
