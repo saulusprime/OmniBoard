@@ -191,6 +191,11 @@ def community_online():
     return _request("GET", "/community/online")
 
 
+def community_live():
+    """Partite in corso guardabili dagli spettatori (a distanza e IA-vs-IA)."""
+    return _request("GET", "/community/live")
+
+
 def my_games(token: str):
     """Partite in corso del giocatore autenticato (sfide ricevute comprese)."""
     return _request("GET", "/community/my-games", headers={"X-Auth-Token": token})

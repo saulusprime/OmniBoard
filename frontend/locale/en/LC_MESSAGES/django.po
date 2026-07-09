@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 20:54+0200\n"
+"POT-Creation-Date: 2026-07-09 21:08+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -96,7 +96,8 @@ msgstr "Your Tic-tac-toe mark"
 
 #: web/forms.py:140 web/forms.py:214 web/templates/web/arena.html:35
 #: web/templates/web/arena.html:56 web/templates/web/challenge_form.html:11
-#: web/templates/web/community.html:84 web/templates/web/group_detail.html:61
+#: web/templates/web/community.html:32 web/templates/web/community.html:105
+#: web/templates/web/group_detail.html:61
 #: web/templates/web/group_detail.html:106
 #: web/templates/web/group_detail.html:122
 #: web/templates/web/group_detail.html:148 web/templates/web/rankings.html:29
@@ -254,7 +255,7 @@ msgstr "running"
 msgid "Risultato:"
 msgstr "Result:"
 
-#: web/templates/web/admin.html:85 web/templates/web/community.html:84
+#: web/templates/web/admin.html:85 web/templates/web/community.html:105
 msgid "Avversario"
 msgstr "Opponent"
 
@@ -538,8 +539,8 @@ msgstr "Main navigation"
 msgid "Home"
 msgstr "Home"
 
-#: web/templates/web/base.html:72 web/templates/web/community.html:91
-#: web/templates/web/community.html:133
+#: web/templates/web/base.html:72 web/templates/web/community.html:112
+#: web/templates/web/community.html:154
 #: web/templates/web/group_match_detail.html:52
 #: web/templates/web/puzzles.html:42
 #: web/templates/web/tournament_detail.html:62
@@ -556,8 +557,8 @@ msgstr "Learn"
 msgid "Puzzle"
 msgstr "Puzzles"
 
-#: web/templates/web/base.html:75 web/templates/web/users_list.html:3
-#: web/templates/web/users_list.html:6
+#: web/templates/web/base.html:75 web/templates/web/community.html:32
+#: web/templates/web/users_list.html:3 web/templates/web/users_list.html:6
 msgid "Giocatori"
 msgstr "Players"
 
@@ -579,7 +580,7 @@ msgstr "Record game"
 msgid "Community"
 msgstr "Community"
 
-#: web/templates/web/base.html:96 web/templates/web/community.html:53
+#: web/templates/web/base.html:96 web/templates/web/community.html:74
 msgid "Notifiche"
 msgstr "Notifications"
 
@@ -587,7 +588,7 @@ msgstr "Notifications"
 msgid "Esci"
 msgstr "Log out"
 
-#: web/templates/web/base.html:108 web/templates/web/community.html:81
+#: web/templates/web/base.html:108 web/templates/web/community.html:102
 #: web/templates/web/learn_index.html:8 web/templates/web/learn_lesson.html:40
 #: web/templates/web/login.html:3 web/templates/web/login.html:6
 #: web/templates/web/login.html:10
@@ -639,7 +640,7 @@ msgstr "New game"
 
 #: web/templates/web/challenge_form.html:3
 #: web/templates/web/challenge_form.html:6 web/templates/web/community.html:18
-#: web/templates/web/community.html:116 web/templates/web/group_detail.html:122
+#: web/templates/web/community.html:137 web/templates/web/group_detail.html:122
 msgid "Sfida"
 msgstr "Challenge"
 
@@ -710,93 +711,115 @@ msgstr "Player"
 msgid "Punti (tutti i giochi)"
 msgstr "Points (all games)"
 
-#: web/templates/web/community.html:19 web/templates/web/community.html:115
+#: web/templates/web/community.html:19 web/templates/web/community.html:136
 msgid "tu"
 msgstr "you"
 
-#: web/templates/web/community.html:22 web/templates/web/community.html:110
+#: web/templates/web/community.html:22 web/templates/web/community.html:131
 msgid "Nessun giocatore online in questo momento."
 msgstr "No players online right now."
 
-#: web/templates/web/community.html:31
+#: web/templates/web/community.html:29
+msgid "Partite in diretta"
+msgstr "Live games"
+
+#: web/templates/web/community.html:30
+msgid ""
+"Guarda le partite a distanza in corso e i duelli fra IA, in sola lettura. A "
+"partita finita la stessa pagina diventa il replay animato."
+msgstr "Watch ongoing remote games and AI duels, read-only. Once the game is over, the same page becomes the animated replay."
+
+#: web/templates/web/community.html:33
+msgid "Semimosse"
+msgstr "Plies"
+
+#: web/templates/web/community.html:40 web/templates/web/community.html:168
+msgid "Guarda"
+msgstr "Watch"
+
+#: web/templates/web/community.html:43 web/templates/web/community.html:162
+msgid "Nessuna partita in diretta in questo momento."
+msgstr "No live games right now."
+
+#: web/templates/web/community.html:52
 msgid "Sfide in attesa"
 msgstr "Pending challenges"
 
-#: web/templates/web/community.html:35
+#: web/templates/web/community.html:56
 #, python-format
 msgid "<strong>%(who)s</strong> ti sfida a %(game)s"
 msgstr "<strong>%(who)s</strong> challenges you to %(game)s"
 
-#: web/templates/web/community.html:37
+#: web/templates/web/community.html:58
 msgid "tu giochi"
 msgstr "you play"
 
-#: web/templates/web/community.html:37
+#: web/templates/web/community.html:58
 msgid "come secondo (Nero/O)"
 msgstr "as second (Black/O)"
 
-#: web/templates/web/community.html:37
+#: web/templates/web/community.html:58
 msgid "come primo (Bianco/X)"
 msgstr "as first (White/X)"
 
-#: web/templates/web/community.html:38 web/templates/web/groups.html:18
+#: web/templates/web/community.html:59 web/templates/web/groups.html:18
 #: web/templates/web/play.html:85
 msgid "Accetta"
 msgstr "Accept"
 
-#: web/templates/web/community.html:39
+#: web/templates/web/community.html:60
 #: web/templates/web/group_match_detail.html:27
 #: web/templates/web/groups.html:19 web/templates/web/play.html:87
 msgid "Rifiuta"
 msgstr "Decline"
 
-#: web/templates/web/community.html:45
+#: web/templates/web/community.html:66
 #, python-format
 msgid "Hai sfidato %(who)s a %(game)s (in attesa)."
 msgstr "You challenged %(who)s to %(game)s (pending)."
 
-#: web/templates/web/community.html:46
+#: web/templates/web/community.html:67
 msgid "Ritira"
 msgstr "Withdraw"
 
-#: web/templates/web/community.html:61 web/templates/web/community.html:63
-#: web/templates/web/community.html:65 web/templates/web/community.html:67
+#: web/templates/web/community.html:82 web/templates/web/community.html:84
+#: web/templates/web/community.html:86 web/templates/web/community.html:88
 #: web/templates/web/group_detail.html:135
 #: web/templates/web/group_detail.html:156
 #: web/templates/web/tournaments.html:62
 msgid "Apri"
 msgstr "Open"
 
-#: web/templates/web/community.html:73
+#: web/templates/web/community.html:94
 msgid "Nessuna notifica."
 msgstr "No notifications."
 
-#: web/templates/web/community.html:79
+#: web/templates/web/community.html:100
 msgid "Le tue partite in corso"
 msgstr "Your games in progress"
 
-#: web/templates/web/community.html:81
+#: web/templates/web/community.html:102
 msgid "per vedere le tue partite e ricevere le sfide."
 msgstr "to see your games and receive challenges."
 
-#: web/templates/web/community.html:84
+#: web/templates/web/community.html:105
 #: web/templates/web/tournament_detail.html:49
 msgid "Turno"
 msgstr "Turn"
 
-#: web/templates/web/community.html:88 web/templates/web/community.html:130
+#: web/templates/web/community.html:109 web/templates/web/community.html:151
 msgid "a distanza"
 msgstr "remote"
 
-#: web/templates/web/community.html:90 web/templates/web/community.html:132
+#: web/templates/web/community.html:111 web/templates/web/community.html:153
 msgid "Tocca a te!"
 msgstr "Your turn!"
 
-#: web/templates/web/community.html:90 web/templates/web/community.html:132
+#: web/templates/web/community.html:111 web/templates/web/community.html:153
 msgid "avversario"
 msgstr "opponent"
 
-#: web/templates/web/community.html:94 web/templates/web/community.html:126
+#: web/templates/web/community.html:115 web/templates/web/community.html:147
 msgid "Nessuna partita in corso."
 msgstr "No games in progress."
 
@@ -873,7 +896,10 @@ msgid ""
 "Squadre a tavoliere multiplo: le formazioni si compongono da sole con i "
 "migliori per Elo (tavolo 1 = il più forte), colori alternati, un punto a "
 "tavolo e ½ per la patta."
-msgstr "Multi-board team matches: lineups build themselves with the best players by Elo (board 1 = the strongest), alternating colors, one point per board and ½ for a draw."
+msgstr ""
+"Multi-board team matches: lineups build themselves with the best players by "
+"Elo (board 1 = the strongest), alternating colors, one point per board and ½ "
+"for a draw."
 
 #: web/templates/web/group_detail.html:100
 msgid "Gruppo da sfidare"
@@ -991,7 +1017,9 @@ msgstr "Replay"
 msgid ""
 "L’esito 1–0/0–1 è dal punto di vista di chi ha il primo tratto (X); i punti "
 "della squadra sono nel riepilogo in alto."
-msgstr "The 1–0/0–1 result is from the first mover's (X) point of view; team points are in the summary above."
+msgstr ""
+"The 1–0/0–1 result is from the first mover's (X) point of view; team points "
+"are in the summary above."
 
 #: web/templates/web/group_propose.html:3
 #: web/templates/web/group_propose.html:6 web/templates/web/groups.html:8
@@ -1163,13 +1191,13 @@ msgid "Nessuna lezione disponibile (backend non raggiungibile?)"
 msgstr "No lessons available (backend unreachable?)"
 
 #: web/templates/web/learn_lesson.html:31 web/templates/web/play.html:106
-#: web/views.py:936
+#: web/templates/web/watch.html:18 web/views.py:956
 msgid "Indietro"
 msgstr "Back"
 
 #: web/templates/web/learn_lesson.html:32
 #: web/templates/web/learn_lesson.html:124 web/templates/web/play.html:108
-#: web/views.py:937
+#: web/templates/web/watch.html:20 web/views.py:957
 msgid "Avanti"
 msgstr "Forward"
 
@@ -1198,7 +1226,7 @@ msgid "di"
 msgstr "of"
 
 #: web/templates/web/learn_lesson.html:124 web/templates/web/play.html:109
-#: web/views.py:938
+#: web/templates/web/watch.html:21 web/views.py:958
 msgid "Fine"
 msgstr "End"
 
@@ -1256,7 +1284,7 @@ msgstr "Record"
 msgid "umano"
 msgstr "human"
 
-#: web/templates/web/play.html:69 web/views.py:882
+#: web/templates/web/play.html:69 web/views.py:902
 msgid "L'IA sta pensando…"
 msgstr "The AI is thinking…"
 
@@ -1292,7 +1320,8 @@ msgstr "Commentary"
 msgid "Mosse"
 msgstr "Moves"
 
-#: web/templates/web/play.html:105 web/views.py:935
+#: web/templates/web/play.html:105 web/templates/web/watch.html:17
+#: web/views.py:955
 msgid "Inizio"
 msgstr "Start"
 
@@ -1319,6 +1348,10 @@ msgstr "Export PGN"
 #: web/templates/web/play.html:131
 msgid "Esporta GIF"
 msgstr "Export GIF"
+
+#: web/templates/web/play.html:133
+msgid "Replay animato"
+msgstr "Animated replay"
 
 #: web/templates/web/play_setup.html:7
 msgid "Un momento…"
@@ -1734,7 +1767,7 @@ msgid "Vittoria"
 msgstr "Win"
 
 #: web/templates/web/user_detail.html:109 web/templates/web/user_stats.html:153
-#: web/views.py:887
+#: web/views.py:907
 msgid "Patta"
 msgstr "Draw"
 
@@ -1814,11 +1847,11 @@ msgstr "Accuracy: %(acpl)s centipawns lost per move, %(bl)s blunders in total."
 msgid "Per colore"
 msgstr "By colour"
 
-#: web/templates/web/user_stats.html:42 web/views.py:900
+#: web/templates/web/user_stats.html:42 web/views.py:920
 msgid "Bianco"
 msgstr "White"
 
-#: web/templates/web/user_stats.html:43 web/views.py:901
+#: web/templates/web/user_stats.html:43 web/views.py:921
 msgid "Nero"
 msgstr "Black"
 
@@ -1956,19 +1989,19 @@ msgstr "Filter by piece"
 msgid "Ogni pezzo"
 msgstr "Any piece"
 
-#: web/templates/web/user_stats.html:136 web/views.py:930
+#: web/templates/web/user_stats.html:136 web/views.py:950
 msgid "Donna"
 msgstr "Queen"
 
-#: web/templates/web/user_stats.html:137 web/views.py:931
+#: web/templates/web/user_stats.html:137 web/views.py:951
 msgid "Torre"
 msgstr "Rook"
 
-#: web/templates/web/user_stats.html:138 web/views.py:932
+#: web/templates/web/user_stats.html:138 web/views.py:952
 msgid "Alfiere"
 msgstr "Bishop"
 
-#: web/templates/web/user_stats.html:139 web/views.py:933
+#: web/templates/web/user_stats.html:139 web/views.py:953
 msgid "Cavallo"
 msgstr "Knight"
 
@@ -2007,233 +2040,277 @@ msgstr "awaiting approval"
 msgid "Ancora nessun giocatore registrato."
 msgstr "No players registered yet."
 
-#: web/views.py:188
+#: web/templates/web/watch.html:10
+msgid "modalità spettatore"
+msgstr "spectator mode"
+
+#: web/templates/web/watch.html:19 web/templates/web/watch.html:168
+msgid "Riproduci"
+msgstr "Play"
+
+#: web/templates/web/watch.html:22
+msgid "Velocità"
+msgstr "Speed"
+
+#: web/templates/web/watch.html:23
+msgid "lenta"
+msgstr "slow"
+
+#: web/templates/web/watch.html:24
+msgid "normale"
+msgstr "normal"
+
+#: web/templates/web/watch.html:25
+msgid "veloce"
+msgstr "fast"
+
+#: web/templates/web/watch.html:31
+msgid "Posizione della moviola"
+msgstr "Replay position"
+
+#: web/templates/web/watch.html:36
+msgid "Apri come giocatore"
+msgstr "Open as player"
+
+#: web/templates/web/watch.html:124
+msgid "Patta."
+msgstr "Draw."
+
+#: web/templates/web/watch.html:128
+msgid "Al tratto:"
+msgstr "To move:"
+
+#: web/templates/web/watch.html:174
+msgid "Pausa"
+msgstr "Pause"
+
+#: web/views.py:208
 #, python-format
 msgid "Sfida spedita a %(alias)s: parte quando l'accetta."
 msgstr "Challenge sent to %(alias)s: it starts when they accept."
 
-#: web/views.py:207
+#: web/views.py:227
 msgid "Sfida accettata: si gioca!"
 msgstr "Challenge accepted: game on!"
 
-#: web/views.py:211
+#: web/views.py:231
 msgid "Sfida rifiutata."
 msgstr "Challenge declined."
 
-#: web/views.py:211
+#: web/views.py:231
 msgid "Sfida ritirata."
 msgstr "Challenge withdrawn."
 
-#: web/views.py:437
+#: web/views.py:457
 msgid "Sfida proposta: i manager dell'altro gruppo sono stati avvisati."
 msgstr "Match proposed: the other group's managers have been notified."
 
-#: web/views.py:463
+#: web/views.py:483
 msgid "Sfida accettata: formazioni schierate, si gioca!"
 msgstr "Match accepted: lineups are set, game on!"
 
-#: web/views.py:464
+#: web/views.py:484
 msgid "Sfida di gruppo rifiutata."
 msgstr "Group match declined."
 
-#: web/views.py:465
+#: web/views.py:485
 msgid "Sfida di gruppo ritirata."
 msgstr "Group match withdrawn."
 
-#: web/views.py:482
+#: web/views.py:502
 msgid "Invito spedito."
 msgstr "Invite sent."
 
-#: web/views.py:485
+#: web/views.py:505
 msgid "Membro rimosso dal gruppo."
 msgstr "Member removed from the group."
 
-#: web/views.py:490
+#: web/views.py:510
 msgid "Ruolo aggiornato."
 msgstr "Role updated."
 
-#: web/views.py:505
+#: web/views.py:525
 #, python-format
 msgid "Benvenuto nel gruppo «%(name)s»!"
 msgstr "Welcome to the group “%(name)s”!"
 
-#: web/views.py:508
+#: web/views.py:528
 msgid "Invito rifiutato."
 msgstr "Invite declined."
 
-#: web/views.py:529
+#: web/views.py:549
 msgid "Torneo creato: le iscrizioni sono aperte."
 msgstr "Tournament created: registration is open."
 
-#: web/views.py:583
+#: web/views.py:603
 msgid "Iscrizione registrata."
 msgstr "Registration recorded."
 
-#: web/views.py:584
+#: web/views.py:604
 msgid "Iscrizione ritirata."
 msgstr "Registration withdrawn."
 
-#: web/views.py:585
+#: web/views.py:605
 msgid "Torneo avviato: le partite sono in «Community»."
 msgstr "Tournament started: games are in “Community”."
 
-#: web/views.py:686
+#: web/views.py:706
 msgid "Accedi per generare i puzzle dai tuoi errori."
 msgstr "Log in to generate puzzles from your mistakes."
 
-#: web/views.py:692
+#: web/views.py:712
 #, python-format
 msgid "Creati %(n)s puzzle dai tuoi errori."
 msgstr "Created %(n)s puzzles from your mistakes."
 
-#: web/views.py:883
+#: web/views.py:903
 msgid "In attesa della mossa dell'avversario…"
 msgstr "Waiting for the opponent's move…"
 
-#: web/views.py:884
+#: web/views.py:904
 msgid "Tocca a:"
 msgstr "To move:"
 
-#: web/views.py:885
+#: web/views.py:905
 msgid "(IA)"
 msgstr "(AI)"
 
-#: web/views.py:886
+#: web/views.py:906
 msgid "Ha vinto"
 msgstr "The winner is"
 
-#: web/views.py:888
+#: web/views.py:908
 msgid "(tempo scaduto)"
 msgstr "(time forfeit)"
 
-#: web/views.py:889
+#: web/views.py:909
 msgid "(triplice ripetizione)"
 msgstr "(threefold repetition)"
 
-#: web/views.py:890
+#: web/views.py:910
 msgid "(per abbandono)"
 msgstr "(by resignation)"
 
-#: web/views.py:891
+#: web/views.py:911
 msgid "(patta d'accordo)"
 msgstr "(draw by agreement)"
 
-#: web/views.py:892
+#: web/views.py:912
 msgid "Apertura:"
 msgstr "Opening:"
 
-#: web/views.py:893
+#: web/views.py:913
 msgid "Suggerimento:"
 msgstr "Hint:"
 
-#: web/views.py:894
+#: web/views.py:914
 msgid "Mossa non valida"
 msgstr "Invalid move"
 
-#: web/views.py:895
+#: web/views.py:915
 msgid "Abbandonare la partita?"
 msgstr "Resign the game?"
 
-#: web/views.py:896
+#: web/views.py:916
 msgid "Sto guardando la posizione…"
 msgstr "Looking at the position…"
 
-#: web/views.py:897
+#: web/views.py:917
 msgid "Spiegazione non disponibile (backend irraggiungibile?)"
 msgstr "Explanation unavailable (backend unreachable?)"
 
-#: web/views.py:898
+#: web/views.py:918
 msgid "Analisi in corso… (Stockfish valuta ogni posizione)"
 msgstr "Analysis running… (Stockfish evaluates every position)"
 
-#: web/views.py:899
+#: web/views.py:919
 msgid "Analisi completata: ?? = blunder, ? = errore, ?! = imprecisione."
 msgstr "Analysis complete: ?? = blunder, ? = mistake, ?! = inaccuracy."
 
-#: web/views.py:902
+#: web/views.py:922
 msgid "Promozione"
 msgstr "Promotion"
 
-#: web/views.py:903
+#: web/views.py:923
 msgid "Scacchiera"
 msgstr "Board"
 
-#: web/views.py:904
+#: web/views.py:924
 msgid "vuota"
 msgstr "empty"
 
-#: web/views.py:905
+#: web/views.py:925
 msgid "riga"
 msgstr "row"
 
-#: web/views.py:906
+#: web/views.py:926
 msgid "colonna"
 msgstr "column"
 
-#: web/views.py:907
+#: web/views.py:927
 msgid "Gioca nella colonna"
 msgstr "Play in column"
 
-#: web/views.py:910
+#: web/views.py:930
 msgid "re bianco"
 msgstr "white king"
 
-#: web/views.py:911
+#: web/views.py:931
 msgid "donna bianca"
 msgstr "white queen"
 
-#: web/views.py:912
+#: web/views.py:932
 msgid "torre bianca"
 msgstr "white rook"
 
-#: web/views.py:913
+#: web/views.py:933
 msgid "alfiere bianco"
 msgstr "white bishop"
 
-#: web/views.py:914
+#: web/views.py:934
 msgid "cavallo bianco"
 msgstr "white knight"
 
-#: web/views.py:915
+#: web/views.py:935
 msgid "pedone bianco"
 msgstr "white pawn"
 
-#: web/views.py:916
+#: web/views.py:936
 msgid "re nero"
 msgstr "black king"
 
-#: web/views.py:917
+#: web/views.py:937
 msgid "donna nera"
 msgstr "black queen"
 
-#: web/views.py:918
+#: web/views.py:938
 msgid "torre nera"
 msgstr "black rook"
 
-#: web/views.py:919
+#: web/views.py:939
 msgid "alfiere nero"
 msgstr "black bishop"
 
-#: web/views.py:920
+#: web/views.py:940
 msgid "cavallo nero"
 msgstr "black knight"
 
-#: web/views.py:921
+#: web/views.py:941
 msgid "pedone nero"
 msgstr "black pawn"
 
-#: web/views.py:922 web/views.py:926
+#: web/views.py:942 web/views.py:946
 msgid "pedina bianca"
 msgstr "white man"
 
-#: web/views.py:923
+#: web/views.py:943
 msgid "dama bianca"
 msgstr "white king"
 
-#: web/views.py:924 web/views.py:927
+#: web/views.py:944 web/views.py:947
 msgid "pedina nera"
 msgstr "black man"
 
-#: web/views.py:925
+#: web/views.py:945
 msgid "dama nera"
 msgstr "black king"

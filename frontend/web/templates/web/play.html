@@ -130,6 +130,7 @@
           <a class="btn secondary" id="gif-link"
              href="{{ backend_url }}/sessions/{{ s.id }}/gif" download>🎞️ {% trans "Esporta GIF" %}</a>
           {% endif %}
+          <a class="btn secondary" href="{% url 'watch' s.id %}">🎬 {% trans "Replay animato" %}</a>
         </p>
         <div id="an-status" class="muted" style="font-size:.85rem;"></div>
         <svg id="evalchart" width="260" height="70"

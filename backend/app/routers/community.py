@@ -11,6 +11,7 @@ Gamification di base:
 
 from __future__ import annotations
 
+import json
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Header
@@ -51,6 +52,53 @@ def online_players(db: Session = Depends(get_db)):
             }
             for u in users
         ],
+    }
+
+
+@router.get("/live")
+def live_games(db: Session = Depends(get_db)):
+    """Partite in corso GUARDABILI da spettatori (sola lettura, senza token).
+
+    Solo quelle sicure da esporre: le partite a DISTANZA (le azioni richiedono
+    il token del giocatore al tratto — uno spettatore non può interferire) e
+    le IA-vs-IA (l'Arena in diretta). Le hotseat restano fuori: sullo stesso
+    schermo chiunque potrebbe muovere.
+    """
+    from .. import ai_arena
+
+    sessions = (
+        db.query(models.GameSession)
+        .filter(
+            models.GameSession.status == "in_progress",
+            models.GameSession.remote.is_(True)
+            | (models.GameSession.x_is_ai.is_(True) & models.GameSession.o_is_ai.is_(True)),
+        )
+        .order_by(models.GameSession.id.desc())
+        .limit(50)
+        .all()
+    )
+
+    def label(session: models.GameSession, side: int) -> str:
+        user = session.x_user if side == 0 else session.o_user
+        if user is not None:
+            return user.alias
+        identity = ai_arena.identity_of(session, side)
+        return ai_arena.label_of(identity) if identity else "?"
+
+    return {
+        "live": [
+            {
+                "session_id": s.id,
+                "game_code": s.game.code,
+                "game_name": s.game.name,
+                "x_label": label(s, 0),
+                "o_label": label(s, 1),
+                "plies": len(json.loads(s.moves_json or "[]")),
+                "tc_category": s.tc_category,
+                "ai_only": bool(s.x_is_ai and s.o_is_ai),
+            }
+            for s in sessions
+        ]
     }
 
 

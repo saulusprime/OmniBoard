@@ -689,6 +689,15 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   finalize_session). Bilancio V/N/P nella scheda gruppo. NB: le sessioni dei
   tavoli sono remote=True → nelle prove le mosse vogliono il token di chi
   muove (quelle dei tornei sono hotseat). 285 verdi.
+- **2026-07-09** — **Spettatori e replay animato**: GET /community/live
+  (criterio di sicurezza: solo remote — azioni protette dal token — e
+  IA-vs-IA; hotseat MAI esposte) + pagina watch.html a doppia modalità:
+  diretta (polling stato.json 3s) e replay animato (fotogrammi da /replay
+  già esistente, controlli play/pausa/velocità/slider). Renderer scacchiera
+  di sola lettura copiato dal client di play (SOLID_GLYPH, pieceClass
+  sull'ultimo carattere, classi per gioco). Sezione dirette in Community nel
+  polling esistente; link «Replay animato» negli export post-partita.
+  287 verdi.
 
 ## Questioni aperte
 

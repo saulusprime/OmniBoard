@@ -255,7 +255,14 @@
   tutti i tavoli (hook in finalize_session). Bilancio V/N/P nella scheda
   gruppo, pagina della sfida coi tavolieri. Le sessioni sono remote=True:
   ogni mossa vuole il token di chi muove.
-- [ ] **Spettatori** delle partite live e **replay animato** dallo storico mosse.
+- [x] **Spettatori e replay animato** (2026-07-09): `GET /community/live`
+  (solo partite a distanza — le azioni vogliono il token, lo spettatore non
+  interferisce — e IA-vs-IA; hotseat escluse) + pagina spettatore
+  `/partite/<id>/guarda/` in sola lettura: in diretta fa polling dello stato
+  (orologio, dadi, ultima mossa evidenziata), a partita finita diventa il
+  replay animato (play/pausa/velocità/slider sui fotogrammi di `/replay`,
+  endpoint che esisteva già). Sezione «Partite in diretta» in Community e
+  link «Replay animato» fra gli export post-partita.
 - [x] **Notifiche/inviti a giocare** (2026-07-09): sfide come INVITI
   (`/challenges`, migr. 0012) — lo sfidante sceglie gioco/lato/cadenza
   (validata subito), lo sfidato accetta (nasce la partita a distanza con

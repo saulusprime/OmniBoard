@@ -113,6 +113,7 @@ def community(request):
     (la campanella in navbar si azzera al giro di polling successivo).
     """
     online = _safe(request, api.community_online, default={"online": []})
+    live = _safe(request, api.community_live, default={}) or {}
     token = request.session.get("auth_token")
     games = []
     challenges = {"incoming": [], "outgoing": []}
@@ -130,6 +131,7 @@ def community(request):
         "web/community.html",
         {
             "online": online.get("online", []),
+            "live": live.get("live", []),
             "my_games": games,
             "challenges": challenges,
             "notices": notices,
@@ -162,7 +164,25 @@ def community_json(request):
     auth_user = request.session.get("auth_user")
     if auth_user:
         me = next((u for u in online if u["id"] == auth_user["id"]), None)
-    return JsonResponse({"online": online, "my_games": games, "me": me, "unread": unread})
+    try:
+        live = api.community_live().get("live", [])
+    except api.ApiError:
+        live = []
+    return JsonResponse(
+        {"online": online, "my_games": games, "me": me, "unread": unread, "live": live}
+    )
+
+
+def watch(request, session_id):
+    """Pagina SPETTATORE: partita live in sola lettura o replay animato.
+
+    Nessuna azione di gioco: solo scacchiera, stato/orologio e — a partita
+    finita — i controlli della riproduzione automatica dallo storico mosse.
+    """
+    session = _safe(request, lambda: api.get_session(session_id))
+    if session is None:
+        return redirect("community")
+    return render(request, "web/watch.html", {"s": session, "session_id": session_id})
 
 
 def challenge_new(request, user_id):
