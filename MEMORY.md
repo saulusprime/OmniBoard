@@ -672,6 +672,14 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   le stringhe di views.py non venivano MAI estratte; rinominato in `_`
   (ora makemessages estrae tutto; 41 fuzzy sciolti, ~60 voci riempite per
   blocchi interi). 277 verdi.
+- **2026-07-09** — **Notifiche e inviti a giocare** (migr. 0012): sfide come
+  inviti (`/challenges`: gioco/lato/cadenza validata subito; accettare crea la
+  GameSession remote con orologio); notifiche persistenti kind+parametri con
+  testo composto ALLA LETTURA (template in notifications._TEMPLATES +
+  catalog_en), notify() senza commit, pota le lette oltre 50; campanella 🔔 in
+  navbar dal heartbeat; hook su inviti gruppo, nuovo turno e fine torneo.
+  Trappola: col cookie firmato il test client Django non salva la sessione da
+  solo (impostare client.cookies[SESSION_COOKIE_NAME]). 282 verdi.
 
 ## Questioni aperte
 

@@ -435,6 +435,55 @@ class HumanTournamentGame(Base):
     session: Mapped[GameSession | None] = relationship()
 
 
+class GameInvite(Base):
+    """Invito a giocare (sfida): la partita nasce solo quando lo sfidato ACCETTA.
+
+    Lo sfidante sceglie gioco, colore (``side`` = il SUO lato) ed eventuale
+    cadenza; all'accettazione si crea la GameSession a distanza coi parametri
+    dell'invito. ``status``: pending | accepted | declined | cancelled.
+    """
+
+    __tablename__ = "game_invites"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    game_id: Mapped[int] = mapped_column(Integer, ForeignKey("games.id"))
+    from_user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    to_user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    side: Mapped[str] = mapped_column(String, default="x")  # lato dello SFIDANTE
+    tc_category: Mapped[str | None] = mapped_column(String(16))
+    tc_base_min: Mapped[int | None] = mapped_column(Integer)
+    tc_inc_s: Mapped[int | None] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String, default="pending")
+    session_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("game_sessions.id"))
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
+
+    game: Mapped[Game] = relationship()
+    from_user: Mapped[User] = relationship(foreign_keys=[from_user_id])
+    to_user: Mapped[User] = relationship(foreign_keys=[to_user_id])
+    session: Mapped[GameSession | None] = relationship()
+
+
+class Notification(Base):
+    """Notifica persistente per un utente (campanella in navbar, polling).
+
+    Il TESTO non è salvato: si salva ``kind`` + parametri e la frase si
+    compone alla lettura nella lingua della richiesta (``notifications.py``),
+    come per tilt e debolezze. ``params_json`` porta anche gli id per i link
+    del client (session_id/tournament_id/group_id/invite_id).
+    """
+
+    __tablename__ = "notifications"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    kind: Mapped[str] = mapped_column(String)
+    params_json: Mapped[str] = mapped_column(String, default="{}")
+    read: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
+
+    user: Mapped[User] = relationship()
+
+
 class GameSession(Base):
     """Partita giocabile con stato persistito.
 

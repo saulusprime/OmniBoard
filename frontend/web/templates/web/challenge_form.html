@@ -1,0 +1,46 @@
+{% extends "web/base.html" %}
+{% load i18n %}
+{% block title %}{% trans 'Sfida' %} {{ target.alias }}{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>⚔️ {% trans 'Sfida' %} {{ target.alias }}</h1>
+  <p class="muted">{% trans 'L’invito arriva con una notifica: la partita a distanza nasce quando viene accettato.' %}</p>
+
+  <form method="post" style="display:flex; gap:12px; align-items:end; flex-wrap:wrap;">{% csrf_token %}
+    <div>
+      <label>{% trans 'Gioco' %}</label>
+      <select name="game_code" id="ch-game">
+        {% for g in games %}<option value="{{ g.code }}">{{ g.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>{% trans 'Il tuo lato' %}</label>
+      <select name="side">
+        <option value="x">{% trans 'Primo a muovere (Bianco/X)' %}</option>
+        <option value="o">{% trans 'Secondo (Nero/O)' %}</option>
+      </select>
+    </div>
+    <div id="ch-clock">
+      <label>{% trans 'Orologio (solo scacchi)' %}</label>
+      <select name="time_category">
+        <option value="">{% trans 'Senza orologio' %}</option>
+        <option value="blitz">Blitz</option>
+        <option value="rapid">Rapid</option>
+        <option value="classical">Classical</option>
+        <option value="fide">FIDE (90′+30″)</option>
+      </select>
+    </div>
+    <div>
+      <label>{% trans 'Minuti a testa' %}</label>
+      <input name="time_base_min" type="number" min="1" max="180" style="width:90px;"
+             placeholder="{% trans 'default' %}">
+    </div>
+    <div>
+      <label>{% trans 'Incremento (s)' %}</label>
+      <input name="time_inc_s" type="number" min="0" max="60" value="0" style="width:80px;">
+    </div>
+    <button class="btn" type="submit">⚔️ {% trans 'Manda la sfida' %}</button>
+  </form>
+  <p style="margin-top:12px;"><a href="{% url 'community' %}">← Community</a></p>
+</div>
+{% endblock %}

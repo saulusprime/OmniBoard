@@ -185,3 +185,113 @@ def test_tournaments_and_group_pages_render(monkeypatch):
     html = Client().get("/gruppi/3/", SERVER_NAME="localhost").content.decode()
     assert "Circolo" in html and "fondatore" in html
     assert "Classifica del gruppo" in html
+
+
+def _logged_client():
+    """Client Django con la sessione (su cookie firmato) di un utente loggato."""
+    from django.conf import settings
+
+    client = Client()
+    session = client.session
+    session["auth_token"] = "tok"
+    session["auth_user"] = {"id": 1, "alias": "me"}
+    session.save()
+    # Sessioni su cookie firmato: il test client non scrive il cookie da solo.
+    client.cookies[settings.SESSION_COOKIE_NAME] = session.session_key
+    return client
+
+
+def test_community_notifications_challenges_and_bell(monkeypatch):
+    """La community mostra sfide e notifiche, le segna lette; il JSON porta unread."""
+    import web.api_client as api
+
+    monkeypatch.setattr(api, "community_online", lambda: {"online": []})
+    monkeypatch.setattr(api, "my_games", lambda t: {"games": []})
+    monkeypatch.setattr(
+        api,
+        "my_challenges",
+        lambda t: {
+            "incoming": [
+                {
+                    "id": 5,
+                    "from_alias": "ch_a",
+                    "to_alias": "me",
+                    "game_name": "Scacchi",
+                    "side": "o",
+                    "time_category": "blitz",
+                    "time_base_min": 5,
+                    "time_inc_s": 0,
+                    "status": "pending",
+                }
+            ],
+            "outgoing": [
+                {
+                    "id": 6,
+                    "from_alias": "me",
+                    "to_alias": "ch_b",
+                    "game_name": "Dama",
+                    "side": "x",
+                    "time_category": None,
+                    "time_base_min": None,
+                    "time_inc_s": 0,
+                    "status": "pending",
+                }
+            ],
+        },
+    )
+    marked = {}
+    monkeypatch.setattr(
+        api,
+        "notifications_list",
+        lambda t: {
+            "unread": 2,
+            "notifications": [
+                {
+                    "id": 1,
+                    "kind": "game_invite",
+                    "text": "ch_a ti sfida a Scacchi",
+                    "read": False,
+                    "session_id": None,
+                    "tournament_id": None,
+                    "group_id": None,
+                    "invite_id": 5,
+                    "created_at": "2026-07-09T10:00:00",
+                },
+                {
+                    "id": 2,
+                    "kind": "tournament_won",
+                    "text": "Hai vinto il torneo «Coppa»!",
+                    "read": False,
+                    "session_id": None,
+                    "tournament_id": 7,
+                    "group_id": None,
+                    "invite_id": None,
+                    "created_at": None,
+                },
+            ],
+        },
+    )
+    monkeypatch.setattr(
+        api, "notifications_read", lambda t, ids=None: marked.setdefault("done", True)
+    )
+    client = _logged_client()
+    html = client.get("/community/", SERVER_NAME="localhost").content.decode()
+    assert "ti sfida a" in html and "Accetta" in html and "Ritira" in html
+    assert "Hai vinto il torneo" in html
+    assert marked.get("done")  # aprire la pagina segna le notifiche come lette
+
+    monkeypatch.setattr(api, "heartbeat", lambda t: None)
+    data = client.get("/community.json", SERVER_NAME="localhost").json()
+    assert data["unread"] == 2  # la campanella in navbar legge questo campo
+
+
+def test_challenge_form_renders(monkeypatch):
+    import web.api_client as api
+
+    monkeypatch.setattr(api, "get_user", lambda uid: {"id": 9, "alias": "rivale"})
+    monkeypatch.setattr(
+        api, "list_games", lambda: [{"code": "chess", "name": "Scacchi", "playable": True}]
+    )
+    client = _logged_client()
+    html = client.get("/sfide/nuova/9/", SERVER_NAME="localhost").content.decode()
+    assert "rivale" in html and "Manda la sfida" in html

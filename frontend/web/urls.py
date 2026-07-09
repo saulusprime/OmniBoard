@@ -10,6 +10,8 @@ urlpatterns = [
     path("esci/", views.logout_view, name="logout"),
     path("community/", views.community, name="community"),
     path("community.json", views.community_json, name="community_json"),
+    path("sfide/nuova/<int:user_id>/", views.challenge_new, name="challenge_new"),
+    path("sfide/<int:invite_id>/azione/", views.challenge_action, name="challenge_action"),
     path("impara/", views.learn_index, name="learn_index"),
     path("impara/<slug:code>/", views.learn_lesson, name="learn_lesson"),
     path(

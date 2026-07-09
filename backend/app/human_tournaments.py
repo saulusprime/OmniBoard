@@ -67,9 +67,11 @@ def _assign_seeds(db: Session, t: models.HumanTournament) -> list[models.HumanTo
     return players
 
 
-def _new_session(db: Session, t: models.HumanTournament, x_uid: int, o_uid: int) -> int:
+def _new_session(
+    db: Session, t: models.HumanTournament, x_uid: int, o_uid: int, round_no: int = 1
+) -> int:
     """Crea la GameSession del torneo (i giocatori la trovano in «le mie partite»)."""
-    from . import gameplay  # import locale: gameplay importa services → qui
+    from . import gameplay, notifications  # import locale: gameplay importa services → qui
 
     game = get_game(t.game.code)
     state = game.initial_state()
@@ -86,7 +88,36 @@ def _new_session(db: Session, t: models.HumanTournament, x_uid: int, o_uid: int)
     db.add(session)
     db.flush()
     gameplay.resolve_chance(db, game, session)  # giochi col caso: il server tira
+    for uid in (x_uid, o_uid):
+        notifications.notify(
+            db,
+            uid,
+            "tournament_game",
+            name=t.name,
+            round=round_no,
+            tournament_id=t.id,
+            session_id=session.id,
+        )
     return session.id
+
+
+def _notify_finish(db: Session, t: models.HumanTournament) -> None:
+    """Campanella di fine torneo: al vincitore la coppa, agli altri il verdetto."""
+    from . import notifications
+
+    winner = db.get(models.User, t.winner_user_id) if t.winner_user_id else None
+    for p in t.players:
+        if winner and p.user_id == winner.id:
+            notifications.notify(db, p.user_id, "tournament_won", name=t.name, tournament_id=t.id)
+        else:
+            notifications.notify(
+                db,
+                p.user_id,
+                "tournament_finished",
+                name=t.name,
+                alias=winner.alias if winner else "—",
+                tournament_id=t.id,
+            )
 
 
 def start(db: Session, t: models.HumanTournament) -> None:
@@ -172,6 +203,7 @@ def _advance_knockout(db: Session, t: models.HumanTournament) -> None:
     if len(winners) == 1:
         t.status = "finished"
         t.winner_user_id = winners[0]
+        _notify_finish(db, t)
         return
     seed_of = {p.user_id: p.seed or 0 for p in t.players}
     for slot in range(len(winners) // 2):
@@ -185,7 +217,7 @@ def _advance_knockout(db: Session, t: models.HumanTournament) -> None:
                 slot=slot,
                 x_user_id=a,
                 o_user_id=b,
-                session_id=_new_session(db, t, a, b),
+                session_id=_new_session(db, t, a, b, round_no=last_round + 1),
             )
         )
 
@@ -196,6 +228,7 @@ def _maybe_finish_round_robin(db: Session, t: models.HumanTournament) -> None:
     table = standings(db, t)
     t.status = "finished"
     t.winner_user_id = table[0]["user_id"] if table else None
+    _notify_finish(db, t)
 
 
 def standings(db: Session, t: models.HumanTournament) -> list[dict]:

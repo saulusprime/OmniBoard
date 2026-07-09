@@ -93,6 +93,8 @@
       </select>
     </form>
     {% if auth_user %}
+      <a href="{% url 'community' %}" id="nav-bell" title="{% trans 'Notifiche' %}"
+         style="display:none;">🔔<span class="pill" id="nav-bell-count">0</span></a>
       <a href="{% url 'user_detail' auth_user.id %}">
         <span class="dot" id="nav-dot" title="Presenza online"></span>
         👤 {{ auth_user.alias }}
@@ -127,6 +129,12 @@
         const pts = document.getElementById("nav-points");
         if (dot) dot.classList.toggle("on", !!data.me);
         if (pts && data.me) pts.textContent = data.me.universal_points + " pt";
+        // Campanella delle notifiche: visibile solo se c'è qualcosa da leggere.
+        const bell = document.getElementById("nav-bell");
+        if (bell) {
+          bell.style.display = data.unread ? "" : "none";
+          document.getElementById("nav-bell-count").textContent = data.unread;
+        }
       } catch (e) { /* backend momentaneamente giù: il badge resta com'è */ }
     }
     omniboardHeartbeat();

@@ -17,12 +17,14 @@ from .routers import (
     admin,
     arena,
     auth,
+    challenges,
     community,
     config,
     games,
     groups,
     lessons,
     matches,
+    notifications,
     puzzles,
     rankings,
     sessions,
@@ -87,6 +89,8 @@ app.include_router(sessions.router)
 app.include_router(rankings.router)
 app.include_router(arena.router)
 app.include_router(tournaments.router)
+app.include_router(challenges.router)
+app.include_router(notifications.router)
 app.include_router(puzzles.router)
 app.include_router(admin.router)
 app.include_router(config.router)

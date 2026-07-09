@@ -20,7 +20,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
-from .. import models, rating, schemas, settings_service
+from .. import models, notifications, rating, schemas, settings_service
 from ..database import get_db
 from ..i18n import _
 from .auth import session_from_token
@@ -231,7 +231,8 @@ def invite_member(
     db: Session = Depends(get_db),
 ):
     """Founder o admin invitano un utente; il re-invito riapre l'invito rifiutato."""
-    if not db.get(models.Group, group_id):
+    group = db.get(models.Group, group_id)
+    if not group:
         raise HTTPException(status_code=404, detail="Gruppo non trovato")
     actor = _actor(db, x_auth_token)
     _require_manager(db, group_id, actor.id)
@@ -244,11 +245,21 @@ def invite_member(
     if inv is None:
         inv = models.GroupInvite(group_id=group_id, user_id=target.id, invited_by=actor.id)
         db.add(inv)
+        db.flush()
     else:
         if inv.status == "pending":
             raise HTTPException(status_code=409, detail=_("Invito già in attesa"))
         inv.status = "pending"
         inv.invited_by = actor.id
+    notifications.notify(
+        db,
+        target.id,
+        "group_invite",
+        group=group.name,
+        alias=actor.alias,
+        group_id=group_id,
+        invite_id=inv.id,
+    )
     db.commit()
     db.refresh(inv)
     return _invite_out(inv)

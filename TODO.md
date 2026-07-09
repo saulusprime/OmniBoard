@@ -250,7 +250,14 @@
 - [ ] **Sfide gruppo-vs-gruppo** (squadre a tavoliere multiplo): rinviate —
   prerequisito naturale: più utenti attivi per gruppo.
 - [ ] **Spettatori** delle partite live e **replay animato** dallo storico mosse.
-- [ ] **Notifiche/inviti a giocare** tra utenti.
+- [x] **Notifiche/inviti a giocare** (2026-07-09): sfide come INVITI
+  (`/challenges`, migr. 0012) — lo sfidante sceglie gioco/lato/cadenza
+  (validata subito), lo sfidato accetta (nasce la partita a distanza con
+  orologio) o rifiuta; notifiche persistenti (`notifications.py`, testo
+  composto alla lettura da kind+parametri, bilingue) con campanella 🔔 in
+  navbar via heartbeat; campanelle anche per inviti di gruppo, nuovo turno
+  di torneo e fine torneo. Aprire Community segna le notifiche come lette;
+  le lette oltre 50 vengono potate.
 
 ## Frontend / UX
 

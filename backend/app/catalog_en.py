@@ -243,4 +243,20 @@ CATALOG_EN = {
     "Non sei iscritto": "You are not registered",
     "Servono almeno 2 iscritti": "At least 2 players are required",
     "Solo l'organizzatore avvia il torneo": "Only the organizer starts the tournament",
+    # Sfide (inviti a giocare)
+    "Sfida non trovata": "Challenge not found",
+    "Sfida già conclusa": "Challenge already settled",
+    "Non puoi sfidare te stesso": "You cannot challenge yourself",
+    "Lato sconosciuto (x oppure o)": "Unknown side (x or o)",
+    "Hai già una sfida in attesa": "You already have a pending challenge",
+    "La sfida non è per te": "The challenge is not for you",
+    "Puoi ritirare solo le tue sfide": "You can only withdraw your own challenges",
+    # Notifiche (template parametrici, tradotti alla lettura)
+    "{alias} ti sfida a {game}": "{alias} challenges you to {game}",
+    "{alias} ha accettato la tua sfida a {game}": "{alias} accepted your challenge to {game}",
+    "{alias} ha rifiutato la tua sfida a {game}": "{alias} declined your challenge to {game}",
+    "Il gruppo «{group}» ti invita (da {alias})": "The group “{group}” invites you (from {alias})",
+    "Torneo «{name}»: è pronta la tua partita del turno {round}": "Tournament “{name}”: your round {round} game is ready",
+    "Hai vinto il torneo «{name}»!": "You won the tournament “{name}”!",
+    "Torneo «{name}» concluso: vince {alias}": "Tournament “{name}” finished: {alias} wins",
 }

@@ -106,21 +106,34 @@ def logout_view(request):
 
 # ----- Community: presenza online, badge e partite del giocatore -----
 def community(request):
-    """Area community: chi è online (badge presenza + punti) e le proprie partite.
+    """Area community: chi è online, le proprie partite, SFIDE pendenti e notifiche.
 
-    È anche il posto dove lo SFIDATO scopre una partita a distanza creata da un
-    altro giocatore: la lista «Le tue partite» si aggiorna da sola via polling.
+    È il posto dove lo sfidato scopre gli inviti a giocare (li accetta o
+    rifiuta) e dove le notifiche si leggono: aprire la pagina le segna lette
+    (la campanella in navbar si azzera al giro di polling successivo).
     """
     online = _safe(request, api.community_online, default={"online": []})
     token = request.session.get("auth_token")
     games = []
+    challenges = {"incoming": [], "outgoing": []}
+    notices = []
     if token:
         data = _safe(request, lambda: api.my_games(token), default={"games": []})
         games = (data or {}).get("games", [])
+        challenges = _safe(request, lambda: api.my_challenges(token), default=challenges)
+        notif = _safe(request, lambda: api.notifications_list(token), default={}) or {}
+        notices = notif.get("notifications", [])
+        if notif.get("unread"):
+            _safe(request, lambda: api.notifications_read(token))
     return render(
         request,
         "web/community.html",
-        {"online": online.get("online", []), "my_games": games},
+        {
+            "online": online.get("online", []),
+            "my_games": games,
+            "challenges": challenges,
+            "notices": notices,
+        },
     )
 
 
@@ -128,15 +141,18 @@ def community_json(request):
     """Snapshot JSON per i badge e l'area community (polling leggero dal client).
 
     Se il visitatore è loggato fa anche da HEARTBEAT: chiamarlo periodicamente
-    mantiene il badge di presenza. Include i punti del giocatore (badge navbar).
+    mantiene il badge di presenza. Include i punti del giocatore (badge navbar)
+    e il conteggio delle notifiche non lette (campanella).
     """
     token = request.session.get("auth_token")
     me = None
     games = []
+    unread = 0
     if token:
         try:
             api.heartbeat(token)
             games = api.my_games(token).get("games", [])
+            unread = api.notifications_list(token).get("unread", 0)
         except api.ApiError:
             token = None  # sessione backend scaduta: si continua da anonimi
     try:
@@ -146,7 +162,57 @@ def community_json(request):
     auth_user = request.session.get("auth_user")
     if auth_user:
         me = next((u for u in online if u["id"] == auth_user["id"]), None)
-    return JsonResponse({"online": online, "my_games": games, "me": me})
+    return JsonResponse({"online": online, "my_games": games, "me": me, "unread": unread})
+
+
+def challenge_new(request, user_id):
+    """Form della sfida: gioco, colore dello sfidante, cadenza opzionale."""
+    target = _safe(request, lambda: api.get_user(user_id))
+    if target is None or not request.session.get("auth_token"):
+        return redirect("community")
+    if request.method == "POST":
+        data = {
+            "game_code": request.POST.get("game_code", "chess"),
+            "to_user_id": user_id,
+            "side": request.POST.get("side", "x"),
+        }
+        if request.POST.get("time_category"):
+            data["time_category"] = request.POST["time_category"]
+            if request.POST.get("time_base_min"):
+                data["time_base_min"] = int(request.POST["time_base_min"])
+            data["time_inc_s"] = int(request.POST.get("time_inc_s") or 0)
+        try:
+            api.create_challenge(data, request.session["auth_token"])
+            messages.success(
+                request,
+                _("Sfida spedita a %(alias)s: parte quando l'accetta.")
+                % {"alias": target["alias"]},
+            )
+            return redirect("community")
+        except api.ApiError as exc:
+            messages.error(request, str(exc))
+    games = [g for g in _safe(request, api.list_games, default=[]) if g.get("playable")]
+    return render(request, "web/challenge_form.html", {"target": target, "games": games})
+
+
+def challenge_action(request, invite_id):
+    """Risposta a una sfida (POST): accetta (apre la partita), rifiuta o ritira."""
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action in ("accept", "decline", "cancel"):
+            token = request.session.get("auth_token")
+            try:
+                out = api.challenge_action(invite_id, action, token)
+                if action == "accept" and out.get("session_id"):
+                    messages.success(request, _("Sfida accettata: si gioca!"))
+                    return redirect("play", session_id=out["session_id"])
+                messages.success(
+                    request,
+                    _("Sfida rifiutata.") if action == "decline" else _("Sfida ritirata."),
+                )
+            except api.ApiError as exc:
+                messages.error(request, str(exc))
+    return redirect("community")
 
 
 # ----- Tutorial: istruzione guidata con voce sintetica -----

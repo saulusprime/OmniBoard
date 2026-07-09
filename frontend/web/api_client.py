@@ -259,6 +259,29 @@ def change_group_role(group_id, user_id, role, token):
     )
 
 
+# ----- Notifiche e sfide (inviti a giocare) -----
+def notifications_list(token):
+    return _request("GET", "/notifications", headers={"X-Auth-Token": token})
+
+
+def notifications_read(token, ids=None):
+    return _request(
+        "POST", "/notifications/read", json={"ids": ids}, headers={"X-Auth-Token": token}
+    )
+
+
+def my_challenges(token):
+    return _request("GET", "/challenges/mine", headers={"X-Auth-Token": token})
+
+
+def create_challenge(data: dict, token):
+    return _request("POST", "/challenges", json=data, headers={"X-Auth-Token": token})
+
+
+def challenge_action(invite_id, action, token):
+    return _request("POST", f"/challenges/{invite_id}/{action}", headers={"X-Auth-Token": token})
+
+
 # ----- Tornei umani -----
 def list_human_tournaments(game_code=None, group_id=None):
     params = {}

@@ -3,6 +3,51 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-09 — Notifiche e inviti a giocare (sfide con accettazione)
+
+**Richiesta (utente):** «Notifiche/inviti a giocare» (voce del TODO).
+
+**Sfide** (`routers/challenges.py`, tabella `game_invites`, migr. 0012): la
+sfida a distanza non crea più la partita d'ufficio — è un INVITO. Lo sfidante
+sceglie gioco, il PROPRIO lato e la cadenza (validata ALLA CREAZIONE con
+`build_time_control`, così l'accettazione non può fallire; attenzione:
+`inc_s` vuole un intero, None fa TypeError). Lo sfidato riceve la notifica e
+accetta (nasce la GameSession `remote=True` con orologio, `init_clock` +
+`resolve_chance`) o rifiuta; lo sfidante può ritirare. Una sola pendente per
+(sfidante, sfidato, gioco). Endpoints: POST `/challenges`, GET
+`/challenges/mine` (ricevute+inviate), `/{id}/accept|decline|cancel`.
+
+**Notifiche** (`notifications.py` + router, tabella `notifications`): il testo
+NON è persistito — si salva `kind` + parametri e la frase si compone alla
+LETTURA nella lingua della richiesta (stesso schema di tilt/debolezze; i
+template parametrici stanno in `_TEMPLATES` e in `catalog_en`). `notify()` non
+committa (transazione del chiamante). `mark_read` POTA le lette oltre 50 per
+utente (avvisi, non storico). Kinds: game_invite, invite_accepted/declined,
+group_invite, tournament_game (nuovo turno pronto), tournament_won,
+tournament_finished. Hooks: creazione sfida/risposta, invito di gruppo
+(`groups.invite_member`), `human_tournaments._new_session` (entrambi i
+giocatori, col numero del turno) e `_notify_finish` (coppa al vincitore,
+verdetto agli altri).
+
+**Frontend**: campanella 🔔 in navbar (visibile solo con non-lette; il
+heartbeat `community.json` ora porta `unread`); la pagina Community mostra
+«Sfide in attesa» (accetta/rifiuta/ritira; accettare apre subito la partita)
+e «Notifiche» (aprire la pagina le segna lette); i pulsanti «Sfida» (community,
+anche nel refresh JS) puntano al form nuovo `/sfide/nuova/<id>/` (gioco, lato,
+orologio). Trappola test Django: con le sessioni su COOKIE FIRMATO il test
+client non scrive il cookie da solo dopo `session.save()` → va impostato a
+mano (`client.cookies[SESSION_COOKIE_NAME] = session.session_key`).
+
+**Test (282 verdi, +5)**: flusso sfida completo (validazioni 400/401/409,
+colori dal lato scelto, orologio blitz sulla sessione, notifiche a entrambi i
+capi, rifiuto notificato, ritiro silenzioso); notifiche in EN dal catalogo +
+segna-lette; torneo a 2 (campanella del turno a entrambi, coppa/verdetto alla
+fine) e invito di gruppo notificato; resa frontend di community (sfide,
+notifiche, mark-read) e form sfida. NB: i codici gioco sono `tictactoe`/
+`connect4`/`checkers`, non i nomi italiani.
+
+---
+
 ## 2026-07-09 — Gruppi (gestione) e Tornei umani
 
 **Richiesta (utente):** «sviluppiamo Gruppi e Tornei» (due voci del TODO:

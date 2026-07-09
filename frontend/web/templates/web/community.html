@@ -4,7 +4,7 @@
 {% block content %}
 <div class="card">
   <h1>🌐 Community</h1>
-  <p class="muted">{% blocktrans %}Chi è connesso adesso, con il punteggio complessivo su tutti i giochi. Con «Sfida» crei una <strong>partita a distanza</strong>: tu e lo sfidato giocate ognuno dal proprio dispositivo. L'elenco si aggiorna da solo.{% endblocktrans %}</p>
+  <p class="muted">{% blocktrans %}Chi è connesso adesso, con il punteggio complessivo su tutti i giochi. Con «Sfida» mandi un <strong>invito a giocare</strong>: la partita a distanza nasce quando lo sfidato accetta. L'elenco si aggiorna da solo.{% endblocktrans %}</p>
 
   <h2>{% trans 'Giocatori online' %}</h2>
   <table>
@@ -15,7 +15,7 @@
       <td><span class="dot on"></span> <a href="{% url 'user_detail' u.id %}">{{ u.alias }}</a></td>
       <td><span class="pill">{{ u.universal_points }} pt</span></td>
       <td>{% if auth_user and u.id != auth_user.id %}
-        <a class="btn secondary" href="{% url 'play_setup' %}?opponent={{ u.id }}">⚔️ {% trans 'Sfida' %}</a>
+        <a class="btn secondary" href="{% url 'challenge_new' u.id %}">⚔️ {% trans 'Sfida' %}</a>
       {% elif auth_user %}<span class="muted">({% trans "tu" %})</span>{% endif %}</td>
     </tr>
     {% empty %}
@@ -24,6 +24,54 @@
     </tbody>
   </table>
 </div>
+
+{% if auth_user %}
+{% if challenges.incoming or challenges.outgoing %}
+<div class="card">
+  <h2>⚔️ {% trans 'Sfide in attesa' %}</h2>
+  {% for c in challenges.incoming %}
+  <form method="post" action="{% url 'challenge_action' c.id %}"
+        style="display:flex; gap:10px; align-items:center; margin:6px 0; flex-wrap:wrap;">{% csrf_token %}
+    <span>{% blocktrans with who=c.from_alias game=c.game_name %}<strong>{{ who }}</strong> ti sfida a {{ game }}{% endblocktrans %}
+      {% if c.time_category %}<span class="muted">({{ c.time_category }}{% if c.time_base_min %} {{ c.time_base_min }}′{% endif %}{% if c.time_inc_s %}+{{ c.time_inc_s }}″{% endif %})</span>{% endif %}
+      — {% trans 'tu giochi' %} {% if c.side == 'x' %}{% trans 'come secondo (Nero/O)' %}{% else %}{% trans 'come primo (Bianco/X)' %}{% endif %}</span>
+    <button class="btn" type="submit" name="action" value="accept">{% trans 'Accetta' %}</button>
+    <button class="btn secondary" type="submit" name="action" value="decline">{% trans 'Rifiuta' %}</button>
+  </form>
+  {% endfor %}
+  {% for c in challenges.outgoing %}
+  <form method="post" action="{% url 'challenge_action' c.id %}"
+        style="display:flex; gap:10px; align-items:center; margin:6px 0;">{% csrf_token %}
+    <span class="muted">{% blocktrans with who=c.to_alias game=c.game_name %}Hai sfidato {{ who }} a {{ game }} (in attesa).{% endblocktrans %}</span>
+    <button class="btn secondary" type="submit" name="action" value="cancel">{% trans 'Ritira' %}</button>
+  </form>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>🔔 {% trans 'Notifiche' %}</h2>
+  {% if notices %}
+  <ul style="list-style:none; padding:0; margin:0;">
+    {% for n in notices %}
+    <li style="padding:6px 0; border-bottom:1px solid rgba(127,127,127,.15);
+               {% if not n.read %}font-weight:600;{% endif %}">
+      {{ n.text }}
+      {% if n.session_id %}<a class="btn secondary" style="padding:2px 10px; font-size:.8rem;"
+         href="{% url 'play' n.session_id %}">{% trans 'Apri' %}</a>
+      {% elif n.tournament_id %}<a class="btn secondary" style="padding:2px 10px; font-size:.8rem;"
+         href="{% url 'tournament_detail' n.tournament_id %}">{% trans 'Apri' %}</a>
+      {% elif n.group_id %}<a class="btn secondary" style="padding:2px 10px; font-size:.8rem;"
+         href="{% url 'groups' %}">{% trans 'Apri' %}</a>{% endif %}
+      {% if n.created_at %}<span class="muted" style="font-size:.8rem;"> · {{ n.created_at|slice:":16" }}</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">{% trans 'Nessuna notifica.' %}</p>
+  {% endif %}
+</div>
+{% endif %}
 
 <div class="card">
   <h2>🎮 {% trans 'Le tue partite in corso' %}</h2>
@@ -63,7 +111,7 @@
     tb.innerHTML = list.map((u) => {
       const action = ME_ID === null ? ""
         : (u.id === ME_ID ? '<span class="muted">({% trans "tu" %})</span>'
-           : `<a class="btn secondary" href="/gioca/?opponent=${u.id}">⚔️ {% trans 'Sfida' %}</a>`);
+           : `<a class="btn secondary" href="/sfide/nuova/${u.id}/">⚔️ {% trans 'Sfida' %}</a>`);
       return `<tr><td><span class="dot on"></span> <a href="/giocatori/${u.id}/">${esc(u.alias)}</a></td>` +
              `<td><span class="pill">${u.universal_points} pt</span></td><td>${action}</td></tr>`;
     }).join("");
