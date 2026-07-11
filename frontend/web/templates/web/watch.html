@@ -70,6 +70,8 @@
   const grid = document.createElement("div");
   grid.className = "board t-classico";
   if (moveType === "column") grid.classList.add("c4-board");  // tavoliere del Forza 4
+  if (S.game_code === "othello") grid.classList.add("oth-board");
+  if (S.game_code === "gomoku") grid.classList.add("gmk-board");
   grid.id = "grid";
   grid.style.gridTemplateColumns = `repeat(${cols}, ${cellPx}px)`;
   grid.style.gridTemplateRows = `repeat(${rows}, ${cellPx}px)`;

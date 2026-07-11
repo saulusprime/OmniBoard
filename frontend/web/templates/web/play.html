@@ -181,7 +181,7 @@
   const O_MARK = SESSION.players.o.mark || "O";
   const isSelect =
     moveType === "draughts" || moveType === "chess" || moveType === "backgammon";
-  const BASE_CELL = cols <= 3 ? 88 : (cols <= 7 ? 56 : 46);
+  const BASE_CELL = cols <= 3 ? 88 : (cols <= 7 ? 56 : (cols <= 8 ? 46 : 34));
   const FRAMED = moveType === "chess" || moveType === "draughts";
   const FIT_EXTRA = moveType === "column" ? 44 : 0;  // contorno del tavoliere Forza 4
   let cellPx = fitCellPx(BASE_CELL, cols, FRAMED, FIT_EXTRA);  // adattivo: entra nel telefono
@@ -196,6 +196,9 @@
   let flipped = (moveType === "chess" || moveType === "draughts")
     && REMOTE && MY_SIDE === "o";
   let pmoves = SESSION.playable_moves || [];
+  // Mosse legali dei giochi a CELLA (indici): nell'Othello non tutte le caselle
+  // vuote sono giocabili — le altre restano disabilitate (e senza puntino).
+  let legalCells = new Set(SESSION.legal_moves || []);
   let current = SESSION.current || "";
   let status = SESSION.status;
   let busy = false;
@@ -312,6 +315,8 @@
     if (moveType === "chess" || moveType === "draughts") grid.classList.add("t-" + THEME);
     if (moveType === "backgammon") grid.classList.add("bg-board");
     if (moveType === "column") grid.classList.add("c4-board");
+    if (SESSION.game_code === "othello") grid.classList.add("oth-board");
+    if (SESSION.game_code === "gomoku") grid.classList.add("gmk-board");
     grid.style.gridTemplateColumns = `repeat(${cols}, ${cellPx}px)`;
     grid.style.gridTemplateRows = `repeat(${rows}, ${cellPx}px)`;
     for (let i = 0; i < rows * cols; i++) {
@@ -458,7 +463,9 @@
       }
       const pc = pieceClass(v);
       if (pc) el.classList.add(pc);
-      if (moveType === "cell") el.disabled = v !== null || status !== "in_progress" || !canAct();
+      if (moveType === "cell") {
+        el.disabled = v !== null || status !== "in_progress" || !canAct() || !legalCells.has(i);
+      }
       if (moveType === "column") el.disabled = status !== "in_progress" || !canAct();
       if (isSelect && el.tagName === "BUTTON") el.disabled = status !== "in_progress" || !canAct();
       if (isSelect) {
@@ -775,6 +782,7 @@
 
   function applySession(session) {
     pmoves = session.playable_moves || [];
+    legalCells = new Set(session.legal_moves || []);
     renderMoves(session.moves);
     transitionBoard(session.board, false); // risincronizzazione: nessuna animazione
     setStatus(session);
@@ -939,6 +947,7 @@
       const changed = session.board.some((v, i) => v !== board[i]);
       const finish = () => {
         pmoves = session.playable_moves || [];
+        legalCells = new Set(session.legal_moves || []);
         transitionBoard(session.board); // in modalità sincrona anima la risposta IA
         setStatus(session);
         busy = false;

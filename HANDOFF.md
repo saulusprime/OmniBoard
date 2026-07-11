@@ -3,6 +3,63 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Nuovi giochi deterministici: Othello e Gomoku (6º e 7º gioco)
+
+**Richiesta (utente):** «implementiamo nuovi giochi deterministici» (dal TODO:
+Othello/Reversi, Filetto 3D, Gomoku — il Filetto 3D resta in TODO: vuole un
+tavoliere 3D dedicato nel frontend).
+
+**Othello** (`engine/othello/`): 8×8, il NERO muove per primo (lato X, glifo
+●; il Bianco ○ è il lato O), quattro pedine centrali, giri in tutte le
+direzioni (`_flips`). **Passo automatico dentro `apply`**: se l'avversario
+resta senza mosse il tratto torna a chi ha mosso — `legal_moves` non è mai
+vuota su posizione non terminale e il client non deve conoscere il "passo";
+terminale = nessuno muove, vince chi ha più pedine (pari = patta). Conta
+pedine in `view_status` («● n — ○ m», mostrata sopra il tavoliere). IA: il
+minimax generico a profondità 4 con euristica posizionale (quarto 4×4
+specchiato: angoli 120, case X -40, + mobilità ×8; finale ≤10 vuote = solo
+differenza pedine) — batte nettamente il caso (test: 3/3 nello smoke).
+
+**Gomoku** (`engine/gomoku/`): goban 15×15, cinque O PIÙ in fila (freestyle,
+overline valida), Nero per primo. **Motore dedicato** (`gomoku/engine.py` —
+il generico non regge 225 rami, `search_depth=1` è solo l'estremo ripiego):
+candidati = vuote entro distanza Chebyshev 2 dalle pietre (prima mossa: il
+centro), ordinati per guadagno locale attacco+difesa e potati a `_K=10`;
+tattica esatta a ogni nodo (cinquina immediata, doppia minaccia avversaria =
+sconfitta dichiarata, blocco forzato); valutazione a FINESTRE di 5 (pesi
+(1,12,128,1280) per finestre non contese) aggiornata per DELTA alla posa —
+foglia O(1); approfondimento iterativo con budget, jitter alla radice CON
+MARGINE (lezione del falso pareggio). Nello smoke ha trovato da solo una
+vittoria forzata via tre aperto → quattro aperto (doppia minaccia).
+
+**Piattaforma**: registro engine (7 giochi), `seed.py` (+othello/+gomoku,
+seed idempotente all'avvio: i DB esistenti si aggiornano da soli),
+serializer già generico (`legal_moves` int, `view_board` coi glifi ●/○ —
+`pieces` ARIA li traduceva già: «pedina nera/bianca»). GIF/PNG: i glifi ●/○
+ora sono disegnati come DISCHI (ramo nuovo in `gifexport._draw_board`).
+
+**Frontend**: tavolieri dedicati `.oth-board` (panno verde, dischi con
+bordo, **puntino sulle caselle legali** — nell'Othello non ogni vuota è
+giocabile) e `.gmk-board` (goban legno, pietre); entrambi `width:max-content`
+e SENZA `position` sul flyer (trappola nota). Novità trasversale ai giochi a
+cella: il client traccia `legal_moves` (`legalCells`) e DISABILITA le celle
+non giocabili (Tris/Gomoku: tutte le vuote restano attive, invariato).
+`BASE_CELL` a 34px sopra le 8 colonne (il goban entra nei telefoni via
+fitCellPx). Classi agganciate dal `game_code` in play.html e watch.html.
+
+**Verifica dal vivo** (server dell'utente, seed auto-applicato al reload):
+partite IA-vs-IA reali — Othello finita 40-24 a tavoliere pieno (60 mosse,
+notazione d3/c5/f6…), Gomoku vinta dal Bianco in 50 mosse col motore
+dedicato («Ultima mossa IA: motore interno»); screenshot di entrambe le
+pagine: tavolieri, conta pedine, moviola.
+
+**Test**: +21 (7 Othello: mosse iniziali/giri/illegali/passo automatico/
+partita casuale/glifi/IA batte il caso; 8 Gomoku: regole/cinquina e
+overline/centro/vittoria in una/blocco/conversione del tre aperto/mediogioco
+rapido/aggancio engine; 5 backend end-to-end su catalogo e sessioni; 1
+frontend sui tavolieri). **318 verdi.** MANUAL (2 sezioni nuove + indice +
+«sette giochi»), README (tabella, albero, roadmap, stato), TODO→ASIS.
+
 ## 2026-07-11 — Fix: il tavoliere del Forza 4 si deformava durante la caduta
 
 **Segnalazione (utente):** giocando a Forza 4, per un attimo il piano di gioco

@@ -120,6 +120,15 @@ def _draw_board(board: list, rows: int, cols: int, move_type: str, font_pack) ->
                         outline=_LIGHT if not is_white else _BLACK_PIECE,
                         width=2,
                     )
+            elif sym in ("●", "○"):  # Othello e Gomoku: dischi pieni (niente font)
+                is_white = sym == "○"
+                pad = 8
+                d.ellipse(
+                    [x0 + pad, y0 + pad, x0 + _CELL - pad, y0 + _CELL - pad],
+                    fill=_WHITE_PIECE if is_white else _BLACK_PIECE,
+                    outline=_BLACK_PIECE if is_white else _LIGHT,
+                    width=2,
+                )
             else:  # Tris e Forza 4: X/O come testo pieno, ben contrastato
                 fill = (232, 234, 237) if sym == "X" else (217, 164, 65)
                 use = small if small else ImageFont.load_default()

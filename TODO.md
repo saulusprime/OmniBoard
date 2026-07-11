@@ -7,7 +7,8 @@
 
 ## Giochi
 
-- [ ] **Nuovi giochi deterministici**: Othello/Reversi, Filetto 3D, Gomoku.
+- [ ] **Filetto 3D** (4×4×4): richiede un tavoliere 3D dedicato nel frontend
+  (piani impilati o proiezione); Othello e Gomoku sono FATTI (v. ASIS.md).
 - [ ] Backgammon: affinamenti — tiro iniziale "un dado a testa", regola del dado
   maggiore obbligatorio, cubo del raddoppio, punteggi gammon/backgammon, IA
   expectiminimax (oggi greedy dado per dado).

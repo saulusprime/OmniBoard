@@ -6,11 +6,14 @@ from ..backgammon.game import Backgammon
 from ..chess.game import Chess
 from ..connect4.game import Connect4
 from ..draughts.game import Draughts
+from ..gomoku.game import Gomoku
+from ..othello.game import Othello
 from ..tictactoe.game import TicTacToe
 from .game import Game
 
 _GAMES: dict[str, Game] = {
-    game.code: game for game in [TicTacToe(), Connect4(), Draughts(), Chess(), Backgammon()]
+    game.code: game
+    for game in [TicTacToe(), Connect4(), Draughts(), Chess(), Backgammon(), Othello(), Gomoku()]
 }
 
 

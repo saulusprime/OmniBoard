@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![Status](https://img.shields.io/badge/stato-in%20sviluppo%20attivo-brightgreen.svg)](#stato-del-progetto)
 
-> **Ultimo aggiornamento:** 2026-07-11 — *Cinque giochi giocabili; scacchi FIDE-completi con analisi/coach/puzzle; motori dedicati per scacchi, dama e Forza 4; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile; 296 test.*
+> **Ultimo aggiornamento:** 2026-07-11 — *Sette giochi giocabili (con Othello e Gomoku); scacchi FIDE-completi con analisi/coach/puzzle; motori dedicati per scacchi, dama, Forza 4 e Gomoku; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile; 318 test.*
 
 ---
 
@@ -93,6 +93,8 @@ prospettiva, anche quelli con **nodi del caso** (dadi) come backgammon e ludo.
 | Dama italiana| Deterministico       | ✅ Giocabile (umano e IA) |
 | Scacchi ♟️    | Deterministico       | ✅ Giocabile (umano e IA, con libro aperture) |
 | Backgammon   | Con nodi del caso 🎲  | ✅ Giocabile (umano e IA; il server tira i dadi) |
+| Othello      | Deterministico       | ✅ Giocabile (umano e IA; passo automatico) |
+| Gomoku       | Deterministico       | ✅ Giocabile (umano e IA; motore dedicato) |
 
 I giochi più semplici (tris, forza 4, dama) servono a validare le primitive del motore prima
 di affrontare la complessità degli scacchi. Le regole di ciascun gioco sono documentate in
@@ -182,6 +184,8 @@ Scacchi/
 │   ├── tictactoe/       # Tris: game.py (regole) + state.py (stato)
 │   ├── connect4/        # Forza 4: regole + motore dedicato bitboard (engine.py)
 │   ├── backgammon/      # Backgammon: primo gioco stocastico (nodi del caso)
+│   ├── othello/         # Othello: regole con passo automatico + euristica posizionale
+│   ├── gomoku/          # Gomoku: regole + motore dedicato sui candidati (engine.py)
 │   ├── draughts/        # Dama italiana: regole FID + motore dedicato (engine.py)
 │   ├── chess/           # Scacchi:
 │   │   ├── game.py      #   regole (classe Chess)
@@ -304,17 +308,19 @@ Configurazione tramite `.env` (vedi `.env.example`).
 - [x] Sistema di rating **Elo** per gioco e stagione (K adattivo FIDE), accanto ai punti attività
 - [x] **Backgammon**: primo gioco stocastico — nodi del caso realizzati (il server tira i dadi)
 - [x] **Forza 4**: motore dedicato bitboard (negamax + TT + approfondimento iterativo, tattica esatta a ogni nodo)
+- [x] Sesto e settimo gioco giocabili: **Othello** (giri e passo automatico, tavoliere verde) e **Gomoku** (goban 15×15, motore dedicato sui candidati vicini)
 
 ## Stato del progetto
 
-🟢 **Cinque giochi giocabili, piattaforma completa in sviluppo attivo.** Backend FastAPI e
+🟢 **Sette giochi giocabili, piattaforma completa in sviluppo attivo.** Backend FastAPI e
 frontend Django girano end-to-end: autenticazione con approvazione del super admin, partite
 in locale e **a distanza** (sfide come inviti, notifiche, spettatori e replay animato),
-cinque giochi (Tris, Forza 4, Dama italiana, Scacchi, Backgammon), quattro tipi di
+sette giochi (Tris, Forza 4, Dama italiana, Scacchi, Backgammon, Othello, Gomoku),
+quattro tipi di
 avversario con ripiego locale, analisi e coaching per gli scacchi, puzzle, rating Elo con
 stagioni, Arena IA, tornei fra giocatori e sfide di gruppo a squadre, statistiche avanzate
 (quattro aspetti, sottocategorie tattiche, confronto coi pari fascia), interfaccia
-**bilingue IT/EN**, **accessibile** e **responsive**. Suite di **296 test**
+**bilingue IT/EN**, **accessibile** e **responsive**. Suite di **318 test**
 (motore + backend + frontend) eseguita a ogni passo e in **CI** su GitHub Actions; schema
 DB governato da migrazioni Alembic (0001…0013). Il backlog vivo è in [TODO.md](./TODO.md);
 le voci realizzate in [ASIS.md](./ASIS.md); lo storico dei lavori in [HANDOFF.md](./HANDOFF.md).

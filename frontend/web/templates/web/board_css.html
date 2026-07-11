@@ -164,6 +164,33 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
   }
   @keyframes c4win { 50% { filter:brightness(1.45); } }
   .c4-board button.cell:disabled { cursor:default; }
+  /* ----- Tavoliere dell'Othello (panno verde, dischi bianchi/neri) -----
+     I glifi ●/○ del motore diventano dischi a tinta piena (displayOf usa il
+     glifo pieno, il colore lo dà la classe: x = Bianco, o = Nero — il NERO
+     muove per primo). Le caselle giocabili portano un puntino: nell'Othello
+     non ogni casella vuota è legale. */
+  .oth-board { background:#1e6b45; border:6px solid #17402c; border-radius:10px;
+               padding:6px; width:max-content;
+               box-shadow:0 6px 18px rgba(0,0,0,.4); }
+  .oth-board .cell { position:relative; background:#237a4f;
+               border:1px solid rgba(0,0,0,.35); border-radius:2px; }
+  .oth-board .cell.x { color:#f4f6f8;
+               -webkit-text-stroke:2px #1b2229; paint-order:stroke fill; }
+  .oth-board .cell.o { color:#12161b;
+               -webkit-text-stroke:2px rgba(255,255,255,.30); paint-order:stroke fill; }
+  .oth-board button.cell:enabled::after { content:""; position:absolute; inset:0;
+               margin:auto; width:22%; height:22%; border-radius:50%;
+               background:rgba(255,255,255,.30); }
+  .oth-board button.cell:hover:enabled { border-color:var(--accent); }
+  /* ----- Goban del Gomoku (legno, pietre bianche/nere) ----- */
+  .gmk-board { background:#a97e46; border:6px solid #7c5a32; border-radius:8px;
+               padding:6px; width:max-content;
+               box-shadow:0 6px 18px rgba(0,0,0,.4); }
+  .gmk-board .cell { background:#c9a468; border:1px solid #8a6a3c; border-radius:2px; }
+  .gmk-board .cell.x { color:#f7f8f9;
+               -webkit-text-stroke:1.5px #23282e; paint-order:stroke fill; }
+  .gmk-board .cell.o { color:#15181c;
+               -webkit-text-stroke:1.5px rgba(255,246,224,.35); paint-order:stroke fill; }
   /* ----- Tavolo classico del Backgammon (non tematizzabile: è "quello originale") -----
      Punte triangolari alternate disegnate come SVG di sfondo (il testo delle pedine
      resta sempre sopra), campo in legno, barra e uscite dedicate. */

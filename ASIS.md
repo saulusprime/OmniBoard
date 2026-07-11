@@ -188,6 +188,16 @@
   motore della dama (bound = alpha nel pool del jitter).
 - [x] **Backgammon** — nodi del caso realizzati: il server tira i dadi (`resolve_chance`),
   un dado = una mossa, colpi/barra/uscita implementati.
+- [x] **Nuovi giochi deterministici — Othello e Gomoku** (2026-07-11): **Othello**
+  (8×8, giri in tutte le direzioni, **passo automatico** dentro `apply`, conta
+  pedine in `status_line`, minimax generico con euristica posizionale
+  angoli+mobilità, tavoliere verde con puntini sulle caselle legali) e **Gomoku**
+  (goban 15×15, cinque o più in fila — freestyle, **motore dedicato**
+  `gomoku/engine.py`: candidati entro distanza 2 dalle pietre, tattica esatta
+  cinquina/blocco/doppia minaccia, valutazione a finestre di 5 con delta
+  incrementale, approfondimento iterativo). Dischi/pietre ●○ anche nella GIF;
+  celle legali via `legal_moves` nel client (le altre disabilitate). Del gruppo
+  originario resta il Filetto 3D (in TODO).
 
 ## Istruzione guidata (tutorial) + voce sintetica
 

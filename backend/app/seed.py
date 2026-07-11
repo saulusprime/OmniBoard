@@ -12,6 +12,8 @@ DEFAULT_GAMES = [
     {"code": "checkers", "name": "Dama italiana", "is_stochastic": False},
     {"code": "chess", "name": "Scacchi", "is_stochastic": False},
     {"code": "backgammon", "name": "Backgammon", "is_stochastic": True},
+    {"code": "othello", "name": "Othello", "is_stochastic": False},
+    {"code": "gomoku", "name": "Gomoku", "is_stochastic": False},
 ]
 
 

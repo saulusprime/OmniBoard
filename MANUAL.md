@@ -17,6 +17,8 @@
   - [Tris (Tic-Tac-Toe)](#tris-tic-tac-toe)
   - [Backgammon](#backgammon)
   - [Forza 4](#forza-4)
+  - [Othello](#othello)
+  - [Gomoku](#gomoku)
 - [Modello per nuovi giochi](#modello-per-nuovi-giochi)
 
 ---
@@ -25,8 +27,9 @@
 
 > ⚠️ L'applicazione è in sviluppo. Sono già disponibili: registrazione giocatori (con
 > approvazione del super admin) e **login/logout**, gruppi (fondazione tramite voto),
-> punteggi, classifiche, **cinque giochi** (Tris, Forza 4, Dama, Scacchi, Backgammon —
-> umano vs umano, umano vs IA/Stockfish, IA vs IA) e il **gioco a distanza** fra client
+> punteggi, classifiche, **sette giochi** (Tris, Forza 4, Dama, Scacchi, Backgammon,
+> Othello, Gomoku — umano vs umano, umano vs IA/Stockfish, IA vs IA) e il **gioco a
+> distanza** fra client
 > diversi (sfide dalla Community, aggiornamento automatico via polling). Le partite fra
 > due umani senza la spunta «a distanza» restano *hotseat*, sullo stesso schermo.
 
@@ -227,7 +230,7 @@ cliccando una mossa nel log) ti muovi avanti e indietro nel tempo di gioco, posi
 posizione. Su ogni mossa puoi scrivere una **nota** («💾 Salva nota»): le note vengono
 salvate **dentro lo storico della partita** e ricompaiono nella moviola e nella scheda
 del giocatore. Con «🎞️ Esporta GIF» scarichi l'**intera partita come GIF animata** (un
-fotogramma per posizione; scacchi, dama, Tris e Forza 4). Negli scacchi «📄 **Esporta
+fotogramma per posizione; scacchi, dama, Tris, Forza 4, Othello e Gomoku). Negli scacchi «📄 **Esporta
 PGN**» scarica la partita in formato **PGN standard** (tag `White`/`Black`/`Result`,
 mosse in notazione algebrica SAN, le tue note come commenti `{…}`): si apre con
 qualunque programma di scacchi. Le partite iniziate da FEN hanno i tag `SetUp`/`FEN`.
@@ -721,6 +724,53 @@ il provider remoto attivo (Qwen/Claude/OpenAI) se
 configurato, altrimenti il **motore dedicato**: ricerca iterativa su bitboard nel budget di
 tempo, che vede sempre vittorie e blocchi immediati e non concede mai una quaterna per
 sbadataggine; i livelli del motore locale ne modulano tempo di riflessione e imprecisione.
+
+---
+
+## Othello
+
+**Giocatori:** 2. **Tavoliere:** 8×8 (panno verde). **Obiettivo:** avere più pedine
+del proprio colore a fine partita.
+
+### Regole
+- Il **Nero muove per primo**. Si parte con quattro pedine al centro (due per colore,
+  in diagonale).
+- Una mossa posa una pedina su una casella vuota che **imprigiona** almeno una fila
+  contigua di pedine avversarie fra la pedina posata e una propria: le pedine
+  imprigionate **si girano** e cambiano colore (valgono tutte le direzioni, diagonali
+  comprese).
+- Se un giocatore non ha mosse legali **passa automaticamente** (il turno resta
+  all'avversario); quando nessuno dei due può muovere la partita finisce.
+- Vince chi ha **più pedine**; stesso numero = patta.
+
+### Come giocarci nell'app
+Dal menu **Gioca** scegli **Othello** e imposta i due lati (umano o IA). Il lato X è
+il **Nero** (dischi neri), il lato O il Bianco. Le caselle giocabili portano un
+**puntino chiaro**: le altre caselle vuote sono disabilitate (non ogni casella gira
+qualcosa). Il contatore delle pedine (`● n — ○ m`) è sempre visibile sopra il
+tavoliere; il passo dell'avversario è automatico e non richiede nulla. L'IA usa il
+provider remoto attivo se configurato, altrimenti il minimax locale con euristica
+posizionale (angoli, mobilità).
+
+---
+
+## Gomoku
+
+**Giocatori:** 2. **Tavoliere:** goban 15×15. **Obiettivo:** allineare cinque pietre.
+
+### Regole
+- Il **Nero muove per primo**. A turno si posa una pietra su un'intersezione libera
+  (le pietre non si muovono né si catturano).
+- Vince chi allinea **cinque o più** pietre consecutive in orizzontale, verticale o
+  diagonale (variante *freestyle*: anche la fila da sei — overline — vale).
+- Goban pieno senza cinquine = **patta**.
+
+### Come giocarci nell'app
+Dal menu **Gioca** scegli **Gomoku** e imposta i due lati. Il lato X è il **Nero**
+(pietre nere), il lato O il Bianco. Si gioca cliccando l'intersezione (o con la
+tastiera: frecce e Invio, come tutti i giochi). Contro l'IA risponde il **motore
+dedicato**: ricerca sui candidati vicini alle pietre con tattica esatta (cinquina
+immediata, blocco forzato, doppie minacce), oppure il provider remoto se configurato.
 
 ---
 

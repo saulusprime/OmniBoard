@@ -488,3 +488,37 @@ def test_play_page_connect4_has_c4_board_and_aria_strings(monkeypatch):
     # La pagina spettatore usa lo stesso tavoliere.
     html = Client().get("/partite/41/guarda/", SERVER_NAME="localhost").content.decode()
     assert "c4-board" in html
+
+
+def test_play_page_ships_othello_and_gomoku_boards(monkeypatch):
+    """La pagina di gioco porta gli stili dei tavolieri nuovi (panno verde
+    dell'Othello, goban del Gomoku) e li aggancia dal game_code."""
+    import web.api_client as api
+
+    session = {
+        "id": 42,
+        "game_code": "othello",
+        "game_name": "Othello",
+        "move_type": "cell",
+        "rows": 8,
+        "cols": 8,
+        "board": [None] * 64,
+        "status": "in_progress",
+        "winner": None,
+        "finish_reason": None,
+        "current": "x",
+        "clock": None,
+        "status_line": "● 2 — ○ 2",
+        "moves": [],
+        "legal_moves": [19, 26, 37, 44],
+        "remote": False,
+        "players": {
+            "x": {"type": "human", "user_id": 1, "alias": "oth_a"},
+            "o": {"type": "ai"},
+        },
+    }
+    monkeypatch.setattr(api, "get_session", lambda sid: session)
+    monkeypatch.setattr(api, "get_config", lambda: {})
+    html = Client().get("/partite/42/", SERVER_NAME="localhost").content.decode()
+    assert "oth-board" in html and "gmk-board" in html  # stili dei tavolieri
+    assert "legalCells" in html  # solo le celle legali sono giocabili

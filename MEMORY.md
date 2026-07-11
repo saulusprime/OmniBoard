@@ -771,6 +771,17 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   caduta. Fix: relative solo sulle celle, il flyer resta absolute. TRAPPOLA
   CSS: mai regole di `position` raggruppate su .cell e .flyer. Verificato con
   harness statico sul CSS servito (394px con e senza flyer). 297 verdi.
+- **2026-07-11** — **Othello e Gomoku** (6º e 7º gioco): Othello con **passo
+  automatico dentro apply** (legal_moves mai vuota su posizione viva: il
+  client ignora il "passo"; ADR implicito: niente mossa esplicita di passo),
+  Nero=lato X=●, conta pedine in view_status, euristica posizionale
+  (quarto 4×4 specchiato) per il minimax generico depth 4. Gomoku col motore
+  dedicato (candidati Chebyshev≤2, tattica esatta, valutazione a finestre di
+  5 con delta incrementale, iterativo con margine sul jitter) — il generico
+  non regge 225 rami. Piattaforma: seed idempotente 7 giochi, GIF con dischi
+  ●/○, client con `legalCells` (nell'Othello le vuote non giocabili sono
+  DISABILITATE, col puntino sulle legali). Verificato dal vivo (IA-vs-IA:
+  Othello 40-24, Gomoku col motore interno). 318 verdi.
 
 ## Questioni aperte
 
