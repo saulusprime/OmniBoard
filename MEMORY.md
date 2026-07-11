@@ -716,6 +716,16 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   (trasversale: la mossa concedente era una cattura). Senza risposta →
   contata ma non classificata. Riga «Dettaglio tattico» in Statistiche.
   288 verdi.
+- **2026-07-11** — **Confronto coi pari fascia**: insights.peer_comparison —
+  fascia Elo 200pt dal rating stagionale (1500 i non classificati), ACPL e
+  blunder/partita per TUTTI in un solo passaggio sulle analisi (niente
+  replay per i pari, tetto 2000 sessioni); better_than = quota di pari
+  STRETTAMENTE peggiori; percentile solo con ≥3 pari da ≥20 mosse. Nei test
+  la fascia va ISOLATA (Elo iniettati 2250-2350): gli utenti ~1500 degli
+  altri test inquinerebbero il campione. FLAKE sistemato in
+  test_async_move_executed_by_the_pool: il worker della coda poteva giocare
+  la mossa IA fra commit e serializzazione della risposta → cancello
+  (threading.Event) prima del processing. 289 verdi.
 
 ## Questioni aperte
 

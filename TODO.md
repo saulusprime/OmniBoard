@@ -429,9 +429,14 @@
   silenziose** (confutazione quieta) e — trasversale — **catture avvelenate**
   (la mossa concedente era una cattura). Riga «Dettaglio tattico» sotto i
   quattro aspetti, bilingue.
-- [ ] **Confronto con i pari fascia**: ogni metrica contestualizzata sui giocatori
-  della stessa fascia («meglio del 70% dei 1400-1600»). Prerequisito: **rating Elo**
-  (già in backlog) + massa di giocatori.
+- [x] **Confronto con i pari fascia** (2026-07-11, `insights.peer_comparison`):
+  fascia Elo di 200 punti dal rating stagionale (1500 per i non classificati),
+  metriche economiche per tutti in un passaggio solo (ACPL e blunder/partita,
+  niente replay per i pari), `better_than` = quota di pari fascia strettamente
+  peggiori; percentile solo con ≥3 pari da ≥20 mosse analizzate (sotto, grezzi
+  e media di fascia con avviso). Tabella «Confronto coi pari fascia» nelle
+  Statistiche. La «massa di giocatori» resta il fattore limitante: il codice
+  è pronto, il campione crescerà da solo.
 - [ ] **Punteggio aggregato per categoria con peso alla recency**: le partite recenti
   contano più delle vecchie (decadimento esponenziale), come i rating.
 

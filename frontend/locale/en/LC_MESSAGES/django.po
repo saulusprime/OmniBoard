@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-11 09:29+0200\n"
+"POT-Creation-Date: 2026-07-11 09:52+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1760,20 +1760,20 @@ msgstr "Adapted AI style: aggression %(ag)s, contempt %(ct)s."
 msgid "Storico partite"
 msgstr "Game history"
 
-#: web/templates/web/user_detail.html:107 web/templates/web/user_stats.html:164
+#: web/templates/web/user_detail.html:107 web/templates/web/user_stats.html:189
 msgid "vs"
 msgstr "vs"
 
-#: web/templates/web/user_detail.html:108 web/templates/web/user_stats.html:165
+#: web/templates/web/user_detail.html:108 web/templates/web/user_stats.html:190
 msgid "Vittoria"
 msgstr "Win"
 
-#: web/templates/web/user_detail.html:109 web/templates/web/user_stats.html:165
+#: web/templates/web/user_detail.html:109 web/templates/web/user_stats.html:190
 #: web/views.py:907
 msgid "Patta"
 msgstr "Draw"
 
-#: web/templates/web/user_detail.html:110 web/templates/web/user_stats.html:165
+#: web/templates/web/user_detail.html:110 web/templates/web/user_stats.html:190
 msgid "Sconfitta"
 msgstr "Loss"
 
@@ -1869,7 +1869,7 @@ msgstr "Time control"
 msgid "Analizzate"
 msgstr "Analysed"
 
-#: web/templates/web/user_stats.html:51
+#: web/templates/web/user_stats.html:51 web/templates/web/user_stats.html:128
 msgid "Precisione (ACPL)"
 msgstr "Accuracy (ACPL)"
 
@@ -1968,39 +1968,76 @@ msgstr "quiet tactics"
 msgid "catture avvelenate"
 msgstr "poisoned captures"
 
-#: web/templates/web/user_stats.html:121
+#: web/templates/web/user_stats.html:123
+msgid "Confronto coi pari fascia"
+msgstr "Comparison with your rating band"
+
+#: web/templates/web/user_stats.html:124
+#, python-format
+msgid ""
+"Fascia Elo %(lo)s–%(hi)s: oltre a te, %(n)s giocatori con partite analizzate."
+msgstr "Elo band %(lo)s–%(hi)s: besides you, %(n)s players with analyzed games."
+
+#: web/templates/web/user_stats.html:126
+msgid "Tu"
+msgstr "You"
+
+#: web/templates/web/user_stats.html:126
+msgid "Media di fascia"
+msgstr "Band average"
+
+#: web/templates/web/user_stats.html:126
+msgid "Meglio di"
+msgstr "Better than"
+
+#: web/templates/web/user_stats.html:131 web/templates/web/user_stats.html:137
+msgid "dei pari fascia"
+msgstr "of your band"
+
+#: web/templates/web/user_stats.html:134
+msgid "Blunder a partita"
+msgstr "Blunders per game"
+
+#: web/templates/web/user_stats.html:141
+#, python-format
+msgid ""
+"Percentili in arrivo: servono almeno 3 pari fascia con partite analizzate "
+"(ora %(n)s)."
+msgstr "Percentiles coming soon: at least 3 band peers with analyzed games are needed (now %(n)s)."
+
+#: web/templates/web/user_stats.html:146
 msgid "Come finiscono le partite"
 msgstr "How games end"
 
-#: web/templates/web/user_stats.html:123
+#: web/templates/web/user_stats.html:148
 msgid "scacco matto"
 msgstr "checkmate"
 
-#: web/templates/web/user_stats.html:124
+#: web/templates/web/user_stats.html:149
 msgid "tempo"
 msgstr "time"
 
-#: web/templates/web/user_stats.html:125
+#: web/templates/web/user_stats.html:150
 msgid "abbandono"
 msgstr "resignation"
 
-#: web/templates/web/user_stats.html:126
+#: web/templates/web/user_stats.html:151
 msgid "patta d’accordo"
 msgstr "draw by agreement"
 
-#: web/templates/web/user_stats.html:127
+#: web/templates/web/user_stats.html:152
 msgid "ripetizione"
 msgstr "repetition"
 
-#: web/templates/web/user_stats.html:130
+#: web/templates/web/user_stats.html:155
 msgid "I tuoi badge di qualità"
 msgstr "Your quality badges"
 
-#: web/templates/web/user_stats.html:138
+#: web/templates/web/user_stats.html:163
 msgid "Mosse geniali"
 msgstr "Brilliant moves"
 
-#: web/templates/web/user_stats.html:139
+#: web/templates/web/user_stats.html:164
 msgid ""
 "Le tue mosse «da maestro» secondo il motore: lo scatto della posizione, "
 "l’avversario e il collegamento alla moviola."
@@ -2008,59 +2045,59 @@ msgstr ""
 "Your “masterful” moves according to the engine: a snapshot of the position, "
 "the opponent and a link to the replay viewer."
 
-#: web/templates/web/user_stats.html:142
+#: web/templates/web/user_stats.html:167
 msgid "Tutte"
 msgstr "All"
 
-#: web/templates/web/user_stats.html:143
+#: web/templates/web/user_stats.html:168
 msgid "Sacrifici"
 msgstr "Sacrifices"
 
-#: web/templates/web/user_stats.html:144
+#: web/templates/web/user_stats.html:169
 msgid "Da maestro"
 msgstr "Masterful"
 
-#: web/templates/web/user_stats.html:145
+#: web/templates/web/user_stats.html:170
 msgid "Filtra per pezzo"
 msgstr "Filter by piece"
 
-#: web/templates/web/user_stats.html:147
+#: web/templates/web/user_stats.html:172
 msgid "Ogni pezzo"
 msgstr "Any piece"
 
-#: web/templates/web/user_stats.html:148 web/views.py:950
+#: web/templates/web/user_stats.html:173 web/views.py:950
 msgid "Donna"
 msgstr "Queen"
 
-#: web/templates/web/user_stats.html:149 web/views.py:951
+#: web/templates/web/user_stats.html:174 web/views.py:951
 msgid "Torre"
 msgstr "Rook"
 
-#: web/templates/web/user_stats.html:150 web/views.py:952
+#: web/templates/web/user_stats.html:175 web/views.py:952
 msgid "Alfiere"
 msgstr "Bishop"
 
-#: web/templates/web/user_stats.html:151 web/views.py:953
+#: web/templates/web/user_stats.html:176 web/views.py:953
 msgid "Cavallo"
 msgstr "Knight"
 
-#: web/templates/web/user_stats.html:152
+#: web/templates/web/user_stats.html:177
 msgid "Re"
 msgstr "King"
 
-#: web/templates/web/user_stats.html:153
+#: web/templates/web/user_stats.html:178
 msgid "Pedone"
 msgstr "Pawn"
 
-#: web/templates/web/user_stats.html:162
+#: web/templates/web/user_stats.html:187
 msgid "semimossa"
 msgstr "half-move"
 
-#: web/templates/web/user_stats.html:168
+#: web/templates/web/user_stats.html:193
 msgid "Apri la moviola"
 msgstr "Open the replay viewer"
 
-#: web/templates/web/user_stats.html:198
+#: web/templates/web/user_stats.html:223
 msgid ""
 "Ancora nessuna mossa da maestro: gioca (con i badge di qualità attivi) e "
 "torna qui."

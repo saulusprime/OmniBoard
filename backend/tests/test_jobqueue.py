@@ -60,11 +60,25 @@ def test_worker_pool_respects_the_cap(monkeypatch):
 
 
 def test_async_move_executed_by_the_pool(monkeypatch):
-    """Partita vera: la risposta arriva senza la mossa IA, il worker la gioca dopo."""
+    """Partita vera: la risposta arriva senza la mossa IA, il worker la gioca dopo.
+
+    Il worker resta al CANCELLO finché la risposta non è stata verificata:
+    senza, sotto carico può giocare la mossa IA fra il commit e la
+    serializzazione della risposta e l'asserzione «solo la mossa umana»
+    diventa una corsa (flake da ordine casuale dei test).
+    """
     with TestClient(app) as client:
         u = _user(client, "coda_a")
         monkeypatch.setenv("AI_ASYNC", "1")
         jobqueue.reset_for_tests()
+        gate = threading.Event()
+        real_process = jobqueue._default_process
+
+        def gated(session_id):
+            gate.wait(timeout=5)
+            real_process(session_id)
+
+        monkeypatch.setattr(jobqueue, "_process", gated)
         jobqueue.start(1)
         sid = client.post(
             "/sessions",
@@ -76,6 +90,7 @@ def test_async_move_executed_by_the_pool(monkeypatch):
         ).json()["id"]
         before = client.post(f"/sessions/{sid}/move", json={"move": "0"}).json()
         assert len([c for c in before["board"] if c]) == 1  # solo la mossa umana
+        gate.set()  # ora il worker può giocare la risposta
         # Il worker del pool gioca la risposta in background.
         assert _wait(
             lambda: len([c for c in client.get(f"/sessions/{sid}").json()["board"] if c]) >= 2

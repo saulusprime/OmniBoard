@@ -118,6 +118,31 @@
   {% endwith %}
   {% endif %}
 
+  {% if st.chess.peer_comparison %}
+  {% with pc=st.chess.peer_comparison %}
+  <h3>{% trans 'Confronto coi pari fascia' %}</h3>
+  <p class="muted">{% blocktrans with lo=pc.band_lo hi=pc.band_hi n=pc.peers %}Fascia Elo {{ lo }}–{{ hi }}: oltre a te, {{ n }} giocatori con partite analizzate.{% endblocktrans %}</p>
+  <table>
+    <tr><th></th><th>{% trans 'Tu' %}</th><th>{% trans 'Media di fascia' %}</th><th>{% trans 'Meglio di' %}</th></tr>
+    <tr>
+      <td>{% trans 'Precisione (ACPL)' %}</td>
+      <td><strong>{{ pc.metrics.acpl.mine }}</strong></td>
+      <td>{% if pc.metrics.acpl.band_avg is not None %}{{ pc.metrics.acpl.band_avg }}{% else %}—{% endif %}</td>
+      <td>{% if pc.metrics.acpl.better_than is not None %}<span class="pill">{% widthratio pc.metrics.acpl.better_than 1 100 %}% {% trans 'dei pari fascia' %}</span>{% else %}—{% endif %}</td>
+    </tr>
+    <tr>
+      <td>{% trans 'Blunder a partita' %}</td>
+      <td><strong>{{ pc.metrics.blunders_per_game.mine }}</strong></td>
+      <td>{% if pc.metrics.blunders_per_game.band_avg is not None %}{{ pc.metrics.blunders_per_game.band_avg }}{% else %}—{% endif %}</td>
+      <td>{% if pc.metrics.blunders_per_game.better_than is not None %}<span class="pill">{% widthratio pc.metrics.blunders_per_game.better_than 1 100 %}% {% trans 'dei pari fascia' %}</span>{% else %}—{% endif %}</td>
+    </tr>
+  </table>
+  {% if pc.metrics.acpl.better_than is None %}
+  <p class="muted" style="font-size:.85rem;">{% blocktrans with n=pc.peers %}Percentili in arrivo: servono almeno 3 pari fascia con partite analizzate (ora {{ n }}).{% endblocktrans %}</p>
+  {% endif %}
+  {% endwith %}
+  {% endif %}
+
   <h3>{% trans 'Come finiscono le partite' %}</h3>
   <p>
     ♚ {% trans 'scacco matto' %}: <strong>{{ st.chess.finish_reasons.mate }}</strong> ·
