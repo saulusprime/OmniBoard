@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![Status](https://img.shields.io/badge/stato-in%20sviluppo%20attivo-brightgreen.svg)](#stato-del-progetto)
 
-> **Ultimo aggiornamento:** 2026-07-09 — *Cinque giochi giocabili; scacchi FIDE-completi con analisi/coach/puzzle; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile; 287 test.*
+> **Ultimo aggiornamento:** 2026-07-11 — *Cinque giochi giocabili; scacchi FIDE-completi con analisi/coach/puzzle; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile; 288 test.*
 
 ---
 
@@ -309,7 +309,7 @@ frontend Django girano end-to-end: autenticazione con approvazione del super adm
 in locale e **a distanza**, cinque giochi (Tris, Forza 4, Dama italiana, Scacchi,
 Backgammon), quattro tipi di avversario con ripiego locale, analisi e coaching per gli
 scacchi, puzzle, rating Elo con stagioni, Arena IA con tornei, statistiche avanzate,
-interfaccia **bilingue IT/EN**, **accessibile** e **responsive**. Suite di **287 test**
+interfaccia **bilingue IT/EN**, **accessibile** e **responsive**. Suite di **288 test**
 (motore + backend + frontend) eseguita a ogni passo; schema DB governato da migrazioni
 Alembic (0001…0010). Il backlog vivo è in [TODO.md](./TODO.md); lo storico dei lavori in
 [HANDOFF.md](./HANDOFF.md).

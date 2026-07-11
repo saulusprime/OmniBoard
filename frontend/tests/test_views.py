@@ -58,6 +58,14 @@ def test_user_stats_renders_four_aspects(monkeypatch):
                     "opportunities": 1,
                     "punished": 1,
                     "score": None,
+                    "subcategories": {
+                        "conceded": 4,
+                        "missed_mates": 1,
+                        "hanging": {"total": 1, "minor": 1, "rook": 0, "queen": 0},
+                        "check_tactics": 1,
+                        "quiet_tactics": 1,
+                        "poisoned_captures": 1,
+                    },
                 },
                 "strategy": {"moves": 1, "acpl": 30.0, "score": None},
                 "endgame": {"moves": 0, "acpl": None, "score": None},
@@ -76,6 +84,7 @@ def test_user_stats_renders_four_aspects(monkeypatch):
     assert "48,3" in html  # l10n italiana dei decimali
     assert "nel libro 25%" in html
     assert "campione insufficiente" in html  # finali senza campione
+    assert "matti mancati" in html and "catture avvelenate" in html  # dettaglio tattico
 
     # In inglese, dal catalogo compilato.
     response = Client().get(

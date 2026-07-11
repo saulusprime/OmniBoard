@@ -47,6 +47,14 @@ _ASPECT_MIN_MOVES = 10  # sotto questo campione il punteggio non fa testo
 _ASPECT_MIN_GAMES = 3  # campione minimo di partite per giudicare la tattica
 _PUNISH_LOSS = 100  # risposta a un blunder che "tiene" il vantaggio (cp persi)
 
+# Sottocategorie tattiche: soglie in centipedoni. Una mossa "concede" una
+# tattica da _TACTIC_LOSS in su (almeno un pezzo leggero); i matti nell'analisi
+# sono codificati ±(10000 − distanza), quindi |cp| ≥ 9901 = matto forzato.
+_TACTIC_LOSS = 250
+_MATE_CP = 9901
+_HANG_ROOK = 450  # perdita da torre in su (fino alla donna)
+_HANG_QUEEN = 850  # perdita da donna in su
+
 
 def _user_sessions(db: Session, user_id: int, game_code: str | None = None):
     q = (
@@ -129,7 +137,15 @@ def _aspects(sessions, user_id: int) -> dict | None:
       l'aderenza al libro (quota di semimosse dentro una linea nota; solo
       partite dalla posizione iniziale standard);
     - **tattica** — blunder commessi e blunder avversari PUNITI (la propria
-      risposta tiene il vantaggio regalato: perdita < ``_PUNISH_LOSS``);
+      risposta tiene il vantaggio regalato: perdita < ``_PUNISH_LOSS``); con
+      le SOTTOCATEGORIE delle tattiche concesse (perdita ≥ ``_TACTIC_LOSS``):
+      **matti mancati** (prima della mossa il motore vedeva un matto forzato
+      per chi muove — |cp| ≥ ``_MATE_CP`` — e dopo non c'è più), **pezzi
+      lasciati in presa** (la risposta avversaria è una cattura, taglie
+      leggero/torre/donna dalla perdita), **scacchi concessi** (risposta di
+      scacco senza cattura), **tattiche silenziose** (risposta quieta: le più
+      difficili da vedere) e — trasversale — le **catture avvelenate** (la
+      mossa che concede era essa stessa una cattura);
     - **strategia** — ACPL delle proprie mosse QUIETE del mediogioco (né
       catture né scacchi né promozioni: le scelte posizionali);
     - **finali** — ACPL delle proprie mosse giocate con al più
@@ -143,6 +159,14 @@ def _aspects(sessions, user_id: int) -> dict | None:
     buckets = {k: {"moves": 0, "loss": 0} for k in ("opening", "strategy", "endgame")}
     book_moves = book_eligible = 0
     blunders = opportunities = punished = 0
+    sub = {
+        "conceded": 0,
+        "missed_mates": 0,
+        "hanging": {"total": 0, "minor": 0, "rook": 0, "queen": 0},
+        "check_tactics": 0,
+        "quiet_tactics": 0,
+        "poisoned_captures": 0,
+    }
     analyzed = 0
     for s in reversed(sessions):  # dalla più recente, fino al tetto di replay
         if analyzed >= _ASPECT_GAMES:
@@ -191,6 +215,38 @@ def _aspects(sessions, user_id: int) -> dict | None:
                 continue
             if e.get("tag") == "??":
                 blunders += 1
+            # Sottocategorie tattiche: cosa ho concesso davvero con questa mossa.
+            raw_loss = int(e.get("loss") or 0)
+            if raw_loss >= _TACTIC_LOSS:
+                sub["conceded"] += 1
+                if "x" in notation_by_ply.get(ply, ""):
+                    sub["poisoned_captures"] += 1  # la mossa era essa stessa una cattura
+                cp_prev = (evals_by_ply.get(ply - 1) or {}).get("cp")
+                cp_now = e.get("cp")
+                white = side == "x"
+                had_mate = cp_prev is not None and (
+                    cp_prev >= _MATE_CP if white else cp_prev <= -_MATE_CP
+                )
+                still_mate = cp_now is not None and (
+                    cp_now >= _MATE_CP if white else cp_now <= -_MATE_CP
+                )
+                reply = notation_by_ply.get(ply + 1)
+                if had_mate and not still_mate:
+                    sub["missed_mates"] += 1
+                elif reply and "x" in reply:
+                    sub["hanging"]["total"] += 1
+                    if raw_loss >= _HANG_QUEEN:
+                        sub["hanging"]["queen"] += 1
+                    elif raw_loss >= _HANG_ROOK:
+                        sub["hanging"]["rook"] += 1
+                    else:
+                        sub["hanging"]["minor"] += 1
+                elif reply and ("+" in reply or "#" in reply):
+                    sub["check_tactics"] += 1
+                elif reply:
+                    sub["quiet_tactics"] += 1
+                # Senza risposta (la partita è finita lì) la tattica resta
+                # conteggiata fra le concesse ma non classificata.
             if phase == "opening":
                 buckets["opening"]["moves"] += 1
                 buckets["opening"]["loss"] += loss
@@ -241,6 +297,7 @@ def _aspects(sessions, user_id: int) -> dict | None:
             "opportunities": opportunities,
             "punished": punished,
             "score": tactics_score,
+            "subcategories": sub,
         },
         "strategy": {
             "moves": buckets["strategy"]["moves"],
