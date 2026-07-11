@@ -348,6 +348,10 @@
   colonne nullable «per omissione» (created_at & co.). Prova di identità dello
   schema: **`alembic check` → nessuna operazione** (nessuna migrazione
   generata). 253 test verdi.
+- [ ] **WebSocket** al posto del polling — il candidato infrastrutturale più
+  maturo (2026-07-11): oggi il polling regge mosse a distanza, presenza,
+  campanella delle notifiche, dirette degli spettatori e tabelloni dei tornei;
+  un canale unico li sostituirebbe tutti.
 - [ ] **Rate limiting** sulle API pubbliche; configurazione **CORS** esplicita.
 - [ ] **Audit log** delle operazioni super admin.
 - [x] **CI GitHub Actions** (2026-07-09): pipeline completa al posto di quella

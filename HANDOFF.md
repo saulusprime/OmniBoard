@@ -3,6 +3,71 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — CHECKPOINT anti-compattazione (fotografia dello stato)
+
+**Richiesta (utente):** refresh di tutti i doc (HANDOFF, MEMORY, README, TODO,
+memoria persistente) contro le perdite da auto-compact del contesto. Questa
+voce è autosufficiente: da sola rimette in carreggiata una sessione nuova.
+
+**Stato del progetto OmniBoard (già «Scacchi») a questa data:**
+
+- **289 test verdi** (pytest dalla root, ~2,5-3′; motore+backend+frontend da
+  pyproject) + **CI GitHub Actions verde** su main (~2,5′: submodule
+  KittenTTS, apt stockfish+gettext, ruff check+format, msgfmt sul .po,
+  alembic upgrade+check su DB vergine, pytest); ruff line 100; migrazioni
+  **0001…0013** (upgrade automatico all'avvio, MAI rm del DB).
+- **5 giochi giocabili**: Tris, Forza 4, Dama FID (motore dedicato), Scacchi
+  FIDE-completi, Backgammon (dadi del server). Codici: tictactoe, connect4,
+  checkers, chess, backgammon.
+- **Avversari** (4 tipi per lato): umano (hotseat o a distanza col token),
+  motore locale a 5 livelli, Stockfish persistente (preset), provider IA
+  Claude/Gemini/Grok/Qwen/OpenAI (token CIFRATI Fernet, circuit breaker,
+  ripiego locale). Mosse IA in CODA (`jobqueue.py`, pool `ai.workers`,
+  recovery al riavvio; ADR: niente RabbitMQ). Pondering scacchi.
+- **Scacchi — condotto completo**: orologi+bandierina, FEN iniziale, PGN
+  export, libro interno/PGN/Polyglot + apertura-bersaglio, analisi Stockfish
+  con moviola/?ply, GIF/PNG, hint, badge qualità (💎 sacrificio via SEE),
+  commentatore LLM, «Spiegami questa mossa», profilo avversario in cache con
+  bias cognitivi, anti-tilt.
+- **Gamification/Insights**: Elo umano per (gioco, stagione) K-FIDE, Arena
+  IA (Elo + tornei IA), PUZZLE (seed verificato + generazione dai blunder),
+  statistiche avanzate: serie, esiti, CADENZE, colori, **quattro aspetti**
+  (aperture/tattica/strategia/finali, fasi da replay senza ricerca, punteggi
+  0-100 euristici), **sottocategorie tattiche** (matti mancati |cp|≥9901,
+  pezzi in presa, scacchi concessi, silenziose, catture avvelenate),
+  **confronto coi pari fascia** (fascia Elo 200pt, ACPL+blunder/partita,
+  better_than con campione ≥3), raccolta mosse geniali con screenshot.
+- **Community COMPLETA**: registrazione approvata, presenza/heartbeat,
+  **sfide come inviti** (`/challenges`: gioco/lato/cadenza, partita alla
+  accettazione), **notifiche persistenti** (`notifications.py`: kind+parametri,
+  testo composto ALLA LETTURA bilingue, campanella 🔔 dal heartbeat, pota
+  lette >50), **gruppi** (ruoli founder/admin/member, inviti con accettazione,
+  espulsioni graduate, classifica interna), **tornei umani**
+  (`human_tournaments.py`: eliminazione con seed Elo/bye/draw-odds-al-Nero, o
+  girone; partite = vere GameSession, avanzamento via hook in
+  `finalize_session`), **sfide gruppo-vs-gruppo** (`group_matches.py`:
+  tavolieri 1-8, formazioni auto per Elo con membri comuni esclusi, colori
+  alternati, 1/½ a tavolo, parità legittima), **spettatori**
+  (`/community/live`: solo remote+IA-vs-IA, mai hotseat) e **replay animato**
+  (`watch.html` a doppia modalità: polling in diretta, fotogrammi da
+  `/replay` a fine partita).
+- **Piattaforma**: i18n IT/EN full-stack (frontend .po/.mo con alias `_` —
+  MAI `_t`, xgettext non lo estrae; backend catalog_en via Accept-Language),
+  accessibilità, responsive, lezioni+TTS, super admin.
+- **Ambiente**: CLT macOS rotti → avvio manuale (uvicorn/manage.py, v.
+  memoria persistente); Stockfish 18 in PATH; repo
+  github.com/saulusprime/OmniBoard (cartella locale ~/Sviluppo/Scacchi);
+  push a OGNI step; 2 PR Dependabot (checkout v7, setup-python v6) verdi in
+  attesa dell'utente.
+
+**Refresh eseguiti**: README (stato con community/CI e migrazioni 0013,
+albero con moduli/router nuovi, 3 voci roadmap stantie spuntate: Elo, gruppi,
+dama FID), MEMORY (questioni aperte aggiornate: WebSocket ora il candidato
+più maturo, + recency e massa giocatori), memoria persistente riscritta,
+TODO già vivo (spuntato a ogni step).
+
+---
+
 ## 2026-07-11 — Confronto coi pari fascia (Insights)
 
 **Richiesta (utente):** «confronto con i pari fascia» (voce ricerca del TODO:

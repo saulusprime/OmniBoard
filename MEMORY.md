@@ -726,16 +726,30 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   test_async_move_executed_by_the_pool: il worker della coda poteva giocare
   la mossa IA fra commit e serializzazione della risposta → cancello
   (threading.Event) prima del processing. 289 verdi.
+- **2026-07-11** — **CHECKPOINT anti-compattazione**: fotografia completa in
+  HANDOFF (voce autosufficiente); README riallineato (stato con community/CI,
+  migrazioni 0013, moduli/router nuovi nell'albero, 3 voci roadmap stantie
+  spuntate: Elo, gestione gruppi, regole dama); questioni aperte aggiornate
+  (WebSocket ora il candidato più maturo; + recency e massa giocatori); TODO
+  arricchito della voce WebSocket esplicita; memoria persistente riscritta
+  allo stato corrente con le trappole nuove (fasce isolate nei test, cancello
+  del worker, cookie firmato nei test Django, alias `_` per xgettext).
 
 ## Questioni aperte
 
-> Aggiornate al 2026-07-08 (le storiche — auth, notazione, ORM/Alembic, rendering
+> Aggiornate al 2026-07-11 (le storiche — auth, notazione, ORM/Alembic, rendering
 > scacchiera — sono tutte RISOLTE: v. milestone sopra).
 
 - **Multi-processo/produzione**: SQLite→Postgres, coda mosse IA su SKIP LOCKED o
   Redis/RQ (interfaccia già pronta in `jobqueue.py`), TOKENS_KEY fissa in .env.
-- **WebSocket** al posto del polling (mosse live, presenza, tornei).
+- **WebSocket** al posto del polling — ormai il candidato più maturo: oggi il
+  polling regge mosse a distanza, presenza, campanella delle notifiche, dirette
+  degli spettatori e tabelloni dei tornei (tanti giri per la stessa verità).
 - **i18n (contenuti)**: traduzione editoriale delle lezioni; lingue oltre l'inglese.
 - **Rate limiting + CORS espliciti** e **audit log** delle operazioni super admin.
 - **Retro-etichettatura 💎**: le partite analizzate PRIMA del badge sacrificio non
   hanno diamanti (servirebbe un re-scan batch dei badge).
+- **Recency**: unica voce ricerca degli Insights rimasta (punteggi aggregati con
+  decadimento esponenziale sulle partite vecchie).
+- **Massa di giocatori**: pari fascia e sfide di gruppo sono pronti ma rendono
+  con più utenti attivi (percentili sotto i 3 pari restano None per onestà).
