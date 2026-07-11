@@ -747,6 +747,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   `int(jitter)+1` sulla beta di radice; dopo, 20/20 contro il greedy. Ricerca
   verificata con cross-check contro un negamax di riferimento nudo (valori
   identici su 30 posizioni × profondità 2/4). 296 verdi.
+- **2026-07-11** — **Backlog diviso in due file**: le 69 voci `[x]` di TODO.md
+  spostate (testo intatto, stesse sezioni) nel nuovo **ASIS.md**; in TODO.md
+  restano le 21 aperte. Flusso nuovo nell'intestazione di TODO: a voce
+  realizzata → spostarla in ASIS.md e documentarla in HANDOFF. Puntatori
+  aggiornati in README e memoria persistente.
 
 ## Questioni aperte
 

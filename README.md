@@ -317,7 +317,7 @@ stagioni, Arena IA, tornei fra giocatori e sfide di gruppo a squadre, statistich
 **bilingue IT/EN**, **accessibile** e **responsive**. Suite di **296 test**
 (motore + backend + frontend) eseguita a ogni passo e in **CI** su GitHub Actions; schema
 DB governato da migrazioni Alembic (0001…0013). Il backlog vivo è in [TODO.md](./TODO.md);
-lo storico dei lavori in [HANDOFF.md](./HANDOFF.md).
+le voci realizzate in [ASIS.md](./ASIS.md); lo storico dei lavori in [HANDOFF.md](./HANDOFF.md).
 
 ## Documentazione correlata
 
@@ -325,6 +325,7 @@ lo storico dei lavori in [HANDOFF.md](./HANDOFF.md).
 - [MEMORY.md](./MEMORY.md) — diario tecnico e decisioni architetturali.
 - [MANUAL.md](./MANUAL.md) — manuale dei giochi e dell'applicazione.
 - [TODO.md](./TODO.md) — backlog delle idee di potenziamento e miglioramento.
+- [ASIS.md](./ASIS.md) — voci di backlog realizzate (spostate da TODO.md).
 - [CONTRIBUTING.md](./CONTRIBUTING.md) — come contribuire.
 - [LICENCE.md](./LICENCE.md) — licenza e nota sul trattamento dei dati.
 
