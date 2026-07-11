@@ -124,7 +124,11 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
               padding:8px; gap:6px; width:max-content;
               box-shadow:0 6px 18px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.08); }
   .c4-board .cell, .c4-board .flyer { color:transparent; background:transparent;
-              border:none; position:relative; }
+              border:none; }
+  /* Solo le CELLE diventano "relative" (àncora dei ::before/::after): il flyer
+     deve RESTARE absolute — da relative entrerebbe nel flusso della griglia e
+     durante il volo il tavoliere crescerebbe di una riga fantasma in basso. */
+  .c4-board .cell { position:relative; }
   .c4-board .cell::before, .c4-board .flyer::before { content:""; position:absolute;
               inset:6%; border-radius:50%; background:#0e1319;
               box-shadow:inset 0 3px 8px rgba(0,0,0,.65); }

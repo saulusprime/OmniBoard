@@ -3,6 +3,32 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Fix: il tavoliere del Forza 4 si deformava durante la caduta
+
+**Segnalazione (utente):** giocando a Forza 4, per un attimo il piano di gioco
+si deforma con una riga in più in basso, che sparisce appena il pezzo si posa.
+
+**Causa** (regressione dello step precedente): la regola
+`.c4-board .cell, .c4-board .flyer { … position:relative; }` metteva
+`position:relative` ANCHE sul flyer (il disco in volo), scavalcando per
+specificità il suo `position:absolute` di base: da relative il flyer entra nel
+flusso della griglia CSS come item vero e crea una **riga implicita in fondo**
+al tavoliere per tutta la durata dell'animazione (rimosso il flyer, la riga
+sparisce). **Fix**: `position:relative` limitato alle sole celle (àncora dei
+::before/::after); il flyer resta absolute — è comunque "positioned", i suoi
+pseudo-elementi si ancorano lo stesso.
+
+**Verifica**: harness statico costruito col CSS REALMENTE SERVITO dalla pagina
+(griglia 7×6 + flyer appeso in permanenza): altezza 394px identica con e senza
+flyer, disco sopra il tavoliere; screenshot di regressione della partita vera
+intatto. **297 verdi** (un flake noto di `test_engine_delivers_mate_in_kq_
+endgame` nel run sotto carico — Chrome headless e partita IA in parallelo,
+suite a 4′37″ invece di 2′10″: passa in isolamento e nel run pulito; il motore
+scacchi non era toccato).
+
+**Lezione** (trappola CSS): mai raggruppare `.cell` e `.flyer` in regole con
+`position` — il flyer DEVE restare fuori dal flusso della griglia.
+
 ## 2026-07-11 — Forza 4: tavoliere grafico dedicato + accessibilità
 
 **Richiesta (utente):** «dobbiamo dare una grafica migliore a forza4 e se

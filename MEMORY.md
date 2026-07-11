@@ -764,6 +764,13 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   spettatore). Verificato DAL VIVO con Chrome headless su partita IA-vs-IA
   (il ripiego usa il motore bitboard). Trappola: sotto ~500px l'headless non
   restringe il viewport, ritaglia — misurare con --dump-dom. 297 verdi.
+- **2026-07-11** — **Fix deformazione tavoliere Forza 4** (segnalato
+  dall'utente): `position:relative` applicato per errore anche al `.flyer`
+  (raggruppato con `.cell` nella regola `.c4-board`) lo faceva entrare nel
+  flusso della griglia → riga fantasma in basso durante l'animazione di
+  caduta. Fix: relative solo sulle celle, il flyer resta absolute. TRAPPOLA
+  CSS: mai regole di `position` raggruppate su .cell e .flyer. Verificato con
+  harness statico sul CSS servito (394px con e senza flyer). 297 verdi.
 
 ## Questioni aperte
 
