@@ -928,6 +928,10 @@ def _play_ui_strings():
         # Forza 4: i lati per gli screen reader sono i colori dei dischi.
         "c4_red": _("pedina rossa"),
         "c4_yellow": _("pedina gialla"),
+        # Backgammon: nomi delle caselle per gli screen reader (punte come nel log).
+        "point": _("punta"),
+        "bar": _("barra"),
+        "bear_off": _("uscita"),
         # Nomi dei pezzi per le etichette ARIA delle caselle (screen reader).
         "pieces": {
             "♔": _("re bianco"),

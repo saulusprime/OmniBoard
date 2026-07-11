@@ -2398,3 +2398,15 @@ msgstr "red disc"
 #: web/views.py:931
 msgid "pedina gialla"
 msgstr "yellow disc"
+
+#: web/views.py:934
+msgid "punta"
+msgstr "point"
+
+#: web/views.py:935
+msgid "barra"
+msgstr "bar"
+
+#: web/views.py:936
+msgid "uscita"
+msgstr "bear-off"

@@ -782,6 +782,18 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   ●/○, client con `legalCells` (nell'Othello le vuote non giocabili sono
   DISABILITATE, col puntino sulle legali). Verificato dal vivo (IA-vs-IA:
   Othello 40-24, Gomoku col motore interno). 318 verdi.
+- **2026-07-11** — **Accessibilità per tutti i giochi**: coordinate attorno ai
+  tavolieri coerenti con la notazione del log (`gameCoords`+`coordFrame`
+  condivisi in board_css.html, strisce allineate via gap/inset del tavoliere:
+  Othello a1-h8, Gomoku a1-o15, Tris a1-c3, Forza 4 colonne 1-7, backgammon
+  punte 13-24/12-1 + B/U dal punto di vista del Bianco). FIX STRUTTURALE
+  tastiera: celle `disabled` = infocalizzabili → frecce bloccate; ora
+  `aria-disabled`+`.cell-off` (griglia sempre esplorabile, azione impedita
+  dalle guardie nei gestori — onCell controlla legalCells). TRAPPOLA: mai
+  `disabled` sui bottoni-cella dei tavolieri; CSS con `:not(.cell-off)` al
+  posto di `:enabled`. ARIA = notazione («d3, pedina nera», «punta 13»).
+  Flake del greedy Forza 4 → al meglio di tre (patta tollerata, sconfitta
+  mai). 318 verdi.
 
 ## Questioni aperte
 

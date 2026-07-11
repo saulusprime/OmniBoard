@@ -3,6 +3,49 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Accessibilità per TUTTI i giochi: coordinate e tastiera
+
+**Richiesta (utente):** «assicurati che tutti i giochi siano accessibili,
+othello ad esempio ha il piano di gioco senza coordinate».
+
+**Coordinate attorno ai tavolieri** (condivise fra pagina di gioco e
+spettatore): nuova cornice leggera `coordFrame` + mappa `gameCoords` in
+board_css.html (classi `.cframe`/`.cframe-v`, nessuna "pelle": solo le
+strisce, ALLINEATE alla geometria del tavoliere via gap e bordo+padding).
+Ogni gioco mostra le stesse etichette della notazione del log:
+
+- **Othello** a1-h8 e **Gomoku** a1-o15 (righe numerate DALL'ALTO, come
+  `describe_move`), **Tris** a1-c3;
+- **Forza 4**: numeri di colonna 1-7 sotto il tavoliere (e i pulsanti ▼ ora
+  sono ALLINEATI alle colonne: stesso gap/padding del tavoliere);
+- **Backgammon**: punte 13-24 in alto e 12-1 in basso (punto di vista del
+  Bianco, come la notazione «13/8»), B = barra, U = uscita;
+- scacchi/dama: cornice da torneo invariata (già con coordinate).
+
+**Tastiera e screen reader — fix strutturale**: le celle non giocabili erano
+`disabled` → NON focalizzabili → le frecce del roving tabindex si bloccavano
+(nel Tris sulle celle occupate, nell'Othello quasi ovunque, in TUTTI i giochi
+a partita finita o nel turno avversario). Ora i bottoni del tavoliere usano
+**`aria-disabled` + classe `.cell-off`** (mai `disabled`): l'intera griglia
+resta esplorabile con le frecce e leggibile dagli screen reader; l'azione è
+impedita dalle GUARDIE nei gestori (onCell ora verifica anche `legalCells` —
+prima ci pensava il `disabled`). CSS aggiornato (hover e puntino dell'Othello
+su `:not(.cell-off)` invece di `:enabled`). I ▼ del Forza 4 restano bottoni
+normali (disabled ok: la griglia sotto è esplorabile).
+
+**ARIA allineata alla notazione**: `cellName` ora dice «d3» per
+Othello/Gomoku/Tris (prima «riga 2, colonna 3») e, nel backgammon, «punta N»
+/ «barra Bianco/Nero» / «uscita …» (proprietà per riga da `_V_BAR`/`_V_OFF`;
+stringhe nuove `point`/`bar`/`bear_off` in views.py, .po a mano + msgfmt).
+
+**Verifica dal vivo** (screenshot): Othello con a-h/1-8 combacianti col log
+(d3, c5…), backgammon con le punte numerate e B/U, Forza 4 coi numeri e i ▼
+allineati. **Flake sistemato**: `test_dedicated_engine_beats_greedy` (Forza
+4) assumeva vittoria SEMPRE a 0,1 s/mossa, ma su macchina carica il motore
+può pattare col greedy (~1/30 anche da scarica) → al meglio di tre: mai una
+sconfitta, almeno una vittoria, budget 0,15 s. **318 verdi.** MANUAL
+aggiornato (coordinate e lettura ARIA nelle sezioni dei giochi).
+
 ## 2026-07-11 — Nuovi giochi deterministici: Othello e Gomoku (6º e 7º gioco)
 
 **Richiesta (utente):** «implementiamo nuovi giochi deterministici» (dal TODO:

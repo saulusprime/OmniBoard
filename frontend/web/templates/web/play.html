@@ -183,7 +183,10 @@
     moveType === "draughts" || moveType === "chess" || moveType === "backgammon";
   const BASE_CELL = cols <= 3 ? 88 : (cols <= 7 ? 56 : (cols <= 8 ? 46 : 34));
   const FRAMED = moveType === "chess" || moveType === "draughts";
-  const FIT_EXTRA = moveType === "column" ? 44 : 0;  // contorno del tavoliere Forza 4
+  // Contorno extra del gioco: tavoliere del Forza 4 (bordo+padding+gap) o
+  // strisce di coordinate laterali (Othello/Gomoku/Tris: 2×26px + cornice).
+  const FIT_EXTRA = moveType === "column" ? 44
+    : ["othello", "gomoku", "tictactoe"].includes(SESSION.game_code) ? 76 : 0;
   let cellPx = fitCellPx(BASE_CELL, cols, FRAMED, FIT_EXTRA);  // adattivo: entra nel telefono
   // Dimensione dei pezzi rispetto alla casella (celle e flyer condividono il valore).
   const PIECE_SCALE = 0.83;
@@ -271,6 +274,8 @@
       const head = document.createElement("div");
       head.className = "colbtns";
       head.style.gridTemplateColumns = `repeat(${cols}, ${cellPx}px)`;
+      head.style.gap = "6px";
+      head.style.padding = "0 14px";  // allineati alle colonne (bordo+padding del tavoliere)
       for (let c = 0; c < cols; c++) {
         const b = document.createElement("button");
         b.className = "colbtn"; b.textContent = "▼"; b.dataset.col = c;
@@ -364,8 +369,18 @@
       grid.appendChild(el);
     }
     // Scacchi e dama: cornice da torneo (coordinate algebriche negli scacchi,
-    // che seguono l'orientamento della vista).
-    area.appendChild(frameBoard(grid, moveType, rows, cols, cellPx, THEME, flipped));
+    // che seguono l'orientamento della vista). Gli altri giochi: strisce di
+    // COORDINATE coerenti con la notazione del log (a1…, colonne, punte).
+    const coords = gameCoords(SESSION.game_code, moveType, rows, cols);
+    if (coords) {
+      const gap = moveType === "column" ? 6 : 4;
+      const inset = moveType === "column" ? 14
+        : (moveType === "backgammon" || SESSION.game_code === "othello" ||
+           SESSION.game_code === "gomoku") ? 12 : 0;
+      area.appendChild(coordFrame(grid, coords, cellPx, gap, inset));
+    } else {
+      area.appendChild(frameBoard(grid, moveType, rows, cols, cellPx, THEME, flipped));
+    }
   }
 
   function pieceClass(v) {
@@ -428,6 +443,16 @@
     if (moveType === "chess" || moveType === "draughts") {
       return String.fromCharCode(97 + c) + (rows - r);  // coordinate algebriche
     }
+    if (["othello", "gomoku", "tictactoe"].includes(SESSION.game_code)) {
+      return String.fromCharCode(97 + c) + (r + 1);  // a1…: righe numerate dall'alto
+    }
+    if (moveType === "backgammon") {
+      // Punte dal punto di vista del Bianco (come la notazione del log);
+      // barra e uscita hanno un proprietario per riga (v. _V_BAR/_V_OFF).
+      if (c === 12) return T.bar + " " + (r === 0 ? T.white : T.black);
+      if (c === 13) return T.bear_off + " " + (r === 0 ? T.black : T.white);
+      return T.point + " " + (r === 0 ? 13 + c : 12 - c);
+    }
     return T.row + " " + (r + 1) + ", " + T.column + " " + (c + 1);
   }
 
@@ -442,6 +467,12 @@
     if (!name) return cellName(i) + ", " + v;  // Tris: X/O come sono
     const count = v.length > 1 ? v.slice(0, -1) + "× " : "";  // backgammon: "5●"
     return cellName(i) + ", " + count + name;
+  }
+
+  function setOff(el, off) {
+    el.classList.toggle("cell-off", off);
+    if (off) el.setAttribute("aria-disabled", "true");
+    else el.removeAttribute("aria-disabled");
   }
 
   function renderCells(animate) {
@@ -463,11 +494,16 @@
       }
       const pc = pieceClass(v);
       if (pc) el.classList.add(pc);
+      // Celle non giocabili: aria-disabled, MAI disabled — i bottoni restano
+      // focalizzabili e le frecce/screen reader esplorano l'intero tavoliere
+      // (le guardie nei gestori impediscono comunque l'azione).
       if (moveType === "cell") {
-        el.disabled = v !== null || status !== "in_progress" || !canAct() || !legalCells.has(i);
+        setOff(el, v !== null || status !== "in_progress" || !canAct() || !legalCells.has(i));
       }
-      if (moveType === "column") el.disabled = status !== "in_progress" || !canAct();
-      if (isSelect && el.tagName === "BUTTON") el.disabled = status !== "in_progress" || !canAct();
+      if (moveType === "column") setOff(el, status !== "in_progress" || !canAct());
+      if (isSelect && el.tagName === "BUTTON") {
+        setOff(el, status !== "in_progress" || !canAct());
+      }
       if (isSelect) {
         if (i === selected) el.classList.add("sel");
         if (dests.has(i)) el.classList.add("dest");
@@ -1104,7 +1140,9 @@
   // I "mutate" ritornano una COPIA della board con la mossa applicata: la differenza
   // rispetto alla board corrente guida l'animazione in transitionBoard.
   function onCell(i) {
-    if (board[i] !== null) return;
+    // Le celle non sono mai "disabled" (accessibilità): la legalità si
+    // controlla qui (nell'Othello non ogni casella vuota gira qualcosa).
+    if (board[i] !== null || !legalCells.has(i)) return;
     doHuman(String(i), (mover) => { const b = board.slice(); b[i] = symFor(mover); return b; });
   }
 

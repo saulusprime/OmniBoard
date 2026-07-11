@@ -690,8 +690,11 @@ quattro mosse). X percorre il tavoliere verso le punte basse (casa 1–6), O ver
 ### Come giocarci nell'app
 Dal menu **Gioca** scegli **Backgammon**. La riga sopra il tavoliere mostra i **dadi da
 giocare**; clicca una tua pedina (le mosse possibili si illuminano) e poi la destinazione.
-Le colonne laterali del tavoliere sono la **barra** e l'**uscita**. Contro l'IA vale tutto
-quanto già visto (ritmo tra le mosse, animazioni, suono).
+Le colonne laterali del tavoliere sono la **barra** (B) e l'**uscita** (U). Le punte sono
+**numerate** attorno al tavoliere (13-24 in alto, 12-1 in basso, dal punto di vista del
+Bianco) come nella notazione del log («13/8»); lo screen reader legge ogni casella come
+«punta N» con il conteggio delle pedine. Contro l'IA vale tutto quanto già visto (ritmo
+tra le mosse, animazioni, suono).
 
 **Semplificazioni note:** non è modellato il tiro iniziale «un dado a testa» (comincia X);
 non è imposta la regola del «dado maggiore obbligatorio» quando solo uno è giocabile;
@@ -714,7 +717,8 @@ quello classico: **blu con i fori**, dischi **rossi** (X, marchiati ✕) e **gia
 marchiati ◯) — i marchi incisi distinguono i lati anche a chi non percepisce i colori.
 Per muovere, clicca una casella qualsiasi della colonna oppure usa i pulsanti **▼** in
 alto; passando sulla colonna (o mettendoci il fuoco da tastiera) il foro d'atterraggio
-mostra l'**anteprima** del disco. L'ultima mossa porta un anello chiaro e, a partita
+mostra l'**anteprima** del disco. Le colonne sono **numerate 1-7** sotto il tavoliere,
+come nel log delle mosse. L'ultima mossa porta un anello chiaro e, a partita
 conclusa, la **quaterna vincente** pulsa (ferma se il sistema chiede di ridurre il
 movimento). Le caselle sono bottoni veri: **frecce** per esplorare la griglia, Invio per
 giocare, etichette lette dallo screen reader («riga 5, colonna 4, pedina rossa»). La
@@ -748,7 +752,9 @@ Dal menu **Gioca** scegli **Othello** e imposta i due lati (umano o IA). Il lato
 il **Nero** (dischi neri), il lato O il Bianco. Le caselle giocabili portano un
 **puntino chiaro**: le altre caselle vuote sono disabilitate (non ogni casella gira
 qualcosa). Il contatore delle pedine (`● n — ○ m`) è sempre visibile sopra il
-tavoliere; il passo dell'avversario è automatico e non richiede nulla. L'IA usa il
+tavoliere; il passo dell'avversario è automatico e non richiede nulla. Il tavoliere ha
+le **coordinate a1-h8** (righe numerate dall'alto) come nel log delle mosse; lo screen
+reader legge «d3, pedina nera» e le frecce esplorano tutta la griglia. L'IA usa il
 provider remoto attivo se configurato, altrimenti il minimax locale con euristica
 posizionale (angoli, mobilità).
 
@@ -768,7 +774,8 @@ posizionale (angoli, mobilità).
 ### Come giocarci nell'app
 Dal menu **Gioca** scegli **Gomoku** e imposta i due lati. Il lato X è il **Nero**
 (pietre nere), il lato O il Bianco. Si gioca cliccando l'intersezione (o con la
-tastiera: frecce e Invio, come tutti i giochi). Contro l'IA risponde il **motore
+tastiera: frecce e Invio, come tutti i giochi); il goban ha le **coordinate a1-o15**
+(righe numerate dall'alto) come nel log delle mosse. Contro l'IA risponde il **motore
 dedicato**: ricerca sui candidati vicini alle pietre con tattica esatta (cinquina
 immediata, blocco forzato, doppie minacce), oppure il provider remoto se configurato.
 

@@ -522,3 +522,9 @@ def test_play_page_ships_othello_and_gomoku_boards(monkeypatch):
     html = Client().get("/partite/42/", SERVER_NAME="localhost").content.decode()
     assert "oth-board" in html and "gmk-board" in html  # stili dei tavolieri
     assert "legalCells" in html  # solo le celle legali sono giocabili
+    # Accessibilità: coordinate attorno al tavoliere (notazione del log) e celle
+    # esplorabili da tastiera (aria-disabled, mai disabled).
+    assert "gameCoords" in html and "coordFrame" in html
+    assert "cell-off" in html and "aria-disabled" in html
+    html = Client().get("/partite/42/guarda/", SERVER_NAME="localhost").content.decode()
+    assert "gameCoords" in html  # coordinate anche per lo spettatore

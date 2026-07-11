@@ -91,7 +91,16 @@
     el.style.fontSize = (cellPx * PIECE_SCALE) + "px";
     grid.appendChild(el);
   }
-  area.appendChild(frameBoard(grid, moveType, rows, cols, cellPx, "classico", false));
+  const coords = gameCoords(S.game_code, moveType, rows, cols);
+  if (coords) {
+    const gap = moveType === "column" ? 6 : 4;
+    const inset = moveType === "column" ? 14
+      : (moveType === "backgammon" || S.game_code === "othello" ||
+         S.game_code === "gomoku") ? 12 : 0;
+    area.appendChild(coordFrame(grid, coords, cellPx, gap, inset));
+  } else {
+    area.appendChild(frameBoard(grid, moveType, rows, cols, cellPx, "classico", false));
+  }
 
   function render(board, marks) {
     for (let i = 0; i < rows * cols; i++) {

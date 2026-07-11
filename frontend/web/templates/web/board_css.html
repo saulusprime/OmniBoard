@@ -21,7 +21,7 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
   button.cell { cursor:pointer; }
   /* Navigazione da tastiera: il fuoco si vede (interno, non copre le case vicine). */
   button.cell:focus-visible { outline:3px solid var(--accent); outline-offset:-3px; }
-  button.cell:hover:enabled { border-color:var(--accent); }
+  button.cell:hover:not(.cell-off) { border-color:var(--accent); }
   button.cell:disabled { cursor:default; }
   .pop { animation: pop .3s ease-out; }
   @keyframes pop { from { transform:scale(.3); opacity:0; } to { transform:scale(1); opacity:1; } }
@@ -95,7 +95,7 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
   .captured { font-size:1rem; margin:6px 0; }
   .captured .who { font-weight:600; }
   .bframe .cell.sel { outline:none; box-shadow:inset 0 0 0 3px var(--accent); }
-  .bframe button.cell:hover:enabled { box-shadow:inset 0 0 0 2px var(--accent); }
+  .bframe button.cell:hover:not(.cell-off) { box-shadow:inset 0 0 0 2px var(--accent); }
   .bc { display:flex; align-items:center; justify-content:center;
         color:var(--bcoord, #e9d3ae); font-size:12px; font-weight:700;
         letter-spacing:.5px; user-select:none; }
@@ -109,6 +109,17 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
     .bc { font-size:10px; }
     .bframe .board { outline-offset:2px; }
   }
+  /* ----- Cornice di SOLE COORDINATE (giochi senza cornice da torneo) -----
+     Etichette attorno al tavoliere che rispecchiano la notazione del log
+     (Othello/Gomoku/Tris: lettere+numeri; Forza 4: numeri di colonna;
+     backgammon: numeri di punta). Nessuna "pelle": solo le strisce. */
+  .cframe { display:inline-grid; grid-template-columns:auto auto auto; margin:8px 0; }
+  .cframe-v { display:inline-flex; flex-direction:column; margin:8px 0; }
+  .cframe .board, .cframe-v .board { margin:0; }
+  .cframe .bc, .cframe-v .bc { color:#8fa1b3; }
+  /* Celle non giocabili: aria-disabled (NON disabled: restano focalizzabili,
+     le frecce e gli screen reader esplorano tutto il tavoliere). */
+  button.cell.cell-off { cursor:default; }
   .t-classico { --bframe:#0b0f14; --binlay:#4a5a6d; --bcoord:#8fa1b3; }
   .t-legno { --bframe:#7a4a2b; --binlay:#ecd9b0; --bcoord:#ecd9b0; }
   .t-smeraldo { --bframe:#3e4f30; --binlay:#d8dcb5; --bcoord:#e5e8c8; }
@@ -178,10 +189,10 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
                -webkit-text-stroke:2px #1b2229; paint-order:stroke fill; }
   .oth-board .cell.o { color:#12161b;
                -webkit-text-stroke:2px rgba(255,255,255,.30); paint-order:stroke fill; }
-  .oth-board button.cell:enabled::after { content:""; position:absolute; inset:0;
+  .oth-board button.cell:not(.cell-off)::after { content:""; position:absolute; inset:0;
                margin:auto; width:22%; height:22%; border-radius:50%;
                background:rgba(255,255,255,.30); }
-  .oth-board button.cell:hover:enabled { border-color:var(--accent); }
+  .oth-board button.cell:hover:not(.cell-off) { border-color:var(--accent); }
   /* ----- Goban del Gomoku (legno, pietre bianche/nere) ----- */
   .gmk-board { background:#a97e46; border:6px solid #7c5a32; border-radius:8px;
                padding:6px; width:max-content;
@@ -223,6 +234,75 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
     const chrome = 80 + (framed ? 62 : 0) + (extra || 0);
     const avail = Math.max(120, document.documentElement.clientWidth - chrome);
     return Math.max(18, Math.min(base, Math.floor(avail / cols)));
+  }
+
+  // Coordinate da mostrare attorno al tavoliere, coerenti con la NOTAZIONE del
+  // log mosse. null = nessuna striscia (scacchi/dama hanno la cornice da torneo).
+  function gameCoords(gameCode, moveType, rows, cols) {
+    const letters = (n) => Array.from({ length: n }, (_, i) => String.fromCharCode(97 + i));
+    const numbers = (from, to) => {
+      const out = [];
+      for (let v = from; from <= to ? v <= to : v >= to; v += from <= to ? 1 : -1) out.push(String(v));
+      return out;
+    };
+    if (gameCode === "othello" || gameCode === "gomoku" || gameCode === "tictactoe") {
+      // Notazione a1..: lettere di colonna, righe numerate DALL'ALTO.
+      const files = letters(cols), ranks = numbers(1, rows);
+      return { top: files, bottom: files, left: ranks, right: ranks };
+    }
+    if (moveType === "column") {
+      return { top: null, bottom: numbers(1, cols), left: null, right: null };
+    }
+    if (moveType === "backgammon") {
+      // Punte numerate dal punto di vista del Bianco (X): 13-24 in alto,
+      // 12-1 in basso; B = barra, U = uscita.
+      return {
+        top: [...numbers(13, 24), "B", "U"],
+        bottom: [...numbers(12, 1), "B", "U"],
+        left: null,
+        right: null,
+      };
+    }
+    return null;
+  }
+
+  // gap/inset: geometria del tavoliere (gap fra le celle; bordo+padding del
+  // contenitore) così le etichette restano ALLINEATE alle colonne/righe.
+  function coordFrame(grid, coords, cellPx, gap, inset) {
+    const strip = (items, horiz) => {
+      const s = document.createElement("div");
+      s.className = "bc " + (horiz ? "bc-h" : "bc-v");
+      s.style.gap = (gap || 0) + "px";
+      s.style.padding = horiz ? "0 " + (inset || 0) + "px" : (inset || 0) + "px 0";
+      for (const it of items) {
+        const seg = document.createElement("span");
+        seg.textContent = it;
+        seg.style[horiz ? "width" : "height"] = cellPx + "px";
+        s.appendChild(seg);
+      }
+      return s;
+    };
+    if (coords.left || coords.right) {
+      const frame = document.createElement("div");
+      frame.className = "cframe";
+      const corner = () => document.createElement("div");
+      frame.appendChild(corner());
+      frame.appendChild(strip(coords.top || [], true));
+      frame.appendChild(corner());
+      frame.appendChild(strip(coords.left || [], false));
+      frame.appendChild(grid);
+      frame.appendChild(strip(coords.right || [], false));
+      frame.appendChild(corner());
+      frame.appendChild(strip(coords.bottom || [], true));
+      frame.appendChild(corner());
+      return frame;
+    }
+    const frame = document.createElement("div");
+    frame.className = "cframe-v";
+    if (coords.top) frame.appendChild(strip(coords.top, true));
+    frame.appendChild(grid);
+    if (coords.bottom) frame.appendChild(strip(coords.bottom, true));
+    return frame;
   }
 
   function frameBoard(grid, moveType, rows, cols, cellPx, theme, flipped) {
