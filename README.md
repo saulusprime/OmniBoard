@@ -206,10 +206,12 @@ Scacchi/
 │       │   ├── stockfish.py  #   motore Stockfish via protocollo UCI (persistente)
 │       │   └── local.py      #   motore locale a livelli (ripiego sempre disponibile)
 │       ├── (un modulo per sistema: analysis, commentary, insights, puzzles,
-│       │    rating, ai_arena, tilt, ponder, i18n+catalog_en, token_crypto, …)
-│       ├── migrations/  # Alembic (0001…0010)
-│       └── routers/     # users, auth, games, groups, sessions, rankings,
-│                        #   arena, puzzles, admin, community, lessons, tts
+│       │    rating, ai_arena, human_tournaments, group_matches, notifications,
+│       │    tilt, ponder, i18n+catalog_en, token_crypto, …)
+│       ├── migrations/  # Alembic (0001…0013)
+│       └── routers/     # users, auth, games, groups, group_matches, sessions,
+│                        #   rankings, arena, tournaments, challenges,
+│                        #   notifications, puzzles, admin, community, lessons, tts
 │
 └── frontend/            # progetto Django (presentazione, nessun DB proprio)
     ├── omniboard_web/     # settings, urls, wsgi/asgi
@@ -294,25 +296,27 @@ Configurazione tramite `.env` (vedi `.env.example`).
 - [x] **Mosse IA in background**: risposta immediata, l'IA pensa in un worker e il client si aggiorna via polling
 - [x] **Tre tipi di avversario** (umano / Stockfish UCI configurabile / IA via API) con codice separato per tipo (`opponents/`)
 - [x] Autenticazione/login dei giocatori (registrazione approvata dal super admin, sessioni a token)
-- [ ] Regole di gestione dei gruppi (ruoli, inviti, espulsioni)
+- [x] Regole di gestione dei gruppi (ruoli founder/admin/member, inviti con accettazione, espulsioni, classifica interna) + tornei fra giocatori e sfide gruppo-vs-gruppo
 - [x] Migrazioni del database (Alembic); PostgreSQL in produzione resta da provare
 - [x] Gioco a distanza fra client diversi (polling strutturato; mosse autorizzate col token del giocatore) + area Community con presenza online e badge punti
-- [ ] Affinamento regole dama (priorità FID tra catture di pari numero, patte)
+- [x] Affinamento regole dama (cascata di priorità FID completa fra catture, ripetizione) + motore dedicato
 - [x] Scacchi: patta per ripetizione e posizione morta (audit FIDE nel MANUAL), libro esteso (testo/PGN/Polyglot), apertura-bersaglio, analisi post-partita, sparring Elo, hint, badge di qualità + commentatore LLM
-- [ ] Sistema di rating (es. Elo) al posto dello schema punti provvisorio
+- [x] Sistema di rating **Elo** per gioco e stagione (K adattivo FIDE), accanto ai punti attività
 - [x] **Backgammon**: primo gioco stocastico — nodi del caso realizzati (il server tira i dadi)
 
 ## Stato del progetto
 
 🟢 **Cinque giochi giocabili, piattaforma completa in sviluppo attivo.** Backend FastAPI e
 frontend Django girano end-to-end: autenticazione con approvazione del super admin, partite
-in locale e **a distanza**, cinque giochi (Tris, Forza 4, Dama italiana, Scacchi,
-Backgammon), quattro tipi di avversario con ripiego locale, analisi e coaching per gli
-scacchi, puzzle, rating Elo con stagioni, Arena IA con tornei, statistiche avanzate,
-interfaccia **bilingue IT/EN**, **accessibile** e **responsive**. Suite di **289 test**
-(motore + backend + frontend) eseguita a ogni passo; schema DB governato da migrazioni
-Alembic (0001…0010). Il backlog vivo è in [TODO.md](./TODO.md); lo storico dei lavori in
-[HANDOFF.md](./HANDOFF.md).
+in locale e **a distanza** (sfide come inviti, notifiche, spettatori e replay animato),
+cinque giochi (Tris, Forza 4, Dama italiana, Scacchi, Backgammon), quattro tipi di
+avversario con ripiego locale, analisi e coaching per gli scacchi, puzzle, rating Elo con
+stagioni, Arena IA, tornei fra giocatori e sfide di gruppo a squadre, statistiche avanzate
+(quattro aspetti, sottocategorie tattiche, confronto coi pari fascia), interfaccia
+**bilingue IT/EN**, **accessibile** e **responsive**. Suite di **289 test**
+(motore + backend + frontend) eseguita a ogni passo e in **CI** su GitHub Actions; schema
+DB governato da migrazioni Alembic (0001…0013). Il backlog vivo è in [TODO.md](./TODO.md);
+lo storico dei lavori in [HANDOFF.md](./HANDOFF.md).
 
 ## Documentazione correlata
 
