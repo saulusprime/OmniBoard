@@ -3,6 +3,39 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-09 — CI GitHub Actions (pipeline completa)
+
+**Richiesta (utente):** «CI GitHub Actions». Il workflow esisteva dall'era
+doc-only in versione «tollerante» (lint/test solo se c'erano sorgenti):
+riscritto come pipeline vera.
+
+**Passi** (`.github/workflows/ci.yml`, Python 3.12, ubuntu-latest, timeout 30′):
+
+1. checkout **con submodule** (integrazioni/KittenTTS: `backend/requirements
+   .txt` lo installa con `./integrazioni/KittenTTS`, percorso relativo alla
+   ROOT — pip va lanciato da lì);
+2. setup-python con cache pip sui tre requirements;
+3. apt: **stockfish** (il commentatore/analisi girano col motore VERO nei
+   test; le asserzioni sono qualitative, la versione di Ubuntu basta) e
+   **gettext**;
+4. pip: backend + frontend + dev requirements;
+5. `ruff check` + `ruff format --check` (integrazioni/ già esclusa da
+   pyproject);
+6. `msgfmt --check-format` sul catalogo .po (il .mo committato resta la
+   fonte a runtime; il passo intercetta i .po corrotti);
+7. **alembic upgrade head + alembic check su DB VERGINE** (`DATABASE_URL`
+   temporanea): la parità migrazioni↔modelli diventa un gate — la trappola
+   della migrazione rinominata non arriva più su main;
+8. `pytest -q` (engine+backend+frontend da pyproject; conftest imposta da
+   solo DB temporaneo, ADMIN_TOKEN, AI_ASYNC=0 ecc.: nessun segreto o .env
+   richiesto — i settings hanno default per tutto).
+
+Badge CI aggiunto in testa al README. Verifica: passo alembic simulato in
+locale su DB vergine (13 migrazioni + check pulito), YAML validato, e il run
+VERO osservato su GitHub dopo il push (v. sotto).
+
+---
+
 ## 2026-07-09 — Spettatori delle partite live e replay animato
 
 **Richiesta (utente):** «Spettatori delle partite live e replay animato»

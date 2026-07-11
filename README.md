@@ -3,6 +3,7 @@
 > Gioca a **scacchi** e a tutti gli altri giochi da tavolo a **turni e a informazione perfetta**
 > (dama, tris, forza 4, …) tramite un unico motore astratto, direttamente dal browser.
 
+[![CI](https://github.com/saulusprime/OmniBoard/actions/workflows/ci.yml/badge.svg)](https://github.com/saulusprime/OmniBoard/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENCE.md)
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![Status](https://img.shields.io/badge/stato-in%20sviluppo%20attivo-brightgreen.svg)](#stato-del-progetto)
