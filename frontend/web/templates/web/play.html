@@ -183,7 +183,8 @@
     moveType === "draughts" || moveType === "chess" || moveType === "backgammon";
   const BASE_CELL = cols <= 3 ? 88 : (cols <= 7 ? 56 : 46);
   const FRAMED = moveType === "chess" || moveType === "draughts";
-  let cellPx = fitCellPx(BASE_CELL, cols, FRAMED);  // adattivo: entra nel telefono
+  const FIT_EXTRA = moveType === "column" ? 44 : 0;  // contorno del tavoliere Forza 4
+  let cellPx = fitCellPx(BASE_CELL, cols, FRAMED, FIT_EXTRA);  // adattivo: entra nel telefono
   // Dimensione dei pezzi rispetto alla casella (celle e flyer condividono il valore).
   const PIECE_SCALE = 0.83;
   const WHITE_SET = "X⛀⛁♔♕♖♗♘♙○", BLACK_SET = "O⛂⛃♚♛♜♝♞♟●";
@@ -220,6 +221,47 @@
     return -1;
   }
 
+  // Forza 4: anteprima della caduta — passando (o mettendo il fuoco) su una
+  // colonna, il foro d'atterraggio mostra un disco spettrale del lato al tratto.
+  function previewLanding(c, on) {
+    const grid = document.getElementById("grid");
+    if (!grid) return;
+    grid.querySelectorAll(".land-x, .land-o").forEach((el) => {
+      el.classList.remove("land-x", "land-o");
+    });
+    if (!on || busy || status !== "in_progress" || !canAct()) return;
+    const land = landingIndex(c);
+    if (land >= 0) grid.children[land].classList.add(current === "x" ? "land-x" : "land-o");
+  }
+
+  function bindPreview(el, c) {
+    el.addEventListener("pointerenter", () => previewLanding(c, true));
+    el.addEventListener("pointerleave", () => previewLanding(c, false));
+    el.addEventListener("focus", () => previewLanding(c, true));
+    el.addEventListener("blur", () => previewLanding(c, false));
+  }
+
+  // Forza 4: a partita conclusa le caselle della quaterna vincente (tutte, se
+  // più d'una) ricevono l'anello — calcolo locale, la board basta.
+  function c4WinCells() {
+    const out = new Set();
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const v = board[idx(r, c)];
+        if (!v) continue;
+        for (const [dr, dc] of [[0, 1], [1, 0], [1, 1], [1, -1]]) {
+          const rr = r + 3 * dr, cc = c + 3 * dc;
+          if (rr >= rows || cc < 0 || cc >= cols) continue;
+          if (v === board[idx(r + dr, c + dc)] && v === board[idx(r + 2 * dr, c + 2 * dc)] &&
+              v === board[idx(rr, cc)]) {
+            for (let k = 0; k < 4; k++) out.add(idx(r + k * dr, c + k * dc));
+          }
+        }
+      }
+    }
+    return out;
+  }
+
   function buildBoard() {
     area.innerHTML = "";
     if (moveType === "column") {
@@ -231,6 +273,7 @@
         b.className = "colbtn"; b.textContent = "▼"; b.dataset.col = c;
         b.setAttribute("aria-label", T.drop_col + " " + (c + 1));
         b.addEventListener("click", () => onColumn(c));
+        bindPreview(b, c);
         head.appendChild(b);
       }
       area.appendChild(head);
@@ -268,16 +311,23 @@
     // Tema del giocatore (scacchi/dama) oppure tavolo classico del backgammon.
     if (moveType === "chess" || moveType === "draughts") grid.classList.add("t-" + THEME);
     if (moveType === "backgammon") grid.classList.add("bg-board");
+    if (moveType === "column") grid.classList.add("c4-board");
     grid.style.gridTemplateColumns = `repeat(${cols}, ${cellPx}px)`;
     grid.style.gridTemplateRows = `repeat(${rows}, ${cellPx}px)`;
     for (let i = 0; i < rows * cols; i++) {
       let el;
+      // Anche le celle del Forza 4 sono BOTTONI: cliccare una casella gioca la
+      // sua colonna (bersaglio grande) e gli screen reader leggono la griglia.
       const usable = moveType === "cell" || moveType === "chess" ||
-        moveType === "backgammon" || (moveType === "draughts" && isDark(i));
+        moveType === "backgammon" || moveType === "column" ||
+        (moveType === "draughts" && isDark(i));
       if (usable) {
         el = document.createElement("button");
         if (moveType === "cell") el.addEventListener("click", () => onCell(i));
-        else el.addEventListener("click", () => onSelect(i));
+        else if (moveType === "column") {
+          el.addEventListener("click", () => onColumn(i % cols));
+          bindPreview(el, i % cols);
+        } else el.addEventListener("click", () => onSelect(i));
       } else {
         el = document.createElement("div");
       }
@@ -357,6 +407,14 @@
     if (moveType === "draughts" && rec.id.includes("-")) {
       return rec.id.split("-").map(Number);
     }
+    if (moveType === "column" && /^\d+$/.test(rec.id)) {
+      // Il disco appena giocato è il più ALTO della sua colonna (vale anche in
+      // moviola: la board mostrata è quella della semimossa corrente).
+      const c = Number(rec.id);
+      for (let r = 0; r < rows; r++) {
+        if (board[idx(r, c)] !== null) return [idx(r, c)];
+      }
+    }
     return [];
   }
 
@@ -371,6 +429,10 @@
   function ariaFor(i, v) {
     // "e4, pedone bianco" / "riga 2, colonna 3, vuota" — per gli screen reader.
     if (!v) return cellName(i) + ", " + T.empty_square;
+    if (moveType === "column") {
+      // Forza 4: i lati sono i colori dei dischi, non le lettere del motore.
+      return cellName(i) + ", " + (pieceClass(v) === "x" ? T.c4_red : T.c4_yellow);
+    }
     const name = T.pieces[v.slice(-1)];
     if (!name) return cellName(i) + ", " + v;  // Tris: X/O come sono
     const count = v.length > 1 ? v.slice(0, -1) + "× " : "";  // backgammon: "5●"
@@ -381,12 +443,15 @@
     const grid = document.getElementById("grid");
     const dests = selected !== null ? new Set(playableFrom(selected).map((m) => m.to)) : new Set();
     const lastmv = new Set(lastMoveSquares());
+    const winline = moveType === "column" && status === "finished" ? c4WinCells() : new Set();
     for (let i = 0; i < board.length; i++) {
       const el = grid.children[i];
       const v = board[i];
       el.textContent = v ? displayOf(v) : "";
-      el.classList.remove("x", "o", "sel", "dest", "pop", "lastmv");
+      el.classList.remove("x", "o", "sel", "dest", "pop", "lastmv",
+                          "winline", "inflight", "land-x", "land-o");
       if (lastmv.has(i)) el.classList.add("lastmv");
+      if (winline.has(i)) el.classList.add("winline");
       if (el.tagName === "BUTTON") {
         el.setAttribute("aria-label", ariaFor(i, v));
         if (isSelect) el.setAttribute("aria-pressed", i === selected ? "true" : "false");
@@ -394,6 +459,7 @@
       const pc = pieceClass(v);
       if (pc) el.classList.add(pc);
       if (moveType === "cell") el.disabled = v !== null || status !== "in_progress" || !canAct();
+      if (moveType === "column") el.disabled = status !== "in_progress" || !canAct();
       if (isSelect && el.tagName === "BUTTON") el.disabled = status !== "in_progress" || !canAct();
       if (isSelect) {
         if (i === selected) el.classList.add("sel");
@@ -575,7 +641,7 @@
     // Riallinea la presentazione di una singola casella allo stato corrente.
     const el = document.getElementById("grid").children[i];
     el.textContent = board[i] ? displayOf(board[i]) : "";
-    el.classList.remove("x", "o", "pop");
+    el.classList.remove("x", "o", "pop", "inflight");
     el.style.color = "";
     const pc = pieceClass(board[i]);
     if (pc) el.classList.add(pc);
@@ -682,9 +748,14 @@
         if (chain) { waypoints = chain.waypoints; victimOrder = chain.victimOrder; }
       }
       // Destinazione: il pezzo catturato resta visibile finché il flyer non atterra;
-      // se la casella era vuota, il nuovo pezzo resta invisibile durante il volo.
+      // se la casella era vuota, il nuovo pezzo resta invisibile durante il volo
+      // (la classe "inflight" fa lo stesso per i dischi del Forza 4).
       if (prev[p.to]) showGhost(p.to, prev[p.to]);
-      else document.getElementById("grid").children[p.to].style.color = "transparent";
+      else {
+        const dst = document.getElementById("grid").children[p.to];
+        dst.style.color = "transparent";
+        dst.classList.add("inflight");
+      }
 
       flyPiece(
         flySym,
@@ -1002,7 +1073,7 @@
   window.addEventListener("resize", () => {
     clearTimeout(fitTimer);
     fitTimer = setTimeout(() => {
-      const px = fitCellPx(BASE_CELL, cols, FRAMED);
+      const px = fitCellPx(BASE_CELL, cols, FRAMED, FIT_EXTRA);
       if (px === cellPx || busy || drag) return;
       cellPx = px;
       buildBoard();

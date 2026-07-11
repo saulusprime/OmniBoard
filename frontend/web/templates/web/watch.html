@@ -43,7 +43,8 @@
   const STATE_URL = "{% url 'play_state_json' session_id %}";
   const REPLAY_URL = "{% url 'play_replay_json' session_id %}";
   const rows = S.rows, cols = S.cols, moveType = S.move_type;
-  const cellPx = fitCellPx(46, cols, moveType === "chess" || moveType === "draughts");
+  const cellPx = fitCellPx(46, cols, moveType === "chess" || moveType === "draughts",
+                           moveType === "column" ? 44 : 0);
   const PIECE_SCALE = 0.83;
   const WHITE_SET = "X⛀⛁♔♕♖♗♘♙○", BLACK_SET = "O⛂⛃♚♛♜♝♞♟●";
   const SOLID_GLYPH = { "♔": "♚", "♕": "♛", "♖": "♜", "♗": "♝", "♘": "♞", "♙": "♟",
@@ -68,6 +69,7 @@
   const area = document.getElementById("boardarea");
   const grid = document.createElement("div");
   grid.className = "board t-classico";
+  if (moveType === "column") grid.classList.add("c4-board");  // tavoliere del Forza 4
   grid.id = "grid";
   grid.style.gridTemplateColumns = `repeat(${cols}, ${cellPx}px)`;
   grid.style.gridTemplateRows = `repeat(${rows}, ${cellPx}px)`;

@@ -752,6 +752,18 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   restano le 21 aperte. Flusso nuovo nell'intestazione di TODO: a voce
   realizzata → spostarla in ASIS.md e documentarla in HANDOFF. Puntatori
   aggiornati in README e memoria persistente.
+- **2026-07-11** — **Forza 4: tavoliere dedicato + accessibilità**: classe
+  `.c4-board` (blu coi fori, dischi rossi ✕ / gialli ◯ — marchio inciso sul
+  ::after contro il solo-colore, WCAG 1.4.1), anteprima della caduta su
+  hover/fuoco, anello sull'ultima mossa (il disco nuovo è il più ALTO della
+  colonna), quaterna vincente pulsante (rispetta prefers-reduced-motion),
+  destinazione `inflight` durante il volo del disco. Celle = BOTTONI (clic =
+  colonna, frecce+Invio, ARIA «riga R, colonna C, pedina rossa/gialla», nuove
+  stringhe c4_red/c4_yellow, .po a mano + msgfmt). fitCellPx con `extra`
+  (+44px di contorno tavoliere) e `width:max-content` (allagava la pagina
+  spettatore). Verificato DAL VIVO con Chrome headless su partita IA-vs-IA
+  (il ripiego usa il motore bitboard). Trappola: sotto ~500px l'headless non
+  restringe il viewport, ritaglia — misurare con --dump-dom. 297 verdi.
 
 ## Questioni aperte
 

@@ -925,6 +925,9 @@ def _play_ui_strings():
         "row": _("riga"),
         "column": _("colonna"),
         "drop_col": _("Gioca nella colonna"),
+        # Forza 4: i lati per gli screen reader sono i colori dei dischi.
+        "c4_red": _("pedina rossa"),
+        "c4_yellow": _("pedina gialla"),
         # Nomi dei pezzi per le etichette ARIA delle caselle (screen reader).
         "pieces": {
             "♔": _("re bianco"),

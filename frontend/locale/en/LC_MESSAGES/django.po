@@ -2390,3 +2390,11 @@ msgstr "black man"
 #: web/views.py:945
 msgid "dama nera"
 msgstr "black king"
+
+#: web/views.py:930
+msgid "pedina rossa"
+msgstr "red disc"
+
+#: web/views.py:931
+msgid "pedina gialla"
+msgstr "yellow disc"

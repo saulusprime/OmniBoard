@@ -706,10 +706,18 @@ niente cubo del raddoppio né punteggi gammon/backgammon. L'IA gioca *greedy* da
 - Se la griglia si riempie senza allineamenti, la partita è **patta**.
 
 ### Come giocarci nell'app
-Dal menu **Gioca** scegli **Forza 4** e imposta i due lati (umano o IA). Per muovere, usa i
-pulsanti **▼** sopra le colonne (oppure giochi in due sullo stesso schermo). La pedina cade
-nella posizione libera più in basso. Contro l'IA la mossa avversaria compare con un breve
-ritardo e animazione. L'IA di Forza 4 usa il provider remoto attivo (Qwen/Claude/OpenAI) se
+Dal menu **Gioca** scegli **Forza 4** e imposta i due lati (umano o IA). Il tavoliere è
+quello classico: **blu con i fori**, dischi **rossi** (X, marchiati ✕) e **gialli** (O,
+marchiati ◯) — i marchi incisi distinguono i lati anche a chi non percepisce i colori.
+Per muovere, clicca una casella qualsiasi della colonna oppure usa i pulsanti **▼** in
+alto; passando sulla colonna (o mettendoci il fuoco da tastiera) il foro d'atterraggio
+mostra l'**anteprima** del disco. L'ultima mossa porta un anello chiaro e, a partita
+conclusa, la **quaterna vincente** pulsa (ferma se il sistema chiede di ridurre il
+movimento). Le caselle sono bottoni veri: **frecce** per esplorare la griglia, Invio per
+giocare, etichette lette dallo screen reader («riga 5, colonna 4, pedina rossa»). La
+pedina cade nella posizione libera più in basso. Contro l'IA la mossa avversaria compare
+con un breve ritardo e animazione (il disco *cade* nella colonna). L'IA di Forza 4 usa
+il provider remoto attivo (Qwen/Claude/OpenAI) se
 configurato, altrimenti il **motore dedicato**: ricerca iterativa su bitboard nel budget di
 tempo, che vede sempre vittorie e blocchi immediati e non concede mai una quaterna per
 sbadataggine; i livelli del motore locale ne modulano tempo di riflessione e imprecisione.

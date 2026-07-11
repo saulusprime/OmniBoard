@@ -113,6 +113,53 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
   .t-legno { --bframe:#7a4a2b; --binlay:#ecd9b0; --bcoord:#ecd9b0; }
   .t-smeraldo { --bframe:#3e4f30; --binlay:#d8dcb5; --bcoord:#e5e8c8; }
   .t-ghiaccio { --bframe:#4f6470; --binlay:#c8d4da; --bcoord:#e8eef1; }
+  /* ----- Tavoliere del Forza 4 (blu con fori; dischi rossi X / gialli O) -----
+     Le pedine sono DISCHI disegnati sul ::before della casella (foro scuro da
+     vuota); il ::after incide un marchio (✕ sui rossi, ◯ sui gialli) così i
+     lati restano distinguibili anche senza percepire i colori (WCAG 1.4.1:
+     mai il solo colore). La lettera X/O del motore resta nel DOM per gli
+     screen reader ma è resa trasparente. Il bordo scuro attorno al disco
+     (ultimo stop del gradiente) dà il contrasto col tavoliere blu. */
+  .c4-board { background:#1c4e94; border:6px solid #143a70; border-radius:12px;
+              padding:8px; gap:6px; width:max-content;
+              box-shadow:0 6px 18px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.08); }
+  .c4-board .cell, .c4-board .flyer { color:transparent; background:transparent;
+              border:none; position:relative; }
+  .c4-board .cell::before, .c4-board .flyer::before { content:""; position:absolute;
+              inset:6%; border-radius:50%; background:#0e1319;
+              box-shadow:inset 0 3px 8px rgba(0,0,0,.65); }
+  .c4-board .cell.x::before, .c4-board .flyer.x::before {
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.35), transparent 48%),
+               radial-gradient(circle, #e14b36 0 62%, #b23222 76%, #0e1319 80%);
+    box-shadow:inset 0 -2px 5px rgba(0,0,0,.35); }
+  .c4-board .cell.o::before, .c4-board .flyer.o::before {
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.4), transparent 48%),
+               radial-gradient(circle, #eec73f 0 62%, #c69c26 76%, #0e1319 80%);
+    box-shadow:inset 0 -2px 5px rgba(0,0,0,.35); }
+  .c4-board .cell::after, .c4-board .flyer::after { position:absolute; inset:0;
+              display:flex; align-items:center; justify-content:center;
+              font-size:.42em; font-weight:900; pointer-events:none; }
+  .c4-board .cell.x::after, .c4-board .flyer.x::after { content:"✕"; color:rgba(40,7,3,.65); }
+  .c4-board .cell.o::after, .c4-board .flyer.o::after { content:"◯"; color:rgba(56,42,4,.65); }
+  /* Destinazione durante il volo del disco: torna foro finché il flyer non atterra. */
+  .c4-board .cell.inflight::before { background:#0e1319;
+              box-shadow:inset 0 3px 8px rgba(0,0,0,.65); }
+  .c4-board .cell.inflight::after { content:none; }
+  /* Anteprima della caduta (hover/fuoco sulla colonna): disco spettrale del lato al tratto. */
+  .c4-board .cell.land-x::before { background-color:#0e1319;
+              background-image:radial-gradient(circle, rgba(225,75,54,.5) 0 72%, transparent 76%); }
+  .c4-board .cell.land-o::before { background-color:#0e1319;
+              background-image:radial-gradient(circle, rgba(238,199,63,.5) 0 72%, transparent 76%); }
+  /* Ultima mossa: anello chiaro attorno al disco (il velo generico non si vede sul blu). */
+  .c4-board .cell.lastmv { box-shadow:none; }
+  .c4-board .cell.lastmv::before { outline:3px solid #f2f6fb; outline-offset:1px; }
+  /* Quaterna vincente: anello + pulsazione (ferma se l'utente riduce il movimento). */
+  .c4-board .cell.winline::before { outline:3px solid #ffffff; outline-offset:2px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .c4-board .cell.winline::before { animation:c4win 1.1s ease-in-out infinite; }
+  }
+  @keyframes c4win { 50% { filter:brightness(1.45); } }
+  .c4-board button.cell:disabled { cursor:default; }
   /* ----- Tavolo classico del Backgammon (non tematizzabile: è "quello originale") -----
      Punte triangolari alternate disegnate come SVG di sfondo (il testo delle pedine
      resta sempre sopra), campo in legno, barra e uscite dedicate. */
@@ -139,8 +186,10 @@ lezioni del tutorial (learn_lesson.html). Un solo posto da mantenere.{% endcomme
   // Lato di casella che tiene la scacchiera DENTRO lo schermo (telefoni):
   // dal lato "base" del desktop si scende fino a far entrare colonne + cornice
   // nella larghezza utile. Stima del contorno prudente (wrap+card+cornice).
-  function fitCellPx(base, cols, framed) {
-    const chrome = 80 + (framed ? 62 : 0);
+  function fitCellPx(base, cols, framed, extra) {
+    // "extra": contorno aggiuntivo del gioco (es. il tavoliere del Forza 4 ha
+    // bordo, padding e gap più larghi delle griglie nude: ~40px in più).
+    const chrome = 80 + (framed ? 62 : 0) + (extra || 0);
     const avail = Math.max(120, document.documentElement.clientWidth - chrome);
     return Math.max(18, Math.min(base, Math.floor(avail / cols)));
   }

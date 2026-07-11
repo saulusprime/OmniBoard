@@ -451,3 +451,40 @@ def test_watch_page_and_live_section_render(monkeypatch):
     html = Client().get("/community/", SERVER_NAME="localhost").content.decode()
     assert "Partite in diretta" in html
     assert "sp_a — sp_b" in html and "Guarda" in html
+
+
+def test_play_page_connect4_has_c4_board_and_aria_strings(monkeypatch):
+    """La pagina di gioco del Forza 4 porta il tavoliere dedicato (c4-board) e
+    i nomi dei dischi per le etichette ARIA (pedina rossa/gialla)."""
+    import web.api_client as api
+
+    session = {
+        "id": 41,
+        "game_code": "connect4",
+        "game_name": "Forza 4",
+        "move_type": "column",
+        "rows": 6,
+        "cols": 7,
+        "board": [None] * 42,
+        "status": "in_progress",
+        "winner": None,
+        "finish_reason": None,
+        "current": "x",
+        "clock": None,
+        "status_line": None,
+        "moves": [],
+        "legal_moves": [0, 1, 2, 3, 4, 5, 6],
+        "remote": False,
+        "players": {
+            "x": {"type": "human", "user_id": 1, "alias": "c4_a"},
+            "o": {"type": "ai"},
+        },
+    }
+    monkeypatch.setattr(api, "get_session", lambda sid: session)
+    monkeypatch.setattr(api, "get_config", lambda: {})
+    html = Client().get("/partite/41/", SERVER_NAME="localhost").content.decode()
+    assert "c4-board" in html  # classe del tavoliere blu coi fori
+    assert "pedina rossa" in html and "pedina gialla" in html  # ARIA dei dischi
+    # La pagina spettatore usa lo stesso tavoliere.
+    html = Client().get("/partite/41/guarda/", SERVER_NAME="localhost").content.decode()
+    assert "c4-board" in html

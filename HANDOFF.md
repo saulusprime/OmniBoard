@@ -3,6 +3,60 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Forza 4: tavoliere grafico dedicato + accessibilità
+
+**Richiesta (utente):** «dobbiamo dare una grafica migliore a forza4 e se
+possibile renderlo accessibile».
+
+**Grafica** (`board_css.html`, classe `.c4-board` sulla griglia quando
+`move_type === "column"`; vale per la pagina di gioco E per spettatori/replay):
+
+- tavoliere **blu coi fori** (celle trasparenti, foro scuro sul `::before`
+  con ombra interna); dischi **rossi (X)** e **gialli (O)** a gradiente con
+  bordo scuro (contrasto col blu); il `::after` INCIDE un marchio — ✕ sui
+  rossi, ◯ sui gialli — così i lati restano distinguibili senza percepire i
+  colori (WCAG 1.4.1); la lettera X/O del motore resta nel DOM (per gli
+  screen reader) ma è trasparente;
+- **anteprima della caduta**: hover/fuoco su colonna → disco spettrale del
+  lato al tratto nel foro d'atterraggio (`previewLanding`, classi land-x/o);
+- **ultima mossa** con anello chiaro (nuovo ramo `column` in
+  `lastMoveSquares`: il disco appena giocato è il più ALTO della colonna,
+  vale anche in moviola) e **quaterna vincente** cerchiata e pulsante a fine
+  partita (`c4WinCells` client-side; pulsazione solo senza
+  `prefers-reduced-motion`);
+- animazione di caduta preesistente adattata: il flyer è un disco (stesse
+  regole CSS), la destinazione resta un foro finché il flyer non atterra
+  (classe `inflight` al posto del solo `color:transparent`);
+- `fitCellPx` ha ora un parametro `extra` (+44px per il Forza 4: bordo,
+  padding e gap del tavoliere) così la griglia entra nei telefoni; il
+  tavoliere è `width:max-content` (da block-level allagava la pagina
+  spettatore).
+
+**Accessibilità** (pattern degli altri giochi, play.html):
+
+- le celle sono **BOTTONI**: clic su una casella = gioca la sua colonna
+  (bersaglio grande), roving tabindex + frecce per esplorare la griglia,
+  Invio/Spazio per giocare; disabilitate fuori turno/partita conclusa (come
+  scacchi/dama);
+- **etichette ARIA** dedicate: «riga R, colonna C, pedina rossa/gialla»
+  (ramo `column` in `ariaFor`; stringhe nuove `c4_red`/`c4_yellow` in
+  views.py, .po aggiornato A MANO + msgfmt — «red disc»/«yellow disc»);
+- i pulsanti ▼ conservano l'aria-label «Gioca nella colonna N» e mostrano
+  l'anteprima anche al fuoco da tastiera.
+
+**Verifica dal vivo** (i server dell'utente erano già su): partita IA-vs-IA
+reale (sessione 55, il ripiego locale usa il motore bitboard nuovo — «Ultima
+mossa IA: motore interno»), screenshot con Chrome headless: partita in corso,
+finale con quaterna cerchiata, pagina spettatore, larghezza stretta (500px,
+minimo dell'headless; a 390px reali le celle scendono a 38px per formula).
+Trappola scoperta: `--window-size` sotto ~500px NON riduce il viewport
+dell'headless (il layout viene ritagliato) — verificare col `--dump-dom` e
+la matematica di fitCellPx, non con lo screenshot.
+
+**Test**: +1 in `frontend/tests/test_views.py` (pagina Forza 4: classe
+`c4-board` presente in gioco e spettatore, stringhe ARIA nel dizionario ui).
+**297 verdi**, ruff pulito. MANUAL aggiornato (sezione Forza 4).
+
 ## 2026-07-11 — Backlog: le voci completate escono da TODO.md verso ASIS.md
 
 **Richiesta (utente):** «sposta tutte le attività completate che trovi in
