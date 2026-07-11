@@ -3,6 +3,24 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Backlog: le voci completate escono da TODO.md verso ASIS.md
+
+**Richiesta (utente):** «sposta tutte le attività completate che trovi in
+TODO.md in un file ASIS.md».
+
+Riorganizzazione solo documentale: le **69 voci `[x]`** di TODO.md sono state
+spostate — testo conservato tale e quale, stessa struttura a sezioni — nel
+nuovo **ASIS.md** («attività completate»); in TODO.md restano le **21 voci
+`[ ]`** aperte (conteggi verificati: 69+21 prima = 69 in ASIS + 21 in TODO
+dopo). Sezioni rimaste senza voci aperte (Priorità alta, Motore scacchi, IA e
+provider remoti, Istruzione guidata, Piattaforma e gamification, Già
+completati) eliminate da TODO; le sezioni miste (Giochi, Frontend/UX,
+Sicurezza/DevOps, Statistiche avanzate, Visione) esistono in entrambi i file,
+ciascuna con le sole voci di pertinenza. L'intestazione di TODO.md ora
+prescrive il flusso nuovo: a voce realizzata → spostarla in ASIS.md e
+documentarla in HANDOFF. Aggiornati i puntatori in README (stato +
+documentazione correlata) e la memoria persistente. Nessun codice toccato.
+
 ## 2026-07-11 — Forza 4: motore dedicato bitboard (più profondo)
 
 **Richiesta (utente):** «implementiamo Forza 4 motore dedicato più profondo».
