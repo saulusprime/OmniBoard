@@ -350,8 +350,12 @@
   generata). 253 test verdi.
 - [ ] **Rate limiting** sulle API pubbliche; configurazione **CORS** esplicita.
 - [ ] **Audit log** delle operazioni super admin.
-- [ ] **CI GitHub Actions**: verificare che il workflow esegua davvero ruff+pytest sul
-  codice attuale (nato in fase doc-only); aggiungere coverage.
+- [x] **CI GitHub Actions** (2026-07-09): pipeline completa al posto di quella
+  «tollerante» dell'era doc-only — checkout con submodule KittenTTS (il
+  requirements lo installa dalla root), stockfish+gettext da apt, ruff
+  check+format, msgfmt sul catalogo .po, `alembic upgrade head`+`check` su DB
+  vergine (parità migrazioni/modelli) e pytest completo. Coverage rimandata
+  (la suite è già il gate; il numero arriverà con un badge quando servirà).
 - [ ] **Docker Compose** (backend + frontend + PostgreSQL) per sviluppo e deploy.
 - [x] **Mossa IA: coda di lavoro** (`app/jobqueue.py`) — pool di worker
   LIMITATO (`ai.workers`, default 2) al posto del thread-per-sessione: N

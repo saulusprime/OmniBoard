@@ -6,51 +6,72 @@ on:
   pull_request:
     branches: [main]
 
-# Pipeline tollerante alla fase "base documentale": i passi di lint e test
-# vengono eseguiti solo se nel repository sono presenti sorgenti/dipendenze Python.
-# Diventerà una pipeline completa appena arriverà lo scaffold del codice.
+# Pipeline completa: lint (ruff check + format), catalogo i18n compilabile,
+# migrazioni allineate ai modelli (alembic check) e l'intera suite pytest
+# (engine + backend + frontend, configurata in pyproject.toml).
+#
+# Dipendenze di sistema:
+# - stockfish: il commentatore/analisi girano col motore VERO nei test (le
+#   asserzioni sono qualitative, qualsiasi versione UCI recente va bene);
+# - gettext: msgfmt valida il catalogo .po (il .mo committato resta la fonte
+#   a runtime).
+# Il submodule integrazioni/KittenTTS serve a pip (backend/requirements.txt
+# lo installa dalla root): checkout con submodules.
 
 jobs:
   build:
     name: Lint & Test (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.12"]
 
     steps:
-      - name: Checkout
+      - name: Checkout (con submodule KittenTTS)
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            frontend/requirements.txt
+            requirements-dev.txt
 
-      - name: Install dependencies (se presenti)
+      - name: Dipendenze di sistema (Stockfish, gettext)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends stockfish gettext
+
+      - name: Dipendenze Python
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-          for f in engine backend frontend; do
-            if [ -f "$f/requirements.txt" ]; then pip install -r "$f/requirements.txt"; fi
-          done
-          pip install ruff pytest
+          pip install -r backend/requirements.txt \
+                      -r frontend/requirements.txt \
+                      -r requirements-dev.txt
 
-      - name: Lint (ruff)
+      - name: Lint (ruff check + format)
         run: |
-          if ls **/*.py >/dev/null 2>&1 || ls *.py >/dev/null 2>&1; then
-            ruff check .
-            ruff format --check .
-          else
-            echo "Nessun sorgente Python da analizzare: skip lint (fase base documentale)."
-          fi
+          ruff check .
+          ruff format --check .
+
+      - name: Catalogo i18n compilabile (msgfmt)
+        run: msgfmt --check-format -o /dev/null frontend/locale/en/LC_MESSAGES/django.po
+
+      - name: Migrazioni allineate ai modelli (alembic check)
+        working-directory: backend
+        env:
+          DATABASE_URL: sqlite:////tmp/omniboard-ci.db
+          ADMIN_TOKEN: ci-only
+        run: |
+          alembic upgrade head
+          alembic check
 
       - name: Test (pytest)
-        run: |
-          if [ -d tests ] || ls **/test_*.py >/dev/null 2>&1 || ls **/*_test.py >/dev/null 2>&1; then
-            pytest -q
-          else
-            echo "Nessun test presente: skip test (fase base documentale)."
-          fi
+        run: pytest -q

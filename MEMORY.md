@@ -698,6 +698,13 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   sull'ultimo carattere, classi per gioco). Sezione dirette in Community nel
   polling esistente; link «Replay animato» negli export post-partita.
   287 verdi.
+- **2026-07-09** — **CI GitHub Actions completa**: riscritto il ci.yml
+  «tollerante» dell'era doc-only. Checkout con submodule (KittenTTS è in
+  backend/requirements.txt come ./integrazioni/KittenTTS: pip DALLA ROOT),
+  apt stockfish+gettext, ruff check+format, msgfmt sul .po, alembic
+  upgrade+check su DB VERGINE (gate contro la trappola delle migrazioni
+  rinominate), pytest completo (conftest autosufficiente: nessun .env o
+  segreto in CI, i settings hanno default). Badge CI nel README.
 
 ## Questioni aperte
 
