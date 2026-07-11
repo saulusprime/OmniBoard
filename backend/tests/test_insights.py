@@ -374,6 +374,81 @@ def test_tactic_subcategories():
         assert sub2["conceded"] == 0
 
 
+def test_peer_comparison_within_elo_band():
+    """Percentili coi pari fascia: fascia Elo ISOLATA (2200-2400) per non
+    farsi inquinare dagli utenti ~1500 creati dagli altri test."""
+    from app.models import Game, Rating
+    from app.rating import season as elo_season
+
+    def _fake_evals(x_loss, x_blunders, o_loss, o_blunders):
+        """20 mosse analizzate a testa (plies 1..40): perdita fissa per lato."""
+        evals = []
+        for ply in range(1, 41):
+            mine = ply % 2 == 1
+            loss = x_loss if mine else o_loss
+            marks = x_blunders if mine else o_blunders
+            own_index = (ply - 1) // 2  # progressivo delle mosse del lato
+            evals.append(
+                {
+                    "ply": ply,
+                    "by": "x" if mine else "o",
+                    "loss": loss,
+                    "tag": "??" if own_index < marks else None,
+                }
+            )
+        return evals
+
+    with TestClient(app) as client:
+        a, b = _user(client, "pc_a"), _user(client, "pc_b")
+        c, d = _user(client, "pc_c"), _user(client, "pc_d")
+        sid1 = _fools_mate(client, a["id"], b["id"])
+        sid2 = _fools_mate(client, c["id"], d["id"])
+
+        db = SessionLocal()
+        try:
+            db.get(GameSession, sid1).analysis_json = json.dumps(
+                {"status": "done", "evals": _fake_evals(30, 0, 50, 1)}
+            )
+            db.get(GameSession, sid2).analysis_json = json.dumps(
+                {"status": "done", "evals": _fake_evals(100, 2, 200, 4)}
+            )
+            # Fascia isolata: Elo reali nella 2200-2400 (upsert sulla stagione).
+            chess_id = db.query(Game).filter_by(code="chess").first().id
+            season = elo_season(db)
+            for user, elo in ((a, 2250.0), (b, 2280.0), (c, 2300.0), (d, 2350.0)):
+                row = (
+                    db.query(Rating)
+                    .filter_by(user_id=user["id"], game_id=chess_id, season=season)
+                    .first()
+                )
+                if row is None:
+                    row = Rating(user_id=user["id"], game_id=chess_id, season=season)
+                    db.add(row)
+                row.elo = elo
+            db.commit()
+        finally:
+            db.close()
+
+        pc = client.get(f"/users/{a['id']}/insights").json()["chess"]["peer_comparison"]
+        assert pc["band_lo"] == 2200 and pc["band_hi"] == 2400
+        assert pc["elo"] == 2250 and pc["peers"] == 3
+        # pc_a (ACPL 30, 0 blunder) è meglio di TUTTI i pari fascia.
+        assert pc["metrics"]["acpl"]["mine"] == 30.0
+        assert pc["metrics"]["acpl"]["better_than"] == 1.0
+        assert pc["metrics"]["acpl"]["band_avg"] == round((50 + 100 + 200) / 3, 2)
+        assert pc["metrics"]["blunders_per_game"]["mine"] == 0.0
+        assert pc["metrics"]["blunders_per_game"]["better_than"] == 1.0
+
+        # pc_c (ACPL 100) è meglio solo di pc_d: un pari fascia su tre.
+        pc = client.get(f"/users/{c['id']}/insights").json()["chess"]["peer_comparison"]
+        assert pc["metrics"]["acpl"]["better_than"] == 0.33
+
+        # Chi non ha partite analizzate non ha confronto.
+        e = _user(client, "pc_e")
+        st = client.get(f"/users/{e['id']}/insights").json()
+        assert st["chess"]["peer_comparison"] is None
+
+
 def test_performance_by_cadence():
     """by_cadence separa senza-orologio e blitz, con ACPL dalle analisi in cache."""
     with TestClient(app) as client:

@@ -11,6 +11,8 @@ fasi della partita):
   patta d'accordo/ripetizione);
 - la valutazione per i **quattro aspetti** del gioco (aperture, tattica,
   strategia, finali) dalle analisi già calcolate — v. ``_aspects``;
+- il **confronto coi pari fascia** (percentili di ACPL e blunder per partita
+  nella propria fascia Elo) — v. ``peer_comparison``;
 - conteggio dei **badge di qualità** sulle PROPRIE mosse (🌟👍⚔️🐔🤔😬🤡,
   assegnati dal commentatore in ``moves_json``);
 - la raccolta delle **mosse geniali**: le proprie mosse coi badge 💎 («geniale,
@@ -54,6 +56,14 @@ _TACTIC_LOSS = 250
 _MATE_CP = 9901
 _HANG_ROOK = 450  # perdita da torre in su (fino alla donna)
 _HANG_QUEEN = 850  # perdita da donna in su
+
+# Confronto coi pari fascia: ampiezza della fascia Elo, campione minimo di
+# pari perché un percentile faccia testo, mosse analizzate minime a testa
+# (sotto, la precisione di un giocatore è rumore) e tetto di sessioni lette.
+_PEER_BAND = 200
+_PEER_MIN = 3
+_PEER_MIN_MOVES = 20
+_PEER_SESSIONS = 2000
 
 
 def _user_sessions(db: Session, user_id: int, game_code: str | None = None):
@@ -312,6 +322,102 @@ def _aspects(sessions, user_id: int) -> dict | None:
     }
 
 
+def peer_comparison(db: Session, user_id: int) -> dict | None:
+    """Confronto coi PARI FASCIA: le metriche del giocatore contro chi ha il suo Elo.
+
+    La fascia è larga ``_PEER_BAND`` punti Elo (es. 1400-1599), presa dal
+    rating stagionale di scacchi (1500 per chi non è ancora classificato:
+    su una piattaforma piccola è ciò che tiene insieme il campione). Le
+    metriche sono quelle ECONOMICHE, calcolabili per tutti gli utenti in un
+    solo passaggio sulle analisi in cache (niente replay per i pari):
+
+    - **ACPL** — centipedoni persi a mossa (tetto 1000 per mossa);
+    - **blunder per partita** — i «??» dell'analisi.
+
+    ``better_than`` = quota di pari fascia STRETTAMENTE peggiori (i pareggi
+    non contano a favore: prudente). Con meno di ``_PEER_MIN`` pari fascia il
+    percentile resta None ma i grezzi (propri e media di fascia) si riportano.
+    ``None`` se il giocatore non ha almeno ``_PEER_MIN_MOVES`` mosse
+    analizzate — vale anche come soglia per contare qualcun altro fra i pari.
+    """
+    game_row = db.query(models.Game).filter_by(code=CHESS_CODE).first()
+    if game_row is None:
+        return None
+    sessions = (
+        db.query(models.GameSession)
+        .filter(
+            models.GameSession.game_id == game_row.id,
+            models.GameSession.status == "finished",
+            models.GameSession.analysis_json.isnot(None),
+        )
+        .order_by(models.GameSession.id.desc())
+        .limit(_PEER_SESSIONS)
+        .all()
+    )
+    stats: dict[int, dict] = {}
+    for s in sessions:
+        try:
+            data = json.loads(s.analysis_json)
+        except ValueError:
+            continue
+        if data.get("status") != "done":
+            continue
+        for side, uid in (("x", s.x_user_id), ("o", s.o_user_id)):
+            if uid is None:
+                continue
+            evals = [e for e in data.get("evals", []) if e.get("by") == side]
+            if not evals:
+                continue
+            row = stats.setdefault(uid, {"loss": 0, "moves": 0, "blunders": 0, "games": 0})
+            row["games"] += 1
+            row["moves"] += len(evals)
+            row["loss"] += sum(min(int(e.get("loss") or 0), 1000) for e in evals)
+            row["blunders"] += sum(1 for e in evals if e.get("tag") == "??")
+    mine = stats.get(user_id)
+    if mine is None or mine["moves"] < _PEER_MIN_MOVES:
+        return None
+
+    season = rating.season(db)
+    elos = {
+        r.user_id: r.elo
+        for r in db.query(models.Rating).filter_by(game_id=game_row.id, season=season)
+    }
+    my_elo = elos.get(user_id, 1500.0)
+    band_lo = int(my_elo // _PEER_BAND) * _PEER_BAND
+    band_hi = band_lo + _PEER_BAND
+    peers = [
+        uid
+        for uid, row in stats.items()
+        if uid != user_id
+        and row["moves"] >= _PEER_MIN_MOVES
+        and band_lo <= elos.get(uid, 1500.0) < band_hi
+    ]
+
+    def metric(value_of) -> dict:
+        """{mine, band_avg, better_than} per una metrica dove PIÙ BASSO è meglio."""
+        my_value = value_of(mine)
+        values = [value_of(stats[uid]) for uid in peers]
+        out = {
+            "mine": round(my_value, 2),
+            "band_avg": round(sum(values) / len(values), 2) if values else None,
+            "better_than": None,
+        }
+        if len(values) >= _PEER_MIN:
+            out["better_than"] = round(sum(1 for v in values if v > my_value) / len(values), 2)
+        return out
+
+    return {
+        "band_lo": band_lo,
+        "band_hi": band_hi,
+        "elo": round(my_elo),
+        "peers": len(peers),
+        "metrics": {
+            "acpl": metric(lambda r: r["loss"] / r["moves"]),
+            "blunders_per_game": metric(lambda r: r["blunders"] / r["games"]),
+        },
+    }
+
+
 def build(db: Session, user_id: int) -> dict | None:
     """Il cruscotto delle statistiche avanzate (None se l'utente non esiste)."""
     user = db.get(models.User, user_id)
@@ -414,6 +520,7 @@ def build(db: Session, user_id: int) -> dict | None:
                 if (row := cadences.get(key)) is not None
             ],
             "aspects": _aspects(chess_sessions, user_id),
+            "peer_comparison": peer_comparison(db, user_id),
             "badges": badges,
             "brilliancies": sum(badges.get(s, 0) for s in BRILLIANT),
         },

@@ -3,6 +3,46 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Confronto coi pari fascia (Insights)
+
+**Richiesta (utente):** «confronto con i pari fascia» (voce ricerca del TODO:
+«meglio del 70% dei 1400-1600»; il prerequisito Elo esiste da tempo).
+
+**Come funziona** (`insights.peer_comparison`, nel payload come
+`chess.peer_comparison`):
+
+- **fascia** = `_PEER_BAND`=200 punti Elo dal rating stagionale di scacchi;
+  chi non è classificato vale 1500 — su una piattaforma piccola è ciò che
+  tiene insieme il campione;
+- **metriche ECONOMICHE** calcolate per TUTTI gli utenti in un solo
+  passaggio sulle sessioni analizzate (tetto `_PEER_SESSIONS`=2000, niente
+  replay per i pari): ACPL (perdita a mossa, tetto 1000) e blunder per
+  partita;
+- **better_than** = quota di pari fascia STRETTAMENTE peggiori (i pareggi
+  non contano a favore); serve un campione: almeno `_PEER_MIN`=3 pari con
+  ≥ `_PEER_MIN_MOVES`=20 mosse analizzate, altrimenti percentile None (ma
+  grezzi e media di fascia si riportano); None totale se il giocatore stesso
+  è sotto le 20 mosse analizzate.
+
+**UI**: sezione «Confronto coi pari fascia» nelle Statistiche (tabella
+Tu/Media di fascia/Meglio di, con avviso quando il campione non basta).
+
+**Flake sistemato** (`test_async_move_executed_by_the_pool`): con la coda
+attiva il worker può giocare la mossa IA FRA il commit e la serializzazione
+della risposta → l'asserzione «solo la mossa umana» era una corsa (falliva
+con l'ordine casuale dei test, mai in isolamento). Ora il worker aspetta un
+CANCELLO (threading.Event) finché la risposta non è verificata: stessa
+intenzione, zero corsa.
+
+**Test (289 verdi, +1)**: percentili deterministici con fascia ISOLATA — i
+quattro utenti del test ricevono Elo reali 2250-2350 (upsert su ratings)
+così gli utenti ~1500 creati dagli ALTRI test non entrano nel campione
+(lezione delle interferenze da ordine casuale); analisi finte da 20 mosse a
+testa; verificati better_than 1.0 e 0.33, media di fascia, e None per chi
+non ha partite analizzate.
+
+---
+
 ## 2026-07-11 — Sottocategorie tattiche (Insights)
 
 **Richiesta (utente):** «Sottocategorie tattiche» (voce ricerca del TODO). In

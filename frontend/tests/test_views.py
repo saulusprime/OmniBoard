@@ -70,6 +70,16 @@ def test_user_stats_renders_four_aspects(monkeypatch):
                 "strategy": {"moves": 1, "acpl": 30.0, "score": None},
                 "endgame": {"moves": 0, "acpl": None, "score": None},
             },
+            "peer_comparison": {
+                "band_lo": 1400,
+                "band_hi": 1600,
+                "elo": 1500,
+                "peers": 4,
+                "metrics": {
+                    "acpl": {"mine": 48.3, "band_avg": 62.0, "better_than": 0.75},
+                    "blunders_per_game": {"mine": 0.5, "band_avg": 1.2, "better_than": 1.0},
+                },
+            },
             "badges": {},
             "brilliancies": 0,
         },
@@ -85,6 +95,8 @@ def test_user_stats_renders_four_aspects(monkeypatch):
     assert "nel libro 25%" in html
     assert "campione insufficiente" in html  # finali senza campione
     assert "matti mancati" in html and "catture avvelenate" in html  # dettaglio tattico
+    assert "Confronto coi pari fascia" in html
+    assert "75% dei pari fascia" in html  # percentile ACPL nella fascia 1400-1600
 
     # In inglese, dal catalogo compilato.
     response = Client().get(
