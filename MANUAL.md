@@ -710,8 +710,9 @@ Dal menu **Gioca** scegli **Forza 4** e imposta i due lati (umano o IA). Per muo
 pulsanti **▼** sopra le colonne (oppure giochi in due sullo stesso schermo). La pedina cade
 nella posizione libera più in basso. Contro l'IA la mossa avversaria compare con un breve
 ritardo e animazione. L'IA di Forza 4 usa il provider remoto attivo (Qwen/Claude/OpenAI) se
-configurato, altrimenti una strategia locale con ricerca a profondità limitata (forte ma non
-imbattibile).
+configurato, altrimenti il **motore dedicato**: ricerca iterativa su bitboard nel budget di
+tempo, che vede sempre vittorie e blocchi immediati e non concede mai una quaterna per
+sbadataggine; i livelli del motore locale ne modulano tempo di riflessione e imprecisione.
 
 ---
 

@@ -179,7 +179,13 @@
   jitter riscalato dai livelli, agganciato al dispatch `engine_move` esistente
   al posto del minimax generico a profondità 4); (4) euristica con **trincea**
   e **centro** oltre a materiale e avanzamento.
-- [ ] **Forza 4**: motore dedicato più profondo (bitboard + tabella trasposizioni).
+- [x] **Forza 4**: motore dedicato più profondo — FATTO (2026-07-11):
+  `connect4/engine.py` bitboard alla Fhourstones (7 bit/colonna con
+  sentinella), negamax + TT con flag (chiave `position+mask`), tattica esatta
+  a ogni nodo (vittoria immediata, doppia minaccia, blocco forzato, mai sotto
+  una casella vincente avversaria), approfondimento iterativo con budget e
+  jitter riscalato; scovato e corretto anche il falso pareggio di radice del
+  motore della dama (bound = alpha nel pool del jitter).
 - [ ] **Nuovi giochi deterministici**: Othello/Reversi, Filetto 3D, Gomoku.
 - [x] **Backgammon** — nodi del caso realizzati: il server tira i dadi (`resolve_chance`),
   un dado = una mossa, colpi/barra/uscita implementati.

@@ -54,9 +54,10 @@ class Connect4(Game):
     rows = ROWS
     cols = COLS
     move_type = "column"
-    search_depth = (
-        4  # ricerca limitata + euristica (lo spazio è troppo grande per il minimax completo)
-    )
+    # Profondità del SOLO minimax generico di ripiego: il gioco ha un motore
+    # dedicato (``engine_move``, bitboard + approfondimento iterativo) che il
+    # giocatore locale usa sempre in via preferenziale.
+    search_depth = 4
 
     def initial_state(self) -> Connect4State:
         return Connect4State(board=(None,) * (ROWS * COLS), current=0)
@@ -100,6 +101,32 @@ class Connect4(Game):
 
     def describe_move(self, state: Connect4State, move: int) -> str:
         return str(move + 1)  # colonna in notazione 1-based
+
+    def engine_move(
+        self,
+        state: Connect4State,
+        history=None,
+        time_limit=2.0,
+        max_depth=None,
+        style=None,
+        jitter=0,
+        tt=None,
+        stop=None,
+    ):
+        """Mossa dal motore dedicato (bitboard, negamax iterativo con TT)."""
+        from . import engine
+
+        return engine.best_move(
+            self,
+            state,
+            time_limit=time_limit,
+            max_depth=max_depth,
+            # Il jitter della piattaforma è in CENTIPEDONI scacchistici (100 = un
+            # pedone); qui una casella vincente vale _SPOT=16: si riscala.
+            jitter=jitter * 0.16,
+            tt=tt,
+            stop=stop,
+        )
 
     def heuristic(self, state: Connect4State, player: int) -> float:
         board = state.board

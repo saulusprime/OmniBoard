@@ -87,13 +87,19 @@ def best_move(game, state, time_limit=2.0, max_depth=24, jitter=0, tt=None, stop
         return moves[0]  # presa obbligata o mossa unica: inutile pensare
 
     ctx = _Ctx(game, time.monotonic() + max(0.05, float(time_limit)), tt, stop)
+    # Finestra ristretta con MARGINE pari al jitter: ogni mossa che può entrare
+    # nel pool finale deve avere un punteggio esatto, mai un bound (un bound
+    # pari ad alpha creerebbe un falso pareggio con la migliore e il sorteggio
+    # potrebbe scegliere una mossa in realtà perdente).
+    margin = int(jitter) + 1
     best_scored: list[tuple[float, tuple]] = []
     try:
         for depth in range(2, max_depth + 1):
             scored = []
             alpha = -_INF
             for move in moves:
-                score = -_negamax(ctx, game.apply(state, move), depth - 1, -_INF, -alpha)
+                beta = _INF if alpha == -_INF else -alpha + margin + 1
+                score = -_negamax(ctx, game.apply(state, move), depth - 1, -_INF, beta)
                 scored.append((score, move))
                 if score > alpha:
                     alpha = score

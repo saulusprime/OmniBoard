@@ -146,7 +146,8 @@ def test_connect4_vs_ai_responds():
         ).json()
         after = client.post(f"/sessions/{session['id']}/move", json={"move": "3"}).json()
         assert "O" in after["board"]  # l'IA ha risposto
-        assert after["last_ai"]["source"] in ("qwen", "local")
+        # Senza provider configurato risponde il ripiego: il motore dedicato bitboard.
+        assert after["last_ai"]["source"] in ("qwen", "engine")
 
 
 def test_draughts_session_basics_and_move():

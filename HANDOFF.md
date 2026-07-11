@@ -3,6 +3,54 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Forza 4: motore dedicato bitboard (più profondo)
+
+**Richiesta (utente):** «implementiamo Forza 4 motore dedicato più profondo».
+
+**Cosa c'è di nuovo** (`engine/connect4/engine.py`, agganciato via
+`engine_move` come dama e scacchi: il giocatore locale lo preferisce da solo,
+il minimax generico a profondità 4 resta come ripiego):
+
+- **Bitboard** alla Fhourstones: 7 bit per colonna (il settimo è sentinella),
+  `position` = pedine di chi muove, `mask` = tutte; vittorie e minacce con
+  shift/AND (`_has_won`, `_winning_spots`), ordini di grandezza più veloci
+  delle quaterne su tuple.
+- **Tattica esatta a ogni nodo**: vittoria immediata; doppia minaccia
+  avversaria = sconfitta dichiarata; blocco forzato su minaccia singola; MAI
+  giocare sotto una casella vincente avversaria. Gli errori tattici
+  dell'orizzonte a 4 semimosse spariscono per costruzione.
+- **Negamax + TT con flag** (EXACT/LOWER/UPPER, chiave `position+mask`, mossa
+  migliore in testa all'ordinamento; punteggi di vittoria normalizzati per
+  semimossa a store/probe) e **approfondimento iterativo** con budget di tempo
+  (profondità ~9 completata in 1 s dall'apertura, di più nel mezzo), jitter
+  alla radice riscalato ×0.16 (una casella vincente = 16 ≈ un pedone) e `stop`
+  esterno. Valutazione alle foglie: differenza di caselle vincenti + colonna
+  centrale. Vittorie = `_WIN − semimosse` (si preferisce la via più corta) e
+  uscita anticipata dall'iterativo quando la vittoria forzata è trovata.
+
+**BUG di piattaforma scovato e corretto (anche nella dama)**: alla radice le
+mosse dopo la prima erano cercate con finestra `(-∞, -alpha)`; una mossa che
+fallisce alto esattamente al confine registra un BOUND pari ad alpha → falso
+pareggio con la migliore → il sorteggio del pool (jitter) poteva scegliere una
+mossa in realtà PERSA. Sintomo: il greedy a 1 mossa batteva il motore 2 volte
+su 12. Fix: margine sulla finestra pari al jitter (`beta = -alpha +
+int(jitter) + 2`) così ogni mossa che può entrare nel pool ha punteggio
+esatto, mai un bound. Applicato a `connect4/engine.py` E a
+`draughts/engine.py` (stesso schema latente). Dopo il fix: 20/20 contro il
+greedy, quasi sempre in 7 semimosse (il minimo teorico).
+
+**Verifica**: cross-check di `_negamax` (TT + potature + mosse sicure) contro
+un negamax di riferimento nudo su 30 posizioni campione × profondità 2 e 4 —
+valori identici; coerenza bitboard↔regole su partita scriptata (conteggi e
+vittorie combaciano con `outcome`).
+
+**Test**: +7 in `engine/tests/test_connect4.py` (conversione bitboard,
+vittoria immediata, blocco, «mai sotto una casella vincente» su posizione
+VERIFICATA col motore — perde solo la colonna 5 —, mossa legale nel budget,
+batte il greedy, il giocatore locale della piattaforma usa il motore).
+Aggiornato `test_connect4_vs_ai_responds`: la sorgente del ripiego ora è
+`engine`. **296 verdi**, ruff pulito. MANUAL/README/TODO/MEMORY aggiornati.
+
 ## 2026-07-11 — CHECKPOINT anti-compattazione (fotografia dello stato)
 
 **Richiesta (utente):** refresh di tutti i doc (HANDOFF, MEMORY, README, TODO,

@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![Status](https://img.shields.io/badge/stato-in%20sviluppo%20attivo-brightgreen.svg)](#stato-del-progetto)
 
-> **Ultimo aggiornamento:** 2026-07-11 — *Cinque giochi giocabili; scacchi FIDE-completi con analisi/coach/puzzle; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile; 289 test.*
+> **Ultimo aggiornamento:** 2026-07-11 — *Cinque giochi giocabili; scacchi FIDE-completi con analisi/coach/puzzle; motori dedicati per scacchi, dama e Forza 4; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile; 296 test.*
 
 ---
 
@@ -180,7 +180,7 @@ Scacchi/
 │   │   ├── outcome.py   #   esito di una partita (Outcome)
 │   │   └── registry.py  #   registro dei giochi disponibili
 │   ├── tictactoe/       # Tris: game.py (regole) + state.py (stato)
-│   ├── connect4/        # Forza 4 (ogni gioco segue lo stesso schema)
+│   ├── connect4/        # Forza 4: regole + motore dedicato bitboard (engine.py)
 │   ├── backgammon/      # Backgammon: primo gioco stocastico (nodi del caso)
 │   ├── draughts/        # Dama italiana: regole FID + motore dedicato (engine.py)
 │   ├── chess/           # Scacchi:
@@ -303,6 +303,7 @@ Configurazione tramite `.env` (vedi `.env.example`).
 - [x] Scacchi: patta per ripetizione e posizione morta (audit FIDE nel MANUAL), libro esteso (testo/PGN/Polyglot), apertura-bersaglio, analisi post-partita, sparring Elo, hint, badge di qualità + commentatore LLM
 - [x] Sistema di rating **Elo** per gioco e stagione (K adattivo FIDE), accanto ai punti attività
 - [x] **Backgammon**: primo gioco stocastico — nodi del caso realizzati (il server tira i dadi)
+- [x] **Forza 4**: motore dedicato bitboard (negamax + TT + approfondimento iterativo, tattica esatta a ogni nodo)
 
 ## Stato del progetto
 
@@ -313,7 +314,7 @@ cinque giochi (Tris, Forza 4, Dama italiana, Scacchi, Backgammon), quattro tipi 
 avversario con ripiego locale, analisi e coaching per gli scacchi, puzzle, rating Elo con
 stagioni, Arena IA, tornei fra giocatori e sfide di gruppo a squadre, statistiche avanzate
 (quattro aspetti, sottocategorie tattiche, confronto coi pari fascia), interfaccia
-**bilingue IT/EN**, **accessibile** e **responsive**. Suite di **289 test**
+**bilingue IT/EN**, **accessibile** e **responsive**. Suite di **296 test**
 (motore + backend + frontend) eseguita a ogni passo e in **CI** su GitHub Actions; schema
 DB governato da migrazioni Alembic (0001…0013). Il backlog vivo è in [TODO.md](./TODO.md);
 lo storico dei lavori in [HANDOFF.md](./HANDOFF.md).

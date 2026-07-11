@@ -734,6 +734,19 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   arricchito della voce WebSocket esplicita; memoria persistente riscritta
   allo stato corrente con le trappole nuove (fasce isolate nei test, cancello
   del worker, cookie firmato nei test Django, alias `_` per xgettext).
+- **2026-07-11** — **Forza 4: motore dedicato bitboard**
+  (`engine/connect4/engine.py`, agganciato via `engine_move`): bitboard alla
+  Fhourstones (7 bit/colonna con sentinella, chiave TT `position+mask`),
+  negamax con TT a flag, tattica ESATTA a ogni nodo (vittoria immediata,
+  doppia minaccia = sconfitta, blocco forzato, mai sotto una casella vincente
+  avversaria), approfondimento iterativo con budget, jitter ×0.16. BUG DI
+  RADICE scovato e corretto ANCHE NELLA DAMA: finestra `(-∞,-alpha)` senza
+  margine → una mossa che fallisce alto al confine registra un bound pari ad
+  alpha → falso pareggio col migliore → il sorteggio del pool poteva scegliere
+  una mossa persa (il greedy a 1 mossa batteva il motore 2/12!). Fix: margine
+  `int(jitter)+1` sulla beta di radice; dopo, 20/20 contro il greedy. Ricerca
+  verificata con cross-check contro un negamax di riferimento nudo (valori
+  identici su 30 posizioni × profondità 2/4). 296 verdi.
 
 ## Questioni aperte
 
