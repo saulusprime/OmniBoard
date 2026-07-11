@@ -103,6 +103,18 @@
         {% else %}{% trans 'campione insufficiente' %}{% endif %}</p>
     </div>
   </div>
+  {% with sc=va.tactics.subcategories %}
+  {% if sc and sc.conceded %}
+  <p class="muted" style="margin-top:10px; font-size:.9rem;">
+    {% blocktrans with n=sc.conceded %}Dettaglio tattico ({{ n }} occasioni concesse):{% endblocktrans %}
+    💀 {% trans 'matti mancati' %} <strong>{{ sc.missed_mates }}</strong> ·
+    🎣 {% trans 'pezzi lasciati in presa' %} <strong>{{ sc.hanging.total }}</strong>{% if sc.hanging.total %}
+    ({{ sc.hanging.minor }} {% trans 'leggeri' %}, {{ sc.hanging.rook }} {% trans 'torri' %}, {{ sc.hanging.queen }} {% trans 'donne' %}){% endif %} ·
+    ⚡ {% trans 'scacchi concessi' %} <strong>{{ sc.check_tactics }}</strong> ·
+    🤫 {% trans 'tattiche silenziose' %} <strong>{{ sc.quiet_tactics }}</strong> ·
+    ☠️ {% trans 'catture avvelenate' %} <strong>{{ sc.poisoned_captures }}</strong></p>
+  {% endif %}
+  {% endwith %}
   {% endwith %}
   {% endif %}
 

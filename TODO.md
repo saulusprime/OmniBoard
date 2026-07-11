@@ -421,9 +421,14 @@
   pezzi non-pedone. Fasi dal replay deterministico (`_phases`, nessuna
   ricerca); punteggi 0-100 euristici, None sotto i campioni minimi. Quattro
   riquadri con barre nella pagina Statistiche avanzate, bilingue.
-- [ ] **Sottocategorie tattiche**: matti mancati (il motore vedeva `mate` e la mossa
-  giocata non lo dà — dato già in `evaluate()`), pezzi lasciati in presa (perdita ≥
-  valore del pezzo), tipi di tattiche concesse.
+- [x] **Sottocategorie tattiche** (2026-07-11, `tactics.subcategories` dentro
+  `insights._aspects`): per ogni mossa che concede ≥250 cp — **matti mancati**
+  (|cp| ≥ 9901 prima, non più dopo; classificati per primi), **pezzi in
+  presa** (risposta reale = cattura; taglie leggero/torre/donna dalla
+  perdita), **scacchi concessi** (risposta di scacco puro), **tattiche
+  silenziose** (confutazione quieta) e — trasversale — **catture avvelenate**
+  (la mossa concedente era una cattura). Riga «Dettaglio tattico» sotto i
+  quattro aspetti, bilingue.
 - [ ] **Confronto con i pari fascia**: ogni metrica contestualizzata sui giocatori
   della stessa fascia («meglio del 70% dei 1400-1600»). Prerequisito: **rating Elo**
   (già in backlog) + massa di giocatori.

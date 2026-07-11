@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 21:08+0200\n"
+"POT-Creation-Date: 2026-07-11 09:29+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -727,7 +727,9 @@ msgstr "Live games"
 msgid ""
 "Guarda le partite a distanza in corso e i duelli fra IA, in sola lettura. A "
 "partita finita la stessa pagina diventa il replay animato."
-msgstr "Watch ongoing remote games and AI duels, read-only. Once the game is over, the same page becomes the animated replay."
+msgstr ""
+"Watch ongoing remote games and AI duels, read-only. Once the game is over, "
+"the same page becomes the animated replay."
 
 #: web/templates/web/community.html:33
 msgid "Semimosse"
@@ -1758,20 +1760,20 @@ msgstr "Adapted AI style: aggression %(ag)s, contempt %(ct)s."
 msgid "Storico partite"
 msgstr "Game history"
 
-#: web/templates/web/user_detail.html:107 web/templates/web/user_stats.html:152
+#: web/templates/web/user_detail.html:107 web/templates/web/user_stats.html:164
 msgid "vs"
 msgstr "vs"
 
-#: web/templates/web/user_detail.html:108 web/templates/web/user_stats.html:153
+#: web/templates/web/user_detail.html:108 web/templates/web/user_stats.html:165
 msgid "Vittoria"
 msgstr "Win"
 
-#: web/templates/web/user_detail.html:109 web/templates/web/user_stats.html:153
+#: web/templates/web/user_detail.html:109 web/templates/web/user_stats.html:165
 #: web/views.py:907
 msgid "Patta"
 msgstr "Draw"
 
-#: web/templates/web/user_detail.html:110 web/templates/web/user_stats.html:153
+#: web/templates/web/user_detail.html:110 web/templates/web/user_stats.html:165
 msgid "Sconfitta"
 msgstr "Loss"
 
@@ -1930,38 +1932,75 @@ msgid "ACPL %(acpl)s su %(m)s mosse"
 msgstr "ACPL %(acpl)s over %(m)s moves"
 
 #: web/templates/web/user_stats.html:109
+#, python-format
+msgid "Dettaglio tattico (%(n)s occasioni concesse):"
+msgstr "Tactical detail (%(n)s conceded chances):"
+
+#: web/templates/web/user_stats.html:110
+msgid "matti mancati"
+msgstr "missed mates"
+
+#: web/templates/web/user_stats.html:111
+msgid "pezzi lasciati in presa"
+msgstr "pieces left hanging"
+
+#: web/templates/web/user_stats.html:112
+msgid "leggeri"
+msgstr "minor"
+
+#: web/templates/web/user_stats.html:112
+msgid "torri"
+msgstr "rooks"
+
+#: web/templates/web/user_stats.html:112
+msgid "donne"
+msgstr "queens"
+
+#: web/templates/web/user_stats.html:113
+msgid "scacchi concessi"
+msgstr "checks conceded"
+
+#: web/templates/web/user_stats.html:114
+msgid "tattiche silenziose"
+msgstr "quiet tactics"
+
+#: web/templates/web/user_stats.html:115
+msgid "catture avvelenate"
+msgstr "poisoned captures"
+
+#: web/templates/web/user_stats.html:121
 msgid "Come finiscono le partite"
 msgstr "How games end"
 
-#: web/templates/web/user_stats.html:111
+#: web/templates/web/user_stats.html:123
 msgid "scacco matto"
 msgstr "checkmate"
 
-#: web/templates/web/user_stats.html:112
+#: web/templates/web/user_stats.html:124
 msgid "tempo"
 msgstr "time"
 
-#: web/templates/web/user_stats.html:113
+#: web/templates/web/user_stats.html:125
 msgid "abbandono"
 msgstr "resignation"
 
-#: web/templates/web/user_stats.html:114
+#: web/templates/web/user_stats.html:126
 msgid "patta d’accordo"
 msgstr "draw by agreement"
 
-#: web/templates/web/user_stats.html:115
+#: web/templates/web/user_stats.html:127
 msgid "ripetizione"
 msgstr "repetition"
 
-#: web/templates/web/user_stats.html:118
+#: web/templates/web/user_stats.html:130
 msgid "I tuoi badge di qualità"
 msgstr "Your quality badges"
 
-#: web/templates/web/user_stats.html:126
+#: web/templates/web/user_stats.html:138
 msgid "Mosse geniali"
 msgstr "Brilliant moves"
 
-#: web/templates/web/user_stats.html:127
+#: web/templates/web/user_stats.html:139
 msgid ""
 "Le tue mosse «da maestro» secondo il motore: lo scatto della posizione, "
 "l’avversario e il collegamento alla moviola."
@@ -1969,59 +2008,59 @@ msgstr ""
 "Your “masterful” moves according to the engine: a snapshot of the position, "
 "the opponent and a link to the replay viewer."
 
-#: web/templates/web/user_stats.html:130
+#: web/templates/web/user_stats.html:142
 msgid "Tutte"
 msgstr "All"
 
-#: web/templates/web/user_stats.html:131
+#: web/templates/web/user_stats.html:143
 msgid "Sacrifici"
 msgstr "Sacrifices"
 
-#: web/templates/web/user_stats.html:132
+#: web/templates/web/user_stats.html:144
 msgid "Da maestro"
 msgstr "Masterful"
 
-#: web/templates/web/user_stats.html:133
+#: web/templates/web/user_stats.html:145
 msgid "Filtra per pezzo"
 msgstr "Filter by piece"
 
-#: web/templates/web/user_stats.html:135
+#: web/templates/web/user_stats.html:147
 msgid "Ogni pezzo"
 msgstr "Any piece"
 
-#: web/templates/web/user_stats.html:136 web/views.py:950
+#: web/templates/web/user_stats.html:148 web/views.py:950
 msgid "Donna"
 msgstr "Queen"
 
-#: web/templates/web/user_stats.html:137 web/views.py:951
+#: web/templates/web/user_stats.html:149 web/views.py:951
 msgid "Torre"
 msgstr "Rook"
 
-#: web/templates/web/user_stats.html:138 web/views.py:952
+#: web/templates/web/user_stats.html:150 web/views.py:952
 msgid "Alfiere"
 msgstr "Bishop"
 
-#: web/templates/web/user_stats.html:139 web/views.py:953
+#: web/templates/web/user_stats.html:151 web/views.py:953
 msgid "Cavallo"
 msgstr "Knight"
 
-#: web/templates/web/user_stats.html:140
+#: web/templates/web/user_stats.html:152
 msgid "Re"
 msgstr "King"
 
-#: web/templates/web/user_stats.html:141
+#: web/templates/web/user_stats.html:153
 msgid "Pedone"
 msgstr "Pawn"
 
-#: web/templates/web/user_stats.html:150
+#: web/templates/web/user_stats.html:162
 msgid "semimossa"
 msgstr "half-move"
 
-#: web/templates/web/user_stats.html:156
+#: web/templates/web/user_stats.html:168
 msgid "Apri la moviola"
 msgstr "Open the replay viewer"
 
-#: web/templates/web/user_stats.html:186
+#: web/templates/web/user_stats.html:198
 msgid ""
 "Ancora nessuna mossa da maestro: gioca (con i badge di qualità attivi) e "
 "torna qui."

@@ -704,7 +704,18 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   apt stockfish+gettext, ruff check+format, msgfmt sul .po, alembic
   upgrade+check su DB VERGINE (gate contro la trappola delle migrazioni
   rinominate), pytest completo (conftest autosufficiente: nessun .env o
-  segreto in CI, i settings hanno default). Badge CI nel README.
+  segreto in CI, i settings hanno default). Badge CI nel README. Primo run
+  VERDE su main in 2m20s (i run precedenti fallivano al pip: checkout senza
+  submodule → ./integrazioni/KittenTTS vuota).
+- **2026-07-11** — **Sottocategorie tattiche**: tactics.subcategories nei
+  quattro aspetti — per ogni mossa che concede ≥250 cp (perdita GREZZA):
+  matti mancati (|cp|≥9901 prima e non dopo, cp della semimossa precedente;
+  classificati PRIMA: le loro perdite sono giganti), pezzi in presa (risposta
+  reale = cattura, taglie da perdita 250/450/850), scacchi concessi (scacco
+  puro), tattiche silenziose (risposta quieta), catture avvelenate
+  (trasversale: la mossa concedente era una cattura). Senza risposta →
+  contata ma non classificata. Riga «Dettaglio tattico» in Statistiche.
+  288 verdi.
 
 ## Questioni aperte
 

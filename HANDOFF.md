@@ -3,6 +3,49 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Sottocategorie tattiche (Insights)
+
+**Richiesta (utente):** «Sottocategorie tattiche» (voce ricerca del TODO). In
+apertura: verificato l'esito del run CI della sessione precedente (il watch
+in background era stato interrotto) — **verde su main in 2m20s**; Dependabot
+ha aperto due PR di bump (checkout v7, setup-python v6), entrambe con CI
+verde, da approvare a discrezione dell'utente.
+
+**Cosa misura** (dentro `insights._aspects`, campo
+`tactics.subcategories`; «concessa» = propria mossa con perdita ≥
+`_TACTIC_LOSS`=250 cp, perdita GREZZA non a tetto):
+
+- **matti mancati** — prima della mossa il motore vedeva un matto FORZATO per
+  chi muove e dopo non c'è più. I matti nell'analisi sono codificati
+  ±(10000−distanza) → |cp| ≥ `_MATE_CP`=9901; serve il cp della semimossa
+  precedente (`evals_by_ply[ply-1]`), per la 1ª semimossa non c'è → si salta.
+  Classificato PRIMA delle altre categorie (le perdite da matto mancato sono
+  giganti e dominerebbero i secchi);
+- **pezzi lasciati in presa** — la risposta avversaria REALE è una cattura
+  («x» nella notazione); taglia dalla perdita: leggero <450, torre <850,
+  donna ≥850;
+- **scacchi concessi** — risposta di scacco puro (+/# senza cattura);
+- **tattiche silenziose** — risposta QUIETA (le confutazioni più difficili
+  da vedere);
+- **catture avvelenate** (trasversale) — la mossa che concede era essa
+  stessa una cattura (il cugino per-mossa del bias «coazione alla cattura»);
+- senza risposta (partita finita lì): conteggiata fra le concesse ma non
+  classificata — le categorie possono sommare meno del totale.
+
+**UI**: riga «Dettaglio tattico (N occasioni concesse)» sotto la griglia dei
+quattro aspetti (💀🎣⚡🤫☠️ con taglie dei pezzi in presa), resa solo se
+esiste almeno una concessione; il template tollera payload senza
+`subcategories` (vecchie cache). i18n: 9 voci nuove.
+
+**Test (288 verdi, +1)**: partita scriptata di 16 semimosse (verificata
+legale col motore prima di scriverla) che produce UNA occorrenza per
+categoria: Nxe5 avvelenata + ripresa Nxe5 (pezzo in presa leggero), risposta
+Bb4+ (scacco puro), confutazione quieta Ba5, e matto mancato con cp finti
+9998→200 al ply 15 (che pur avendo risposta quieta finisce nei matti mancati:
+l'ordine di classificazione conta). Il profilo dell'avversario resta a zero.
+
+---
+
 ## 2026-07-09 — CI GitHub Actions (pipeline completa)
 
 **Richiesta (utente):** «CI GitHub Actions». Il workflow esisteva dall'era

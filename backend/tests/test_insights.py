@@ -297,6 +297,83 @@ def test_four_aspects_evaluation():
         assert asp["endgame"]["score"] is None
 
 
+def test_tactic_subcategories():
+    """Sottocategorie tattiche: matto mancato, pezzo in presa, scacco, silenziosa.
+
+    Partita scriptata (verificata legale col motore): al ply 9 il Bianco cattura
+    (Nxe5, «cattura avvelenata») e il Nero riprende (pezzo in presa); al ply 11
+    la risposta è uno scacco PURO (Bb4+); al ply 13 la confutazione è quieta
+    (Ba5); al ply 15 le valutazioni finte dicono che il Bianco aveva un matto
+    forzato (cp 9998) e l'ha buttato (cp 200) → matto mancato, classificato
+    PRIMA delle altre categorie nonostante la risposta quieta.
+    """
+    game_moves = [
+        "e2e4",
+        "e7e5",
+        "g1f3",
+        "b8c6",
+        "f1c4",
+        "f8c5",
+        "d2d3",
+        "g8f6",
+        "f3e5",
+        "c6e5",
+        "h2h3",
+        "c5b4",
+        "c2c3",
+        "b4a5",
+        "a2a3",
+        "a7a6",
+    ]
+    with TestClient(app) as client:
+        u1, u2 = _user(client, "tsc_a"), _user(client, "tsc_b")
+        sid = client.post(
+            "/sessions",
+            json={
+                "game_code": "chess",
+                "x": {"type": "human", "user_id": u1["id"]},
+                "o": {"type": "human", "user_id": u2["id"]},
+            },
+        ).json()["id"]
+        for uci in game_moves:
+            assert client.post(f"/sessions/{sid}/move", json={"move": uci}).status_code == 200
+        client.post(f"/sessions/{sid}/resign", json={"side": "o"})
+
+        losses = {9: 300, 11: 500, 13: 300, 15: 9798}
+        cps = {14: 9998, 15: 200}
+        db = SessionLocal()
+        try:
+            evals = [
+                {
+                    "ply": ply,
+                    "by": "x" if ply % 2 == 1 else "o",
+                    "cp": cps.get(ply, 0),
+                    "loss": losses.get(ply, 20),
+                    "tag": "??" if ply == 15 else None,
+                }
+                for ply in range(1, len(game_moves) + 1)
+            ]
+            db.get(GameSession, sid).analysis_json = json.dumps({"status": "done", "evals": evals})
+            db.commit()
+        finally:
+            db.close()
+
+        sub = client.get(f"/users/{u1['id']}/insights").json()["chess"]["aspects"]["tactics"][
+            "subcategories"
+        ]
+        assert sub["conceded"] == 4
+        assert sub["missed_mates"] == 1
+        assert sub["hanging"] == {"total": 1, "minor": 1, "rook": 0, "queen": 0}
+        assert sub["check_tactics"] == 1
+        assert sub["quiet_tactics"] == 1
+        assert sub["poisoned_captures"] == 1
+        # L'avversario non ha concesso nulla di suo: il suo profilo resta pulito.
+        sub2 = client.get(f"/users/{u2['id']}/insights").json()["chess"]["aspects"]["tactics"][
+            "subcategories"
+        ]
+        assert sub2["conceded"] == 0
+
+
 def test_performance_by_cadence():
     """by_cadence separa senza-orologio e blitz, con ACPL dalle analisi in cache."""
     with TestClient(app) as client:
