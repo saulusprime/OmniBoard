@@ -794,6 +794,13 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   posto di `:enabled`. ARIA = notazione («d3, pedina nera», «punta 13»).
   Flake del greedy Forza 4 → al meglio di tre (patta tollerata, sconfitta
   mai). 318 verdi.
+- **2026-07-11** — **Piano di riorganizzazione del frontend** (solo analisi,
+  scritta nel TODO come sezione ⭐): modello chess.com — 5 aree per OmniBoard
+  (Gioca/Puzzle/Impara/Guarda/Community), navbar con menu a discesa + landing
+  di area, avatar col menu profilo (Admin dentro), campanella con pannello
+  notifiche proprio, home-dashboard per il loggato; la pagina Community si
+  smembra (dirette→Guarda, sfide→Gioca, notifiche→campanella). Cinque fasi
+  nel TODO; vincoli: URL conservati, heartbeat intatto, i18n.
 
 ## Questioni aperte
 

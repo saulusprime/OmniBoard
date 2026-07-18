@@ -5,6 +5,60 @@
 > e documentarlo in [HANDOFF.md](./HANDOFF.md). Le voci con ⭐ sono quelle a maggior
 > impatto percepito.
 
+## ⭐ Priorità alta — Riorganizzazione del frontend (IA alla chess.com)
+
+> **Diagnosi** (2026-07-11): la navbar è PIATTA con 12 voci allo stesso livello
+> (Home, Gioca, Impara, Puzzle, Giocatori, Gruppi, Tornei, Classifiche, Arena IA,
+> Registra partita, Community, Admin) — nessuna gerarchia, «Registra partita» al
+> pari di «Gioca», e la pagina Community è un contenitore di quattro cose diverse
+> (presenza, sfide, notifiche, dirette). Il modello studiato è **chess.com**:
+> 6 aree (Play / Puzzles / Learn / Train / Watch / Community + News), ogni voce
+> è al tempo stesso **landing page** e **menu a discesa** con le sottopagine;
+> profilo, notifiche e ricerca stanno sull'avatar a destra; su mobile la
+> navigazione diventa sidebar/hamburger con voci espandibili.
+>
+> **Mappa proposta per OmniBoard** (5 aree — niente «News»: non abbiamo
+> contenuti editoriali; niente «Train» finché non esistono esercizi oltre le
+> lezioni):
+>
+> | Area | Contenuti (pagine esistenti ricollocate) |
+> | --- | --- |
+> | **Gioca** | nuova partita (setup), le mie partite in corso, sfide/inviti, tornei umani, sfide gruppo-vs-gruppo, registra partita manuale |
+> | **Puzzle** | come oggi (in prospettiva: puzzle del giorno, «dai tuoi errori») |
+> | **Impara** | lezioni «Impara» (in prospettiva: aperture commentate, esercizi → farà nascere «Allenati») |
+> | **Guarda** | partite in diretta (spettatori), Arena IA coi tornei fra motori, replay recenti |
+> | **Community** | giocatori (elenco+ricerca), gruppi, classifiche (punti + Elo), presenza online |
+>
+> Fuori dalle aree: **Home = dashboard personale** (riprendi le partite, sfide
+> pendenti, puzzle, dirette in corso); **avatar a destra** con menu profilo
+> (scheda, statistiche avanzate, preferenze, Admin solo per il super admin,
+> esci); **campanella 🔔** con pannello notifiche proprio (oggi porta in
+> Community). Vincoli: gli URL esistenti restano (redirect dove serve), il
+> heartbeat JS di base.html si conserva, ogni voce nuova passa da i18n.
+
+- [ ] **Fase 1 — Navigazione**: navbar a 5 aree con menu a discesa accessibili
+  (click/hover + tastiera: `aria-expanded`, frecce, Esc; su mobile hamburger
+  con sezioni espandibili); menu profilo sull'avatar (Admin dentro, non più in
+  navbar); campanella col pannello notifiche dedicato. Le landing page delle
+  aree possono inizialmente REINDIRIZZARE alla pagina principale esistente
+  (Gioca → setup, Guarda → dirette…): prima la struttura, poi i contenuti.
+- [ ] **Fase 2 — Hub «Gioca»**: landing con «le mie partite in corso» (riprendi),
+  nuova partita, inviti ricevuti/inviati, tornei aperti, sfide di gruppo
+  pendenti, registra risultato. Le pagine Tornei e Registra partita diventano
+  sottopagine dell'area.
+- [ ] **Fase 3 — Hub «Guarda»**: landing con le dirette (dalla Community), i
+  tornei dell'Arena IA in corso e i replay recenti; Arena IA diventa
+  sottopagina dell'area.
+- [ ] **Fase 4 — Community ristretta**: la pagina attuale si smembra (dirette →
+  Guarda, sfide → Gioca, notifiche → campanella); restano giocatori, gruppi,
+  classifiche e presenza online, con una landing di area.
+- [ ] **Fase 5 — Home dashboard**: per l'utente loggato la home diventa il
+  cruscotto personale (riprendi/gioca/puzzle/dirette/notifiche recenti); per
+  l'anonimo resta la vetrina attuale.
+- [ ] Trasversali: **ricerca giocatore in navbar**, titoli di pagina e
+  breadcrumb coerenti con le aree, test di resa per ogni pagina
+  nuova/spostata, i18n completa delle voci.
+
 ## Giochi
 
 - [ ] **Filetto 3D** (4×4×4): richiede un tavoliere 3D dedicato nel frontend
