@@ -1,6 +1,7 @@
 {% extends "web/base.html" %}
 {% load i18n %}
 {% block title %}{% trans 'Puzzle' %} #{{ p.id }}{% endblock %}
+{% block breadcrumb %}<nav class="crumbs" aria-label="{% trans 'Percorso' %}"><a href="{% url 'puzzles' %}">{% trans "Puzzle" %}</a> › #{{ p.id }}</nav>{% endblock %}
 {% block content %}
 {% include "web/board_css.html" %}
 {{ p|json_script:"puzzle-data" }}

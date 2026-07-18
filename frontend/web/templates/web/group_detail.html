@@ -1,6 +1,7 @@
 {% extends "web/base.html" %}
 {% load i18n %}
 {% block title %}{{ g.name }} — {% trans 'Gruppo' %}{% endblock %}
+{% block breadcrumb %}<nav class="crumbs" aria-label="{% trans 'Percorso' %}"><a href="{% url 'community' %}">Community</a> › <a href="{% url 'groups' %}">{% trans "Gruppi" %}</a> › {{ g.name }}</nav>{% endblock %}
 {% block content %}
 <div class="card">
   <h1>👥 {{ g.name }}</h1>

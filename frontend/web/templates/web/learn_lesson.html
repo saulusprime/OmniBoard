@@ -1,6 +1,7 @@
 {% extends "web/base.html" %}
 {% load i18n %}
 {% block title %}{{ lesson.title }} — Impara{% endblock %}
+{% block breadcrumb %}<nav class="crumbs" aria-label="{% trans 'Percorso' %}"><a href="{% url 'learn_index' %}">{% trans "Impara" %}</a> › {{ lesson.title }}</nav>{% endblock %}
 {% block content %}
 {% include "web/board_css.html" %}
 <style>

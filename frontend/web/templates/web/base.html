@@ -43,6 +43,10 @@
     .bell-item.unread { font-weight:600; }
     a.bell-item:hover { background:rgba(217,164,65,.12); }
     #nav-burger { display:none; font-size:1.2rem; padding:4px 8px; }
+    /* Briciole di pane: percorso dell'area sopra il contenuto delle sottopagine. */
+    .crumbs { font-size:.85rem; margin:0 0 12px; color:var(--muted); }
+    .crumbs a { color:var(--muted); text-decoration:none; }
+    .crumbs a:hover { color:var(--accent); }
     main { padding:28px 0 60px; }
     h1,h2 { line-height:1.2; }
     .card { background:var(--panel); border:1px solid var(--line); border-radius:10px;
@@ -140,6 +144,11 @@
         </div>
       </div>
     </div>
+    <form method="get" action="{% url 'users_list' %}" role="search" style="margin:0;">
+      <input type="search" name="q" placeholder="🔍 {% trans 'Giocatore…' %}"
+             aria-label="{% trans 'Cerca giocatore' %}"
+             style="width:130px; padding:5px 8px; font-size:.85rem;">
+    </form>
     <form method="post" action="{% url 'set_language' %}" style="margin:0;">
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -190,6 +199,7 @@
       {% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}
     </ul>
     {% endif %}
+    {% block breadcrumb %}{% endblock %}
     {% block content %}{% endblock %}
   </div></main>
   {% if auth_user %}

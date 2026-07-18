@@ -1,6 +1,7 @@
 {% extends "web/base.html" %}
 {% load i18n %}
 {% block title %}{% trans 'Classifiche' %}{% endblock %}
+{% block breadcrumb %}<nav class="crumbs" aria-label="{% trans 'Percorso' %}"><a href="{% url 'community' %}">Community</a> › {% trans "Classifiche" %}</nav>{% endblock %}
 {% block content %}
 <div class="card">
   <h1>{% trans 'Classifica universale' %}</h1>

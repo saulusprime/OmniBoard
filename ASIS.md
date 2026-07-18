@@ -334,6 +334,14 @@
   dal vivo con LOGIN REALE (utente demo creato e approvato via API, client
   Django, screenshot del cruscotto con dati veri). MANUAL aggiornato con la
   sezione «Navigazione ad aree».
+- [x] **Riorganizzazione frontend — rifiniture** (2026-07-11, l'intera sezione
+  è CHIUSA): **ricerca giocatore in navbar** (`role="search"` → `/giocatori/?q=`,
+  filtro per alias o nome; UN solo risultato → dritti alla scheda; feedback
+  «Risultati per …» con link a tutti) e **breadcrumb d'area** su 18 sottopagine
+  (blocco `breadcrumb` + stile `.crumbs` in base.html: Gioca › Tornei,
+  Community › Giocatori › alias, Guarda › Arena IA, Impara › lezione,
+  Puzzle › #id, …); il link di uscita dello spettatore va a «Guarda» (non più
+  alla Community).
 
 - [x] **Promozione con dialog grafico** — pannello sopra la scacchiera coi
   quattro pezzi cliccabili nei colori del TEMA del lato che muove (♛♜♝♞, classi

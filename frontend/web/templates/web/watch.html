@@ -1,6 +1,7 @@
 {% extends "web/base.html" %}
 {% load i18n %}
 {% block title %}👁 {{ s.game_name }} #{{ session_id }}{% endblock %}
+{% block breadcrumb %}<nav class="crumbs" aria-label="{% trans 'Percorso' %}"><a href="{% url 'watch_hub' %}">{% trans "Guarda" %}</a> › {% trans "Spettatore" %}</nav>{% endblock %}
 {% block content %}
 {% include "web/board_css.html" %}
 {{ s|json_script:"watch-data" }}
@@ -32,7 +33,7 @@
   </div>
 
   <p style="margin-top:12px;">
-    <a class="btn secondary" href="{% url 'community' %}">← Community</a>
+    <a class="btn secondary" href="{% url 'watch_hub' %}">← {% trans "Guarda" %}</a>
     <a class="btn secondary" href="{% url 'play' session_id %}">{% trans 'Apri come giocatore' %}</a>
   </p>
 </div>

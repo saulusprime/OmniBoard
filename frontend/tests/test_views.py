@@ -541,6 +541,29 @@ def test_notifications_json_anonymous_is_empty():
     assert data == {"notifications": [], "unread": 0}
 
 
+def test_navbar_search_filters_players_and_jumps_to_single_match(monkeypatch):
+    """La ricerca in navbar filtra i giocatori (?q=); un solo risultato porta
+    dritti alla scheda; le pagine di sottolivello hanno il breadcrumb d'area."""
+    import web.api_client as api
+
+    people = [
+        {"id": 1, "alias": "MagnusFan", "first_name": "Magnus", "last_name": "F"},
+        {"id": 2, "alias": "HikaruFan", "first_name": "Hikaru", "last_name": "N"},
+        {"id": 3, "alias": "magnete", "first_name": "Aldo", "last_name": "Magni"},
+    ]
+    monkeypatch.setattr(api, "list_users", lambda: people)
+    html = Client().get("/giocatori/?q=magn", SERVER_NAME="localhost").content.decode()
+    assert "MagnusFan" in html and "magnete" in html and "HikaruFan" not in html
+    assert "Risultati per" in html
+    # Con l'input di navbar presente in ogni pagina.
+    assert 'role="search"' in html
+    # Un solo risultato: dritti alla scheda del giocatore.
+    resp = Client().get("/giocatori/?q=hikaru", SERVER_NAME="localhost")
+    assert resp.status_code == 302 and resp.url == "/giocatori/2/"
+    # Breadcrumb d'area sulla pagina giocatori.
+    assert 'class="crumbs"' in html and "Community" in html
+
+
 def test_home_is_dashboard_for_logged_and_showcase_for_anonymous(monkeypatch):
     """Fase 5: la home del loggato è il CRUSCOTTO (riprendi, sfide, dirette,
     notifiche); per l'anonimo resta la vetrina con la registrazione."""

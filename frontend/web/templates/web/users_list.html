@@ -1,10 +1,15 @@
 {% extends "web/base.html" %}
 {% load i18n %}
 {% block title %}{% trans 'Giocatori' %}{% endblock %}
+{% block breadcrumb %}<nav class="crumbs" aria-label="{% trans 'Percorso' %}"><a href="{% url 'community' %}">Community</a> › {% trans "Giocatori" %}</nav>{% endblock %}
 {% block content %}
 <div class="card">
   <h1>{% trans 'Giocatori' %}</h1>
   <p><a class="btn" href="{% url 'user_create' %}">+ {% trans 'Richiedi registrazione' %}</a></p>
+  {% if q %}
+  <p class="muted">{% blocktrans %}Risultati per «{{ q }}»{% endblocktrans %} —
+    <a href="{% url 'users_list' %}">{% trans "tutti i giocatori" %}</a></p>
+  {% endif %}
   {% if users %}
   <table>
     <tr><th>{% trans 'Alias' %}</th><th>{% trans 'Nome' %}</th><th>{% trans 'Nazionalità' %}</th><th>{% trans 'Regione' %}</th></tr>

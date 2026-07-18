@@ -2519,3 +2519,28 @@ msgstr "Reply"
 #: web/templates/web/home.html
 msgid "Tutte le dirette"
 msgstr "All live games"
+
+#: web/templates/web/base.html
+msgid "Percorso"
+msgstr "Path"
+
+#: web/templates/web/watch.html
+msgid "Spettatore"
+msgstr "Spectator"
+
+#: web/templates/web/base.html
+msgid "Cerca giocatore"
+msgstr "Search player"
+
+#: web/templates/web/base.html
+msgid "Giocatore…"
+msgstr "Player…"
+
+#: web/templates/web/users_list.html
+msgid "tutti i giocatori"
+msgstr "all players"
+
+#: web/templates/web/users_list.html
+#, python-format
+msgid "Risultati per «%(q)s»"
+msgstr "Results for “%(q)s”"

@@ -1,6 +1,7 @@
 {% extends "web/base.html" %}
 {% load i18n %}
 {% block title %}{{ t.name }}{% endblock %}
+{% block breadcrumb %}<nav class="crumbs" aria-label="{% trans 'Percorso' %}"><a href="{% url 'watch_hub' %}">{% trans "Guarda" %}</a> › <a href="{% url 'arena' %}">{% trans "Arena IA" %}</a> › {{ t.name }}</nav>{% endblock %}
 {% block content %}
 <div class="card">
   <h1>🏆 {{ t.name }}</h1>

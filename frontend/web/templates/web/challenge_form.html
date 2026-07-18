@@ -1,6 +1,7 @@
 {% extends "web/base.html" %}
 {% load i18n %}
 {% block title %}{% trans 'Sfida' %} {{ target.alias }}{% endblock %}
+{% block breadcrumb %}<nav class="crumbs" aria-label="{% trans 'Percorso' %}"><a href="{% url 'play_hub' %}">{% trans "Gioca" %}</a> › {% trans "Sfida" %} {{ target.alias }}</nav>{% endblock %}
 {% block content %}
 <div class="card">
   <h1>⚔️ {% trans 'Sfida' %} {{ target.alias }}</h1>

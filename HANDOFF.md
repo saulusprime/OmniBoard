@@ -3,6 +3,31 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Frontend: rifiniture (ricerca in navbar + breadcrumb) — sezione CHIUSA
+
+**Richiesta (utente):** «procediamo con le rifiniture».
+
+**Ricerca giocatore in navbar** (base.html, `role="search"`, visibile anche
+su mobile): GET su `/giocatori/?q=` — la vista `users_list` filtra per alias
+O nome+cognome (case-insensitive); con UN solo risultato reindirizza dritta
+alla scheda del giocatore; la pagina mostra «Risultati per «q»» col link a
+tutti. Nessun endpoint nuovo: si filtra la lista già esposta dal backend.
+
+**Breadcrumb d'area**: blocco `{% block breadcrumb %}` in base.html (sopra il
+contenuto, dopo i messaggi) + stile `.crumbs`; inserito su **18 sottopagine**
+con lo schema Area › (sottoarea ›) pagina — es. Gioca › Tornei › nome,
+Community › Giocatori › alias, Guarda › Arena IA › torneo, Impara › titolo
+lezione, Puzzle › #id. Le landing (hub, community, learn, puzzles, home) non
+ce l'hanno: SONO l'area. Già che c'ero: il link d'uscita della pagina
+spettatore ora torna a «Guarda» (era «← Community», pre-Fase 4).
+
+**Con questo la sezione «Riorganizzazione del frontend» del TODO è CHIUSA**
+(5 fasi + rifiniture, tutte in giornata). **Test**: +1 (ricerca filtra,
+match unico → 302 alla scheda, breadcrumb presente, form di ricerca in ogni
+pagina). **324 verdi**, ruff pulito. 6 stringhe nuove nel .po/.mo.
+Verificato dal vivo: screenshot dei risultati di ricerca (utenti veri
+remoto_a/remoto_b) e delle briciole su Giocatori e Tornei.
+
 ## 2026-07-11 — Frontend Fase 5: home-cruscotto — riorganizzazione COMPLETA
 
 **Richiesta (utente):** «ok procediamo con la fase 5».

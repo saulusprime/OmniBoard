@@ -57,8 +57,21 @@ def home(request):
 
 
 def users_list(request):
+    """Elenco giocatori, con la RICERCA della navbar (?q=): filtra per alias o
+    nome; un solo risultato → dritti alla scheda del giocatore."""
     users = _safe(request, api.list_users, default=[])
-    return render(request, "web/users_list.html", {"users": users})
+    q = (request.GET.get("q") or "").strip()
+    if q:
+        needle = q.lower()
+        users = [
+            u
+            for u in users
+            if needle in (u.get("alias") or "").lower()
+            or needle in f"{u.get('first_name', '')} {u.get('last_name', '')}".lower()
+        ]
+        if len(users) == 1:
+            return redirect("user_detail", user_id=users[0]["id"])
+    return render(request, "web/users_list.html", {"users": users, "q": q})
 
 
 def user_create(request):

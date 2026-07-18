@@ -1,6 +1,7 @@
 {% extends "web/base.html" %}
 {% load i18n %}
 {% block title %}{{ m.challenger_group }} — {{ m.opponent_group }} · {% trans 'Sfida di gruppo' %}{% endblock %}
+{% block breadcrumb %}<nav class="crumbs" aria-label="{% trans 'Percorso' %}"><a href="{% url 'community' %}">Community</a> › <a href="{% url 'groups' %}">{% trans "Gruppi" %}</a> › {% trans "Sfida di gruppo" %}</nav>{% endblock %}
 {% block content %}
 <div class="card">
   <h1>🛡 {{ m.challenger_group }} <span class="muted">vs</span> {{ m.opponent_group }}</h1>

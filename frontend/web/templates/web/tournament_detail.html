@@ -1,6 +1,7 @@
 {% extends "web/base.html" %}
 {% load i18n %}
 {% block title %}{{ t.name }} — {% trans 'Torneo' %}{% endblock %}
+{% block breadcrumb %}<nav class="crumbs" aria-label="{% trans 'Percorso' %}"><a href="{% url 'play_hub' %}">{% trans "Gioca" %}</a> › <a href="{% url 'tournaments' %}">{% trans "Tornei" %}</a> › {{ t.name }}</nav>{% endblock %}
 {% block content %}
 <div class="card">
   <h1>⚔️ {{ t.name }}

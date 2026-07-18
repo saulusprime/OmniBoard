@@ -838,6 +838,11 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   Verificata con LOGIN VERO (utente demo via API + client Django). NOTA: il
   .env sta nella ROOT del repo, non in backend/. Nel TODO restano solo le
   rifiniture (ricerca in navbar, breadcrumb). 323 verdi.
+- **2026-07-11** — **Rifiniture frontend FATTE — sezione riorganizzazione
+  CHIUSA**: ricerca giocatore in navbar (?q= su /giocatori/, filtro alias o
+  nome, match unico → redirect alla scheda) e breadcrumb d'area su 18
+  sottopagine (blocco breadcrumb + .crumbs in base.html; le landing non lo
+  hanno: sono l'area); uscita dello spettatore → Guarda. 324 verdi.
 
 ## Questioni aperte
 

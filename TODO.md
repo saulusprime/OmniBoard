@@ -5,15 +5,6 @@
 > e documentarlo in [HANDOFF.md](./HANDOFF.md). Le voci con ⭐ sono quelle a maggior
 > impatto percepito.
 
-## Frontend — rifiniture dell'IA ad aree
-
-> La riorganizzazione sul modello chess.com è **COMPLETA** (5 fasi, 2026-07-11,
-> v. ASIS.md): navbar a 5 aree con menu a discesa, hub Gioca e Guarda,
-> Community ristretta con /notifiche/, home-cruscotto per il loggato.
-
-- [ ] Rifiniture: **ricerca giocatore in navbar**, titoli di pagina e
-  breadcrumb coerenti con le aree.
-
 ## Giochi
 
 - [ ] **Filetto 3D** (4×4×4): richiede un tavoliere 3D dedicato nel frontend
