@@ -3,6 +3,42 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Frontend Fase 3: hub «Guarda»
+
+**Richiesta (utente):** «ok procediamo con la fase 3».
+
+**Hub** (`/guarda/`, vista `watch_hub` + watch_hub.html): **«Partite in
+diretta»** (`#dirette`, stessa tabella della community, AUTO-AGGIORNATA ogni
+10 s dal polling di community.json); **«Tornei dell'Arena IA»** (primi 6 da
+`/arena/tournaments` — lista nuda, niente involucro — con avanzamento
+`games_played/games_total` e link al dettaglio); **«Replay recenti»**
+(`#replay`, esito 1–0/0–1/½–½ e bottone 🎬 verso la pagina spettatore, che a
+partita finita è la moviola animata).
+
+**Backend nuovo**: `GET /community/recent` — le ultime 10 partite CONCLUSE
+della stessa platea delle dirette (a distanza o IA-vs-IA; le hotseat restano
+fuori per coerenza). Refactor: etichette dei lati in `_side_label` e filtro
+`_WATCHABLE` condivisi fra `/live` e `/recent` (prima il label era una
+funzione annidata dentro live_games).
+
+**Navbar**: «Guarda» di primo livello → `/guarda/`; menu con Partite in
+diretta (#dirette), Replay recenti (#replay) e Arena IA come sottopagina —
+le ancore della community non servono più a quest'area.
+
+**Verifica dal vivo** (istanze proprie, i server dell'utente sono spenti):
+l'hub ha mostrato DATI VERI — una diretta Tris fra utenti remoti, il torneo
+Arena concluso 28/28, i replay delle IA-vs-IA di oggi. Un apparente baco
+(«Othello 0–1» quando la partita 60 l'aveva vinta X) era in realtà la
+sessione 65: qualcuno ha giocato altre partite IA-vs-IA dei giochi nuovi
+dall'interfaccia (62-65) — il dato era giusto; VERIFICARE l'id prima di
+inseguire un baco del template.
+
+**Test**: +1 backend (a partita a distanza conclusa: entra in /recent con
+winner/plies/etichette; la hotseat resta fuori — esteso il test spettatori
+esistente) e +1 frontend (hub con dirette/arena/replay via mock fedeli).
+**322 verdi**, ruff pulito. 7 stringhe nuove nel .po/.mo. TODO: Fase 3 →
+ASIS; restano le fasi 4-5.
+
 ## 2026-07-11 — Frontend Fase 2: hub «Gioca»
 
 **Richiesta (utente):** «ok procediamo con Fase 2».

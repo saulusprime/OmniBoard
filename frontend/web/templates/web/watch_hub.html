@@ -1,0 +1,99 @@
+{% extends "web/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Guarda" %} — OmniBoard{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>👁 {% trans "Guarda" %}</h1>
+  <p class="muted">{% trans "Le partite in diretta, i tornei fra le IA e i replay delle sfide concluse." %}</p>
+  <p style="margin:0;"><a class="btn secondary" href="{% url 'arena' %}">🤖 {% trans "Arena IA" %}</a></p>
+</div>
+
+<div class="card" id="dirette">
+  <h2>🔴 {% trans "Partite in diretta" %}</h2>
+  <table>
+    <tr><th>{% trans "Gioco" %}</th><th>{% trans "Giocatori" %}</th>
+        <th>{% trans "Semimosse" %}</th><th></th></tr>
+    <tbody id="live-list">
+    {% for l in live %}
+    <tr>
+      <td>{{ l.game_name }}{% if l.ai_only %} <span class="pill">IA</span>{% endif %}{% if l.tc_category %} <span class="muted">({{ l.tc_category }})</span>{% endif %}</td>
+      <td>{{ l.x_label }} — {{ l.o_label }}</td>
+      <td>{{ l.plies }}</td>
+      <td><a class="btn secondary" href="{% url 'watch' l.session_id %}">👁 {% trans "Guarda" %}</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4" class="muted">{% trans "Nessuna partita in diretta in questo momento." %}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>🤖 {% trans "Tornei dell'Arena IA" %}</h2>
+  <table>
+    <tr><th>{% trans "Nome" %}</th><th>{% trans "Gioco" %}</th>
+        <th>{% trans "Partite" %}</th><th>{% trans "Stato" %}</th><th></th></tr>
+    {% for t in arena_tournaments %}
+    <tr>
+      <td>{{ t.name }}</td>
+      <td>{{ t.game_name }}</td>
+      <td>{{ t.games_played }}/{{ t.games_total }}</td>
+      <td>{% if t.status == 'finished' %}{% trans "concluso" %}{% else %}<span class="pill">{% trans "in corso…" %}</span>{% endif %}</td>
+      <td><a class="btn secondary" href="{% url 'arena_tournament' t.id %}">{% trans "Apri" %}</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5" class="muted">{% trans "Nessun torneo IA finora." %}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="card" id="replay">
+  <h2>🎬 {% trans "Replay recenti" %}</h2>
+  <p class="muted">{% trans "Le ultime partite concluse fra giocatori a distanza o fra IA: la pagina spettatore le rigioca mossa per mossa." %}</p>
+  <table>
+    <tr><th>{% trans "Gioco" %}</th><th>{% trans "Giocatori" %}</th>
+        <th>{% trans "Esito" %}</th><th>{% trans "Semimosse" %}</th><th></th></tr>
+    {% for r in recent %}
+    <tr>
+      <td>{{ r.game_name }}{% if r.ai_only %} <span class="pill">IA</span>{% endif %}</td>
+      <td>{{ r.x_label }} — {{ r.o_label }}</td>
+      <td>{% if r.winner == 'draw' %}½–½{% elif r.winner == 'x' %}1–0{% elif r.winner == 'o' %}0–1{% else %}—{% endif %}</td>
+      <td>{{ r.plies }}</td>
+      <td><a class="btn secondary" href="{% url 'watch' r.session_id %}">🎬 {% trans "Replay" %}</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5" class="muted">{% trans "Nessuna partita conclusa da rivedere, per ora." %}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+<script>
+  // Le dirette si aggiornano da sole (stesso endpoint di polling della community).
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+  function renderLive(list) {
+    const tb = document.getElementById("live-list");
+    if (!tb) return;
+    if (!list.length) {
+      tb.innerHTML = '<tr><td colspan="4" class="muted">{% trans "Nessuna partita in diretta in questo momento." %}</td></tr>';
+      return;
+    }
+    tb.innerHTML = list.map((l) =>
+      `<tr><td>${esc(l.game_name)}${l.ai_only ? ' <span class="pill">IA</span>' : ""}${l.tc_category ? ` <span class="muted">(${esc(l.tc_category)})</span>` : ""}</td>` +
+      `<td>${esc(l.x_label)} — ${esc(l.o_label)}</td><td>${l.plies}</td>` +
+      `<td><a class="btn secondary" href="/partite/${l.session_id}/guarda/">👁 {% trans "Guarda" %}</a></td></tr>`
+    ).join("");
+  }
+
+  async function refreshLive() {
+    try {
+      const res = await fetch("{% url 'community_json' %}");
+      if (!res.ok) return;
+      const data = await res.json();
+      renderLive(data.live || []);
+    } catch (e) { /* backend momentaneamente giù */ }
+  }
+  setInterval(refreshLive, 10000);
+</script>
+{% endblock %}

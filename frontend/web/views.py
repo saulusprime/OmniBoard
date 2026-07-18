@@ -301,6 +301,19 @@ def play_hub(request):
     )
 
 
+def watch_hub(request):
+    """Hub dell'area «Guarda»: le dirette, i tornei dell'Arena IA e i replay
+    delle partite concluse di recente. È la landing della voce «Guarda»."""
+    live = (_safe(request, api.community_live, default={}) or {}).get("live", [])
+    recent = (_safe(request, api.community_recent, default={}) or {}).get("recent", [])
+    arena_ts = _safe(request, api.arena_tournaments, default=[]) or []
+    return render(
+        request,
+        "web/watch_hub.html",
+        {"live": live, "recent": recent, "arena_tournaments": arena_ts[:6]},
+    )
+
+
 # ----- Tutorial: istruzione guidata con voce sintetica -----
 def learn_index(request):
     """Indice delle lezioni per gioco, con i progressi del giocatore loggato."""

@@ -36,9 +36,6 @@
 > Community). Vincoli: gli URL esistenti restano (redirect dove serve), il
 > heartbeat JS di base.html si conserva, ogni voce nuova passa da i18n.
 
-- [ ] **Fase 3 — Hub «Guarda»**: landing con le dirette (dalla Community), i
-  tornei dell'Arena IA in corso e i replay recenti; Arena IA diventa
-  sottopagina dell'area.
 - [ ] **Fase 4 — Community ristretta**: la pagina attuale si smembra (dirette →
   Guarda, sfide → Gioca, notifiche → campanella); restano giocatori, gruppi,
   classifiche e presenza online, con una landing di area.

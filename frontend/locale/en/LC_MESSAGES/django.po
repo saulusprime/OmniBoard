@@ -2462,3 +2462,31 @@ msgstr "Open tournaments"
 #: web/templates/web/play_hub.html
 msgid "Nessun torneo aperto in questo momento."
 msgstr "No open tournaments right now."
+
+#: web/templates/web/watch_hub.html
+msgid "Le partite in diretta, i tornei fra le IA e i replay delle sfide concluse."
+msgstr "Live games, AI tournaments and replays of finished matches."
+
+#: web/templates/web/watch_hub.html
+msgid "Tornei dell'Arena IA"
+msgstr "AI Arena tournaments"
+
+#: web/templates/web/watch_hub.html
+msgid "Nessun torneo IA finora."
+msgstr "No AI tournaments yet."
+
+#: web/templates/web/watch_hub.html
+msgid "Replay recenti"
+msgstr "Recent replays"
+
+#: web/templates/web/watch_hub.html
+msgid "Le ultime partite concluse fra giocatori a distanza o fra IA: la pagina spettatore le rigioca mossa per mossa."
+msgstr "The latest finished games between remote players or AIs: the spectator page replays them move by move."
+
+#: web/templates/web/watch_hub.html
+msgid "Nessuna partita conclusa da rivedere, per ora."
+msgstr "No finished games to rewatch yet."
+
+#: web/templates/web/watch_hub.html
+msgid "Replay"
+msgstr "Replay"

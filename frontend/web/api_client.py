@@ -196,6 +196,11 @@ def community_live():
     return _request("GET", "/community/live")
 
 
+def community_recent():
+    """Partite concluse di recente, da rivedere come replay animato."""
+    return _request("GET", "/community/recent")
+
+
 def my_games(token: str):
     """Partite in corso del giocatore autenticato (sfide ricevute comprese)."""
     return _request("GET", "/community/my-games", headers={"X-Auth-Token": token})
