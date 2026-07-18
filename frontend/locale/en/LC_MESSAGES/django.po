@@ -2490,3 +2490,15 @@ msgstr "No finished games to rewatch yet."
 #: web/templates/web/watch_hub.html
 msgid "Replay"
 msgstr "Replay"
+
+#: web/templates/web/community.html
+msgid "Le dirette sono in"
+msgstr "Live games live in"
+
+#: web/templates/web/community.html
+msgid "le tue partite e le sfide in"
+msgstr "your games and challenges in"
+
+#: web/templates/web/notifications.html
+msgid "Aprire questa pagina segna tutto come letto; la campanella si azzera da sola."
+msgstr "Opening this page marks everything as read; the bell resets by itself."

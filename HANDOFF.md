@@ -3,6 +3,33 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Frontend Fase 4: Community ristretta
+
+**Richiesta (utente):** «procediamo con Fase 4 — Community ristretta».
+
+**Community = landing d'area** (community.html riscritta): intestazione coi
+rimandi (👥 Giocatori, 🛡️ Gruppi, 🏅 Classifiche), sezione «Giocatori online»
+(`#online`, col polling di community.json e il bottone Sfida) e la riga che
+indirizza altrove («le dirette sono in Guarda · le tue partite e le sfide in
+Gioca»). Le sezioni storiche sono SMEMBRATE: dirette → hub Guarda (Fase 3),
+sfide e «le tue partite» → hub Gioca (Fase 2), notifiche → campanella +
+**pagina nuova `/notifiche/`** (notifications.html: elenco completo coi link
+«Apri», grassetto sulle non lette, e il MARCA-LETTO all'apertura che prima
+faceva la community; da anonimi → redirect al login). «Tutte le notifiche»
+della campanella punta lì. `challenge_new` dopo l'invio → hub Gioca.
+
+**Snellimenti**: `community_json` non calcola più `my_games` (una query in
+meno A OGNI HEARTBEAT di ogni utente loggato: il consumatore era solo la
+sezione rimossa); la vista community è ridotta alla sola lista online; il JS
+della pagina conserva solo `renderOnline` (via renderGames/renderLive).
+
+**Test**: riscritto il test community+campanella per le responsabilità nuove
+(community SENZA sfide/notifiche/dirette/partite e che NON segna più letto;
+/notifiche/ elenca e segna letto, 302 da anonimi; `my_games` assente dal
+JSON) e aggiornato il test spettatori (le dirette si asseriscono sull'hub
+Guarda). **322 verdi**, ruff pulito. 3 stringhe nuove nel .po/.mo.
+Verificato dal vivo con screenshot. TODO: Fase 4 → ASIS; resta la Fase 5.
+
 ## 2026-07-11 — Frontend Fase 3: hub «Guarda»
 
 **Richiesta (utente):** «ok procediamo con la fase 3».

@@ -317,6 +317,14 @@
   esito 1–0/0–1/½–½); helper `_side_label` e filtro `_WATCHABLE` condivisi
   fra live e recent. Menu «Guarda»: Dirette e Replay puntano alle sezioni
   dell'hub, Arena IA è la sottopagina.
+- [x] **Riorganizzazione frontend — Fase 4: Community ristretta** (2026-07-11):
+  la pagina Community è la landing d'area — giocatori ONLINE (col polling e la
+  Sfida) + rimandi a Giocatori/Gruppi/Classifiche + riga che indirizza a
+  Guarda/Gioca; le sezioni storiche sono SMEMBRATE (dirette → hub Guarda,
+  sfide e partite in corso → hub Gioca, notifiche → campanella e nuova pagina
+  `/notifiche/` che elenca tutto e segna letto all'apertura — è il bersaglio
+  di «Tutte le notifiche»); `community.json` snellito (via `my_games`: una
+  query in meno a ogni heartbeat); `challenge_new` reindirizza all'hub Gioca.
 
 - [x] **Promozione con dialog grafico** — pannello sopra la scacchiera coi
   quattro pezzi cliccabili nei colori del TEMA del lato che muove (♛♜♝♞, classi
