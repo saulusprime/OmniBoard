@@ -528,3 +528,26 @@ def test_play_page_ships_othello_and_gomoku_boards(monkeypatch):
     assert "cell-off" in html and "aria-disabled" in html
     html = Client().get("/partite/42/guarda/", SERVER_NAME="localhost").content.decode()
     assert "gameCoords" in html  # coordinate anche per lo spettatore
+
+
+def test_navbar_has_five_areas_and_no_flat_admin():
+    """La navbar è a 5 AREE con menu a discesa (modello chess.com): Gioca,
+    Puzzle, Impara, Guarda, Community; Admin non è più una voce di primo
+    livello (vive nel menu profilo, quindi assente per gli anonimi)."""
+    html = Client().get("/accedi/", SERVER_NAME="localhost").content.decode()
+    for label in ("Gioca", "Puzzle", "Impara", "Guarda", "Community"):
+        assert label in html
+    assert 'id="menu-gioca"' in html and 'id="menu-guarda"' in html
+    assert 'id="menu-community"' in html
+    assert 'id="nav-burger"' in html  # hamburger mobile
+    assert "aria-expanded" in html  # pattern disclosure accessibile
+    # Niente Admin al primo livello per gli anonimi (era una voce fissa).
+    assert 'href="/admin/"' not in html
+    # Le voci ricollocate esistono nei menu: Tornei/Registra/Arena/Classifiche.
+    for label in ("Tornei", "Registra partita", "Arena IA", "Classifiche"):
+        assert label in html
+
+
+def test_notifications_json_anonymous_is_empty():
+    data = Client().get("/notifiche.json", SERVER_NAME="localhost").json()
+    assert data == {"notifications": [], "unread": 0}

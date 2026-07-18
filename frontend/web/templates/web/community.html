@@ -2,7 +2,7 @@
 {% load i18n %}
 {% block title %}Community{% endblock %}
 {% block content %}
-<div class="card">
+<div class="card" id="online">
   <h1>🌐 Community</h1>
   <p class="muted">{% blocktrans %}Chi è connesso adesso, con il punteggio complessivo su tutti i giochi. Con «Sfida» mandi un <strong>invito a giocare</strong>: la partita a distanza nasce quando lo sfidato accetta. L'elenco si aggiorna da solo.{% endblocktrans %}</p>
 
@@ -25,7 +25,7 @@
   </table>
 </div>
 
-<div class="card">
+<div class="card" id="dirette">
   <h2>👁 {% trans 'Partite in diretta' %}</h2>
   <p class="muted">{% trans 'Guarda le partite a distanza in corso e i duelli fra IA, in sola lettura. A partita finita la stessa pagina diventa il replay animato.' %}</p>
   <table>
@@ -48,7 +48,7 @@
 
 {% if auth_user %}
 {% if challenges.incoming or challenges.outgoing %}
-<div class="card">
+<div class="card" id="sfide">
   <h2>⚔️ {% trans 'Sfide in attesa' %}</h2>
   {% for c in challenges.incoming %}
   <form method="post" action="{% url 'challenge_action' c.id %}"
@@ -70,7 +70,7 @@
 </div>
 {% endif %}
 
-<div class="card">
+<div class="card" id="notifiche">
   <h2>🔔 {% trans 'Notifiche' %}</h2>
   {% if notices %}
   <ul style="list-style:none; padding:0; margin:0;">
@@ -96,7 +96,7 @@
 </div>
 {% endif %}
 
-<div class="card">
+<div class="card" id="partite">
   <h2>🎮 {% trans 'Le tue partite in corso' %}</h2>
   {% if not auth_user %}
   <p class="muted"><a href="{% url 'login' %}">{% trans 'Accedi' %}</a> {% trans 'per vedere le tue partite e ricevere le sfide.' %}</p>

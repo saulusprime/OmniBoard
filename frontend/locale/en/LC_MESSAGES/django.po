@@ -2410,3 +2410,35 @@ msgstr "bar"
 #: web/views.py:936
 msgid "uscita"
 msgstr "bear-off"
+
+#: web/templates/web/base.html
+msgid "Menu"
+msgstr "Menu"
+
+#: web/templates/web/base.html
+msgid "Apri il menu"
+msgstr "Open the menu"
+
+#: web/templates/web/base.html
+msgid "Le mie partite"
+msgstr "My games"
+
+#: web/templates/web/base.html
+msgid "Sfide e inviti"
+msgstr "Challenges and invites"
+
+#: web/templates/web/base.html
+msgid "La mia scheda"
+msgstr "My profile"
+
+#: web/templates/web/base.html
+msgid "Tutte le notifiche"
+msgstr "All notifications"
+
+#: web/templates/web/base.html
+msgid "Presenza online"
+msgstr "Online presence"
+
+#: web/templates/web/base.html
+msgid "Punteggio complessivo (tutti i giochi)"
+msgstr "Overall score (all games)"

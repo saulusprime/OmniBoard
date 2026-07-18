@@ -36,12 +36,6 @@
 > Community). Vincoli: gli URL esistenti restano (redirect dove serve), il
 > heartbeat JS di base.html si conserva, ogni voce nuova passa da i18n.
 
-- [ ] **Fase 1 — Navigazione**: navbar a 5 aree con menu a discesa accessibili
-  (click/hover + tastiera: `aria-expanded`, frecce, Esc; su mobile hamburger
-  con sezioni espandibili); menu profilo sull'avatar (Admin dentro, non più in
-  navbar); campanella col pannello notifiche dedicato. Le landing page delle
-  aree possono inizialmente REINDIRIZZARE alla pagina principale esistente
-  (Gioca → setup, Guarda → dirette…): prima la struttura, poi i contenuti.
 - [ ] **Fase 2 — Hub «Gioca»**: landing con «le mie partite in corso» (riprendi),
   nuova partita, inviti ricevuti/inviati, tornei aperti, sfide di gruppo
   pendenti, registra risultato. Le pagine Tornei e Registra partita diventano

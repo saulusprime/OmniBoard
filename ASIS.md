@@ -285,6 +285,19 @@
 
 ## Frontend / UX
 
+- [x] **Riorganizzazione frontend — Fase 1: Navigazione** (2026-07-11, modello
+  chess.com): navbar a **5 aree** (Gioca ▾, Puzzle, Impara, Guarda ▾,
+  Community ▾) con menu a discesa "disclosure" accessibili (bottone ▾ con
+  `aria-expanded`, Esc e click-fuori chiudono, hover solo coi mouse veri);
+  su mobile **hamburger ☰** con aree impilate e menu in linea; **menu profilo
+  sull'avatar** (scheda, statistiche, Admin — non più voce di primo livello —
+  ed esci); **campanella 🔔 col pannello notifiche** (endpoint nuovo
+  `notifiche.json` con URL risolti lato server + `notifiche/lette.json`;
+  aprire il pannello segna lette, badge solo col non-letto); ancore di
+  sezione in community.html (#online #dirette #sfide #notifiche #partite)
+  come bersagli dei menu finché gli hub non esistono. URL invariati,
+  heartbeat conservato, voci nuove tradotte.
+
 - [x] **Promozione con dialog grafico** — pannello sopra la scacchiera coi
   quattro pezzi cliccabili nei colori del TEMA del lato che muove (♛♜♝♞, classi
   `.cell` riusate); click fuori o Esc ANNULLA la mossa (deseleziona), tasti

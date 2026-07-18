@@ -15,10 +15,34 @@
     a { color:var(--accent); }
     .wrap { max-width: 980px; margin:0 auto; padding:0 20px; }
     header { background:var(--panel); border-bottom:2px solid var(--accent); }
-    nav { display:flex; gap:18px; align-items:center; min-height:60px; flex-wrap:wrap; }
+    nav { display:flex; gap:14px; align-items:center; min-height:60px; flex-wrap:wrap; }
     nav a { color:var(--text); text-decoration:none; font-weight:500; }
     nav a:hover { color:var(--accent); }
     nav .brand { font-size:1.3rem; font-weight:700; color:var(--accent); margin-right:auto; }
+    /* ----- Navigazione ad AREE (modello chess.com): 5 voci, ognuna landing +
+       menu a discesa. Pattern "disclosure" accessibile: bottone ▾ con
+       aria-expanded, Esc chiude, hover apre solo sui dispositivi col mouse. */
+    .navlinks { display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+    .navgrp { position:relative; display:flex; align-items:center; gap:2px; }
+    .navtgl { background:none; border:none; color:var(--text); cursor:pointer;
+              padding:2px 5px; font-size:.72rem; border-radius:4px; }
+    .navtgl:hover, .navtgl[aria-expanded="true"] { color:var(--accent); }
+    .navmenu { position:absolute; top:100%; left:0; min-width:200px; background:var(--panel);
+               border:1px solid var(--line); border-radius:0 0 10px 10px; padding:6px 0;
+               z-index:30; box-shadow:0 10px 24px rgba(0,0,0,.45); }
+    .navmenu[hidden] { display:none; }
+    .navmenu a { display:block; padding:8px 16px; font-weight:500; }
+    .navmenu a:hover { background:rgba(217,164,65,.12); color:var(--accent); }
+    .navmenu form { margin:0; }
+    .navmenu form button { background:none; border:none; color:var(--text); width:100%;
+               text-align:left; padding:8px 16px; font:inherit; cursor:pointer; }
+    .navmenu form button:hover { background:rgba(217,164,65,.12); color:var(--accent); }
+    .navgrp.right .navmenu { left:auto; right:0; }
+    .bell-item { display:block; padding:8px 16px; color:var(--text); text-decoration:none;
+                 font-size:.9rem; border-bottom:1px solid rgba(127,127,127,.12); }
+    .bell-item.unread { font-weight:600; }
+    a.bell-item:hover { background:rgba(217,164,65,.12); }
+    #nav-burger { display:none; font-size:1.2rem; padding:4px 8px; }
     main { padding:28px 0 60px; }
     h1,h2 { line-height:1.2; }
     .card { background:var(--panel); border:1px solid var(--line); border-radius:10px;
@@ -57,6 +81,15 @@
       .card { padding:12px; }
       nav { gap:8px 12px; min-height:0; padding:8px 0; font-size:.92rem; }
       nav .brand { font-size:1.1rem; }
+      /* Hamburger: le aree si impilano a tutta larghezza, i menu in linea. */
+      #nav-burger { display:inline-block; }
+      .navlinks { display:none; width:100%; flex-direction:column; align-items:stretch; gap:0; }
+      .navlinks.open { display:flex; }
+      .navlinks > a, .navlinks .navgrp { padding:6px 0; border-bottom:1px solid rgba(127,127,127,.12); }
+      .navgrp { flex-wrap:wrap; }
+      .navmenu { position:static; width:100%; min-width:0; box-shadow:none;
+                 border:none; border-left:2px solid var(--line); border-radius:0;
+                 margin:4px 0 0 8px; }
       table { display:block; overflow-x:auto; }
       th, td { padding:6px 8px; }
       h1 { font-size:1.35rem; }
@@ -68,18 +101,44 @@
 <body>
   <header><div class="wrap"><nav aria-label="{% trans 'Navigazione principale' %}">
     <a class="brand" href="{% url 'home' %}">♟ OmniBoard</a>
-    <a href="{% url 'home' %}">{% trans "Home" %}</a>
-    <a href="{% url 'play_setup' %}">{% trans "Gioca" %}</a>
-    <a href="{% url 'learn_index' %}">{% trans "Impara" %}</a>
-    <a href="{% url 'puzzles' %}">{% trans "Puzzle" %}</a>
-    <a href="{% url 'users_list' %}">{% trans "Giocatori" %}</a>
-    <a href="{% url 'groups' %}">{% trans "Gruppi" %}</a>
-    <a href="{% url 'tournaments' %}">{% trans "Tornei" %}</a>
-    <a href="{% url 'rankings' %}">{% trans "Classifiche" %}</a>
-    <a href="{% url 'arena' %}">{% trans "Arena IA" %}</a>
-    <a href="{% url 'match_create' %}">{% trans "Registra partita" %}</a>
-    <a href="{% url 'community' %}">{% trans "Community" %}</a>
-    <a href="{% url 'admin' %}">Admin</a>
+    <button id="nav-burger" class="navtgl" aria-expanded="false" aria-controls="navlinks"
+            aria-label="{% trans 'Menu' %}">☰</button>
+    <div class="navlinks" id="navlinks">
+      <div class="navgrp">
+        <a href="{% url 'play_setup' %}">{% trans "Gioca" %}</a>
+        <button class="navtgl" data-menu aria-expanded="false" aria-controls="menu-gioca"
+                aria-label="{% trans 'Apri il menu' %} {% trans 'Gioca' %}">▾</button>
+        <div class="navmenu" id="menu-gioca" hidden>
+          <a href="{% url 'play_setup' %}">{% trans "Nuova partita" %}</a>
+          <a href="{% url 'community' %}#partite">{% trans "Le mie partite" %}</a>
+          <a href="{% url 'community' %}#sfide">{% trans "Sfide e inviti" %}</a>
+          <a href="{% url 'tournaments' %}">{% trans "Tornei" %}</a>
+          <a href="{% url 'match_create' %}">{% trans "Registra partita" %}</a>
+        </div>
+      </div>
+      <a href="{% url 'puzzles' %}">{% trans "Puzzle" %}</a>
+      <a href="{% url 'learn_index' %}">{% trans "Impara" %}</a>
+      <div class="navgrp">
+        <a href="{% url 'community' %}#dirette">{% trans "Guarda" %}</a>
+        <button class="navtgl" data-menu aria-expanded="false" aria-controls="menu-guarda"
+                aria-label="{% trans 'Apri il menu' %} {% trans 'Guarda' %}">▾</button>
+        <div class="navmenu" id="menu-guarda" hidden>
+          <a href="{% url 'community' %}#dirette">{% trans "Partite in diretta" %}</a>
+          <a href="{% url 'arena' %}">{% trans "Arena IA" %}</a>
+        </div>
+      </div>
+      <div class="navgrp">
+        <a href="{% url 'community' %}">Community</a>
+        <button class="navtgl" data-menu aria-expanded="false" aria-controls="menu-community"
+                aria-label="{% trans 'Apri il menu' %} Community">▾</button>
+        <div class="navmenu" id="menu-community" hidden>
+          <a href="{% url 'users_list' %}">{% trans "Giocatori" %}</a>
+          <a href="{% url 'groups' %}">{% trans "Gruppi" %}</a>
+          <a href="{% url 'rankings' %}">{% trans "Classifiche" %}</a>
+          <a href="{% url 'community' %}#online">{% trans "Giocatori online" %}</a>
+        </div>
+      </div>
+    </div>
     <form method="post" action="{% url 'set_language' %}" style="margin:0;">
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -93,17 +152,33 @@
       </select>
     </form>
     {% if auth_user %}
-      <a href="{% url 'community' %}" id="nav-bell" title="{% trans 'Notifiche' %}"
-         style="display:none;">🔔<span class="pill" id="nav-bell-count">0</span></a>
-      <a href="{% url 'user_detail' auth_user.id %}">
-        <span class="dot" id="nav-dot" title="Presenza online"></span>
-        👤 {{ auth_user.alias }}
-        <span class="pill" id="nav-points" title="Punteggio complessivo (tutti i giochi)">…</span>
-      </a>
-      <form method="post" action="{% url 'logout' %}" style="margin:0;">{% csrf_token %}
-        <button class="btn secondary" type="submit"
-                style="padding:4px 12px; font-size:.85rem;">{% trans "Esci" %}</button>
-      </form>
+      <div class="navgrp right">
+        <button id="nav-bell" class="navtgl" data-menu aria-expanded="false"
+                aria-controls="menu-bell" aria-label="{% trans 'Notifiche' %}"
+                style="font-size:1rem;">🔔<span class="pill" id="nav-bell-count"
+                style="display:none; margin-left:4px;">0</span></button>
+        <div class="navmenu" id="menu-bell" hidden style="min-width:280px;">
+          <div id="bell-list"><p class="muted" style="margin:4px 16px;">…</p></div>
+          <a href="{% url 'community' %}#notifiche" style="font-size:.85rem;">{% trans "Tutte le notifiche" %}</a>
+        </div>
+      </div>
+      <div class="navgrp right">
+        <button class="navtgl" data-menu aria-expanded="false" aria-controls="menu-profile"
+                style="font-size:.95rem; display:flex; align-items:center; gap:6px;">
+          <span class="dot" id="nav-dot" title="{% trans 'Presenza online' %}"></span>
+          👤 {{ auth_user.alias }}
+          <span class="pill" id="nav-points"
+                title="{% trans 'Punteggio complessivo (tutti i giochi)' %}">…</span> ▾
+        </button>
+        <div class="navmenu" id="menu-profile" hidden>
+          <a href="{% url 'user_detail' auth_user.id %}">{% trans "La mia scheda" %}</a>
+          <a href="{% url 'user_stats' auth_user.id %}">{% trans "Statistiche avanzate" %}</a>
+          <a href="{% url 'admin' %}">Admin</a>
+          <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+            <button type="submit">{% trans "Esci" %}</button>
+          </form>
+        </div>
+      </div>
     {% else %}
       <a href="{% url 'login' %}">{% trans "Accedi" %}</a>
     {% endif %}
@@ -129,17 +204,102 @@
         const pts = document.getElementById("nav-points");
         if (dot) dot.classList.toggle("on", !!data.me);
         if (pts && data.me) pts.textContent = data.me.universal_points + " pt";
-        // Campanella delle notifiche: visibile solo se c'è qualcosa da leggere.
-        const bell = document.getElementById("nav-bell");
-        if (bell) {
-          bell.style.display = data.unread ? "" : "none";
-          document.getElementById("nav-bell-count").textContent = data.unread;
+        // Campanella: il badge col conteggio compare solo se c'è del non letto.
+        const pill = document.getElementById("nav-bell-count");
+        if (pill) {
+          pill.style.display = data.unread ? "" : "none";
+          pill.textContent = data.unread;
         }
       } catch (e) { /* backend momentaneamente giù: il badge resta com'è */ }
     }
     omniboardHeartbeat();
     setInterval(omniboardHeartbeat, 30000);
+
+    // Pannello della campanella: notifiche recenti con link; aprirlo le segna
+    // lette (come aprire la Community), il badge si spegne subito.
+    let bellMarked = false;
+    async function loadBell() {
+      const list = document.getElementById("bell-list");
+      if (!list) return;
+      try {
+        const res = await fetch("{% url 'notifications_json' %}");
+        if (!res.ok) return;
+        const data = await res.json();
+        list.innerHTML = "";
+        if (!data.notifications.length) {
+          const p = document.createElement("p");
+          p.className = "muted";
+          p.style.cssText = "margin:4px 16px;";
+          p.textContent = "{% trans 'Nessuna notifica.' %}";
+          list.appendChild(p);
+        }
+        for (const n of data.notifications) {
+          const row = document.createElement(n.url ? "a" : "div");
+          if (n.url) row.href = n.url;
+          row.className = "bell-item" + (n.read ? "" : " unread");
+          row.textContent = n.text + (n.created_at ? " · " + n.created_at : "");
+          list.appendChild(row);
+        }
+        if (data.unread && !bellMarked) {
+          bellMarked = true;
+          fetch("{% url 'notifications_read_json' %}", {
+            method: "POST", headers: { "X-CSRFToken": "{{ csrf_token }}" },
+          });
+          const pill = document.getElementById("nav-bell-count");
+          if (pill) pill.style.display = "none";
+        }
+      } catch (e) { /* backend giù: il pannello resta com'era */ }
+    }
   </script>
   {% endif %}
+  <script>
+    // Menu a discesa della navbar (pattern disclosure): il bottone ▾ apre/chiude
+    // (aria-expanded), Esc e il click fuori chiudono, l'hover apre solo dove
+    // esiste un mouse vero; ☰ mostra le aree impilate sui telefoni.
+    (function () {
+      const groups = Array.from(document.querySelectorAll(".navgrp"));
+      const closeAll = (except) => {
+        groups.forEach((g) => {
+          if (g === except) return;
+          const b = g.querySelector("[data-menu]"), m = g.querySelector(".navmenu");
+          if (b && m) { b.setAttribute("aria-expanded", "false"); m.hidden = true; }
+        });
+      };
+      groups.forEach((g) => {
+        const b = g.querySelector("[data-menu]"), m = g.querySelector(".navmenu");
+        if (!b || !m) return;
+        const open = () => {
+          closeAll(g);
+          m.hidden = false;
+          b.setAttribute("aria-expanded", "true");
+          if (b.id === "nav-bell" && typeof loadBell === "function") loadBell();
+        };
+        b.addEventListener("click", () => {
+          if (m.hidden) open();
+          else { m.hidden = true; b.setAttribute("aria-expanded", "false"); }
+        });
+        if (window.matchMedia("(hover: hover)").matches) {
+          g.addEventListener("pointerenter", open);
+          g.addEventListener("pointerleave", () => {
+            m.hidden = true;
+            b.setAttribute("aria-expanded", "false");
+          });
+        }
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeAll(null);
+      });
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest(".navgrp")) closeAll(null);
+      });
+      const burger = document.getElementById("nav-burger");
+      if (burger) burger.addEventListener("click", () => {
+        const links = document.getElementById("navlinks");
+        const open = !links.classList.contains("open");
+        links.classList.toggle("open", open);
+        burger.setAttribute("aria-expanded", String(open));
+      });
+    })();
+  </script>
 </body>
 </html>
