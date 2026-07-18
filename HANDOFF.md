@@ -3,6 +3,36 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Analisi IA frontend (modello chess.com) → piano nel TODO
+
+**Richiesta (utente):** rilettura della documentazione e TODO aggiornato, con
+al centro la riorganizzazione del frontend «adesso è caotico» prendendo a
+modello chess.com.
+
+**Diagnosi**: navbar PIATTA con 12 voci allo stesso livello (compresa
+«Registra partita» al pari di «Gioca» e Admin sempre visibile); la pagina
+Community fa da contenitore di quattro cose scollegate (presenza, sfide,
+notifiche, dirette); la campanella 🔔 porta genericamente in Community.
+
+**Modello studiato** (chess.com, via web): 6 aree — Play / Puzzles / Learn /
+Train / Watch / Community (+ News) — dove ogni voce di navbar è insieme
+LANDING PAGE e menu a discesa con le sottopagine; profilo/notifiche/ricerca
+sull'avatar a destra; mobile con sidebar/hamburger a voci espandibili.
+
+**Proposta per OmniBoard** (scritta nel TODO come sezione ⭐ ad alta priorità,
+con tabella di mappatura e 5 fasi + trasversali): 5 aree — **Gioca** (setup,
+partite in corso, sfide/inviti, tornei, sfide di gruppo, registra), **Puzzle**,
+**Impara**, **Guarda** (dirette, Arena IA, replay), **Community** (giocatori,
+gruppi, classifiche, presenza) — NIENTE «News» (nessun contenuto editoriale)
+né «Train» (finché esistono solo le lezioni). Home = dashboard personale per
+il loggato; avatar con menu profilo (Admin dentro, solo super admin);
+campanella con pannello notifiche proprio. Vincoli dichiarati: URL esistenti
+conservati (redirect), heartbeat JS di base.html intatto, i18n obbligatoria.
+Fasi: 1 navigazione (menu accessibili da tastiera), 2 hub Gioca, 3 hub
+Guarda, 4 Community ristretta, 5 home dashboard.
+
+Nessun codice toccato: solo analisi e backlog.
+
 ## 2026-07-11 — Accessibilità per TUTTI i giochi: coordinate e tastiera
 
 **Richiesta (utente):** «assicurati che tutti i giochi siano accessibili,
