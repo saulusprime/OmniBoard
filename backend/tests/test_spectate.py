@@ -80,3 +80,13 @@ def test_live_list_only_remote_games_and_replay_frames():
         replay = client.get(f"/sessions/{remote_sid}/replay").json()
         assert len(replay["boards"]) == len(FOOLS_MATE) + 1
         assert len(replay["boards"][0]) == 64  # posizione iniziale completa
+
+        # …ed entra nei REPLAY RECENTI (stessa platea delle dirette: la
+        # hotseat, ancora in corso e comunque non guardabile, resta fuori).
+        recent = client.get("/community/recent").json()["recent"]
+        ids = {entry["session_id"] for entry in recent}
+        assert remote_sid in ids and hotseat not in ids
+        row = next(entry for entry in recent if entry["session_id"] == remote_sid)
+        assert row["winner"] == "o"  # il matto del barbiere lo dà il Nero
+        assert row["plies"] == len(FOOLS_MATE)
+        assert row["x_label"] == "sp_a" and row["o_label"] == "sp_b"

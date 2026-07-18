@@ -119,11 +119,12 @@
       <a href="{% url 'puzzles' %}">{% trans "Puzzle" %}</a>
       <a href="{% url 'learn_index' %}">{% trans "Impara" %}</a>
       <div class="navgrp">
-        <a href="{% url 'community' %}#dirette">{% trans "Guarda" %}</a>
+        <a href="{% url 'watch_hub' %}">{% trans "Guarda" %}</a>
         <button class="navtgl" data-menu aria-expanded="false" aria-controls="menu-guarda"
                 aria-label="{% trans 'Apri il menu' %} {% trans 'Guarda' %}">▾</button>
         <div class="navmenu" id="menu-guarda" hidden>
-          <a href="{% url 'community' %}#dirette">{% trans "Partite in diretta" %}</a>
+          <a href="{% url 'watch_hub' %}#dirette">{% trans "Partite in diretta" %}</a>
+          <a href="{% url 'watch_hub' %}#replay">{% trans "Replay recenti" %}</a>
           <a href="{% url 'arena' %}">{% trans "Arena IA" %}</a>
         </div>
       </div>

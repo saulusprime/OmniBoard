@@ -55,46 +55,76 @@ def online_players(db: Session = Depends(get_db)):
     }
 
 
-@router.get("/live")
-def live_games(db: Session = Depends(get_db)):
-    """Partite in corso GUARDABILI da spettatori (sola lettura, senza token).
-
-    Solo quelle sicure da esporre: le partite a DISTANZA (le azioni richiedono
-    il token del giocatore al tratto — uno spettatore non può interferire) e
-    le IA-vs-IA (l'Arena in diretta). Le hotseat restano fuori: sullo stesso
-    schermo chiunque potrebbe muovere.
-    """
+def _side_label(session: models.GameSession, side: int) -> str:
+    """Etichetta del lato per gli spettatori: alias umano o identità Arena."""
     from .. import ai_arena
 
+    user = session.x_user if side == 0 else session.o_user
+    if user is not None:
+        return user.alias
+    identity = ai_arena.identity_of(session, side)
+    return ai_arena.label_of(identity) if identity else "?"
+
+
+# Platea guardabile senza token: partite a DISTANZA (le azioni richiedono il
+# token del giocatore al tratto — uno spettatore non può interferire) e
+# IA-vs-IA (l'Arena). Le hotseat restano fuori: chiunque potrebbe muovere.
+_WATCHABLE = models.GameSession.remote.is_(True) | (
+    models.GameSession.x_is_ai.is_(True) & models.GameSession.o_is_ai.is_(True)
+)
+
+
+@router.get("/live")
+def live_games(db: Session = Depends(get_db)):
+    """Partite in corso GUARDABILI da spettatori (sola lettura, senza token)."""
     sessions = (
         db.query(models.GameSession)
-        .filter(
-            models.GameSession.status == "in_progress",
-            models.GameSession.remote.is_(True)
-            | (models.GameSession.x_is_ai.is_(True) & models.GameSession.o_is_ai.is_(True)),
-        )
+        .filter(models.GameSession.status == "in_progress", _WATCHABLE)
         .order_by(models.GameSession.id.desc())
         .limit(50)
         .all()
     )
-
-    def label(session: models.GameSession, side: int) -> str:
-        user = session.x_user if side == 0 else session.o_user
-        if user is not None:
-            return user.alias
-        identity = ai_arena.identity_of(session, side)
-        return ai_arena.label_of(identity) if identity else "?"
-
     return {
         "live": [
             {
                 "session_id": s.id,
                 "game_code": s.game.code,
                 "game_name": s.game.name,
-                "x_label": label(s, 0),
-                "o_label": label(s, 1),
+                "x_label": _side_label(s, 0),
+                "o_label": _side_label(s, 1),
                 "plies": len(json.loads(s.moves_json or "[]")),
                 "tc_category": s.tc_category,
+                "ai_only": bool(s.x_is_ai and s.o_is_ai),
+            }
+            for s in sessions
+        ]
+    }
+
+
+@router.get("/recent")
+def recent_games(db: Session = Depends(get_db)):
+    """Partite CONCLUSE di recente, da rivedere come replay animato.
+
+    Stessa platea delle dirette (a distanza o IA-vs-IA): la pagina spettatore
+    a partita finita diventa la moviola animata.
+    """
+    sessions = (
+        db.query(models.GameSession)
+        .filter(models.GameSession.status == "finished", _WATCHABLE)
+        .order_by(models.GameSession.id.desc())
+        .limit(10)
+        .all()
+    )
+    return {
+        "recent": [
+            {
+                "session_id": s.id,
+                "game_code": s.game.code,
+                "game_name": s.game.name,
+                "x_label": _side_label(s, 0),
+                "o_label": _side_label(s, 1),
+                "plies": len(json.loads(s.moves_json or "[]")),
+                "winner": s.winner,
                 "ai_only": bool(s.x_is_ai and s.o_is_ai),
             }
             for s in sessions

@@ -553,6 +553,65 @@ def test_notifications_json_anonymous_is_empty():
     assert data == {"notifications": [], "unread": 0}
 
 
+def test_watch_hub_renders_live_arena_and_replays(monkeypatch):
+    """L'hub «Guarda» (/guarda/) mostra dirette, tornei Arena IA e replay."""
+    import web.api_client as api
+
+    monkeypatch.setattr(
+        api,
+        "community_live",
+        lambda: {
+            "live": [
+                {
+                    "session_id": 31,
+                    "game_name": "Scacchi",
+                    "x_label": "liv_a",
+                    "o_label": "liv_b",
+                    "plies": 12,
+                    "tc_category": "blitz",
+                    "ai_only": False,
+                }
+            ]
+        },
+    )
+    monkeypatch.setattr(
+        api,
+        "community_recent",
+        lambda: {
+            "recent": [
+                {
+                    "session_id": 29,
+                    "game_name": "Gomoku",
+                    "x_label": "rep_a",
+                    "o_label": "rep_b",
+                    "plies": 50,
+                    "winner": "o",
+                    "ai_only": True,
+                }
+            ]
+        },
+    )
+    monkeypatch.setattr(
+        api,
+        "arena_tournaments",
+        lambda: [
+            {
+                "id": 3,
+                "name": "Girone dei motori",
+                "game_name": "Othello",
+                "status": "running",
+                "games_played": 2,
+                "games_total": 6,
+            }
+        ],
+    )
+    html = Client().get("/guarda/", SERVER_NAME="localhost").content.decode()
+    assert "liv_a — liv_b" in html and "/partite/31/guarda/" in html
+    assert "Girone dei motori" in html and "2/6" in html
+    assert "rep_a — rep_b" in html and "0–1" in html  # replay con l'esito
+    assert 'id="dirette"' in html and 'id="replay"' in html
+
+
 def test_play_hub_renders_for_anonymous_and_logged(monkeypatch):
     """L'hub «Gioca» (/gioca/) mostra azioni e tornei a tutti; partite in corso
     e sfide al giocatore loggato. Il setup è diventato la sottopagina

@@ -72,6 +72,7 @@ urlpatterns = [
     ),
     path("partite/registra/", views.match_create, name="match_create"),
     path("gioca/", views.play_hub, name="play_hub"),
+    path("guarda/", views.watch_hub, name="watch_hub"),
     path("gioca/nuova/", views.play_setup, name="play_setup"),
     path("partite/<int:session_id>/", views.play, name="play"),
     path("partite/<int:session_id>/guarda/", views.watch, name="watch"),

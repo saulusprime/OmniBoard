@@ -818,6 +818,13 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   verifica dal vivo ha scovato; e dopo un fix il runserver --noreload va
   RIAVVIATO (il debug page mostra il sorgente nuovo ma esegue il bytecode
   vecchio: traceback fantasma). 321 verdi. Restano le fasi 3-5.
+- **2026-07-11** — **Frontend Fase 3 (hub «Guarda») FATTA**: /guarda/ =
+  dirette auto-aggiornate + tornei Arena IA + replay recenti; backend nuovo
+  GET /community/recent (ultime 10 concluse, stessa platea `_WATCHABLE` delle
+  dirette — filtro e `_side_label` ora condivisi fra live e recent). Nota di
+  metodo: un «baco» dell'esito nei replay era una SESSIONE DIVERSA con lo
+  stesso gioco (l'utente aveva giocato altre IA-vs-IA) — controllare l'id
+  della riga prima di inseguire il template. 322 verdi. Restano le fasi 4-5.
 
 ## Questioni aperte
 

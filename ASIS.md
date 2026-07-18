@@ -308,6 +308,15 @@
   Trappola verbalizzata: i mock nei test devono rispecchiare la FORMA vera
   del payload (`/tournaments` risponde `{"tournaments": []}`, non una lista —
   il baco l'ha scovato la verifica dal vivo, non i test).
+- [x] **Riorganizzazione frontend — Fase 3: Hub «Guarda»** (2026-07-11):
+  `/guarda/` è la landing dell'area (vista `watch_hub` + watch_hub.html) con
+  «Partite in diretta» (auto-aggiornate dal polling di community.json),
+  «Tornei dell'Arena IA» (primi 6, con avanzamento partite) e «Replay
+  recenti» — endpoint backend NUOVO `GET /community/recent` (ultime 10
+  concluse della stessa platea delle dirette: a distanza o IA-vs-IA, con
+  esito 1–0/0–1/½–½); helper `_side_label` e filtro `_WATCHABLE` condivisi
+  fra live e recent. Menu «Guarda»: Dirette e Replay puntano alle sezioni
+  dell'hub, Arena IA è la sottopagina.
 
 - [x] **Promozione con dialog grafico** — pannello sopra la scacchiera coi
   quattro pezzi cliccabili nei colori del TEMA del lato che muove (♛♜♝♞, classi
