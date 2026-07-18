@@ -30,8 +30,30 @@ def _safe(request, fn, default=None):
 
 
 def home(request):
+    """Home: vetrina per gli anonimi, CRUSCOTTO personale per chi è loggato
+    (riprendi le partite, sfide in attesa, dirette, notifiche non lette)."""
     games = _safe(request, api.list_games, default=[])
-    return render(request, "web/home.html", {"games": games})
+    token = request.session.get("auth_token")
+    if not token:
+        return render(request, "web/home.html", {"games": games})
+    my_games = (_safe(request, lambda: api.my_games(token), default={}) or {}).get("games", [])
+    challenges = _safe(request, lambda: api.my_challenges(token), default={}) or {}
+    live = (_safe(request, api.community_live, default={}) or {}).get("live", [])[:5]
+    unread = (_safe(request, lambda: api.notifications_list(token), default={}) or {}).get(
+        "unread", 0
+    )
+    return render(
+        request,
+        "web/home.html",
+        {
+            "games": games,
+            "dashboard": True,
+            "my_games": my_games,
+            "incoming": challenges.get("incoming", []),
+            "live": live,
+            "unread": unread,
+        },
+    )
 
 
 def users_list(request):

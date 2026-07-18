@@ -2502,3 +2502,20 @@ msgstr "your games and challenges in"
 #: web/templates/web/notifications.html
 msgid "Aprire questa pagina segna tutto come letto; la campanella si azzera da sola."
 msgstr "Opening this page marks everything as read; the bell resets by itself."
+
+#: web/templates/web/home.html
+#, python-format
+msgid "Ciao, %(alias)s!"
+msgstr "Hi, %(alias)s!"
+
+#: web/templates/web/home.html
+msgid "Riprendi da dove eri o comincia qualcosa di nuovo."
+msgstr "Pick up where you left off or start something new."
+
+#: web/templates/web/home.html
+msgid "Rispondi"
+msgstr "Reply"
+
+#: web/templates/web/home.html
+msgid "Tutte le dirette"
+msgstr "All live games"

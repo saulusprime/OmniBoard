@@ -55,7 +55,16 @@ in attesa», con il token super admin) oppure la respinge, eliminandola. Fino
 all'approvazione il giocatore compare come «in attesa» e **non può accedere**. La password
 non viene mai salvata in chiaro: in anagrafica esiste solo il suo hash (PBKDF2).
 
-### Community, presenza online e partite a distanza
+### Navigazione ad aree, Community e partite a distanza
+Il portale è organizzato in **cinque aree** (navbar in alto, sul modello di chess.com):
+**Gioca** (nuova partita, le tue partite, sfide, tornei, registra risultato), **Puzzle**,
+**Impara**, **Guarda** (dirette, replay recenti, Arena IA) e **Community**. Ogni voce è
+sia una pagina di area sia un menu a discesa (▾) con le sottopagine; sull'avatar in alto
+a destra c'è il **menu profilo** (scheda, statistiche, Admin, esci) e la **campanella 🔔**
+con le notifiche (il pannello le segna lette; «Tutte le notifiche» apre la pagina
+dedicata). Per chi è loggato la **home è il cruscotto**: riprendi le partite, sfide in
+attesa, dirette in corso e notifiche non lette.
+
 La pagina **Community** mostra chi è **connesso adesso** (badge verde di presenza) con il
 **punteggio complessivo** su tutti i giochi (badge punti — la stessa coppia di badge
 compare in alto, accanto al proprio alias). La presenza si rinnova da sola mentre si
@@ -64,8 +73,8 @@ configurabile dall'admin («Finestra di presenza online», default 120 secondi).
 
 Da Community, il pulsante **⚔️ Sfida** accanto a un giocatore online crea una **partita a
 distanza**: tu e lo sfidato giocate **ognuno dal proprio dispositivo**. Lo sfidato trova
-la partita nella sua Community, sezione «Le tue partite in corso» (con l'avviso «Tocca a
-te!»); le liste si aggiornano da sole. In una partita a distanza ogni client comanda
+la partita nell'area **Gioca** («Le tue partite in corso», con l'avviso «Tocca a
+te!») e sul cruscotto in home; le liste si aggiornano da sole. In una partita a distanza ogni client comanda
 **solo il proprio lato**: la scacchiera si sblocca quando è il tuo turno, e mentre
 l'avversario pensa compare «In attesa della mossa dell'avversario…» (l'aggiornamento è
 automatico, senza ricaricare la pagina). Il server verifica ogni mossa con l'identità del

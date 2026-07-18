@@ -832,6 +832,12 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   community). community_json senza my_games: una query in meno a ogni
   heartbeat. challenge_new → hub Gioca. 322 verdi. Resta la Fase 5 (home
   dashboard).
+- **2026-07-11** — **Frontend Fase 5 (home-cruscotto) FATTA — riorganizzazione
+  chess.com COMPLETA in 5 fasi**: home a due volti (vetrina anonimi, cruscotto
+  loggati: saluto, azioni, sfide/notifiche coi conteggi, riprendi, dirette).
+  Verificata con LOGIN VERO (utente demo via API + client Django). NOTA: il
+  .env sta nella ROOT del repo, non in backend/. Nel TODO restano solo le
+  rifiniture (ricerca in navbar, breadcrumb). 323 verdi.
 
 ## Questioni aperte
 

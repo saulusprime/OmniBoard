@@ -3,6 +3,37 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Frontend Fase 5: home-cruscotto — riorganizzazione COMPLETA
+
+**Richiesta (utente):** «ok procediamo con la fase 5».
+
+**Home a due volti** (vista `home` + home.html): per l'ANONIMO la vetrina di
+sempre (hero, registrazione, classifiche, giochi); per il LOGGATO il
+**cruscotto personale** — saluto con l'alias, azioni rapide (▶ Nuova
+partita, 🧩 Puzzle, 👁 Guarda), banner **sfide in attesa** (conteggio +
+«Rispondi» → hub Gioca#sfide) e **notifiche non lette** (conteggio + «Tutte
+le notifiche» → /notifiche/), tabella «Le tue partite in corso» (riprendi
+con «Tocca a te!»; vuota → invito alla nuova partita) e le prime 5 **dirette**
+col rimando all'hub Guarda. La griglia dei giochi resta in fondo per tutti.
+
+**Verifica dal vivo con LOGIN VERO**: utente `dash_demo` creato e approvato
+via API (ADMIN_TOKEN letto da `.env` — che sta nella ROOT del repo, non in
+backend/), login attraverso la pagina /accedi/ col client Django, resa della
+home e screenshot: saluto, azioni, riprendi vuoto, la diretta REALE
+(remoto_a—remoto_b a Tris), campanella e menu profilo in navbar.
+
+**Con questo step la riorganizzazione sul modello chess.com è COMPLETA**
+(5 fasi in giornata): navbar a 5 aree con menu disclosure → hub Gioca → hub
+Guarda (+ /community/recent) → Community ristretta (+ /notifiche/) → home
+cruscotto. Nel TODO resta solo la voce «rifiniture» (ricerca giocatore in
+navbar, breadcrumb). MANUAL: nuova sezione «Navigazione ad aree, Community e
+partite a distanza» (lo sfidato trova la partita nell'area Gioca e sul
+cruscotto, non più nella Community).
+
+**Test**: +1 (home = cruscotto per il loggato con riprendi/sfide/dirette/
+notifiche, vetrina per l'anonimo senza pezzi del cruscotto). **323 verdi**,
+ruff pulito. 4 stringhe nuove nel .po/.mo. TODO: Fase 5 → ASIS.
+
 ## 2026-07-11 — Frontend Fase 4: Community ristretta
 
 **Richiesta (utente):** «procediamo con Fase 4 — Community ristretta».

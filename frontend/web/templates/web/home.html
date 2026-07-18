@@ -2,6 +2,61 @@
 {% load i18n %}
 {% block title %}{% trans 'OmniBoard — Piattaforma di giochi da tavolo' %}{% endblock %}
 {% block content %}
+{% if dashboard %}
+{# ----- Cruscotto personale (utente loggato) ----- #}
+<div class="card">
+  <h1>♟ {% blocktrans with alias=auth_user.alias %}Ciao, {{ alias }}!{% endblocktrans %}</h1>
+  <p class="muted">{% trans "Riprendi da dove eri o comincia qualcosa di nuovo." %}</p>
+  <p style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a class="btn" href="{% url 'play_setup' %}">▶ {% trans 'Nuova partita' %}</a>
+    <a class="btn secondary" href="{% url 'puzzles' %}">🧩 {% trans 'Puzzle' %}</a>
+    <a class="btn secondary" href="{% url 'watch_hub' %}">👁 {% trans 'Guarda' %}</a>
+  </p>
+  {% if incoming %}
+  <p>⚔️ {% trans "Sfide in attesa" %}: <span class="pill">{{ incoming|length }}</span>
+     <a href="{% url 'play_hub' %}#sfide">{% trans "Rispondi" %}</a></p>
+  {% endif %}
+  {% if unread %}
+  <p>🔔 {% trans "Notifiche" %}: <span class="pill">{{ unread }}</span>
+     <a href="{% url 'notifications_page' %}">{% trans "Tutte le notifiche" %}</a></p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>🎮 {% trans "Le tue partite in corso" %}</h2>
+  <table>
+    <tr><th>{% trans "Gioco" %}</th><th>{% trans "Avversario" %}</th><th>{% trans "Turno" %}</th><th></th></tr>
+    {% for g in my_games %}
+    <tr>
+      <td>{{ g.game_name }}{% if g.remote %} <span class="muted">({% trans "a distanza" %})</span>{% endif %}</td>
+      <td>{{ g.opponent }}</td>
+      <td>{% if g.my_turn %}<span class="pill">{% trans "Tocca a te!" %}</span>{% else %}<span class="muted">{% trans "avversario" %}</span>{% endif %}</td>
+      <td><a class="btn" href="{% url 'play' g.session_id %}">{% trans "Gioca" %}</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4" class="muted">{% trans "Nessuna partita in corso." %} <a href="{% url 'play_setup' %}">{% trans "Nuova partita" %}</a></td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% if live %}
+<div class="card">
+  <h2>🔴 {% trans "Partite in diretta" %}</h2>
+  <table>
+    <tr><th>{% trans "Gioco" %}</th><th>{% trans "Giocatori" %}</th><th></th></tr>
+    {% for l in live %}
+    <tr>
+      <td>{{ l.game_name }}{% if l.ai_only %} <span class="pill">IA</span>{% endif %}</td>
+      <td>{{ l.x_label }} — {{ l.o_label }}</td>
+      <td><a class="btn secondary" href="{% url 'watch' l.session_id %}">👁 {% trans "Guarda" %}</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p style="margin:10px 0 0;"><a href="{% url 'watch_hub' %}#dirette">{% trans "Tutte le dirette" %} →</a></p>
+</div>
+{% endif %}
+{% else %}
+{# ----- Vetrina (visitatore anonimo) ----- #}
 <div class="card">
   <h1>♟ OmniBoard</h1>
   <p class="muted">{% trans "Gioca a scacchi e ad altri giochi da tavolo a turni — dama, tris, forza 4 — tramite un unico motore. Registrati, sfida gli altri giocatori e scala le classifiche." %}</p>
@@ -12,6 +67,7 @@
   </p>
   <p class="muted">{% trans "Puoi giocare in due sullo stesso schermo oppure sfidare l'IA." %}</p>
 </div>
+{% endif %}
 
 <div class="card">
   <h2>{% trans 'Giochi disponibili' %}</h2>

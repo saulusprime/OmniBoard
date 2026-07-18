@@ -325,6 +325,15 @@
   `/notifiche/` che elenca tutto e segna letto all'apertura — è il bersaglio
   di «Tutte le notifiche»); `community.json` snellito (via `my_games`: una
   query in meno a ogni heartbeat); `challenge_new` reindirizza all'hub Gioca.
+- [x] **Riorganizzazione frontend — Fase 5: Home cruscotto** (2026-07-11, la
+  riorganizzazione sul modello chess.com è COMPLETA): per il LOGGATO la home
+  è il cruscotto personale — saluto con alias, azioni rapide (nuova partita,
+  puzzle, Guarda), banner sfide in attesa e notifiche non lette coi link,
+  «Le tue partite in corso» (riprendi con «Tocca a te!») e le dirette in
+  evidenza; per l'ANONIMO resta la vetrina con la registrazione. Verificata
+  dal vivo con LOGIN REALE (utente demo creato e approvato via API, client
+  Django, screenshot del cruscotto con dati veri). MANUAL aggiornato con la
+  sezione «Navigazione ad aree».
 
 - [x] **Promozione con dialog grafico** — pannello sopra la scacchiera coi
   quattro pezzi cliccabili nei colori del TEMA del lato che muove (♛♜♝♞, classi

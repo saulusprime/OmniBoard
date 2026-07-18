@@ -541,6 +541,65 @@ def test_notifications_json_anonymous_is_empty():
     assert data == {"notifications": [], "unread": 0}
 
 
+def test_home_is_dashboard_for_logged_and_showcase_for_anonymous(monkeypatch):
+    """Fase 5: la home del loggato è il CRUSCOTTO (riprendi, sfide, dirette,
+    notifiche); per l'anonimo resta la vetrina con la registrazione."""
+    import web.api_client as api
+
+    monkeypatch.setattr(
+        api, "list_games", lambda: [{"code": "chess", "name": "Scacchi", "is_stochastic": False}]
+    )
+    html = Client().get("/", SERVER_NAME="localhost").content.decode()
+    assert "Crea un giocatore" in html  # vetrina per gli anonimi
+    assert "Tocca a te!" not in html
+
+    monkeypatch.setattr(
+        api,
+        "my_games",
+        lambda t: {
+            "games": [
+                {
+                    "session_id": 88,
+                    "game_name": "Gomoku",
+                    "opponent": "rivale",
+                    "my_turn": True,
+                    "remote": True,
+                }
+            ]
+        },
+    )
+    monkeypatch.setattr(
+        api,
+        "my_challenges",
+        lambda t: {"incoming": [{"id": 4}], "outgoing": []},
+    )
+    monkeypatch.setattr(
+        api,
+        "community_live",
+        lambda: {
+            "live": [
+                {
+                    "session_id": 31,
+                    "game_name": "Scacchi",
+                    "x_label": "dash_a",
+                    "o_label": "dash_b",
+                    "plies": 3,
+                    "tc_category": None,
+                    "ai_only": False,
+                }
+            ]
+        },
+    )
+    monkeypatch.setattr(api, "notifications_list", lambda t: {"unread": 3, "notifications": []})
+    html = _logged_client().get("/", SERVER_NAME="localhost").content.decode()
+    assert "Ciao," in html and "me" in html  # saluto col proprio alias
+    assert "Tocca a te!" in html and "/partite/88/" in html  # riprendi
+    assert "Sfide in attesa" in html and "Rispondi" in html
+    assert "dash_a — dash_b" in html  # dirette in evidenza
+    assert "Tutte le notifiche" in html  # banner delle non lette
+    assert "Crea un giocatore" not in html  # niente vetrina per il loggato
+
+
 def test_watch_hub_renders_live_arena_and_replays(monkeypatch):
     """L'hub «Guarda» (/guarda/) mostra dirette, tornei Arena IA e replay."""
     import web.api_client as api
