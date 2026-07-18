@@ -271,7 +271,34 @@ def challenge_action(request, invite_id):
                 )
             except api.ApiError as exc:
                 messages.error(request, str(exc))
-    return redirect("community")
+    return redirect("play_hub")
+
+
+def play_hub(request):
+    """Hub dell'area «Gioca»: riprendi le partite in corso, rispondi alle
+    sfide, guarda i tornei aperti e lancia le azioni (nuova partita,
+    registra un risultato). È la landing della voce «Gioca» in navbar."""
+    token = request.session.get("auth_token")
+    games = []
+    challenges = {"incoming": [], "outgoing": []}
+    if token:
+        data = _safe(request, lambda: api.my_games(token), default={"games": []})
+        games = (data or {}).get("games", [])
+        challenges = (
+            _safe(request, lambda: api.my_challenges(token), default=challenges) or challenges
+        )
+    data = _safe(request, api.list_human_tournaments, default={}) or {}
+    tournaments = data.get("tournaments", [])
+    open_tournaments = [t for t in tournaments if t.get("status") in ("open", "running")][:6]
+    return render(
+        request,
+        "web/play_hub.html",
+        {
+            "my_games": games,
+            "challenges": challenges,
+            "tournaments": open_tournaments,
+        },
+    )
 
 
 # ----- Tutorial: istruzione guidata con voce sintetica -----

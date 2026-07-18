@@ -2442,3 +2442,23 @@ msgstr "Online presence"
 #: web/templates/web/base.html
 msgid "Punteggio complessivo (tutti i giochi)"
 msgstr "Overall score (all games)"
+
+#: web/templates/web/play_hub.html
+msgid "Riprendi le partite in corso, rispondi alle sfide o comincia qualcosa di nuovo."
+msgstr "Resume your games, answer challenges or start something new."
+
+#: web/templates/web/play_hub.html
+msgid "Nessuna sfida in attesa."
+msgstr "No pending challenges."
+
+#: web/templates/web/play_hub.html
+msgid "Sfida un giocatore online."
+msgstr "Challenge an online player."
+
+#: web/templates/web/play_hub.html
+msgid "Tornei aperti"
+msgstr "Open tournaments"
+
+#: web/templates/web/play_hub.html
+msgid "Nessun torneo aperto in questo momento."
+msgstr "No open tournaments right now."

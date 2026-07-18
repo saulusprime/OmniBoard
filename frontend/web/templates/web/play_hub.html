@@ -1,0 +1,80 @@
+{% extends "web/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Gioca" %} — OmniBoard{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>🎮 {% trans "Gioca" %}</h1>
+  <p class="muted">{% trans "Riprendi le partite in corso, rispondi alle sfide o comincia qualcosa di nuovo." %}</p>
+  <p style="display:flex; gap:10px; flex-wrap:wrap; margin:0;">
+    <a class="btn" href="{% url 'play_setup' %}">▶ {% trans "Nuova partita" %}</a>
+    <a class="btn secondary" href="{% url 'tournaments' %}">🏆 {% trans "Tornei" %}</a>
+    <a class="btn secondary" href="{% url 'match_create' %}">✍️ {% trans "Registra partita" %}</a>
+  </p>
+</div>
+
+<div class="card" id="partite">
+  <h2>🎮 {% trans "Le tue partite in corso" %}</h2>
+  {% if not auth_user %}
+  <p class="muted"><a href="{% url 'login' %}">{% trans "Accedi" %}</a> {% trans "per vedere le tue partite e ricevere le sfide." %}</p>
+  {% else %}
+  <table>
+    <tr><th>{% trans "Gioco" %}</th><th>{% trans "Avversario" %}</th><th>{% trans "Turno" %}</th><th></th></tr>
+    {% for g in my_games %}
+    <tr>
+      <td>{{ g.game_name }}{% if g.remote %} <span class="muted">({% trans "a distanza" %})</span>{% endif %}</td>
+      <td>{{ g.opponent }}</td>
+      <td>{% if g.my_turn %}<span class="pill">{% trans "Tocca a te!" %}</span>{% else %}<span class="muted">{% trans "avversario" %}</span>{% endif %}</td>
+      <td><a class="btn" href="{% url 'play' g.session_id %}">{% trans "Gioca" %}</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4" class="muted">{% trans "Nessuna partita in corso." %}</td></tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</div>
+
+{% if auth_user %}
+<div class="card" id="sfide">
+  <h2>⚔️ {% trans "Sfide in attesa" %}</h2>
+  {% for c in challenges.incoming %}
+  <form method="post" action="{% url 'challenge_action' c.id %}"
+        style="display:flex; gap:10px; align-items:center; margin:6px 0; flex-wrap:wrap;">{% csrf_token %}
+    <span>{% blocktrans with who=c.from_alias game=c.game_name %}<strong>{{ who }}</strong> ti sfida a {{ game }}{% endblocktrans %}
+      {% if c.time_category %}<span class="muted">({{ c.time_category }}{% if c.time_base_min %} {{ c.time_base_min }}′{% endif %}{% if c.time_inc_s %}+{{ c.time_inc_s }}″{% endif %})</span>{% endif %}
+      — {% trans "tu giochi" %} {% if c.side == 'x' %}{% trans "come secondo (Nero/O)" %}{% else %}{% trans "come primo (Bianco/X)" %}{% endif %}</span>
+    <button class="btn" type="submit" name="action" value="accept">{% trans "Accetta" %}</button>
+    <button class="btn secondary" type="submit" name="action" value="decline">{% trans "Rifiuta" %}</button>
+  </form>
+  {% endfor %}
+  {% for c in challenges.outgoing %}
+  <form method="post" action="{% url 'challenge_action' c.id %}"
+        style="display:flex; gap:10px; align-items:center; margin:6px 0;">{% csrf_token %}
+    <span class="muted">{% blocktrans with who=c.to_alias game=c.game_name %}Hai sfidato {{ who }} a {{ game }} (in attesa).{% endblocktrans %}</span>
+    <button class="btn secondary" type="submit" name="action" value="cancel">{% trans "Ritira" %}</button>
+  </form>
+  {% endfor %}
+  {% if not challenges.incoming and not challenges.outgoing %}
+  <p class="muted">{% trans "Nessuna sfida in attesa." %} <a href="{% url 'community' %}#online">{% trans "Sfida un giocatore online." %}</a></p>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>🏆 {% trans "Tornei aperti" %}</h2>
+  <table>
+    <tr><th>{% trans "Nome" %}</th><th>{% trans "Gioco" %}</th><th>{% trans "Iscritti" %}</th><th>{% trans "Stato" %}</th><th></th></tr>
+    {% for t in tournaments %}
+    <tr>
+      <td>{{ t.name }}{% if t.group_name %} <span class="pill">{{ t.group_name }}</span>{% endif %}</td>
+      <td>{{ t.game_name }}</td>
+      <td>{{ t.players|length }}/{{ t.max_players }}</td>
+      <td>{% if t.status == 'open' %}<span class="pill">{% trans "iscrizioni aperte" %}</span>{% else %}{% trans "in corso" %}{% endif %}</td>
+      <td><a class="btn secondary" href="{% url 'tournament_detail' t.id %}">{% trans "Apri" %}</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5" class="muted">{% trans "Nessun torneo aperto in questo momento." %}</td></tr>
+    {% endfor %}
+  </table>
+  <p style="margin:10px 0 0;"><a href="{% url 'tournaments' %}">{% trans "Tutti i tornei" %} →</a></p>
+</div>
+{% endblock %}

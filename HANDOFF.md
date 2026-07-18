@@ -3,6 +3,41 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Frontend Fase 2: hub «Gioca»
+
+**Richiesta (utente):** «ok procediamo con Fase 2».
+
+**Hub** (`/gioca/`, vista `play_hub` + play_hub.html): la landing dell'area
+con — azioni in testa (▶ Nuova partita, 🏆 Tornei, ✍️ Registra partita);
+**«Le tue partite in corso»** (`#partite`: gioco, avversario, «Tocca a te!»,
+bottone Gioca — da `api.my_games`; da anonimi l'invito ad accedere);
+**«Sfide in attesa»** (`#sfide`: in entrata con Accetta/Rifiuta, in uscita
+con Ritira — stessi POST `challenge_action` della community, che ora
+REINDIRIZZA all'hub; vuote → link «Sfida un giocatore online» verso
+`#online`); **«Tornei aperti»** (primi 6 open/running da `/tournaments` +
+link a tutti).
+
+**Rotte**: `/gioca/` = hub (nome `play_hub`), il setup si sposta su
+`/gioca/nuova/` CONSERVANDO il nome di rotta `play_setup` → tutti i
+{% url %} esistenti (home, menu, template) seguono da soli; nessun URL
+rotto (chi apre /gioca/ trova l'hub col bottone grande). Menu «Gioca» in
+navbar: Le mie partite/Sfide e inviti puntano alle sezioni dell'HUB (non
+più alle ancore della community).
+
+**Baco scovato DALLA VERIFICA DAL VIVO** (e non dai test): il mock di
+`list_human_tournaments` ritornava una LISTA, ma l'endpoint vero risponde
+`{"tournaments": [...]}` → in produzione la vista iterava le chiavi del
+dict (stringhe) e cadeva con `'str' has no attribute 'get'`. Fix nella
+vista + mock allineato alla forma vera. Corollario della trappola: dopo un
+fix, RIAVVIARE il runserver `--noreload` di verifica — il debug page di
+Django mostra il sorgente NUOVO da disco mentre esegue il bytecode VECCHIO
+(il secondo traceback era un fantasma).
+
+**Test**: +1 (hub da anonimi: azioni+tornei+invito al login; da loggati:
+partite con Tocca a te!, sfida con Accetta; /gioca/nuova/ risponde 200).
+**321 verdi**, ruff pulito. 5 stringhe nuove nel .po/.mo. TODO: Fase 2 →
+ASIS; restano le fasi 3-5.
+
 ## 2026-07-11 — Frontend Fase 1: navigazione ad aree (modello chess.com)
 
 **Richiesta (utente):** «ok, partiamo con la Fase 1 — Navigazione».

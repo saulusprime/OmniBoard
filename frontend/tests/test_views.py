@@ -551,3 +551,72 @@ def test_navbar_has_five_areas_and_no_flat_admin():
 def test_notifications_json_anonymous_is_empty():
     data = Client().get("/notifiche.json", SERVER_NAME="localhost").json()
     assert data == {"notifications": [], "unread": 0}
+
+
+def test_play_hub_renders_for_anonymous_and_logged(monkeypatch):
+    """L'hub «Gioca» (/gioca/) mostra azioni e tornei a tutti; partite in corso
+    e sfide al giocatore loggato. Il setup è diventato la sottopagina
+    /gioca/nuova/ (stesso nome di rotta: i link esistenti seguono)."""
+    import web.api_client as api
+
+    monkeypatch.setattr(
+        api,
+        "list_human_tournaments",
+        lambda: {
+            "tournaments": [
+                {
+                    "id": 9,
+                    "name": "Coppa Hub",
+                    "game_name": "Scacchi",
+                    "format": "knockout",
+                    "status": "open",
+                    "players": [1, 2],
+                    "max_players": 16,
+                    "group_name": None,
+                    "winner": None,
+                }
+            ]
+        },
+    )
+    html = Client().get("/gioca/", SERVER_NAME="localhost").content.decode()
+    assert "Nuova partita" in html and "Registra partita" in html
+    assert "Coppa Hub" in html and "iscrizioni aperte" in html
+    assert "per vedere le tue partite e ricevere le sfide." in html  # invito al login
+
+    monkeypatch.setattr(
+        api,
+        "my_games",
+        lambda token: {
+            "games": [
+                {
+                    "session_id": 77,
+                    "game_name": "Othello",
+                    "opponent": "rivale",
+                    "my_turn": True,
+                    "remote": True,
+                }
+            ]
+        },
+    )
+    monkeypatch.setattr(
+        api,
+        "my_challenges",
+        lambda token: {
+            "incoming": [
+                {
+                    "id": 5,
+                    "from_alias": "sfidante",
+                    "game_name": "Gomoku",
+                    "side": "x",
+                    "time_category": None,
+                }
+            ],
+            "outgoing": [],
+        },
+    )
+    client = _logged_client()
+    html = client.get("/gioca/", SERVER_NAME="localhost").content.decode()
+    assert "Tocca a te!" in html and "/partite/77/" in html
+    assert "sfidante" in html and "Accetta" in html
+    # Il setup della nuova partita risponde alla sottopagina.
+    assert Client().get("/gioca/nuova/", SERVER_NAME="localhost").status_code == 200

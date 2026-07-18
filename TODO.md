@@ -36,10 +36,6 @@
 > Community). Vincoli: gli URL esistenti restano (redirect dove serve), il
 > heartbeat JS di base.html si conserva, ogni voce nuova passa da i18n.
 
-- [ ] **Fase 2 — Hub «Gioca»**: landing con «le mie partite in corso» (riprendi),
-  nuova partita, inviti ricevuti/inviati, tornei aperti, sfide di gruppo
-  pendenti, registra risultato. Le pagine Tornei e Registra partita diventano
-  sottopagine dell'area.
 - [ ] **Fase 3 — Hub «Guarda»**: landing con le dirette (dalla Community), i
   tornei dell'Arena IA in corso e i replay recenti; Arena IA diventa
   sottopagina dell'area.

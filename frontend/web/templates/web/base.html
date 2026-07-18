@@ -105,13 +105,13 @@
             aria-label="{% trans 'Menu' %}">☰</button>
     <div class="navlinks" id="navlinks">
       <div class="navgrp">
-        <a href="{% url 'play_setup' %}">{% trans "Gioca" %}</a>
+        <a href="{% url 'play_hub' %}">{% trans "Gioca" %}</a>
         <button class="navtgl" data-menu aria-expanded="false" aria-controls="menu-gioca"
                 aria-label="{% trans 'Apri il menu' %} {% trans 'Gioca' %}">▾</button>
         <div class="navmenu" id="menu-gioca" hidden>
           <a href="{% url 'play_setup' %}">{% trans "Nuova partita" %}</a>
-          <a href="{% url 'community' %}#partite">{% trans "Le mie partite" %}</a>
-          <a href="{% url 'community' %}#sfide">{% trans "Sfide e inviti" %}</a>
+          <a href="{% url 'play_hub' %}#partite">{% trans "Le mie partite" %}</a>
+          <a href="{% url 'play_hub' %}#sfide">{% trans "Sfide e inviti" %}</a>
           <a href="{% url 'tournaments' %}">{% trans "Tornei" %}</a>
           <a href="{% url 'match_create' %}">{% trans "Registra partita" %}</a>
         </div>

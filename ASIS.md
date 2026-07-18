@@ -297,6 +297,17 @@
   sezione in community.html (#online #dirette #sfide #notifiche #partite)
   come bersagli dei menu finché gli hub non esistono. URL invariati,
   heartbeat conservato, voci nuove tradotte.
+- [x] **Riorganizzazione frontend — Fase 2: Hub «Gioca»** (2026-07-11):
+  `/gioca/` è la LANDING dell'area (vista `play_hub` + play_hub.html) con le
+  azioni (nuova partita, tornei, registra), «Le tue partite in corso» (riprendi,
+  con «Tocca a te!»), «Sfide in attesa» (accetta/rifiuta/ritira — stessi POST
+  della community) e «Tornei aperti» (primi 6 open/running + link a tutti);
+  il setup si è spostato su `/gioca/nuova/` MANTENENDO il nome di rotta
+  `play_setup` (tutti i reverse seguono da soli); le sottovoci del menu Gioca
+  puntano alle sezioni dell'hub; `challenge_action` ora torna all'hub.
+  Trappola verbalizzata: i mock nei test devono rispecchiare la FORMA vera
+  del payload (`/tournaments` risponde `{"tournaments": []}`, non una lista —
+  il baco l'ha scovato la verifica dal vivo, non i test).
 
 - [x] **Promozione con dialog grafico** — pannello sopra la scacchiera coi
   quattro pezzi cliccabili nei colori del TEMA del lato che muove (♛♜♝♞, classi

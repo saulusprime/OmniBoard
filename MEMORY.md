@@ -809,6 +809,15 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   lato server con reverse(), MAI pattern di URL nel JS) che segna lette
   all'apertura. Ancore di sezione in community.html come landing provvisorie
   delle aree. 320 verdi. Restano le fasi 2-5.
+- **2026-07-11** — **Frontend Fase 2 (hub «Gioca») FATTA**: /gioca/ = landing
+  d'area (azioni, partite in corso con riprendi, sfide accetta/rifiuta,
+  tornei aperti), setup su /gioca/nuova/ con lo STESSO nome di rotta
+  play_setup (i reverse seguono da soli); challenge_action → hub. TRAPPOLA
+  (x2): i mock dei test devono avere la FORMA VERA del payload — la lista
+  nuda al posto di {"tournaments": []} aveva nascosto un crash che solo la
+  verifica dal vivo ha scovato; e dopo un fix il runserver --noreload va
+  RIAVVIATO (il debug page mostra il sorgente nuovo ma esegue il bytecode
+  vecchio: traceback fantasma). 321 verdi. Restano le fasi 3-5.
 
 ## Questioni aperte
 
