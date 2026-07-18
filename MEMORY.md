@@ -801,6 +801,14 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   notifiche proprio, home-dashboard per il loggato; la pagina Community si
   smembra (dirette→Guarda, sfide→Gioca, notifiche→campanella). Cinque fasi
   nel TODO; vincoli: URL conservati, heartbeat intatto, i18n.
+- **2026-07-11** — **Frontend Fase 1 (navigazione) FATTA**: navbar a 5 aree
+  con menu disclosure accessibili (aria-expanded, Esc, hover solo con
+  `(hover:hover)`), hamburger mobile, menu profilo sull'avatar (Admin dentro:
+  nel backend il super admin è un TOKEN, non un flag utente — il link non è
+  condizionabile), campanella con pannello da `notifiche.json` (URL risolti
+  lato server con reverse(), MAI pattern di URL nel JS) che segna lette
+  all'apertura. Ancore di sezione in community.html come landing provvisorie
+  delle aree. 320 verdi. Restano le fasi 2-5.
 
 ## Questioni aperte
 

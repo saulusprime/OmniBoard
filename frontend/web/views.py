@@ -5,6 +5,7 @@ from __future__ import annotations
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 
 from . import api_client as api
@@ -171,6 +172,44 @@ def community_json(request):
     return JsonResponse(
         {"online": online, "my_games": games, "me": me, "unread": unread, "live": live}
     )
+
+
+def notifications_json(request):
+    """Le notifiche per il pannello della campanella (testo + link risolto)."""
+    token = request.session.get("auth_token")
+    if not token:
+        return JsonResponse({"notifications": [], "unread": 0})
+    data = _safe(request, lambda: api.notifications_list(token), default={}) or {}
+    items = []
+    for n in data.get("notifications", [])[:15]:
+        url = None
+        if n.get("session_id"):
+            url = reverse("play", args=[n["session_id"]])
+        elif n.get("tournament_id"):
+            url = reverse("tournament_detail", args=[n["tournament_id"]])
+        elif n.get("match_id"):
+            url = reverse("group_match_detail", args=[n["match_id"]])
+        elif n.get("group_id"):
+            url = reverse("groups")
+        items.append(
+            {
+                "text": n.get("text", ""),
+                "url": url,
+                "read": bool(n.get("read")),
+                "created_at": (n.get("created_at") or "")[:16],
+            }
+        )
+    return JsonResponse({"notifications": items, "unread": data.get("unread", 0)})
+
+
+def notifications_read_json(request):
+    """Segna lette le notifiche (aprendo il pannello della campanella)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "solo POST"}, status=405)
+    token = request.session.get("auth_token")
+    if token:
+        _safe(request, lambda: api.notifications_read(token))
+    return JsonResponse({"ok": True})
 
 
 def watch(request, session_id):

@@ -3,6 +3,45 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Frontend Fase 1: navigazione ad aree (modello chess.com)
+
+**Richiesta (utente):** «ok, partiamo con la Fase 1 — Navigazione».
+
+**Navbar nuova** (base.html): da 12 voci piatte a **5 aree** — Gioca ▾,
+Puzzle, Impara, Guarda ▾, Community ▾ — dove la voce è il link alla pagina
+principale dell'area e il bottone ▾ apre il menu con le sottopagine:
+
+- Gioca → Nuova partita, Le mie partite (#partite), Sfide e inviti (#sfide),
+  Tornei, Registra partita;
+- Guarda → Partite in diretta (#dirette), Arena IA;
+- Community → Giocatori, Gruppi, Classifiche, Giocatori online (#online).
+
+Le sottovoci con # puntano alle ancore di sezione AGGIUNTE in community.html:
+faranno da landing finché gli hub veri non esistono (fasi 2-4). Pattern
+**disclosure accessibile**: `aria-expanded`/`aria-controls` sul bottone, Esc
+e click-fuori chiudono, hover apre solo con `(hover: hover)`; su mobile
+**hamburger ☰** (`#nav-burger`) con aree impilate a tutta larghezza e menu in
+linea (position:static).
+
+**Menu profilo sull'avatar** (👤 alias + pallino presenza + punti): La mia
+scheda, Statistiche avanzate, **Admin** (via dalla navbar; nel backend il
+super admin è un TOKEN, non un flag dell'utente → il link resta per tutti ma
+fuori dai piedi; la pagina si difende da sola col token) ed Esci.
+
+**Campanella 🔔 col pannello**: sempre visibile da loggati (badge solo con
+non-letto), il pannello carica da `notifiche.json` (vista nuova: testo +
+**URL risolto lato server** con reverse() — niente pattern di URL nel JS) e
+aprire il pannello segna lette via `notifiche/lette.json` (POST) come già
+faceva l'apertura della Community; link «Tutte le notifiche» → #notifiche.
+Heartbeat conservato (aggiorna pallino, punti e badge).
+
+**Verifica dal vivo**: i server dell'utente erano SPENTI → istanza propria su
+:8002 (backend giù = modalità degradata attesa); screenshot desktop (5 aree),
+mobile (hamburger), menu Gioca aperto via harness che forza `hidden=false`
+(l'headless non sa cliccare). **Test**: +2 (navbar a 5 aree senza Admin di
+primo livello per gli anonimi; notifiche.json da anonimi = vuoto);
+**320 verdi**, ruff pulito. .po/.mo: 8 stringhe nuove. TODO: Fase 1 → ASIS.
+
 ## 2026-07-11 — Analisi IA frontend (modello chess.com) → piano nel TODO
 
 **Richiesta (utente):** rilettura della documentazione e TODO aggiornato, con
