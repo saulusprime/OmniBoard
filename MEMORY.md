@@ -825,6 +825,13 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   metodo: un «baco» dell'esito nei replay era una SESSIONE DIVERSA con lo
   stesso gioco (l'utente aveva giocato altre IA-vs-IA) — controllare l'id
   della riga prima di inseguire il template. 322 verdi. Restano le fasi 4-5.
+- **2026-07-11** — **Frontend Fase 4 (Community ristretta) FATTA**: community
+  = landing d'area (online + rimandi Giocatori/Gruppi/Classifiche); sezioni
+  smembrate negli hub; pagina NUOVA /notifiche/ (elenco completo, marca-letto
+  all'apertura, bersaglio della campanella; il marca-letto NON sta più nella
+  community). community_json senza my_games: una query in meno a ogni
+  heartbeat. challenge_new → hub Gioca. 322 verdi. Resta la Fase 5 (home
+  dashboard).
 
 ## Questioni aperte
 

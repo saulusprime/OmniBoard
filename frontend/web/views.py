@@ -107,37 +107,27 @@ def logout_view(request):
 
 # ----- Community: presenza online, badge e partite del giocatore -----
 def community(request):
-    """Area community: chi è online, le proprie partite, SFIDE pendenti e notifiche.
+    """Landing dell'area Community: chi è online (con la Sfida) e i rimandi
+    alle sottopagine (giocatori, gruppi, classifiche).
 
-    È il posto dove lo sfidato scopre gli inviti a giocare (li accetta o
-    rifiuta) e dove le notifiche si leggono: aprire la pagina le segna lette
-    (la campanella in navbar si azzera al giro di polling successivo).
+    Le sezioni storiche sono migrate negli hub: dirette → «Guarda», sfide e
+    partite in corso → «Gioca», notifiche → campanella e /notifiche/.
     """
     online = _safe(request, api.community_online, default={"online": []})
-    live = _safe(request, api.community_live, default={}) or {}
+    return render(request, "web/community.html", {"online": online.get("online", [])})
+
+
+def notifications_page(request):
+    """Tutte le notifiche del giocatore; aprire la pagina le segna lette
+    (la campanella in navbar si azzera al giro di polling successivo)."""
     token = request.session.get("auth_token")
-    games = []
-    challenges = {"incoming": [], "outgoing": []}
-    notices = []
-    if token:
-        data = _safe(request, lambda: api.my_games(token), default={"games": []})
-        games = (data or {}).get("games", [])
-        challenges = _safe(request, lambda: api.my_challenges(token), default=challenges)
-        notif = _safe(request, lambda: api.notifications_list(token), default={}) or {}
-        notices = notif.get("notifications", [])
-        if notif.get("unread"):
-            _safe(request, lambda: api.notifications_read(token))
-    return render(
-        request,
-        "web/community.html",
-        {
-            "online": online.get("online", []),
-            "live": live.get("live", []),
-            "my_games": games,
-            "challenges": challenges,
-            "notices": notices,
-        },
-    )
+    if not token:
+        return redirect("login")
+    notif = _safe(request, lambda: api.notifications_list(token), default={}) or {}
+    notices = notif.get("notifications", [])
+    if notif.get("unread"):
+        _safe(request, lambda: api.notifications_read(token))
+    return render(request, "web/notifications.html", {"notices": notices})
 
 
 def community_json(request):
@@ -149,12 +139,10 @@ def community_json(request):
     """
     token = request.session.get("auth_token")
     me = None
-    games = []
     unread = 0
     if token:
         try:
             api.heartbeat(token)
-            games = api.my_games(token).get("games", [])
             unread = api.notifications_list(token).get("unread", 0)
         except api.ApiError:
             token = None  # sessione backend scaduta: si continua da anonimi
@@ -169,9 +157,7 @@ def community_json(request):
         live = api.community_live().get("live", [])
     except api.ApiError:
         live = []
-    return JsonResponse(
-        {"online": online, "my_games": games, "me": me, "unread": unread, "live": live}
-    )
+    return JsonResponse({"online": online, "me": me, "unread": unread, "live": live})
 
 
 def notifications_json(request):
@@ -247,7 +233,7 @@ def challenge_new(request, user_id):
                 _("Sfida spedita a %(alias)s: parte quando l'accetta.")
                 % {"alias": target["alias"]},
             )
-            return redirect("community")
+            return redirect("play_hub")
         except api.ApiError as exc:
             messages.error(request, str(exc))
     games = [g for g in _safe(request, api.list_games, default=[]) if g.get("playable")]

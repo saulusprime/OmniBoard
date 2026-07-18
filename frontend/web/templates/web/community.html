@@ -2,10 +2,17 @@
 {% load i18n %}
 {% block title %}Community{% endblock %}
 {% block content %}
-<div class="card" id="online">
+<div class="card">
   <h1>🌐 Community</h1>
   <p class="muted">{% blocktrans %}Chi è connesso adesso, con il punteggio complessivo su tutti i giochi. Con «Sfida» mandi un <strong>invito a giocare</strong>: la partita a distanza nasce quando lo sfidato accetta. L'elenco si aggiorna da solo.{% endblocktrans %}</p>
+  <p style="display:flex; gap:10px; flex-wrap:wrap; margin:0;">
+    <a class="btn secondary" href="{% url 'users_list' %}">👥 {% trans "Giocatori" %}</a>
+    <a class="btn secondary" href="{% url 'groups' %}">🛡️ {% trans "Gruppi" %}</a>
+    <a class="btn secondary" href="{% url 'rankings' %}">🏅 {% trans "Classifiche" %}</a>
+  </p>
+</div>
 
+<div class="card" id="online">
   <h2>{% trans 'Giocatori online' %}</h2>
   <table>
     <tr><th>{% trans 'Giocatore' %}</th><th>{% trans 'Punti (tutti i giochi)' %}</th><th></th></tr>
@@ -23,104 +30,15 @@
     {% endfor %}
     </tbody>
   </table>
-</div>
-
-<div class="card" id="dirette">
-  <h2>👁 {% trans 'Partite in diretta' %}</h2>
-  <p class="muted">{% trans 'Guarda le partite a distanza in corso e i duelli fra IA, in sola lettura. A partita finita la stessa pagina diventa il replay animato.' %}</p>
-  <table>
-    <tr><th>{% trans 'Gioco' %}</th><th>{% trans 'Giocatori' %}</th>
-        <th>{% trans 'Semimosse' %}</th><th></th></tr>
-    <tbody id="live-list">
-    {% for l in live %}
-    <tr>
-      <td>{{ l.game_name }}{% if l.ai_only %} <span class="pill">IA</span>{% endif %}{% if l.tc_category %} <span class="muted">({{ l.tc_category }})</span>{% endif %}</td>
-      <td>{{ l.x_label }} — {{ l.o_label }}</td>
-      <td>{{ l.plies }}</td>
-      <td><a class="btn secondary" href="{% url 'watch' l.session_id %}">👁 {% trans 'Guarda' %}</a></td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="4" class="muted">{% trans 'Nessuna partita in diretta in questo momento.' %}</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
-
-{% if auth_user %}
-{% if challenges.incoming or challenges.outgoing %}
-<div class="card" id="sfide">
-  <h2>⚔️ {% trans 'Sfide in attesa' %}</h2>
-  {% for c in challenges.incoming %}
-  <form method="post" action="{% url 'challenge_action' c.id %}"
-        style="display:flex; gap:10px; align-items:center; margin:6px 0; flex-wrap:wrap;">{% csrf_token %}
-    <span>{% blocktrans with who=c.from_alias game=c.game_name %}<strong>{{ who }}</strong> ti sfida a {{ game }}{% endblocktrans %}
-      {% if c.time_category %}<span class="muted">({{ c.time_category }}{% if c.time_base_min %} {{ c.time_base_min }}′{% endif %}{% if c.time_inc_s %}+{{ c.time_inc_s }}″{% endif %})</span>{% endif %}
-      — {% trans 'tu giochi' %} {% if c.side == 'x' %}{% trans 'come secondo (Nero/O)' %}{% else %}{% trans 'come primo (Bianco/X)' %}{% endif %}</span>
-    <button class="btn" type="submit" name="action" value="accept">{% trans 'Accetta' %}</button>
-    <button class="btn secondary" type="submit" name="action" value="decline">{% trans 'Rifiuta' %}</button>
-  </form>
-  {% endfor %}
-  {% for c in challenges.outgoing %}
-  <form method="post" action="{% url 'challenge_action' c.id %}"
-        style="display:flex; gap:10px; align-items:center; margin:6px 0;">{% csrf_token %}
-    <span class="muted">{% blocktrans with who=c.to_alias game=c.game_name %}Hai sfidato {{ who }} a {{ game }} (in attesa).{% endblocktrans %}</span>
-    <button class="btn secondary" type="submit" name="action" value="cancel">{% trans 'Ritira' %}</button>
-  </form>
-  {% endfor %}
-</div>
-{% endif %}
-
-<div class="card" id="notifiche">
-  <h2>🔔 {% trans 'Notifiche' %}</h2>
-  {% if notices %}
-  <ul style="list-style:none; padding:0; margin:0;">
-    {% for n in notices %}
-    <li style="padding:6px 0; border-bottom:1px solid rgba(127,127,127,.15);
-               {% if not n.read %}font-weight:600;{% endif %}">
-      {{ n.text }}
-      {% if n.session_id %}<a class="btn secondary" style="padding:2px 10px; font-size:.8rem;"
-         href="{% url 'play' n.session_id %}">{% trans 'Apri' %}</a>
-      {% elif n.tournament_id %}<a class="btn secondary" style="padding:2px 10px; font-size:.8rem;"
-         href="{% url 'tournament_detail' n.tournament_id %}">{% trans 'Apri' %}</a>
-      {% elif n.match_id %}<a class="btn secondary" style="padding:2px 10px; font-size:.8rem;"
-         href="{% url 'group_match_detail' n.match_id %}">{% trans 'Apri' %}</a>
-      {% elif n.group_id %}<a class="btn secondary" style="padding:2px 10px; font-size:.8rem;"
-         href="{% url 'groups' %}">{% trans 'Apri' %}</a>{% endif %}
-      {% if n.created_at %}<span class="muted" style="font-size:.8rem;"> · {{ n.created_at|slice:":16" }}</span>{% endif %}
-    </li>
-    {% endfor %}
-  </ul>
-  {% else %}
-  <p class="muted">{% trans 'Nessuna notifica.' %}</p>
-  {% endif %}
-</div>
-{% endif %}
-
-<div class="card" id="partite">
-  <h2>🎮 {% trans 'Le tue partite in corso' %}</h2>
-  {% if not auth_user %}
-  <p class="muted"><a href="{% url 'login' %}">{% trans 'Accedi' %}</a> {% trans 'per vedere le tue partite e ricevere le sfide.' %}</p>
-  {% endif %}
-  <table {% if not auth_user %}style="display:none;"{% endif %}>
-    <tr><th>{% trans 'Gioco' %}</th><th>{% trans 'Avversario' %}</th><th>{% trans 'Turno' %}</th><th></th></tr>
-    <tbody id="games-list">
-    {% for g in my_games %}
-    <tr>
-      <td>{{ g.game_name }}{% if g.remote %} <span class="muted">({% trans 'a distanza' %})</span>{% endif %}</td>
-      <td>{{ g.opponent }}</td>
-      <td>{% if g.my_turn %}<span class="pill">{% trans 'Tocca a te!' %}</span>{% else %}<span class="muted">{% trans 'avversario' %}</span>{% endif %}</td>
-      <td><a class="btn" href="{% url 'play' g.session_id %}">{% trans 'Gioca' %}</a></td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="4" class="muted">{% trans 'Nessuna partita in corso.' %}</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
+  <p class="muted" style="margin:10px 0 0;">
+    {% trans "Le dirette sono in" %} <a href="{% url 'watch_hub' %}#dirette">{% trans "Guarda" %}</a> ·
+    {% trans "le tue partite e le sfide in" %} <a href="{% url 'play_hub' %}">{% trans "Gioca" %}</a>.
+  </p>
 </div>
 
 <script>
-  // Auto-aggiornamento dell'area community: stesso endpoint che fa da heartbeat.
-  // (I badge della navbar sono gestiti da base.html; qui si ridisegnano le liste.)
+  // Auto-aggiornamento dei giocatori online: stesso endpoint che fa da heartbeat.
+  // (I badge della navbar sono gestiti da base.html; qui si ridisegna la lista.)
   const ME_ID = {{ auth_user.id|default:"null" }};
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
     ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -140,43 +58,12 @@
     }).join("");
   }
 
-  function renderGames(list) {
-    const tb = document.getElementById("games-list");
-    if (!tb) return;
-    if (!list.length) {
-      tb.innerHTML = '<tr><td colspan="4" class="muted">{% trans 'Nessuna partita in corso.' %}</td></tr>';
-      return;
-    }
-    tb.innerHTML = list.map((g) =>
-      `<tr><td>${esc(g.game_name)}${g.remote ? ' <span class="muted">({% trans 'a distanza' %})</span>' : ""}</td>` +
-      `<td>${esc(g.opponent)}</td>` +
-      `<td>${g.my_turn ? '<span class="pill">{% trans 'Tocca a te!' %}</span>' : '<span class="muted">{% trans 'avversario' %}</span>'}</td>` +
-      `<td><a class="btn" href="/partite/${g.session_id}/">{% trans 'Gioca' %}</a></td></tr>`
-    ).join("");
-  }
-
-  function renderLive(list) {
-    const tb = document.getElementById("live-list");
-    if (!tb) return;
-    if (!list.length) {
-      tb.innerHTML = '<tr><td colspan="4" class="muted">{% trans 'Nessuna partita in diretta in questo momento.' %}</td></tr>';
-      return;
-    }
-    tb.innerHTML = list.map((l) =>
-      `<tr><td>${esc(l.game_name)}${l.ai_only ? ' <span class="pill">IA</span>' : ""}${l.tc_category ? ` <span class="muted">(${esc(l.tc_category)})</span>` : ""}</td>` +
-      `<td>${esc(l.x_label)} — ${esc(l.o_label)}</td><td>${l.plies}</td>` +
-      `<td><a class="btn secondary" href="/partite/${l.session_id}/guarda/">👁 {% trans 'Guarda' %}</a></td></tr>`
-    ).join("");
-  }
-
   async function refreshCommunity() {
     try {
       const res = await fetch("{% url 'community_json' %}");
       if (!res.ok) return;
       const data = await res.json();
       renderOnline(data.online || []);
-      renderGames(data.my_games || []);
-      renderLive(data.live || []);
     } catch (e) { /* backend momentaneamente giù: si riprova al giro dopo */ }
   }
   setInterval(refreshCommunity, 8000);

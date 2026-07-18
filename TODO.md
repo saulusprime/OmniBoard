@@ -36,9 +36,6 @@
 > Community). Vincoli: gli URL esistenti restano (redirect dove serve), il
 > heartbeat JS di base.html si conserva, ogni voce nuova passa da i18n.
 
-- [ ] **Fase 4 — Community ristretta**: la pagina attuale si smembra (dirette →
-  Guarda, sfide → Gioca, notifiche → campanella); restano giocatori, gruppi,
-  classifiche e presenza online, con una landing di area.
 - [ ] **Fase 5 — Home dashboard**: per l'utente loggato la home diventa il
   cruscotto personale (riprendi/gioca/puzzle/dirette/notifiche recenti); per
   l'anonimo resta la vetrina attuale.

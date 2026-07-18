@@ -222,43 +222,16 @@ def _logged_client():
     return client
 
 
-def test_community_notifications_challenges_and_bell(monkeypatch):
-    """La community mostra sfide e notifiche, le segna lette; il JSON porta unread."""
+def test_community_is_slim_and_notifications_page_marks_read(monkeypatch):
+    """Fase 4: la community è la landing d'area (online + rimandi) SENZA
+    sfide/notifiche/dirette/partite; le notifiche vivono in /notifiche/,
+    che le elenca e le segna lette; il JSON del heartbeat porta unread."""
     import web.api_client as api
 
-    monkeypatch.setattr(api, "community_online", lambda: {"online": []})
-    monkeypatch.setattr(api, "my_games", lambda t: {"games": []})
     monkeypatch.setattr(
         api,
-        "my_challenges",
-        lambda t: {
-            "incoming": [
-                {
-                    "id": 5,
-                    "from_alias": "ch_a",
-                    "to_alias": "me",
-                    "game_name": "Scacchi",
-                    "side": "o",
-                    "time_category": "blitz",
-                    "time_base_min": 5,
-                    "time_inc_s": 0,
-                    "status": "pending",
-                }
-            ],
-            "outgoing": [
-                {
-                    "id": 6,
-                    "from_alias": "me",
-                    "to_alias": "ch_b",
-                    "game_name": "Dama",
-                    "side": "x",
-                    "time_category": None,
-                    "time_base_min": None,
-                    "time_inc_s": 0,
-                    "status": "pending",
-                }
-            ],
-        },
+        "community_online",
+        lambda: {"online": [{"id": 1, "alias": "me", "universal_points": 12}]},
     )
     marked = {}
     monkeypatch.setattr(
@@ -297,13 +270,25 @@ def test_community_notifications_challenges_and_bell(monkeypatch):
     )
     client = _logged_client()
     html = client.get("/community/", SERVER_NAME="localhost").content.decode()
-    assert "ti sfida a" in html and "Accetta" in html and "Ritira" in html
-    assert "Hai vinto il torneo" in html
-    assert marked.get("done")  # aprire la pagina segna le notifiche come lette
+    assert "Giocatori online" in html and 'id="online"' in html
+    assert "Classifiche" in html  # i rimandi d'area
+    # Le sezioni migrate NON ci sono più (vivono negli hub e in /notifiche/).
+    assert "Sfide in attesa" not in html
+    assert 'id="notifiche"' not in html and 'id="dirette"' not in html
+    assert "Le tue partite in corso" not in html
+    assert not marked.get("done")  # la community NON segna più le notifiche
+
+    html = client.get("/notifiche/", SERVER_NAME="localhost").content.decode()
+    assert "ch_a ti sfida a Scacchi" in html and "Hai vinto il torneo" in html
+    assert marked.get("done")  # aprire la PAGINA NOTIFICHE le segna lette
+
+    # Da anonimi la pagina notifiche rimanda al login.
+    assert Client().get("/notifiche/", SERVER_NAME="localhost").status_code == 302
 
     monkeypatch.setattr(api, "heartbeat", lambda t: None)
     data = client.get("/community.json", SERVER_NAME="localhost").json()
     assert data["unread"] == 2  # la campanella in navbar legge questo campo
+    assert "my_games" not in data  # snellito: le partite vivono nell'hub Gioca
 
 
 def test_challenge_form_renders(monkeypatch):
@@ -448,7 +433,10 @@ def test_watch_page_and_live_section_render(monkeypatch):
             ]
         },
     )
-    html = Client().get("/community/", SERVER_NAME="localhost").content.decode()
+    # Fase 4: le dirette NON stanno più nella community ma nell'hub «Guarda».
+    monkeypatch.setattr(api, "community_recent", lambda: {"recent": []})
+    monkeypatch.setattr(api, "arena_tournaments", lambda: [])
+    html = Client().get("/guarda/", SERVER_NAME="localhost").content.decode()
     assert "Partite in diretta" in html
     assert "sp_a — sp_b" in html and "Guarda" in html
 
