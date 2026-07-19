@@ -111,7 +111,19 @@ def save_progress(
     if row is None:
         row = models.LessonProgress(user_id=user.id, lesson_code=code, last_step=step)
         db.add(row)
+    was_completed = bool(row.completed)
     row.last_step = max(row.last_step, step)
     row.completed = bool(row.completed or payload.completed)
+    if row.completed and not was_completed:
+        # Lezione finita per la prima volta: gettoni (ref = codice lezione).
+        from .. import settings_service, wallet
+
+        wallet.award(
+            db,
+            user.id,
+            int(settings_service.get(db, "coins.lesson")),
+            "lesson_completed",
+            f"lesson:{code}",
+        )
     db.commit()
     return {"last_step": row.last_step, "completed": row.completed}

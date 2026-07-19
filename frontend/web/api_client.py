@@ -135,6 +135,11 @@ def get_user(user_id):
     return _request("GET", f"/users/{user_id}")
 
 
+def get_wallet(user_id, token):
+    """Estratto conto dei gettoni: personale (token del titolare)."""
+    return _request("GET", f"/users/{user_id}/wallet", headers={"X-Auth-Token": token})
+
+
 def get_user_history(user_id):
     return _request("GET", f"/users/{user_id}/history")
 

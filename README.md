@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![Status](https://img.shields.io/badge/stato-in%20sviluppo%20attivo-brightgreen.svg)](#stato-del-progetto)
 
-> **Ultimo aggiornamento:** 2026-07-11 — *Sette giochi giocabili (con Othello e Gomoku); scacchi FIDE-completi con analisi/coach/puzzle; motori dedicati per scacchi, dama, Forza 4 e Gomoku; navigazione ad aree sul modello chess.com con home-cruscotto; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile; 323 test.*
+> **Ultimo aggiornamento:** 2026-07-11 — *Sette giochi giocabili (con Othello e Gomoku); scacchi FIDE-completi con analisi/coach/puzzle; motori dedicati per scacchi, dama, Forza 4 e Gomoku; navigazione ad aree sul modello chess.com con home-cruscotto; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile; 330 test.*
 
 ---
 
@@ -212,7 +212,7 @@ Scacchi/
 │       ├── (un modulo per sistema: analysis, commentary, insights, puzzles,
 │       │    rating, ai_arena, human_tournaments, group_matches, notifications,
 │       │    tilt, ponder, i18n+catalog_en, token_crypto, …)
-│       ├── migrations/  # Alembic (0001…0013)
+│       ├── migrations/  # Alembic (0001…0014)
 │       └── routers/     # users, auth, games, groups, group_matches, sessions,
 │                        #   rankings, arena, tournaments, challenges,
 │                        #   notifications, puzzles, admin, community, lessons, tts
@@ -322,9 +322,9 @@ avversario con ripiego locale, analisi e coaching per gli scacchi, puzzle, ratin
 stagioni, Arena IA, tornei fra giocatori e sfide di gruppo a squadre, statistiche avanzate
 (quattro aspetti, sottocategorie tattiche, confronto coi pari fascia), **navigazione ad
 aree** sul modello chess.com (Gioca/Puzzle/Impara/Guarda/Community, home-cruscotto),
-interfaccia **bilingue IT/EN**, **accessibile** e **responsive**. Suite di **323 test**
+interfaccia **bilingue IT/EN**, **accessibile** e **responsive**. Suite di **330 test**
 (motore + backend + frontend) eseguita a ogni passo e in **CI** su GitHub Actions; schema
-DB governato da migrazioni Alembic (0001…0013). Il backlog vivo è in [TODO.md](./TODO.md);
+DB governato da migrazioni Alembic (0001…0014). Il backlog vivo è in [TODO.md](./TODO.md);
 le voci realizzate in [ASIS.md](./ASIS.md); lo storico dei lavori in [HANDOFF.md](./HANDOFF.md).
 
 ## Documentazione correlata

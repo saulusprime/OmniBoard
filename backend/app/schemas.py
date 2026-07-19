@@ -76,6 +76,7 @@ class ScoreOut(BaseModel):
 
 class UserDetail(UserOut):
     universal_points: float
+    coins: int = 0  # valuta virtuale («gettoni»): saldo pubblico, mai denaro
     scores: list[ScoreOut] = []
 
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
 from .. import (
@@ -18,6 +18,7 @@ from .. import (
     settings_service,
     tilt,
     user_prefs,
+    wallet,
 )
 from ..database import get_db
 from ..i18n import _
@@ -127,8 +128,24 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
         prefs=user.prefs,
         created_at=user.created_at,
         universal_points=user.universal_points,
+        coins=wallet.balance(db, user.id),
         scores=scores,
     )
+
+
+@router.get("/{user_id}/wallet")
+def get_wallet(
+    user_id: int,
+    db: Session = Depends(get_db),
+    x_auth_token: str | None = Header(default=None),
+):
+    """Estratto conto dei gettoni: è PERSONALE, serve il token del titolare."""
+    from .auth import session_from_token
+
+    me = session_from_token(db, x_auth_token).user
+    if me.id != user_id:
+        raise HTTPException(status_code=403, detail=_("Il portafoglio è personale"))
+    return wallet.statement(db, user_id)
 
 
 @router.put("/{user_id}/prefs")

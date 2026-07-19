@@ -260,6 +260,17 @@ def record_attempt(db: Session, user_id: int, puzzle_id: int, solved: bool) -> N
         db.add(row)
         db.flush()
     row.attempts += 1
+    if solved and not row.solved:
+        # Prima soluzione: gettoni (idempotente anche per ref, doppia rete).
+        from . import settings_service, wallet
+
+        wallet.award(
+            db,
+            user_id,
+            int(settings_service.get(db, "coins.puzzle")),
+            "puzzle_solved",
+            f"puzzle:{puzzle_id}",
+        )
     if solved:
         row.solved = True
     db.commit()

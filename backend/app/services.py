@@ -93,6 +93,11 @@ def finalize_session(db: Session, session: "models.GameSession") -> None:
         # Sfide gruppo-vs-gruppo: esito del tavolo e, se era l'ultimo, verdetto.
         group_matches.record_result(db, session)
 
+    # Valuta virtuale: gettoni di fine partita ai lati umani (idempotente).
+    from . import wallet
+
+    wallet.award_for_session(db, session)
+
     # La partita conclusa cambia il profilo scacchistico dei giocatori umani:
     # si butta la voce in cache (ricostruita al prossimo uso).
     if session.game and session.game.code == "chess":
