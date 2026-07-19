@@ -101,6 +101,69 @@ def live_games(db: Session = Depends(get_db)):
     }
 
 
+def _watchable_session(db: Session, session_id: int) -> models.GameSession:
+    """La sessione se è guardabile dagli spettatori; 404 altrimenti."""
+    from fastapi import HTTPException
+
+    session = db.get(models.GameSession, session_id)
+    watchable = session is not None and (session.remote or (session.x_is_ai and session.o_is_ai))
+    if not watchable:
+        raise HTTPException(status_code=404, detail="Partita non guardabile")
+    return session
+
+
+@router.get("/watch/{session_id}/votes")
+def watch_votes(session_id: int, db: Session = Depends(get_db)):
+    """Heatmap dei pronostici degli spettatori per la posizione corrente."""
+    from .. import watchparty
+
+    session = _watchable_session(db, session_id)
+    ply = len(json.loads(session.moves_json or "[]"))
+    return watchparty.aggregate(session_id, ply)
+
+
+@router.post("/watch/{session_id}/vote")
+def watch_vote(
+    session_id: int,
+    payload: dict,
+    db: Session = Depends(get_db),
+    x_auth_token: str | None = Header(default=None),
+):
+    """Pronostico di uno spettatore: «la prossima mossa finisce in questa casella».
+
+    Un voto per spettatore per posizione (rivotare lo sposta); spettatori
+    anonimi ammessi con una chiave generata dal client. Il voto vale solo per
+    la posizione CORRENTE: se arriva dopo la mossa viene scartato.
+    """
+    from .. import watchparty
+
+    session = _watchable_session(db, session_id)
+    if session.status != "in_progress":
+        return {"accepted": False, **watchparty.aggregate(session_id, 0)}
+    ply = len(json.loads(session.moves_json or "[]"))
+    cell = int(payload.get("cell", -1))
+    game = get_game(session.game.code)
+    if not 0 <= cell < game.rows * game.cols:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=400, detail="Casella fuori dal tavoliere")
+    voter = None
+    if x_auth_token:
+        try:
+            voter = f"user:{session_from_token(db, x_auth_token).user.id}"
+        except Exception:  # noqa: BLE001 - token scaduto: si vota da anonimi
+            voter = None
+    if voter is None:
+        key = str(payload.get("voter") or "").strip()[:64]
+        if not key:
+            from fastapi import HTTPException
+
+            raise HTTPException(status_code=400, detail="Manca la chiave dello spettatore")
+        voter = f"anon:{key}"
+    accepted = watchparty.vote(session_id, ply, int(payload.get("ply", ply)), voter, cell)
+    return {"accepted": accepted, **watchparty.aggregate(session_id, ply)}
+
+
 @router.get("/recent")
 def recent_games(db: Session = Depends(get_db)):
     """Partite CONCLUSE di recente, da rivedere come replay animato.

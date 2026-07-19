@@ -524,6 +524,18 @@
   conto, SOLO col token del titolare, 403 altrimenti). Frontend: pill 🪙 nella
   scheda giocatore + card «I tuoi gettoni» con l'estratto sul proprio profilo.
   → Sblocca: pronostici watch party, ricompense creator, mentorship.
+- [x] **Heatmap dei clic + sondaggio «che mossa giocherà?»** (2026-07-11,
+  `app/watchparty.py` + `/community/watch/{sid}/votes|vote`): nelle DIRETTE lo
+  spettatore clicca la casella dove pronostica che finirà la prossima mossa;
+  i voti di tutti diventano un velo di calore proporzionale sul tavoliere
+  (aggiornato col polling dello stato), con «N pronostici» nel banner. Un voto
+  per spettatore per POSIZIONE (rivotare lo sposta; anonimi ammessi con chiave
+  localStorage, loggati con l'id utente), tutto si azzera alla mossa vera
+  (staleness contro la ply CORRENTE della sessione, non quella memorizzata —
+  baco scovato dai test); stato IN MEMORIA per processo (effimero per natura),
+  tetto 200 sessioni, drop a partita finita. Solo partite guardabili (a
+  distanza o IA-vs-IA): le hotseat rispondono 404. Niente premi: il
+  collegamento coi gettoni è la voce «Pronostici in valuta virtuale».
 
 ### AI Coach «umano» e psicologico ⭐
 

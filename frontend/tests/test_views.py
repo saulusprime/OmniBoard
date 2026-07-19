@@ -413,6 +413,9 @@ def test_watch_page_and_live_section_render(monkeypatch):
     assert "modalità spettatore" in html
     assert "Riproduci" in html  # i controlli del replay animato
     assert "Apri come giocatore" in html
+    # Watch party: heatmap dei pronostici (clic sulla casella) cablata in pagina.
+    assert "pronostici.json" in html and "pronostico.json" in html
+    assert "Clicca una casella per pronosticare" in html
 
     monkeypatch.setattr(api, "community_online", lambda: {"online": []})
     monkeypatch.setattr(

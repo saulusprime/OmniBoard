@@ -853,6 +853,16 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   dettaglio utente, /wallet personale col token (403 altrui). TRAP COLPITO:
   autoflush=False — il controllo di idempotenza vuole db.flush() prima della
   query, altrimenti non vede il pending della stessa transazione. 330 verdi.
+- **2026-07-11** — **Watch party: heatmap dei pronostici** (`watchparty.py`,
+  stato IN MEMORIA come il breaker; endpoint watch/votes|vote in community):
+  clic dello spettatore = pronostico sulla casella d'arrivo della prossima
+  mossa; un voto a testa per POSIZIONE, staleness contro la ply CORRENTE dal
+  DB (non quella memorizzata: il primo giro accettava voti su posizioni
+  superate — scovato dai test); anonimi con chiave localStorage; velo di
+  calore proporzionale in watch.html; azzeramento alla mossa; drop in
+  finalize. Rifinitura: fitCellPx della pagina spettatore allineato a quella
+  di gioco (il goban sbordava). 332 verdi. Prossimo naturale: pronostici COI
+  GETTONI (posta/verdetto/classifica).
 
 ## Questioni aperte
 

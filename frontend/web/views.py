@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -231,6 +233,29 @@ def notifications_read_json(request):
     if token:
         _safe(request, lambda: api.notifications_read(token))
     return JsonResponse({"ok": True})
+
+
+def watch_votes_json(request, session_id):
+    """Aggregati della heatmap dei pronostici (polling dello spettatore)."""
+    try:
+        return JsonResponse(api.watch_votes(session_id))
+    except api.ApiError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
+
+
+def watch_vote_json(request, session_id):
+    """Registra il pronostico dello spettatore (POST: cell, ply, voter)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "solo POST"}, status=405)
+    try:
+        payload = json.loads(request.body or b"{}")
+    except ValueError:
+        payload = {}
+    try:
+        out = api.watch_vote(session_id, payload, token=request.session.get("auth_token"))
+        return JsonResponse(out)
+    except api.ApiError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
 
 
 def watch(request, session_id):
