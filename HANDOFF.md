@@ -43,6 +43,15 @@ mancavano le traduzioni).
 nulla: `api_client` inoltrava già Accept-Language su ogni chiamata.
 
 **Test:** 335 verdi (332 + 2 backend + 1 frontend). Ruff pulito.
+Commit `1e7990e`, push, CI verde (run 29678847757).
+
+**Chiusura sessione:** albero pulito (resta solo `OmniBoard.code-workspace`
+non tracciato, file dell'utente). Su GitHub le PR Dependabot sono salite da 2
+a **7**: alle due delle actions (checkout v7, setup-python v6) si sono
+aggiunte cinque su dipendenze Python (uvicorn ≥0.50, alembic ≥1.18.5,
+ruff ≥0.15.20, anthropic ≥0.116, pytest ≥9.1.1) — tutte in attesa di
+valutazione dell'utente; occhio a pytest 9 e ruff 0.15 che possono rompere
+suite e formato (da provare in locale prima di unire).
 
 ## 2026-07-11 (sera) — CHECKPOINT anti-compattazione (fotografia dello stato)
 

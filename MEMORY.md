@@ -5,7 +5,7 @@
 > (che è il registro cronologico delle sessioni). Le decisioni rilevanti sono annotate come
 > *ADR* (Architecture Decision Record).
 >
-> **Ultimo aggiornamento:** 2026-07-07
+> **Ultimo aggiornamento:** 2026-07-19
 
 ---
 

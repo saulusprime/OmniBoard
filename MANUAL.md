@@ -4,7 +4,7 @@
 > Ogni nuovo gioco aggiunto alla piattaforma va documentato qui seguendo il
 > [modello per nuovi giochi](#modello-per-nuovi-giochi).
 >
-> **Ultimo aggiornamento:** 2026-07-07
+> **Ultimo aggiornamento:** 2026-07-19
 
 ---
 
