@@ -3,6 +3,44 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Valuta virtuale: i «gettoni» 🪙 (primitiva della Visione)
+
+**Richiesta (utente):** «procediamo con la Valuta virtuale» (dal TODO:
+guadagnata con puzzle/partite/lezioni, MAI convertibile in denaro; sblocca
+pronostici watch party, ricompense creator, mentorship).
+
+**Modello** (`app/wallet.py` + tabella `wallet_transactions`, migrazione
+0014 — parità `alembic check` verificata su DB vergine): REGISTRO puro — il
+saldo è la SOMMA dei movimenti, niente colonna denormalizzata da tenere
+allineata; ogni premio è IDEMPOTENTE per (utente, causale, riferimento) con
+UniqueConstraint di rete e controllo esplicito (`db.flush()` prima del
+controllo: autoflush=False, il trap di casa colpito in test e risolto).
+Causali salvate come kind, testo composto ALLA LETTURA nella lingua della
+richiesta (catalog_en), come le notifiche.
+
+**Come si guadagna** (parametri super admin, categoria Punteggio):
+- fine partita, lati umani (hook in `finalize_session`, dopo group_matches,
+  no commit): `coins.win` 10 / `coins.draw` 5 / `coins.loss` 2 di
+  partecipazione — ma sotto `coins.min_plies` (4) NIENTE: l'abbandono
+  immediato a catena non frutta;
+- PRIMO scioglimento di un puzzle (`coins.puzzle` 5, transizione
+  not-solved→solved in `record_attempt`);
+- lezione completata (`coins.lesson` 10, transizione completed in lessons
+  progress; `completed` è definitivo → once-only per costruzione).
+
+**API**: `coins` nel dettaglio utente (saldo PUBBLICO, un SUM) e
+`GET /users/{id}/wallet` — estratto conto PERSONALE: solo col token del
+titolare (403 col token altrui). **Frontend**: pill 🪙 accanto ai punti
+nella scheda giocatore; sul PROPRIO profilo la card «I tuoi gettoni» con
+saldo e ultimi movimenti (testi tradotti dal backend).
+
+**Test**: +6 (vittoria/sconfitta accreditate e lette dall'estratto; 403 col
+token altrui; partita lampo sotto min_plies = zero; patta a entrambi;
+idempotenza per riferimento; lezione completata due volte = un solo premio)
+e +1 frontend (pill pubblica, estratto solo sul proprio profilo).
+**330 verdi**, ruff pulito, `alembic check` senza operazioni. 7 stringhe
+frontend + 6 voci catalog_en. TODO: voce → ASIS (dall'elenco della Visione).
+
 ## 2026-07-11 — Frontend: rifiniture (ricerca in navbar + breadcrumb) — sezione CHIUSA
 
 **Richiesta (utente):** «procediamo con le rifiniture».

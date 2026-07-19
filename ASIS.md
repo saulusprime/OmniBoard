@@ -512,6 +512,18 @@
   Bilingue IT/EN. → Sbloccati: tilt-breaker, Gatekeeper, Puzzle Story.
 - [x] **Rating Elo** — FATTO (v. sezione gamification: `rating.py`, stagioni,
   K FIDE): il prerequisito di «partita classificata» e matchmaking è pronto.
+- [x] **Valuta virtuale — «gettoni» 🪙** (2026-07-11, `app/wallet.py`, tabella
+  `wallet_transactions`, migrazione 0014): registro puro (saldo = SOMMA, niente
+  colonna denormalizzata), premi IDEMPOTENTI per (utente, causale, riferimento)
+  con UniqueConstraint di rete; MAI convertibile in denaro. Si guadagna: fine
+  partita ai lati umani (win/draw/loss da parametri `coins.*`, hook in
+  finalize_session, sotto `coins.min_plies` niente — l'abbandono a catena non
+  frutta), primo scioglimento di un puzzle, completamento di una lezione
+  (transizioni once-only). Causali tradotte ALLA LETTURA (catalog_en). API:
+  `coins` nel dettaglio utente (pubblico) + `GET /users/{id}/wallet` (estratto
+  conto, SOLO col token del titolare, 403 altrimenti). Frontend: pill 🪙 nella
+  scheda giocatore + card «I tuoi gettoni» con l'estratto sul proprio profilo.
+  → Sblocca: pronostici watch party, ricompense creator, mentorship.
 
 ### AI Coach «umano» e psicologico ⭐
 

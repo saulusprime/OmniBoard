@@ -4,12 +4,34 @@
 {% block breadcrumb %}<nav class="crumbs" aria-label="{% trans 'Percorso' %}"><a href="{% url 'community' %}">Community</a> › <a href="{% url 'users_list' %}">{% trans "Giocatori" %}</a> › {{ u.alias }}</nav>{% endblock %}
 {% block content %}
 <div class="card">
-  <h1>{{ u.alias }} <span class="pill">{{ u.universal_points }} {% trans 'pt universali' %}</span></h1>
+  <h1>{{ u.alias }} <span class="pill">{{ u.universal_points }} {% trans 'pt universali' %}</span>
+    <span class="pill" title="{% trans 'Gettoni (valuta virtuale, mai denaro)' %}">🪙 {{ u.coins }}</span></h1>
   <p class="muted">{{ u.first_name }} {{ u.last_name }} · {{ u.email }}<br>
   {{ u.nationality|default:"—" }}{% if u.region %} / {{ u.region }}{% endif %}</p>
   <a class="btn" href="{% url 'user_stats' u.id %}">📊 {% trans 'Statistiche avanzate' %}</a>
   <a class="btn secondary" href="{% url 'users_list' %}">← {% trans 'Tutti i giocatori' %}</a>
 </div>
+
+{% if wallet %}
+<div class="card">
+  <h2>🪙 {% trans 'I tuoi gettoni' %} <span class="pill">{{ wallet.balance }}</span></h2>
+  <p class="muted">{% trans "Si guadagnano giocando le partite fino in fondo, risolvendo puzzle e completando lezioni. Non sono mai convertibili in denaro." %}</p>
+  {% if wallet.transactions %}
+  <table>
+    <tr><th>{% trans 'Causale' %}</th><th>{% trans 'Gettoni' %}</th><th>{% trans 'Quando' %}</th></tr>
+    {% for t in wallet.transactions %}
+    <tr>
+      <td>{{ t.text }}</td>
+      <td>{% if t.amount > 0 %}+{% endif %}{{ t.amount }}</td>
+      <td class="muted">{{ t.created_at|default:""|slice:":16" }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">{% trans 'Ancora nessun movimento: gioca una partita!' %}</p>
+  {% endif %}
+</div>
+{% endif %}
 
 <div class="card">
   <h2>🎨 {% trans 'Opzioni giocatore' %}</h2>

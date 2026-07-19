@@ -843,6 +843,16 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   nome, match unico → redirect alla scheda) e breadcrumb d'area su 18
   sottopagine (blocco breadcrumb + .crumbs in base.html; le landing non lo
   hanno: sono l'area); uscita dello spettatore → Guarda. 324 verdi.
+- **2026-07-11** — **Valuta virtuale «gettoni»** (`wallet.py`, tabella
+  `wallet_transactions`, migr. 0014): registro puro (saldo = SOMMA), premi
+  idempotenti per (utente, causale, ref) — ADR: NIENTE colonna saldo
+  denormalizzata; mai denaro. Guadagno: fine partita umana (win 10/draw 5/
+  loss 2, sotto coins.min_plies=4 niente — anti-farming da abbandono), primo
+  puzzle risolto (5), lezione completata (10); tutti parametri admin.
+  Causali kind→testo alla lettura (catalog_en). API: coins pubblico nel
+  dettaglio utente, /wallet personale col token (403 altrui). TRAP COLPITO:
+  autoflush=False — il controllo di idempotenza vuole db.flush() prima della
+  query, altrimenti non vede il pending della stessa transazione. 330 verdi.
 
 ## Questioni aperte
 

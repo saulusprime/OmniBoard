@@ -541,6 +541,49 @@ def test_notifications_json_anonymous_is_empty():
     assert data == {"notifications": [], "unread": 0}
 
 
+def test_user_detail_shows_coins_and_own_wallet(monkeypatch):
+    """La scheda giocatore mostra il saldo gettoni a tutti; l'estratto conto
+    solo sul PROPRIO profilo (chiamata col token)."""
+    import web.api_client as api
+
+    user = {
+        "id": 1,
+        "alias": "me",
+        "first_name": "Me",
+        "last_name": "Demo",
+        "email": "me@example.it",
+        "nationality": "IT",
+        "region": None,
+        "universal_points": 12,
+        "coins": 17,
+        "prefs": {},
+        "scores": [],
+    }
+    monkeypatch.setattr(api, "get_user", lambda uid: user)
+    monkeypatch.setattr(api, "get_user_history", lambda uid: [])
+    monkeypatch.setattr(api, "get_chess_profile", lambda uid: None)
+    monkeypatch.setattr(api, "get_user_ratings", lambda uid: None)
+    monkeypatch.setattr(
+        api,
+        "get_wallet",
+        lambda uid, token: {
+            "balance": 17,
+            "transactions": [
+                {"amount": 10, "text": "Vittoria in partita", "created_at": "2026-07-11T10:00"},
+            ],
+        },
+    )
+    html = _logged_client().get("/giocatori/1/", SERVER_NAME="localhost").content.decode()
+    assert "🪙 17" in html  # saldo pubblico nell'intestazione
+    assert "I tuoi gettoni" in html and "Vittoria in partita" in html  # estratto proprio
+
+    # Sul profilo di UN ALTRO niente estratto conto (solo il saldo).
+    other = dict(user, id=2, alias="altro")
+    monkeypatch.setattr(api, "get_user", lambda uid: other)
+    html = _logged_client().get("/giocatori/2/", SERVER_NAME="localhost").content.decode()
+    assert "🪙 17" in html and "I tuoi gettoni" not in html
+
+
 def test_navbar_search_filters_players_and_jumps_to_single_match(monkeypatch):
     """La ricerca in navbar filtra i giocatori (?q=); un solo risultato porta
     dritti alla scheda; le pagine di sottolivello hanno il breadcrumb d'area."""

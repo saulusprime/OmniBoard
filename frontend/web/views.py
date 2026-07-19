@@ -424,6 +424,12 @@ def user_detail(request, user_id):
     history = _safe(request, lambda: api.get_user_history(user_id), default=[])
     chess = _safe(request, lambda: api.get_chess_profile(user_id), default=None)
     ratings = _safe(request, lambda: api.get_user_ratings(user_id), default=None)
+    # Estratto conto dei gettoni: solo sul PROPRIO profilo (il saldo è pubblico).
+    wallet = None
+    auth_user = request.session.get("auth_user")
+    token = request.session.get("auth_token")
+    if token and auth_user and auth_user.get("id") == user_id:
+        wallet = _safe(request, lambda: api.get_wallet(user_id, token), default=None)
     return render(
         request,
         "web/user_detail.html",
@@ -433,6 +439,7 @@ def user_detail(request, user_id):
             "history": history,
             "chess": chess,
             "prefs_form": prefs_form,
+            "wallet": wallet,
         },
     )
 

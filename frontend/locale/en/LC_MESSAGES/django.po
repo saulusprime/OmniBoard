@@ -2544,3 +2544,31 @@ msgstr "all players"
 #, python-format
 msgid "Risultati per «%(q)s»"
 msgstr "Results for “%(q)s”"
+
+#: web/templates/web/user_detail.html
+msgid "Gettoni (valuta virtuale, mai denaro)"
+msgstr "Coins (virtual currency, never money)"
+
+#: web/templates/web/user_detail.html
+msgid "I tuoi gettoni"
+msgstr "Your coins"
+
+#: web/templates/web/user_detail.html
+msgid "Si guadagnano giocando le partite fino in fondo, risolvendo puzzle e completando lezioni. Non sono mai convertibili in denaro."
+msgstr "Earn them by playing games to the end, solving puzzles and completing lessons. They are never convertible into money."
+
+#: web/templates/web/user_detail.html
+msgid "Causale"
+msgstr "Reason"
+
+#: web/templates/web/user_detail.html
+msgid "Gettoni"
+msgstr "Coins"
+
+#: web/templates/web/user_detail.html
+msgid "Quando"
+msgstr "When"
+
+#: web/templates/web/user_detail.html
+msgid "Ancora nessun movimento: gioca una partita!"
+msgstr "No transactions yet: play a game!"

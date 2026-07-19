@@ -271,4 +271,11 @@ CATALOG_EN = {
     "Sfida di gruppo «{a}» contro «{b}»: giochi al tavolo {board}": "Group match “{a}” vs “{b}”: you play on board {board}",
     "Sfida di gruppo conclusa: «{winner}» batte «{loser}» {score_a}–{score_b}": "Group match finished: “{winner}” beats “{loser}” {score_a}–{score_b}",
     "Sfida di gruppo in parità: «{a}» {score_a}–{score_b} «{b}»": "Group match drawn: “{a}” {score_a}–{score_b} “{b}”",
+    # Valuta virtuale («gettoni»): causali dell'estratto conto + errori.
+    "Il portafoglio è personale": "The wallet is personal",
+    "Vittoria in partita": "Game won",
+    "Patta in partita": "Game drawn",
+    "Partita giocata fino in fondo": "Game played to the end",
+    "Puzzle risolto": "Puzzle solved",
+    "Lezione completata": "Lesson completed",
 }

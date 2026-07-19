@@ -606,6 +606,30 @@ class GameSession(Base):
     o_user: Mapped[User | None] = relationship(foreign_keys=[o_user_id])
 
 
+class WalletTransaction(Base):
+    """Movimento di VALUTA VIRTUALE («gettoni») di un giocatore.
+
+    Registro puro: il saldo è la SOMMA dei movimenti (niente colonna
+    denormalizzata da tenere allineata). ``reason`` è la causale (kind: il
+    testo si compone alla lettura, come le notifiche); ``ref`` identifica
+    l'evento (es. "session:12", "puzzle:5") e rende il premio IDEMPOTENTE:
+    stessa causale + stesso riferimento = mai un secondo accredito.
+    I gettoni NON sono mai convertibili in denaro.
+    """
+
+    __tablename__ = "wallet_transactions"
+    __table_args__ = (UniqueConstraint("user_id", "reason", "ref"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    amount: Mapped[int] = mapped_column(Integer)  # positivo = accredito
+    reason: Mapped[str] = mapped_column(String)  # game_win | puzzle_solved | …
+    ref: Mapped[str | None] = mapped_column(String)  # evento che ha generato il premio
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=utcnow)
+
+    user: Mapped[User] = relationship()
+
+
 class Setting(Base):
     """Parametro di configurazione del programma, gestibile dal super admin."""
 

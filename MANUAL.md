@@ -219,6 +219,18 @@ i 2400). La pagina **Classifiche** mostra la graduatoria Elo del gioco scelto
 admin può aprire una **nuova stagione** cambiando il parametro `elo.season`:
 tutti ripartono da 1500 e le stagioni passate restano consultabili.
 
+### Gettoni 🪙 (valuta virtuale)
+Ogni giocatore accumula **gettoni**, una valuta puramente virtuale — **mai
+convertibile in denaro** — pensata per le funzioni sociali future (pronostici da
+spettatori, ricompense per i creatori). Si guadagnano: **finendo una partita**
+(vittoria, patta o anche sconfitta «di partecipazione», ma solo oltre una soglia
+minima di mosse: abbandonare subito non frutta nulla), **risolvendo un puzzle
+per la prima volta** e **completando una lezione** del tutorial. Gli importi
+sono parametri del super admin (categoria Punteggio). Il **saldo** è visibile
+sulla scheda di ogni giocatore (pill 🪙); sul **proprio** profilo compare anche
+l'estratto conto con le causali. Ogni premio è accreditato una volta sola: ripetere
+lo stesso puzzle o la stessa lezione non raddoppia nulla.
+
 ### Arena IA: classifica dei concorrenti e tornei
 La pagina «**Arena IA**» risponde alla domanda *quale IA gioca meglio?* Ogni
 concorrente IA (livelli del motore locale, preset di Stockfish, provider remoti)

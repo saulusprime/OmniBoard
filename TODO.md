@@ -52,8 +52,6 @@
 
 ### Primitive mancanti (prerequisiti condivisi)
 
-- [ ] **Valuta virtuale** (guadagnata con puzzle/partite/lezioni; mai convertibile in
-  denaro) — serve a: pronostici watch party, ricompense creator, mentorship.
 - [ ] **Presenza spettatori per partita** (chi sta guardando la sessione N; riusa
   l'infrastruttura heartbeat della community) — serve a: watch party, heatmap, OBS.
 
@@ -100,5 +98,5 @@
   ogni N mosse). ⚠️ Dipende da API di terzi (Twitch OAuth/chat) e ha valore solo con
   streamer reali interessati: in fondo alla coda.
 
-**Ordine consigliato:** Editor Puzzle Story → Valuta virtuale → Watch party → Clan wars
-→ OBS (Puzzle e AI Coach, i primi due della fila originale, sono fatti: v. ASIS.md).
+**Ordine consigliato:** Editor Puzzle Story → Watch party → Clan wars → OBS
+(Puzzle, AI Coach e Valuta virtuale sono fatti: v. ASIS.md).
