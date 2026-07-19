@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![Status](https://img.shields.io/badge/stato-in%20sviluppo%20attivo-brightgreen.svg)](#stato-del-progetto)
 
-> **Ultimo aggiornamento:** 2026-07-11 — *Sette giochi giocabili (con Othello e Gomoku); scacchi FIDE-completi con analisi/coach/puzzle; motori dedicati per scacchi, dama, Forza 4 e Gomoku; navigazione ad aree sul modello chess.com con home-cruscotto; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile; 330 test.*
+> **Ultimo aggiornamento:** 2026-07-11 — *Sette giochi giocabili (con Othello e Gomoku); scacchi FIDE-completi con analisi/coach/puzzle; motori dedicati per scacchi, dama, Forza 4 e Gomoku; navigazione ad aree sul modello chess.com con home-cruscotto; gettoni (valuta virtuale) e heatmap dei pronostici; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile; 332 test.*
 
 ---
 
@@ -211,7 +211,8 @@ Scacchi/
 │       │   └── local.py      #   motore locale a livelli (ripiego sempre disponibile)
 │       ├── (un modulo per sistema: analysis, commentary, insights, puzzles,
 │       │    rating, ai_arena, human_tournaments, group_matches, notifications,
-│       │    tilt, ponder, i18n+catalog_en, token_crypto, …)
+│       │    wallet (gettoni), watchparty (pronostici), tilt, ponder,
+│       │    i18n+catalog_en, token_crypto, …)
 │       ├── migrations/  # Alembic (0001…0014)
 │       └── routers/     # users, auth, games, groups, group_matches, sessions,
 │                        #   rankings, arena, tournaments, challenges,
@@ -309,7 +310,8 @@ Configurazione tramite `.env` (vedi `.env.example`).
 - [x] **Backgammon**: primo gioco stocastico — nodi del caso realizzati (il server tira i dadi)
 - [x] **Forza 4**: motore dedicato bitboard (negamax + TT + approfondimento iterativo, tattica esatta a ogni nodo)
 - [x] Sesto e settimo gioco giocabili: **Othello** (giri e passo automatico, tavoliere verde) e **Gomoku** (goban 15×15, motore dedicato sui candidati vicini)
-- [x] **Riorganizzazione del frontend ad aree** sul modello chess.com (navbar a 5 aree con menu a discesa, hub Gioca e Guarda, Community ristretta con pagina Notifiche, home-cruscotto per il loggato)
+- [x] **Riorganizzazione del frontend ad aree** sul modello chess.com (navbar a 5 aree con menu a discesa, hub Gioca e Guarda, Community ristretta con pagina Notifiche, home-cruscotto per il loggato, ricerca giocatore e breadcrumb)
+- [x] **Valuta virtuale «gettoni»** (registro idempotente, premi per partite/puzzle/lezioni, mai denaro) e **heatmap dei pronostici** degli spettatori sulle dirette (clic = «la mossa finirà qui»)
 
 ## Stato del progetto
 
@@ -322,7 +324,7 @@ avversario con ripiego locale, analisi e coaching per gli scacchi, puzzle, ratin
 stagioni, Arena IA, tornei fra giocatori e sfide di gruppo a squadre, statistiche avanzate
 (quattro aspetti, sottocategorie tattiche, confronto coi pari fascia), **navigazione ad
 aree** sul modello chess.com (Gioca/Puzzle/Impara/Guarda/Community, home-cruscotto),
-interfaccia **bilingue IT/EN**, **accessibile** e **responsive**. Suite di **330 test**
+interfaccia **bilingue IT/EN**, **accessibile** e **responsive**. Suite di **332 test**
 (motore + backend + frontend) eseguita a ogni passo e in **CI** su GitHub Actions; schema
 DB governato da migrazioni Alembic (0001…0014). Il backlog vivo è in [TODO.md](./TODO.md);
 le voci realizzate in [ASIS.md](./ASIS.md); lo storico dei lavori in [HANDOFF.md](./HANDOFF.md).

@@ -3,6 +3,62 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 (sera) — CHECKPOINT anti-compattazione (fotografia dello stato)
+
+**Richiesta (utente):** aggiornare tutta la documentazione e compattare il
+contesto. Questa voce è AUTOSUFFICIENTE: da sola rimette in carreggiata una
+sessione nuova (il checkpoint precedente, stessa data mattina, resta sotto).
+
+**Stato del progetto OmniBoard a questa data:**
+
+- **332 test verdi** (pytest dalla root, ~2,5-3,5′) + **CI GitHub Actions
+  verde** su main (submodule KittenTTS, apt stockfish+gettext, ruff
+  check+format, msgfmt sul .po, alembic upgrade+check su DB vergine,
+  pytest); ruff line 100; migrazioni **0001…0014**.
+- **7 giochi**: tictactoe, connect4, checkers, chess, backgammon, othello,
+  gomoku (codici). **Motori dedicati** (`engine_move` sul gioco, il locale
+  li preferisce da solo): scacchi (alpha-beta completo), dama, **Forza 4
+  bitboard** (tattica esatta a ogni nodo), **Gomoku** (candidati vicini +
+  finestre di 5 incrementali). Othello: minimax generico + euristica
+  posizionale, PASSO AUTOMATICO dentro apply. Tutti i tavolieri con
+  GRAFICA dedicata (C4 blu coi fori, Othello verde, goban legno) e
+  COORDINATE = notazione del log; celle mai `disabled` (aria-disabled +
+  guardie: frecce sempre funzionanti).
+- **Frontend ad AREE (chess.com, COMPLETO)**: navbar Gioca▾/Puzzle/Impara/
+  Guarda▾/Community▾ con menu disclosure + hamburger; hub `/gioca/` (setup
+  su `/gioca/nuova/`, stesso nome rotta play_setup) e `/guarda/` (dirette
+  auto-aggiornate, Arena IA, replay da `GET /community/recent`); Community
+  ristretta (online + rimandi); `/notifiche/` (marca-letto, bersaglio della
+  campanella col pannello); menu profilo sull'avatar (Admin dentro); home =
+  CRUSCOTTO per il loggato; ricerca giocatore in navbar (`?q=`, match unico
+  → scheda); breadcrumb su 18 sottopagine.
+- **Gamification**: punti 3/1/0, Elo umano (gioco, stagione) K-FIDE, Arena
+  IA, puzzle (seed + dai blunder), statistiche avanzate (quattro aspetti,
+  sottocategorie tattiche, pari fascia), **GETTONI 🪙** (`wallet.py`, migr.
+  0014: registro puro, premi idempotenti per (utente, causale, ref), win/
+  draw/loss oltre `coins.min_plies`, primo puzzle, lezione completata;
+  saldo pubblico in `coins`, estratto `/users/{id}/wallet` col token del
+  titolare), **WATCH PARTY** (`watchparty.py` in memoria: clic dello
+  spettatore = pronostico sulla casella d'arrivo, heatmap sulle dirette,
+  staleness sulla ply corrente, hotseat 404).
+- **Community**: sfide-inviti, notifiche persistenti (testo alla lettura),
+  gruppi con ruoli, tornei umani (KO seed Elo + girone), sfide
+  gruppo-vs-gruppo, spettatori/replay. Hook di dominio in
+  `services.finalize_session`: punti → Elo → arena → tornei/gruppi →
+  gettoni → drop watchparty → invalidate profilo (nessun commit negli hook).
+- **Ambiente**: CLT macOS rotti → avvio manuale (`cd backend &&
+  ../.venv/bin/uvicorn app.main:app --reload --port 8000`;
+  `.venv/bin/python frontend/manage.py runserver 8001`). Il `.env` (chiave
+  Qwen + ADMIN_TOKEN) sta nella ROOT del repo, gitignored. Verifiche visive
+  con Chrome headless (viewport minimo ~500px: sotto RITAGLIA, misurare con
+  --dump-dom); utenti demo di servizio nel dev DB (dash_demo, wp_demo1/2).
+- **Prossimi passi probabili** (TODO): pronostici COI GETTONI (posta/
+  verdetto/classifica — heatmap e wallet pronti), presenza spettatori per
+  partita, WebSocket (sostituirebbe i 5 flussi di polling), recency negli
+  Insights, Filetto 3D, Editor Puzzle Story, rate-limit/CORS/audit, Docker/
+  Postgres, i18n contenuti lezioni.
+- 2 PR Dependabot (checkout v7, setup-python v6) verdi in attesa dell'utente.
+
 ## 2026-07-11 — Watch party: heatmap dei pronostici degli spettatori
 
 **Richiesta (utente):** «procediamo con la Heatmap dei clic» (dal TODO watch
