@@ -3,6 +3,47 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-19 — i18n dei contenuti: le lezioni parlano (anche) inglese
+
+**Richiesta (utente):** «procediamo con i18n (contenuti)» — la voce del TODO:
+traduzione EDITORIALE dei contenuti delle lezioni (la pipeline `_()` c'era,
+mancavano le traduzioni).
+
+**Cosa è stato fatto:**
+
+- **Catalogo dedicato** `backend/app/lessons/catalog_en.py` (`LESSONS_EN`,
+  ~70 voci): titoli, testi dei passi, consegne e feedback dei 3 corsi (scacchi
+  7 lezioni, dama, Tris), tradotti editorialmente (es. «matto del corridoio» →
+  back-rank mate, «presa al varco» → en passant). Vive ACCANTO ai contenuti che
+  traduce; `catalog_en.py` lo fonde in `CATALOG_EN` (un solo dizionario per
+  `_()`). Chiave = stringa italiana ESATTA come esce dalle concatenazioni
+  implicite multiriga dei moduli contenuto.
+- **Router lezioni** (`routers/lessons.py`): `_()` alla risposta su titolo
+  (indice e dettaglio), testi dei passi, prompt/success dei task e sui 404
+  («Lezione non trovata» → catalogo principale). `_localized_steps` costruisce
+  COPIE dei passi: la cache `all_lessons()` resta italiana (stessa frontiera
+  del profilo scacchistico — mai avvelenare la cache condivisa).
+- **Voce sintetica**: `learn_lesson.html` passava `&lang=it` FISSO al `/tts`;
+  ora `{% get_current_language %}` → `TTS_LANG`, così la voce segue i testi
+  (Piper per l'italiano, KittenTTS per l'inglese — il backend sceglieva già
+  da `lang`, era il client a non chiederlo).
+- **Guardiano anti-deriva**: test di copertura totale in `test_lessons.py` —
+  ogni stringa mostrata all'allievo DEVE avere una voce in `LESSONS_EN` non
+  vuota e diversa dalla sorgente; una lezione nuova (o un testo ritoccato)
+  senza traduzione fa fallire la suite. Più: endpoint provati in EN
+  (Accept-Language) e controprova che la richiesta successiva in IT riveda
+  l'italiano (cache non avvelenata); test frontend sulla lingua del TTS
+  (cookie `django_language`).
+- **TODO → ASIS**: voce «i18n (contenuti)» spostata in ASIS; in TODO resta
+  la generalizzazione «lingue oltre l'inglese». MANUAL aggiornato (lezioni e
+  voce bilingui; tolto un «futura sezione» stantio sul TTS).
+
+**Note tecniche:** l'import `catalog_en → lessons.catalog_en` non crea cicli
+(`lessons/__init__` importa solo `engine`). Il frontend non ha bisogno di
+nulla: `api_client` inoltrava già Accept-Language su ogni chiamata.
+
+**Test:** 335 verdi (332 + 2 backend + 1 frontend). Ruff pulito.
+
 ## 2026-07-11 (sera) — CHECKPOINT anti-compattazione (fotografia dello stato)
 
 **Richiesta (utente):** aggiornare tutta la documentazione e compattare il

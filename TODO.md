@@ -16,9 +16,9 @@
 
 ## Frontend / UX
 
-- [ ] **i18n (contenuti)** — traduzione EDITORIALE dei contenuti delle lezioni
-  (`lessons/`, testo didattico lungo): la pipeline c'è (stesso `_()`),
-  mancano le traduzioni.
+- [ ] **Lingue oltre l'inglese** — l'infrastruttura è a dizionario unico
+  (`catalog_en.py` + `lessons/catalog_en.py`): una terza lingua richiede di
+  evolvere `i18n.py` (oggi it/en) e un catalogo nuovo per lingua.
 
 ## Sicurezza / DevOps
 

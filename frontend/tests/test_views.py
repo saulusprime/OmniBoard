@@ -795,3 +795,30 @@ def test_play_hub_renders_for_anonymous_and_logged(monkeypatch):
     assert "sfidante" in html and "Accetta" in html
     # Il setup della nuova partita risponde alla sottopagina.
     assert Client().get("/gioca/nuova/", SERVER_NAME="localhost").status_code == 200
+
+
+def test_learn_lesson_tts_follows_ui_language(monkeypatch):
+    """La voce sintetica legge nella lingua dei testi: lang=it di default,
+    lang=en quando l'interfaccia (e quindi il contenuto dal backend) è inglese."""
+    import web.api_client as api
+
+    lesson = {
+        "code": "chess-pawn",
+        "game_code": "chess",
+        "game_name": "Scacchi",
+        "title": "Il pedone",
+        "rows": 8,
+        "cols": 8,
+        "move_type": "chess",
+        "steps": [{"text": "Testo", "board": [None] * 64, "highlights": [], "task": None}],
+        "progress": None,
+    }
+    monkeypatch.setattr(api, "get_lesson", lambda code, token=None: lesson)
+
+    html = Client().get("/impara/chess-pawn/", SERVER_NAME="localhost").content.decode()
+    assert 'const TTS_LANG = "it"' in html
+
+    client = Client()
+    client.cookies["django_language"] = "en"
+    html = client.get("/impara/chess-pawn/", SERVER_NAME="localhost").content.decode()
+    assert 'const TTS_LANG = "en"' in html

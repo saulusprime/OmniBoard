@@ -404,6 +404,13 @@
   ricomposte via regex coi numeri preservati). Il frontend inoltra la lingua
   attiva su ogni chiamata (`api_client` → Accept-Language). Trappola evitata:
   `for _ in range(...)` ombreggiava la funzione di traduzione.
+- [x] **i18n (contenuti)** (2026-07-19) — traduzione EDITORIALE dei contenuti
+  delle lezioni: catalogo dedicato `lessons/catalog_en.py` (~70 voci: titoli,
+  passi, consegne e feedback dei 3 corsi) fuso in `CATALOG_EN`; il router
+  traduce alla risposta con COPIE dei passi (la cache resta italiana); la voce
+  sintetica segue la lingua dell'interfaccia (`/tts?lang=` non più fisso a it:
+  Piper per l'italiano, Kitten per l'inglese); test di copertura totale che
+  blocca lezioni o ritocchi senza traduzione.
 
 ## Sicurezza / DevOps
 

@@ -182,8 +182,9 @@ segue la scelta — navigazione, partita, community, arena, classifiche, lezioni
 pagine admin. Anche i **dati del server** seguono la
 lingua: messaggi d'errore, nomi delle aperture (nomenclatura inglese standard:
 «Difesa Siciliana» → «Sicilian Defence»), avvisi anti-tilt, profilo
-scacchistico ed etichette dei parametri admin. Restano in italiano i testi
-delle lezioni (traduzione editoriale in arrivo).
+scacchistico ed etichette dei parametri admin. Anche i **contenuti delle
+lezioni** (titoli, passi, consegne) sono tradotti editorialmente, e la voce
+sintetica che li legge cambia con la lingua (voce italiana o inglese).
 I giochi sono **accessibili da tastiera**: Tab entra nella scacchiera, le frecce
 spostano il fuoco tra le caselle (seguono l'orientamento della vista), Invio o
 Spazio selezionano e muovono; ogni casella annuncia allo screen reader la sua
@@ -328,14 +329,15 @@ re, le mosse speciali, il primo scacco matto), le basi della dama e del Tris. Og
 mostra una **posizione preimpostata** sulla stessa scacchiera delle partite, evidenzia le
 caselle importanti e — quando c'è una **mossa da provare** — la verifica subito: clicca il
 pezzo e poi la destinazione (nel Tris basta la casella). Il pulsante **🔊** legge la
-spiegazione ad alta voce (voce italiana del servizio TTS); con «voce automatica» ogni
-passo viene letto da solo. Se hai effettuato l'accesso i **progressi si salvano**: dalla
+spiegazione ad alta voce nella lingua dell'interfaccia (voce italiana o inglese del
+servizio TTS); con «voce automatica» ogni passo viene letto da solo. Con l'interfaccia
+in inglese anche i contenuti (titoli, spiegazioni, consegne) arrivano tradotti. Se hai effettuato l'accesso i **progressi si salvano**: dalla
 pagina Impara riprendi dal passo raggiunto e le lezioni completate restano spuntate.
 Le lezioni sono consultabili anche senza account (senza salvataggio).
 
 ### Voce sintetica (TTS) e gestione delle lingue
 Il backend espone un servizio di **sintesi vocale locale** (`GET /tts?text=…&lang=it|en`),
-pensato per la futura sezione di istruzione guidata: nessun cloud, tutto su CPU. Ogni
+usato dalla sezione di istruzione guidata: nessun cloud, tutto su CPU. Ogni
 **lingua ha la sua voce**, configurabile dal super admin (categoria «Voce», formato
 `motore:voce`): **italiano con Piper** (`piper:it_IT-paola-medium`, la voce si scarica da
 HuggingFace al primo uso) e **inglese con KittenTTS** (`kitten:expr-voice-2-f`). Ogni

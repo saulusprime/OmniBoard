@@ -870,6 +870,15 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   Giornata monstre: motore C4 bitboard → grafica+accessibilità di tutti i
   giochi → Othello+Gomoku → riorganizzazione frontend in 5 fasi + rifiniture
   → gettoni → heatmap pronostici. Da 289 a 332 test.
+- **2026-07-19** — **i18n dei contenuti (lezioni)**: traduzione editoriale
+  inglese dei 3 corsi (~70 stringhe) in un catalogo DEDICATO accanto ai
+  contenuti (`lessons/catalog_en.py`, fuso in `CATALOG_EN`: un solo dizionario
+  per `_()`); il router traduce alla risposta costruendo COPIE dei passi (la
+  cache `all_lessons` resta italiana — stessa frontiera del profilo
+  scacchistico); voce sintetica non più fissa a `lang=it`: il template passa
+  la lingua corrente e il TTS sceglie Piper (it) o Kitten (en). Guardiano:
+  test di copertura totale (titolo/passo/consegna/feedback senza traduzione =
+  suite rossa). 335 test.
 
 ## Questioni aperte
 
@@ -888,7 +897,9 @@ maggiore, cubo del raddoppio, gammon/backgammon.
 - **Watch party multi-processo**: i pronostici vivono in memoria di processo
   (scelta deliberata, sono effimeri) — a più worker servirebbe Redis o simile,
   stessa sorte del circuit breaker.
-- **i18n (contenuti)**: traduzione editoriale delle lezioni; lingue oltre l'inglese.
+- **Lingue oltre l'inglese**: l'impianto è a dizionario unico it→en; una terza
+  lingua richiede di evolvere `i18n.py` e un catalogo per lingua (le lezioni
+  sono tradotte: v. Traguardi 2026-07-19).
 - **Rate limiting + CORS espliciti** e **audit log** delle operazioni super admin.
 - **Retro-etichettatura 💎**: le partite analizzate PRIMA del badge sacrificio non
   hanno diamanti (servirebbe un re-scan batch dei badge).
