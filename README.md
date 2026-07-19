@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![Status](https://img.shields.io/badge/stato-in%20sviluppo%20attivo-brightgreen.svg)](#stato-del-progetto)
 
-> **Ultimo aggiornamento:** 2026-07-11 — *Sette giochi giocabili (con Othello e Gomoku); scacchi FIDE-completi con analisi/coach/puzzle; motori dedicati per scacchi, dama, Forza 4 e Gomoku; navigazione ad aree sul modello chess.com con home-cruscotto; gettoni (valuta virtuale) e heatmap dei pronostici; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile; 332 test.*
+> **Ultimo aggiornamento:** 2026-07-19 — *Sette giochi giocabili (con Othello e Gomoku); scacchi FIDE-completi con analisi/coach/puzzle; motori dedicati per scacchi, dama, Forza 4 e Gomoku; navigazione ad aree sul modello chess.com con home-cruscotto; gettoni (valuta virtuale) e heatmap dei pronostici; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile, lezioni comprese; 335 test.*
 
 ---
 
@@ -213,6 +213,7 @@ Scacchi/
 │       │    rating, ai_arena, human_tournaments, group_matches, notifications,
 │       │    wallet (gettoni), watchparty (pronostici), tilt, ponder,
 │       │    i18n+catalog_en, token_crypto, …)
+│       ├── lessons/     # contenuti del tutorial + catalog_en.py (traduzione editoriale)
 │       ├── migrations/  # Alembic (0001…0014)
 │       └── routers/     # users, auth, games, groups, group_matches, sessions,
 │                        #   rankings, arena, tournaments, challenges,
@@ -324,7 +325,8 @@ avversario con ripiego locale, analisi e coaching per gli scacchi, puzzle, ratin
 stagioni, Arena IA, tornei fra giocatori e sfide di gruppo a squadre, statistiche avanzate
 (quattro aspetti, sottocategorie tattiche, confronto coi pari fascia), **navigazione ad
 aree** sul modello chess.com (Gioca/Puzzle/Impara/Guarda/Community, home-cruscotto),
-interfaccia **bilingue IT/EN**, **accessibile** e **responsive**. Suite di **332 test**
+interfaccia **bilingue IT/EN** (contenuti delle lezioni compresi), **accessibile** e
+**responsive**. Suite di **335 test**
 (motore + backend + frontend) eseguita a ogni passo e in **CI** su GitHub Actions; schema
 DB governato da migrazioni Alembic (0001…0014). Il backlog vivo è in [TODO.md](./TODO.md);
 le voci realizzate in [ASIS.md](./ASIS.md); lo storico dei lavori in [HANDOFF.md](./HANDOFF.md).

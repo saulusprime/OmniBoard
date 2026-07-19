@@ -20,9 +20,25 @@ from engine import get_game
 
 from .. import lessons, models
 from ..database import get_db
+from ..i18n import _
 from .auth import session_from_token
 
 router = APIRouter(prefix="/lessons", tags=["lessons"])
+
+
+def _localized_steps(lesson: dict) -> list[dict]:
+    """I passi con i testi nella lingua della richiesta.
+
+    Costruisce COPIE: la cache delle lezioni (``all_lessons``) resta italiana
+    e la stessa lezione può essere servita in lingue diverse a client diversi.
+    """
+    steps = []
+    for s in lesson["steps"]:
+        task = s.get("task")
+        if task:
+            task = {**task, "prompt": _(task["prompt"]), "success": _(task["success"])}
+        steps.append({**s, "text": _(s["text"]), "task": task})
+    return steps
 
 
 class ProgressIn(BaseModel):
@@ -54,7 +70,7 @@ def list_lessons(
                 "code": lesson["code"],
                 "game_code": lesson["game_code"],
                 "game_name": get_game(lesson["game_code"]).name,
-                "title": lesson["title"],
+                "title": _(lesson["title"]),
                 "order": lesson["order"],
                 "steps_count": len(lesson["steps"]),
                 "progress": ({"last_step": p.last_step, "completed": p.completed} if p else None),
@@ -72,20 +88,20 @@ def get_lesson(
     """La lezione completa: passi, posizioni, evidenziazioni e mosse richieste."""
     lesson = lessons.get_lesson(code)
     if lesson is None:
-        raise HTTPException(status_code=404, detail="Lezione non trovata")
+        raise HTTPException(status_code=404, detail=_("Lezione non trovata"))
     game = get_game(lesson["game_code"])
     p = _progress_map(db, x_auth_token).get(code)
     return {
         "code": lesson["code"],
         "game_code": lesson["game_code"],
         "game_name": game.name,
-        "title": lesson["title"],
+        "title": _(lesson["title"]),
         # Dimensioni e tipo della griglia: il client disegna la scacchiera
         # con lo stesso stile della pagina di gioco (case, pezzi pieni, temi).
         "rows": game.rows,
         "cols": game.cols,
         "move_type": game.move_type,
-        "steps": lesson["steps"],
+        "steps": _localized_steps(lesson),
         "progress": {"last_step": p.last_step, "completed": p.completed} if p else None,
     }
 
@@ -104,7 +120,7 @@ def save_progress(
     """
     lesson = lessons.get_lesson(code)
     if lesson is None:
-        raise HTTPException(status_code=404, detail="Lezione non trovata")
+        raise HTTPException(status_code=404, detail=_("Lezione non trovata"))
     user = session_from_token(db, x_auth_token).user
     step = max(0, min(int(payload.step), len(lesson["steps"]) - 1))
     row = db.query(models.LessonProgress).filter_by(user_id=user.id, lesson_code=code).first()

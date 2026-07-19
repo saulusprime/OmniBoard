@@ -51,6 +51,8 @@
   const LESSON = JSON.parse(document.getElementById("lesson-data").textContent);
   const PROGRESS_URL = "{% url 'learn_progress_json' lesson.code %}";
   const TTS_BASE = "{{ backend_url }}/tts";
+  {% get_current_language as LANGUAGE_CODE %}
+  const TTS_LANG = "{{ LANGUAGE_CODE|slice:':2' }}";  // la voce segue la lingua dei testi
   const CSRF = "{{ csrf_token }}";
   const rows = LESSON.rows, cols = LESSON.cols, moveType = LESSON.move_type;
   const cellPx = fitCellPx(
@@ -204,7 +206,7 @@
   // ----- Voce sintetica: il passo viene letto dal servizio /tts del backend -----
   function speak() {
     const audio = document.getElementById("voice");
-    audio.src = TTS_BASE + "?text=" + encodeURIComponent(LESSON.steps[cur].text) + "&lang=it";
+    audio.src = TTS_BASE + "?text=" + encodeURIComponent(LESSON.steps[cur].text) + "&lang=" + TTS_LANG;
     audio.play().catch(() => { /* TTS non disponibile: la lezione resta testuale */ });
   }
   document.getElementById("speak").addEventListener("click", speak);

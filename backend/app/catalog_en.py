@@ -5,7 +5,12 @@ Un dizionario piatto: chiave = stringa sorgente italiana, valore = inglese.
 Copre i messaggi d'errore dei router, i motivi/consiglio del tilt, le
 debolezze e i bias del profilo, le etichette dei parametri admin e i nomi
 delle aperture. Le stringhe non presenti passano invariate (fallback).
+
+I CONTENUTI delle lezioni hanno un catalogo dedicato accanto ai contenuti
+stessi (``lessons/catalog_en.py``), fuso qui in fondo nell'unico dizionario.
 """
+
+from .lessons.catalog_en import LESSONS_EN
 
 CATALOG_EN = {
     ". Riprova tra ~{min} minuti — intanto: ": ". Try again in ~{min} minutes — meanwhile: ",
@@ -278,4 +283,8 @@ CATALOG_EN = {
     "Partita giocata fino in fondo": "Game played to the end",
     "Puzzle risolto": "Puzzle solved",
     "Lezione completata": "Lesson completed",
+    # Tutorial (istruzione guidata)
+    "Lezione non trovata": "Lesson not found",
 }
+
+CATALOG_EN.update(LESSONS_EN)
