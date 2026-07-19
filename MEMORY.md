@@ -863,6 +863,13 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   finalize. Rifinitura: fitCellPx della pagina spettatore allineato a quella
   di gioco (il goban sbordava). 332 verdi. Prossimo naturale: pronostici COI
   GETTONI (posta/verdetto/classifica).
+- **2026-07-11 (sera)** — **CHECKPOINT anti-compattazione**: fotografia
+  completa in HANDOFF (voce autosufficiente in testa); README riallineato
+  (332 test, moduli wallet/watchparty nell'albero, roadmap con gettoni e
+  heatmap); questioni aperte riviste (sotto); memoria persistente riscritta.
+  Giornata monstre: motore C4 bitboard → grafica+accessibilità di tutti i
+  giochi → Othello+Gomoku → riorganizzazione frontend in 5 fasi + rifiniture
+  → gettoni → heatmap pronostici. Da 289 a 332 test.
 
 ## Questioni aperte
 
@@ -873,7 +880,14 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   Redis/RQ (interfaccia già pronta in `jobqueue.py`), TOKENS_KEY fissa in .env.
 - **WebSocket** al posto del polling — ormai il candidato più maturo: oggi il
   polling regge mosse a distanza, presenza, campanella delle notifiche, dirette
-  degli spettatori e tabelloni dei tornei (tanti giri per la stessa verità).
+  degli spettatori, heatmap dei pronostici e tabelloni dei tornei (tanti giri
+  per la stessa verità).
+- **Pronostici coi gettoni**: heatmap e wallet sono pronti — manca il
+  collegamento (posta, verdetto alla mossa, classifica dei pronosticatori);
+  è il seguito a corto raggio più naturale.
+- **Watch party multi-processo**: i pronostici vivono in memoria di processo
+  (scelta deliberata, sono effimeri) — a più worker servirebbe Redis o simile,
+  stessa sorte del circuit breaker.
 - **i18n (contenuti)**: traduzione editoriale delle lezioni; lingue oltre l'inglese.
 - **Rate limiting + CORS espliciti** e **audit log** delle operazioni super admin.
 - **Retro-etichettatura 💎**: le partite analizzate PRIMA del badge sacrificio non
