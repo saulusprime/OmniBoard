@@ -2572,3 +2572,11 @@ msgstr "When"
 #: web/templates/web/user_detail.html
 msgid "Ancora nessun movimento: gioca una partita!"
 msgstr "No transactions yet: play a game!"
+
+#: web/templates/web/watch.html
+msgid "Clicca una casella per pronosticare dove finirà la prossima mossa."
+msgstr "Click a square to predict where the next move will land."
+
+#: web/templates/web/watch.html
+msgid "pronostici"
+msgstr "predictions"

@@ -65,6 +65,12 @@ con le notifiche (il pannello le segna lette; «Tutte le notifiche» apre la pag
 dedicata). Per chi è loggato la **home è il cruscotto**: riprendi le partite, sfide in
 attesa, dirette in corso e notifiche non lette.
 
+Nelle **dirette** (area Guarda) gli spettatori possono **pronosticare la prossima
+mossa** cliccando la casella dove pensano che finirà: i pronostici di tutti diventano
+una **mappa di calore** sul tavoliere, aggiornata in tempo reale. Un voto a testa per
+posizione (rivotare lo sposta), tutto si azzera quando la mossa vera arriva; sono
+pronostici per divertimento — niente premi, mai denaro.
+
 La pagina **Community** mostra chi è **connesso adesso** (badge verde di presenza) con il
 **punteggio complessivo** su tutti i giochi (badge punti — la stessa coppia di badge
 compare in alto, accanto al proprio alias). La presenza si rinnova da sola mentre si

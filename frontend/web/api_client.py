@@ -206,6 +206,17 @@ def community_recent():
     return _request("GET", "/community/recent")
 
 
+def watch_votes(session_id):
+    """Heatmap dei pronostici degli spettatori sulla posizione corrente."""
+    return _request("GET", f"/community/watch/{session_id}/votes")
+
+
+def watch_vote(session_id, payload, token=None):
+    """Pronostico di uno spettatore (anonimi ammessi con chiave del client)."""
+    headers = {"X-Auth-Token": token} if token else {}
+    return _request("POST", f"/community/watch/{session_id}/vote", json=payload, headers=headers)
+
+
 def my_games(token: str):
     """Partite in corso del giocatore autenticato (sfide ricevute comprese)."""
     return _request("GET", "/community/my-games", headers={"X-Auth-Token": token})

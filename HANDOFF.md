@@ -3,6 +3,47 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-07-11 — Watch party: heatmap dei pronostici degli spettatori
+
+**Richiesta (utente):** «procediamo con la Heatmap dei clic» (dal TODO watch
+party: heatmap + sondaggio «che mossa giocherà?» — il clic È il sondaggio).
+
+**Backend** (`app/watchparty.py` + endpoint in routers/community.py): stato
+IN MEMORIA per processo (come il circuit breaker: i pronostici sono effimeri
+per natura), `{session: {ply, votes{voter: cell}, updated}}` con tetto 200
+sessioni e drop in finalize_session. Un voto per spettatore per POSIZIONE
+(rivotare lo sposta); voter = id utente col token, altrimenti chiave anonima
+del client (localStorage). STALENESS contro la ply CORRENTE della sessione
+(dal DB), non quella memorizzata — il primo giro confrontava col dato in
+memoria e accettava voti su posizioni già superate: scovato dai test.
+`GET /community/watch/{sid}/votes` (aggregati {ply,total,cells}) e
+`POST .../vote` (400 su cella fuori tavoliere o anonimo senza chiave; 404
+sulle hotseat — stessa platea `_WATCHABLE` delle dirette).
+
+**Frontend** (watch.html + proxy pronostici.json/pronostico.json): in
+DIRETTA le celle diventano cliccabili col banner «Clicca una casella per
+pronosticare dove finirà la prossima mossa · N pronostici»; i voti di tutti
+si dipingono come VELO DI CALORE proporzionale (alpha scalata sul massimo,
+conteggio nel title), il proprio pronostico ha il bordo accent; il polling
+dei voti viaggia con quello dello stato (3 s), alla mossa vera il server
+azzera e il client ridipinge. A partita finita il party si spegne e resta
+la moviola. Lessico: «pronostici», mai «scommesse»; niente premi (il
+collegamento coi GETTONI è la voce futura «Pronostici in valuta virtuale»).
+
+**Rifinitura scovata dal vivo**: nella pagina spettatore il goban 15×15
+SBORDAVA — fitCellPx di watch.html non conosceva l'extra dei giochi larghi
+(orfano della Fase «coordinate»): ora usa la stessa formula della pagina di
+gioco (base 34px oltre le 8 colonne + extra 76/44).
+
+**Verifica dal vivo**: partita a distanza STABILE fra due utenti demo
+(wp_demo1/2, non muove nessuno) + 8 voti via API su e4/d4/c4 → screenshot
+con i tre veli d'intensità decrescente e «· 8 pronostici». **Test**: +2
+backend (aggregazione, voto spostato, voto col token, azzeramento alla
+mossa, voto stantio scartato; validazioni e hotseat 404) e watch page con
+gli agganci. **332 verdi**, ruff pulito. 2 stringhe nuove nel .po/.mo.
+MANUAL: paragrafo nelle aree. TODO: heatmap → ASIS (resta «Pronostici in
+valuta virtuale» per posta/verdetto/classifica coi gettoni).
+
 ## 2026-07-11 — Valuta virtuale: i «gettoni» 🪙 (primitiva della Visione)
 
 **Richiesta (utente):** «procediamo con la Valuta virtuale» (dal TODO:

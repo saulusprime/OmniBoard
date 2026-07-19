@@ -11,6 +11,9 @@
     <span class="muted" style="font-size:.7em;">{% trans 'modalità spettatore' %}</span></h1>
   <p id="w-players" style="font-weight:600; margin:4px 0;"></p>
   <p id="w-status" class="muted" aria-live="polite" style="min-height:22px;"></p>
+  <p id="w-party" class="muted" style="display:none; margin:4px 0;">
+    🗳 {% trans "Clicca una casella per pronosticare dove finirà la prossima mossa." %}
+    <span id="w-votes"></span></p>
   <div id="boardarea"></div>
 
   <div id="w-replay" style="display:none; margin-top:12px;">
@@ -44,8 +47,11 @@
   const STATE_URL = "{% url 'play_state_json' session_id %}";
   const REPLAY_URL = "{% url 'play_replay_json' session_id %}";
   const rows = S.rows, cols = S.cols, moveType = S.move_type;
-  const cellPx = fitCellPx(46, cols, moveType === "chess" || moveType === "draughts",
-                           moveType === "column" ? 44 : 0);
+  const FIT_EXTRA = moveType === "column" ? 44
+    : ["othello", "gomoku", "tictactoe"].includes(S.game_code) ? 76 : 0;
+  const cellPx = fitCellPx(
+    ["othello", "gomoku", "tictactoe"].includes(S.game_code) && cols > 8 ? 34 : 46,
+    cols, moveType === "chess" || moveType === "draughts", FIT_EXTRA);
   const PIECE_SCALE = 0.83;
   const WHITE_SET = "X⛀⛁♔♕♖♗♘♙○", BLACK_SET = "O⛂⛃♚♛♜♝♞♟●";
   const SOLID_GLYPH = { "♔": "♚", "♕": "♛", "♖": "♜", "♗": "♝", "♘": "♞", "♙": "♟",
@@ -113,6 +119,81 @@
       if (pc) el.classList.add(pc);
       if (marks && marks.has(i)) el.classList.add("lastmv");
     }
+    paintHeat();
+  }
+
+  // ----- Watch party: heatmap dei pronostici («la mossa finirà qui») -----
+  // Un clic sulla casella registra il pronostico dello spettatore; i voti di
+  // tutti diventano un velo di calore proporzionale. Solo in DIRETTA.
+  const VOTES_URL = "{% url 'watch_votes_json' session_id %}";
+  const VOTE_URL = "{% url 'watch_vote_json' session_id %}";
+  let heat = { total: 0, cells: {} };
+  let myPick = null;
+  let curPly = (S.moves || []).length;
+  const voterKey = (() => {
+    try {
+      let k = localStorage.getItem("ob-voter");
+      if (!k) {
+        k = Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem("ob-voter", k);
+      }
+      return k;
+    } catch (e) { return "volatile-" + Math.random().toString(36).slice(2); }
+  })();
+
+  function paintHeat() {
+    const max = Math.max(1, ...Object.values(heat.cells).map(Number));
+    for (let i = 0; i < rows * cols; i++) {
+      const el = grid.children[i];
+      const n = heat.cells[i] || 0;
+      el.style.boxShadow = n
+        ? `inset 0 0 0 999px rgba(217,164,65,${(0.12 + 0.38 * n / max).toFixed(2)})`
+        : "";
+      el.style.outline = i === myPick ? "2px solid var(--accent)" : "";
+      el.title = n ? n + " 🗳" : "";
+    }
+    const label = document.getElementById("w-votes");
+    if (label) {
+      label.textContent = heat.total
+        ? "· " + heat.total + " {% trans 'pronostici' %}" : "";
+    }
+  }
+
+  async function refreshVotes() {
+    try {
+      const res = await fetch(VOTES_URL);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.ply !== curPly) myPick = null;  // posizione nuova: si rivota
+      heat = { total: data.total || 0, cells: data.cells || {} };
+      paintHeat();
+    } catch (e) { /* backend giù: il velo resta com'è */ }
+  }
+
+  async function castVote(i) {
+    myPick = i;
+    paintHeat();
+    try {
+      const res = await fetch(VOTE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+        body: JSON.stringify({ cell: i, ply: curPly, voter: voterKey }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        heat = { total: data.total || 0, cells: data.cells || {} };
+        paintHeat();
+      }
+    } catch (e) { /* si riproverà al prossimo clic */ }
+  }
+
+  function enableParty() {
+    document.getElementById("w-party").style.display = "";
+    for (let i = 0; i < rows * cols; i++) {
+      const el = grid.children[i];
+      el.style.cursor = "pointer";
+      el.addEventListener("click", () => castVote(i));
+    }
   }
 
   // Evidenzia l'ultima mossa (solo scacchi: l'id UCI si mappa sulle case).
@@ -153,11 +234,16 @@
       const res = await fetch(STATE_URL);
       if (!res.ok) return;
       const view = await res.json();
+      curPly = (view.moves || []).length;
       const last = (view.moves || [])[view.moves.length - 1];
       render(view.board, last ? chessSquares(last.id) : null);
       document.getElementById("w-status").textContent = statusText(view);
+      refreshVotes();  // heatmap dei pronostici, stessa cadenza dello stato
       if (view.status === "finished") {
         clearInterval(liveTimer);
+        heat = { total: 0, cells: {} };
+        myPick = null;
+        document.getElementById("w-party").style.display = "none";
         setupReplay();
       }
     } catch (e) { /* backend momentaneamente giù: si riprova al giro dopo */ }
@@ -214,6 +300,8 @@
   if (S.status === "in_progress") {
     refresh();
     liveTimer = setInterval(refresh, 3000);
+    enableParty();
+    refreshVotes();
   } else {
     setupReplay();
   }

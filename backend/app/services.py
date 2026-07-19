@@ -98,6 +98,11 @@ def finalize_session(db: Session, session: "models.GameSession") -> None:
 
     wallet.award_for_session(db, session)
 
+    # Watch party: i pronostici degli spettatori muoiono con la partita.
+    from . import watchparty
+
+    watchparty.drop(session.id)
+
     # La partita conclusa cambia il profilo scacchistico dei giocatori umani:
     # si butta la voce in cache (ricostruita al prossimo uso).
     if session.game and session.game.code == "chess":

@@ -75,11 +75,10 @@
 
 ### 4. Watch party e spettatori
 
-- [ ] **Heatmap dei clic** degli spettatori + sondaggio «che mossa giocherà?» (riusa
-  polling + presenza per partita).
 - [ ] **Pronostici in valuta virtuale** («patta», «sacrificio entro 10 mosse», …) con
-  classifica dei pronosticatori. ⚠️ Lessico: «pronostici», MAI «scommesse»; nessuna
-  conversione in denaro.
+  classifica dei pronosticatori — la heatmap dei clic è FATTA (v. ASIS.md) e i
+  gettoni sono pronti: manca il collegamento (posta, verdetto, classifica).
+  ⚠️ Lessico: «pronostici», MAI «scommesse»; nessuna conversione in denaro.
 
 ### 5. User-Generated Content ⭐ (miglior rapporto valore/sforzo dopo il coach)
 
