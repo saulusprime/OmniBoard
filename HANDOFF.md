@@ -59,7 +59,10 @@ noreply è sempre riconosciuto): l'account compare fra i contributori
 accanto a Paolo Pierno senza riscrivere nulla. Nota: «Paolo Pierno»
 entrerà nel riquadro Contributors solo quando la sua email sarà registrata
 su un account GitHub; se la si aggiunge allo stesso `saulusprime`, le due
-identità confluiscono in un unico contributore.
+identità confluiscono in un unico contributore. Inoltre (modifica
+dell'utente): la sezione «Roadmap e TODO» del README — ormai tutta di voci
+`[x]` — è migrata in coda ad ASIS.md; riallineato l'indice del README che
+puntava alla sezione rimossa.
 
 ## 2026-07-19 — i18n dei contenuti: le lezioni parlano (anche) inglese
 

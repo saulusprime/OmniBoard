@@ -23,7 +23,6 @@
 - [Dati raccolti](#dati-raccolti)
 - [Requisiti](#requisiti)
 - [Avvio rapido](#avvio-rapido)
-- [Roadmap e TODO](#roadmap-e-todo)
 - [Stato del progetto](#stato-del-progetto)
 - [Documentazione correlata](#documentazione-correlata)
 - [Come contribuire](#come-contribuire)
@@ -280,39 +279,6 @@ all'ultima revisione, e popola il catalogo dei giochi. Un cambio di schema non r
 più di ricreare il database: `make migration m="descrizione"` genera la revisione dai
 modelli e il riavvio la applica (oppure `make migrate`). Il frontend non usa database.
 Configurazione tramite `.env` (vedi `.env.example`).
-
-## Roadmap e TODO
-
-- [x] Base documentale del progetto (README, HANDOFF, MEMORY, MANUAL, LICENCE)
-- [x] Configurazione GitHub (CI, template issue/PR, dependabot, contributing, code of conduct, security)
-- [x] Scaffold backend FastAPI (`backend/`) + schema database (SQLAlchemy/SQLite)
-- [x] Scaffold frontend Django (`frontend/`) — interfaccia web e menu
-- [x] Anagrafica giocatori (nome, cognome, alias, email, nazionalità, regione)
-- [x] Gruppi: fondazione tramite proposta + voto (soglia ≥ 2)
-- [x] Punteggi per gioco + classifica universale + classifiche per gioco (globale/nazionale/regionale)
-- [x] Interfaccia **super admin**: parametri di programma configurabili (punteggi, regole, IA, limiti)
-- [x] Scheletro del motore astratto (`engine/common/game.py`)
-- [x] Primo gioco giocabile: **Tris** (motore + sessioni di gioco persistite)
-- [x] Avversario **IA (Qwen)** con fallback locale (minimax completo per Tris, a profondità + euristica per Forza 4)
-- [x] Secondo gioco giocabile: **Forza 4** (scacchiera generica nel frontend)
-- [x] Terzo gioco giocabile: **Dama italiana** (catture obbligatorie, dame, mosse a percorso)
-- [x] Quarto gioco giocabile: **Scacchi** completi + **libro di aperture** (riconoscimento + IA)
-- [x] **Login provider IA** (Qwen, Claude, OpenAI): token configurabili da super admin, salvati lato server
-- [x] **IA scacchi potenziata**: motore alpha-beta dedicato (quiescence, TT) + **modello dell'avversario** (schemi/debolezze dallo storico)
-- [x] **Mosse IA in background**: risposta immediata, l'IA pensa in un worker e il client si aggiorna via polling
-- [x] **Tre tipi di avversario** (umano / Stockfish UCI configurabile / IA via API) con codice separato per tipo (`opponents/`)
-- [x] Autenticazione/login dei giocatori (registrazione approvata dal super admin, sessioni a token)
-- [x] Regole di gestione dei gruppi (ruoli founder/admin/member, inviti con accettazione, espulsioni, classifica interna) + tornei fra giocatori e sfide gruppo-vs-gruppo
-- [x] Migrazioni del database (Alembic); PostgreSQL in produzione resta da provare
-- [x] Gioco a distanza fra client diversi (polling strutturato; mosse autorizzate col token del giocatore) + area Community con presenza online e badge punti
-- [x] Affinamento regole dama (cascata di priorità FID completa fra catture, ripetizione) + motore dedicato
-- [x] Scacchi: patta per ripetizione e posizione morta (audit FIDE nel MANUAL), libro esteso (testo/PGN/Polyglot), apertura-bersaglio, analisi post-partita, sparring Elo, hint, badge di qualità + commentatore LLM
-- [x] Sistema di rating **Elo** per gioco e stagione (K adattivo FIDE), accanto ai punti attività
-- [x] **Backgammon**: primo gioco stocastico — nodi del caso realizzati (il server tira i dadi)
-- [x] **Forza 4**: motore dedicato bitboard (negamax + TT + approfondimento iterativo, tattica esatta a ogni nodo)
-- [x] Sesto e settimo gioco giocabili: **Othello** (giri e passo automatico, tavoliere verde) e **Gomoku** (goban 15×15, motore dedicato sui candidati vicini)
-- [x] **Riorganizzazione del frontend ad aree** sul modello chess.com (navbar a 5 aree con menu a discesa, hub Gioca e Guarda, Community ristretta con pagina Notifiche, home-cruscotto per il loggato, ricerca giocatore e breadcrumb)
-- [x] **Valuta virtuale «gettoni»** (registro idempotente, premi per partite/puzzle/lezioni, mai denaro) e **heatmap dei pronostici** degli spettatori sulle dirette (clic = «la mossa finirà qui»)
 
 ## Stato del progetto
 
