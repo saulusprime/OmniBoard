@@ -49,6 +49,18 @@ storiche restano come storia. Nessun codice toccato, niente test da
 rigirare (335 invariati); albero pulito a parte `OmniBoard.code-workspace`
 (file dell'utente, volutamente non tracciato).
 
+**Addendum (stessa giornata):** verificato via API che la lista Contributors
+era VUOTA — GitHub abbina l'email dei commit alle email registrate sugli
+account, e `lymphalab@outlook.it` non è registrata su `saulusprime` (passi
+da fare nelle impostazioni account: aggiungere l'email + display name).
+Aggiunto questo commit con autore
+`saulusprime <51880307+saulusprime@users.noreply.github.com>` (l'indirizzo
+noreply è sempre riconosciuto): l'account compare fra i contributori
+accanto a Paolo Pierno senza riscrivere nulla. Nota: «Paolo Pierno»
+entrerà nel riquadro Contributors solo quando la sua email sarà registrata
+su un account GitHub; se la si aggiunge allo stesso `saulusprime`, le due
+identità confluiscono in un unico contributore.
+
 ## 2026-07-19 — i18n dei contenuti: le lezioni parlano (anche) inglese
 
 **Richiesta (utente):** «procediamo con i18n (contenuti)» — la voce del TODO:
