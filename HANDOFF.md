@@ -3,6 +3,52 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-08-06 — Storia riattribuita: tutti i commit a nome «Paolo Pierno»
+
+**Richiesta (utente):** «modifica tutta la repo su github in modo che risulti
+come contributore Paolo Pierno»; poi aggiornamento dei doc ad oggi con commit
+e push.
+
+**Cosa è stato fatto:**
+
+- **Riscrittura completa della storia** (114 commit, un'unica identità di
+  partenza «Saulus»): autore E committer rinominati in **Paolo Pierno** con
+  `git filter-branch --env-filter` (`gh` e `git-filter-repo` non installati
+  sulla macchina); **email invariata** `lymphalab@outlook.it` — è l'email che
+  collega i commit all'account GitHub nel grafo dei contributori. Force push
+  con `--force-with-lease` su main; `git config user.name` locale aggiornato
+  così i commit futuri nascono già col nome giusto.
+- **Hash tutti rigenerati** — mappa dei riferimenti citati nei doc:
+  `1e7990e`→`af06dcc` (i18n lezioni), `57030d0`→`2f802fd` (checkpoint
+  serale), `dec2394`→`80aeea4` (chiusura 2026-07-19). Le citazioni nelle
+  voci storiche di HANDOFF restano come registro (la voce 2026-07-19 è
+  annotata); il pin `9f3e0d8` del submodule KittenTTS è di una repo ESTERNA
+  e resta valido.
+- **Backup**: la storia vecchia sopravvive in locale nel branch
+  `backup-pre-rename` e in `refs/original/` — da eliminare quando la verifica
+  su GitHub soddisfa.
+- **LICENCE**: sciolto il segnaposto del titolare del copyright
+  («OmniBoard Project Contributors» → **Paolo Pierno**, nota-segnaposto
+  rimossa).
+- **Doc ad oggi**: «Ultimo aggiornamento» 2026-08-06 su README/MANUAL/MEMORY,
+  traguardo nuovo in MEMORY, questa voce in HANDOFF.
+
+**Conseguenze da tenere d'occhio:**
+
+- le **7 PR Dependabot** poggiano sulla storia vecchia: risultano in
+  conflitto finché Dependabot non rifà il rebase (automatico; si può forzare
+  commentando `@dependabot rebase` sulla PR);
+- la CI rigira su main (contenuto identico, hash nuovo);
+- il nome mostrato sui COMMIT è «Paolo Pierno»; perché anche il profilo
+  GitHub lo mostri, il display name si cambia nelle impostazioni
+  dell'account (fuori dal controllo della repo).
+
+**Nota d'ambiente:** la macchina di sviluppo osservata oggi è Linux
+(`/home/paolo/Sviluppo/OmniBoard`); i riferimenti macOS/CLT delle voci
+storiche restano come storia. Nessun codice toccato, niente test da
+rigirare (335 invariati); albero pulito a parte `OmniBoard.code-workspace`
+(file dell'utente, volutamente non tracciato).
+
 ## 2026-07-19 — i18n dei contenuti: le lezioni parlano (anche) inglese
 
 **Richiesta (utente):** «procediamo con i18n (contenuti)» — la voce del TODO:
@@ -43,7 +89,8 @@ mancavano le traduzioni).
 nulla: `api_client` inoltrava già Accept-Language su ogni chiamata.
 
 **Test:** 335 verdi (332 + 2 backend + 1 frontend). Ruff pulito.
-Commit `1e7990e`, push, CI verde (run 29678847757).
+Commit `1e7990e` (ora `af06dcc` dopo la riattribuzione del 2026-08-06),
+push, CI verde (run 29678847757).
 
 **Chiusura sessione:** albero pulito (resta solo `OmniBoard.code-workspace`
 non tracciato, file dell'utente). Su GitHub le PR Dependabot sono salite da 2

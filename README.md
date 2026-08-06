@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![Status](https://img.shields.io/badge/stato-in%20sviluppo%20attivo-brightgreen.svg)](#stato-del-progetto)
 
-> **Ultimo aggiornamento:** 2026-07-19 — *Sette giochi giocabili (con Othello e Gomoku); scacchi FIDE-completi con analisi/coach/puzzle; motori dedicati per scacchi, dama, Forza 4 e Gomoku; navigazione ad aree sul modello chess.com con home-cruscotto; gettoni (valuta virtuale) e heatmap dei pronostici; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile, lezioni comprese; 335 test.*
+> **Ultimo aggiornamento:** 2026-08-06 — *Sette giochi giocabili (con Othello e Gomoku); scacchi FIDE-completi con analisi/coach/puzzle; motori dedicati per scacchi, dama, Forza 4 e Gomoku; navigazione ad aree sul modello chess.com con home-cruscotto; gettoni (valuta virtuale) e heatmap dei pronostici; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile, lezioni comprese; 335 test.*
 
 ---
 

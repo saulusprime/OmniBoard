@@ -2,10 +2,6 @@
 
 Il progetto **OmniBoard** è distribuito con licenza **MIT**.
 
-> Nota: il nome del titolare del copyright qui sotto è un segnaposto
-> (`OmniBoard Project Contributors`). Sostituiscilo con il tuo nome o quello della tua
-> organizzazione prima della pubblicazione, se lo desideri.
-
 ---
 
 ## MIT License
@@ -13,7 +9,7 @@ Il progetto **OmniBoard** è distribuito con licenza **MIT**.
 ```text
 MIT License
 
-Copyright (c) 2026 OmniBoard Project Contributors
+Copyright (c) 2026 Paolo Pierno
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

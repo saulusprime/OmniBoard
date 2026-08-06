@@ -5,7 +5,7 @@
 > (che è il registro cronologico delle sessioni). Le decisioni rilevanti sono annotate come
 > *ADR* (Architecture Decision Record).
 >
-> **Ultimo aggiornamento:** 2026-07-19
+> **Ultimo aggiornamento:** 2026-08-06
 
 ---
 
@@ -879,10 +879,19 @@ maggiore, cubo del raddoppio, gammon/backgammon.
   la lingua corrente e il TTS sceglie Piper (it) o Kitten (en). Guardiano:
   test di copertura totale (titolo/passo/consegna/feedback senza traduzione =
   suite rossa). 335 test.
+- **2026-08-06** — **Storia riattribuita a Paolo Pierno**: i 114 commit
+  riscritti con `git filter-branch` (autore E committer da «Saulus» a
+  «Paolo Pierno»; email `lymphalab@outlook.it` invariata — è lei che collega
+  i commit all'account GitHub) e force push su main. Hash tutti rigenerati
+  (`1e7990e`→`af06dcc`, `dec2394`→`80aeea4`); il pin `9f3e0d8` del submodule
+  KittenTTS è esterno e resta valido. LICENCE: sciolto il segnaposto del
+  titolare («OmniBoard Project Contributors» → Paolo Pierno). Backup locale
+  della storia vecchia in `backup-pre-rename` + `refs/original/`. Nessun
+  codice toccato: 335 test invariati.
 
 ## Questioni aperte
 
-> Aggiornate al 2026-07-11 (le storiche — auth, notazione, ORM/Alembic, rendering
+> Aggiornate al 2026-08-06 (le storiche — auth, notazione, ORM/Alembic, rendering
 > scacchiera — sono tutte RISOLTE: v. milestone sopra).
 
 - **Multi-processo/produzione**: SQLite→Postgres, coda mosse IA su SKIP LOCKED o
