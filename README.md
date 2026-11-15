@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
 [![Status](https://img.shields.io/badge/stato-in%20sviluppo%20attivo-brightgreen.svg)](#stato-del-progetto)
 
-> **Ultimo aggiornamento:** 2026-08-06 — *Sette giochi giocabili (con Othello e Gomoku); scacchi FIDE-completi con analisi/coach/puzzle; motori dedicati per scacchi, dama, Forza 4 e Gomoku; navigazione ad aree sul modello chess.com con home-cruscotto; gettoni (valuta virtuale) e heatmap dei pronostici; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile, lezioni comprese; 335 test.*
+> **Ultimo aggiornamento:** 2026-11-15 — *Sette giochi giocabili (con Othello e Gomoku); scacchi FIDE-completi con analisi/coach/puzzle; motori dedicati per scacchi, dama, Forza 4 e Gomoku; navigazione ad aree sul modello chess.com con home-cruscotto; gettoni (valuta virtuale) e heatmap dei pronostici; rating Elo con stagioni; Arena IA con tornei; interfaccia bilingue IT/EN e accessibile, lezioni comprese; 335 test.*
 
 ---
 
@@ -105,33 +105,34 @@ La piattaforma è organizzata in tre livelli logici più il database:
 
 ```text
         ┌──────────────────────────────────────────────────────────────┐
-        │                          BROWSER                               │
-        │           UI scacchiera · lobby · profilo · statistiche        │
-        └───────────────▲───────────────────────────────┬──────────────┘
-                        │ HTML / static / JS             │ WebSocket (mosse live)
-                        │                                 │
-        ┌───────────────┴─────────────────┐              │
-        │   FRONTEND — Django              │              │
-        │   • template e viste            │              │
-        │   • rendering scacchiera        │              │
-        │   • sessione utente / UI login  │              │
-        └───────────────┬─────────────────┘              │
-                        │ REST (HTTP) + WebSocket         │
-                        ▼                                 ▼
-        ┌──────────────────────────────────────────────────────────────┐
-        │   BACKEND — FastAPI                                            │
-        │   • API REST + WebSocket                                       │
-        │   • orchestrazione partite e validazione mosse                 │
-        │   • anagrafica giocatori, statistiche, ranking                 │
-        │            │                              │                    │
-        │            ▼                              ▼                    │
-        │   ┌─────────────────┐          ┌────────────────────────┐     │
-        │   │  GAME ENGINE     │          │   DATABASE             │     │
-        │   │  (pacchetto      │          │   players · matches ·  │     │
-        │   │   Python puro)   │          │   moves · statistics   │     │
-        │   │  scacchi, dama,  │          │   (PostgreSQL / SQLite)│     │
-        │   │  tris, forza4 …  │          └────────────────────────┘     │
-        │   └─────────────────┘                                         │
+        │                           BROWSER                            │
+        │        UI tavolieri · lobby · profilo · statistiche          │
+        └───────────────────────────────┬──────────────────────────────┘
+                                        │ HTML / static / JS
+                                        │ JSON via polling (fetch periodico)
+                                        ▼
+        ┌───────────────────────────────┴──────────────────────────────┐
+        │   FRONTEND — Django                                          │
+        │   • template e viste · rendering dei tavolieri               │
+        │   • sessione utente / UI login                               │
+        │   • endpoint JSON che inoltrano al backend (api_client)      │
+        └───────────────────────────────┬──────────────────────────────┘
+                                        │ REST (HTTP)
+                                        ▼
+        ┌───────────────────────────────┴──────────────────────────────┐
+        │   BACKEND — FastAPI                                          │
+        │   • API REST (unica fonte di verità dei dati)                │
+        │   • orchestrazione partite e validazione mosse               │
+        │   • anagrafica giocatori, statistiche, ranking               │
+        │            │                              │                  │
+        │            ▼                              ▼                  │
+        │   ┌─────────────────┐          ┌────────────────────────┐    │
+        │   │  GAME ENGINE    │          │   DATABASE             │    │
+        │   │  (pacchetto     │          │   players · matches ·  │    │
+        │   │   Python puro)  │          │   moves · statistics   │    │
+        │   │  scacchi, dama, │          │   (SQLite / PostgreSQL)│    │
+        │   │  tris, forza4 … │          └────────────────────────┘    │
+        │   └─────────────────┘                                        │
         └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -139,16 +140,19 @@ La piattaforma è organizzata in tre livelli logici più il database:
 
 - **Frontend (Django)** — livello di presentazione. Serve le pagine web, disegna la
   scacchiera interattiva, gestisce la sessione utente lato browser e consuma le API del
-  backend. Non possiede i dati di dominio.
+  backend. Non possiede i dati di dominio. Gli aggiornamenti in tempo reale (mosse a
+  distanza, presenza, notifiche, dirette, tornei) arrivano al browser via **polling**
+  su endpoint JSON di Django, che li inoltrano al backend; il passaggio a WebSocket è
+  in [TODO.md](./TODO.md).
 - **Backend (FastAPI)** — interfaccia verso la *backend* e cuore della logica applicativa.
-  Espone API REST e WebSocket, valida le mosse tramite il motore, persiste partite e
+  Espone API REST, valida le mosse tramite il motore, persiste partite e
   statistiche, gestisce l'anagrafica e i ranking. È l'unica fonte di verità dei dati.
 - **Game engine** — pacchetto Python puro, indipendente dai framework, che definisce il
   modello astratto di gioco (stato, mosse, generazione mosse legali, condizioni terminali,
   esito) con supporto opzionale a nodi del caso. I singoli giochi sono implementazioni di
   questo modello. Completamente coperto da unit test, senza dipendenze da I/O.
 - **Database** — conserva anagrafica giocatori, partite, storico mosse e statistiche.
-  PostgreSQL in produzione, SQLite in sviluppo.
+  SQLite in sviluppo; PostgreSQL previsto per la produzione (non ancora provato).
 
 > Le decisioni architetturali e le relative motivazioni sono tracciate in [MEMORY.md](./MEMORY.md).
 
@@ -157,9 +161,9 @@ La piattaforma è organizzata in tre livelli logici più il database:
 | Livello        | Tecnologia                                  |
 |----------------|---------------------------------------------|
 | Frontend/web   | **Django** (template + JS/Canvas per la scacchiera) |
-| API/backend    | **FastAPI** (REST + WebSocket)              |
+| API/backend    | **FastAPI** (REST; tempo reale via polling) |
 | Motore         | **Python** puro (nessuna dipendenza da framework) |
-| Persistenza    | **PostgreSQL** (prod) · **SQLite** (sviluppo) |
+| Persistenza    | **SQLite** (sviluppo) · **PostgreSQL** (produzione, da provare) |
 | Migrazioni     | Alembic (lato backend)                       |
 | Test           | pytest                                        |
 | Qualità codice | ruff (lint + format)                          |
@@ -168,7 +172,7 @@ La piattaforma è organizzata in tre livelli logici più il database:
 ## Struttura del repository
 
 ```text
-Scacchi/
+OmniBoard/
 ├── README.md / HANDOFF.md / MEMORY.md / MANUAL.md / LICENCE.md   # documentazione
 ├── CONTRIBUTING.md / CODE_OF_CONDUCT.md / SECURITY.md            # community
 ├── Makefile             # comandi di sviluppo (install / backend / frontend)
@@ -243,13 +247,13 @@ Il database è pensato per raccogliere, nel rispetto della normativa (vedi nota 
 ## Requisiti
 
 - Python 3.12+
-- PostgreSQL (in produzione) — SQLite è sufficiente per lo sviluppo
+- SQLite per lo sviluppo — PostgreSQL previsto per la produzione (non ancora provato)
 - (Frontend) un browser moderno
 
 ## Avvio rapido
 
 Servono Python 3.12+. Il repository usa un **submodule git**
-(`integrazioni/KittenTTS`: sintesi vocale locale per la futura istruzione guidata):
+(`integrazioni/KittenTTS`: sintesi vocale locale delle lezioni «Impara»):
 clona con `git clone --recursive …` oppure esegui `git submodule update --init`
 dopo il clone (`make install` lo fa da solo). I due servizi (backend e frontend)
 si avviano in due terminali. Con il `Makefile` di comodo:

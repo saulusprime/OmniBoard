@@ -29,6 +29,11 @@
 - [ ] **Rate limiting** sulle API pubbliche; configurazione **CORS** esplicita.
 - [ ] **Audit log** delle operazioni super admin.
 - [ ] **Docker Compose** (backend + frontend + PostgreSQL) per sviluppo e deploy.
+- [ ] **Multi-processo / produzione**: PostgreSQL mai provato (le migrazioni Alembic
+  sono pronte); coda delle mosse IA su Postgres `SKIP LOCKED` o Redis/RQ dietro la
+  stessa interfaccia di `jobqueue.py`; `TOKENS_KEY` fissa nel `.env` (oggi la chiave
+  si deriva da `ADMIN_TOKEN`); circuit breaker e pronostici del watch party vivono in
+  memoria di processo — a più worker servirebbe Redis o simile.
 
 ## Statistiche avanzate del giocatore (idee da chess.com «Insights», 2026-07-07)
 
@@ -42,6 +47,8 @@
 
 - [ ] **Punteggio aggregato per categoria con peso alla recency**: le partite recenti
   contano più delle vecchie (decadimento esponenziale), come i rating.
+- [ ] **Retro-etichettatura 💎**: le partite analizzate PRIMA del badge «sacrificio
+  geniale» non hanno diamanti — serve un re-scan batch dei badge sulle analisi in cache.
 
 ## Visione — coaching, community e creator (idee del 2026-07-06, con valutazione)
 
@@ -68,7 +75,8 @@
 
 - [ ] **Guerre tra clan / mappa dei territori**: punti influenza da vittorie/puzzle,
   territori in tempo reale. ⚠️ Richiede massa critica (con pochi utenti = territori
-  vuoti percepiti come piattaforma morta) + ruoli/inviti nei gruppi (già in backlog).
+  vuoti percepiti come piattaforma morta); ruoli e inviti nei gruppi ci sono già
+  (v. ASIS.md).
   Rimandare finché la community non è viva.
 - [ ] **Mentorship marketplace** (sessioni 15′ con lavagna e voce): il pezzo più
   costoso della lista — WebRTC, scheduling, valuta. Ultimo della fila.
@@ -97,5 +105,6 @@
   ogni N mosse). ⚠️ Dipende da API di terzi (Twitch OAuth/chat) e ha valore solo con
   streamer reali interessati: in fondo alla coda.
 
-**Ordine consigliato:** Editor Puzzle Story → Watch party → Clan wars → OBS
+**Ordine consigliato:** Pronostici coi gettoni (seguito a corto raggio: heatmap e
+wallet sono pronti) → Editor Puzzle Story (miglior valore/sforzo) → Clan wars → OBS
 (Puzzle, AI Coach e Valuta virtuale sono fatti: v. ASIS.md).

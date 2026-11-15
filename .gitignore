@@ -70,3 +70,9 @@ node_modules/
 # Voce sintetica: cache WAV e voci Piper scaricate (rigenerabili)
 backend/tts_cache/
 backend/tts_voices/
+
+# Dump di debug nella radice (risposte curl, pagine salvate, cookie jar):
+# nella radice non vivono .html/.json legittimi — i template stanno in frontend/.
+/*.html
+/*.json
+/cj.txt

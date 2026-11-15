@@ -5,7 +5,7 @@
 > (che è il registro cronologico delle sessioni). Le decisioni rilevanti sono annotate come
 > *ADR* (Architecture Decision Record).
 >
-> **Ultimo aggiornamento:** 2026-08-06
+> **Ultimo aggiornamento:** 2026-11-15
 
 ---
 
@@ -891,7 +891,7 @@ maggiore, cubo del raddoppio, gammon/backgammon.
 
 ## Questioni aperte
 
-> Aggiornate al 2026-08-06 (le storiche — auth, notazione, ORM/Alembic, rendering
+> Aggiornate al 2026-11-15, tutte riportate anche in [TODO.md](./TODO.md) (le storiche — auth, notazione, ORM/Alembic, rendering
 > scacchiera — sono tutte RISOLTE: v. milestone sopra).
 
 - **Multi-processo/produzione**: SQLite→Postgres, coda mosse IA su SKIP LOCKED o

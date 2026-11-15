@@ -3,6 +3,52 @@
 > Registro cronologico di tutte le sessioni e delle operazioni compiute.
 > **La voce più recente è in cima.** Ogni voce descrive contesto, decisioni e modifiche.
 
+## 2026-11-15 — Verifica dello stato e pulizia del repository
+
+**Richiesta (utente):** leggere la documentazione e verificare le attività da
+completare; poi «procedi» sul commit di pulizia proposto.
+
+**Verifica (macchina Linux, Python 3.14.4 nel `.venv`, dipendenze più recenti
+dei minimi: fastapi 0.163.1, alembic 1.20.1, ruff 0.17.5, pytest 9.2.0,
+anthropic 2.8.0):** suite **334 verdi + 1 saltato** (`test_stockfish.py:259`,
+binario stockfish assente in locale) in ~90″; `ruff check` e `ruff format
+--check` puliti. Il backlog di TODO.md confrontato col codice: tutte le voci
+risultano davvero aperte (nessun WebSocket, CORS, rate limit, Docker, né
+presenza spettatori per partita). Il branch `backup-pre-rename` non esiste più
+in locale (pulizia della riattribuzione già fatta).
+
+**Cosa è stato fatto:**
+
+- **File di debug rimossi dalla radice** (versionati dal 2026-06-28):
+  `bad.json` e `mv.json` (pagine HTML 403 salvate da curl), `st.json`
+  (stato di una partita), `play.html`, `c4play.html`, `chplay.html`,
+  `dmplay.html`, `u.html` (pagine renderizzate) e `cj.txt` (cookie jar di
+  curl con un csrftoken di sviluppo). `.gitignore` ora esclude `/*.html`,
+  `/*.json` e `/cj.txt` nella radice.
+- **README corretto**: lo schema architetturale dichiarava un WebSocket e un
+  canale diretto browser→FastAPI che non esistono — il browser fa polling su
+  endpoint JSON di Django, che inoltrano al backend via `api_client`; schema
+  ridisegnato, stack e responsabilità allineati. PostgreSQL presentato come
+  «previsto, non ancora provato»; radice dell'albero `Scacchi/`→`OmniBoard/`;
+  tolto «futura istruzione guidata» sul submodule KittenTTS.
+- **TODO ↔ MEMORY allineati**: entrano in TODO le questioni aperte che
+  vivevano solo in MEMORY (multi-processo/produzione: Postgres, coda IA su
+  SKIP LOCKED/Redis, `TOKENS_KEY`, stato in memoria; retro-etichettatura 💎);
+  corretto il rimando «ruoli/inviti nei gruppi (già in backlog)» (sono fatti);
+  ordine consigliato con i **pronostici coi gettoni** in testa, come in MEMORY.
+- **`.env.example`**: documentata `TOKENS_KEY` (mancava), con il comando per
+  generarla.
+- **CI**: `actions/checkout` v4→**v7** e `actions/setup-python` v5→**v7**
+  (ultime major; verificato sugli `action.yml` dei tag v7 che gli input usati —
+  `submodules`, `python-version`, `cache`, `cache-dependency-path` — esistono
+  ancora). Le PR Dependabot delle actions non sono più sul remoto.
+
+**Restano aperte:** le **5 PR Dependabot pip** (alembic 1.19, anthropic
+0.120.2, fastapi 0.141.1, python-dotenv 1.2.2, ruff 0.16.1), già ribasate sul
+main attuale e a basso rischio — in locale la suite passa con versioni più
+alte; non provata però la combinazione Python 3.12 della CI, né una chiamata
+reale col client anthropic 2.x. In locale mancano `.env` e stockfish.
+
 ## 2026-08-06 — Storia riattribuita: tutti i commit a nome «Paolo Pierno»
 
 **Richiesta (utente):** «modifica tutta la repo su github in modo che risulti
